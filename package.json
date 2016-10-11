@@ -1,0 +1,56 @@
+{
+    "name": "storyteller",
+    "displayName": "storyteller",
+    "description": "Plugin that allows devs to show and tell  others how their code has evolved.",
+    "version": "0.0.1",
+    "publisher": "markm208",
+    "engines": {
+        "vscode": "^1.0.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./extension",
+    "contributes": {
+        "commands": [{
+            "command": "extension.startPlaybackNoComment",
+            "title": "Storyteller: Start Playback"
+        },
+        {
+            "command": "extension.storytellerState",
+            "title": "Storyteller: State"
+        },
+        {
+            "command": "extension.currentActiveDevelopers",
+            "title": "Storyteller: Active Developers"
+        },
+        {
+            "command": "extension.createNewDeveloper",
+            "title": "Storyteller: Create a New Developer"
+        },
+        {
+            "command": "extension.addDevelopersToActiveGroup",
+            "title": "Storyteller: Make Developers Active"
+        },
+        {
+            "command": "extension.removeDevelopersFromActiveGroup",
+            "title": "Storyteller: Make Developers Inactive"
+        },
+        {
+            "command": "extension.startPlaybackToMakeAComment",
+            "title": "Storyteller: Comment"
+        }]
+    },
+    "scripts": {
+        "postinstall": "node ./node_modules/vscode/bin/install"
+    },
+    "dependencies": {
+        "diff": "^2.2.3"
+    },
+    "devDependencies": {
+        "vscode": "^0.11.0"
+    }
+}
