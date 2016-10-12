@@ -581,14 +581,14 @@
 	                            <h4>Font size</h4>
                                 <!-- control font size -->
                                 <!-- decrease font button -->
-                                <button id="fontDecreaseButton" class="btn btn-default">
+                                <button id="fontIncreaseButton" class="btn btn-default">
                                     +
                                     <!-- image for decrease font button -->
                                     <!--<span class="glyphicon glyphicon-arrow-down"></span>-->
                                 </button>
 
                                 <!-- increase font button -->
-                                <button id="fontIncreaseButton" class="btn btn-default">
+                                <button id="fontDecreaseButton" class="btn btn-default">
                                     -
                                     <!-- image for increase font button -->
                                     <!--<span class="glyphicon glyphicon-arrow-up"></span>-->
@@ -1145,14 +1145,14 @@
                 document.querySelector("#playbackSpeedIncreaseButton").addEventListener("click", function(e) {
 
                     //increase the delay in between playing back events (function takes a delta)
-                    changeSpeed(25);
+                    changeSpeed(-25);
                 });
 
                 //playback speed decrease button
                 document.querySelector("#playbackSpeedDecreaseButton").addEventListener("click", function(e) {
 
                     //decrease the delay in between playing back events (function takes a delta)
-                    changeSpeed(-25);
+                    changeSpeed(25);
                 });
 
                 //font increase button
