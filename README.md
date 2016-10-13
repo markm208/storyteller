@@ -30,7 +30,7 @@ Currently there is a Visual Studio Code Storyteller editor plugin (this is not t
 
 To install the plugin first make sure you have VS Code installed and get familiar with it.
 
-Next, download the Storyteller plugin file, storyteller-0.0.1.vsix. To install the plugin, open the .vsix file using VS Code. Then restart VS Code.
+Next, download the Storyteller plugin file, [storyteller-0.0.1.vsix](storyteller-0.0.1.vsix). To install the plugin, open the .vsix file using VS Code. Then restart VS Code.
 
 To completely remove the extension, delete the storyteller extension folder located here:
 
