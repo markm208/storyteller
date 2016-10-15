@@ -21,59 +21,60 @@ These comments coexist together without interfering with each other. It will be 
 
 In addition to moving the code comments out of the code, Storyteller was designed to allow two major differences between traditional code comments:
 
-It is possible to link a set of comments to time and location rather than just the location in code. This allows people to more easily understand how the code has evolved over time. A developer can create a narrative about how and why her code evolved the way it did that is linked to how the code actually did evolve.
+- It is possible to link a set of comments to time and location rather than just the location in code. This allows people to more easily understand how the code has evolved over time. A developer can create a narrative about how and why her code evolved the way it did that is linked to how the code actually did evolve.
 
-It is possible to create comments using a richer media than plain text so that developers can better describe their ideas and thought processes. Storyteller allows you to draw pictures in your comments, store screenshots that can be marked up, and record audio.
+- It is possible to create comments using a richer media than plain text so that developers can better describe their ideas and thought processes. Storyteller allows you to draw pictures in your comments, store screenshots that can be marked up, and record audio.
 
 ## Install
-Currently there is a Visual Studio Code Storyteller editor plugin (this is not the full MS Visual Studio IDE- it is a newer, lightweight editor similar to notepad++, sublime, and atom).
+Currently there is a [Visual Studio Code](https://code.visualstudio.com/) Storyteller editor plugin (this is not the full MS Visual Studio IDE- it is a newer, lightweight editor similar to notepad++, sublime, and atom).
 
-To install the plugin first make sure you have VS Code installed and get familiar with it.
+To install the plugin first make sure you have [VS Code](https://code.visualstudio.com/Download) installed and get familiar with it.
 
 Next, download the Storyteller plugin file, [storyteller-0.0.1.vsix](storyteller-0.0.1.vsix). To install the plugin, open the .vsix file using VS Code. Then restart VS Code.
 
 To completely remove the extension, delete the storyteller extension folder located here:
 
-- Windows: %USERPROFILE%\.vscode\extensions
-- Mac: ~/.vscode/extensions
-- Linux: ~/.vscode/extensions
+- Windows: `%USERPROFILE%\.vscode\extensions`
+- Mac: `~/.vscode/extensions`
+- Linux: `~/.vscode/extensions`
+
 This is still a work in progress. Do not throw out your existing tools and use this for your mission critical code yet. It will get more stable over time. Having said that I am interested hearing about any bugs that are found or feature requests.
 
 ## Quick Start
 ### VS Code Plugin
-**Starting a brand new project**
-Create a new directory on the filesystem. Start Visual Studio code. Open the directory (File -> Open Folder...) on your file system to start tracking.
+#### Starting a brand new project
+Create a new directory on the filesystem. Start Visual Studio code. Open the directory (`File -> Open Folder...`) on your file system to start tracking.
 
-Storyteller will prompt for the name and email of the developer to be the author of the code. Enter in a first name, last name, and email address (the email address will be used to retrieve a gravatar during playback). If you would like to remain anonymous just hit the escape key in the prompt.
+Storyteller will prompt for the name and email of the developer to be the author of the code. Enter in a first name, last name, and email address (the email address will be used to retrieve a [gravatar](https://en.gravatar.com/) during playback). If you would like to remain anonymous just hit the escape key in the prompt.
 
 ![Alt](images/newFolder.gif "Start a new Storyteller project")
 
-**Opening an existing project**
-Start visual studio code. Open a directory (File -> Open Folder...). Select a folder on your file system. If Storyteller has tracked this directory in the past there will be a hidden directory (named .storyteller/) that holds the project's historical data. Storyteller will continue to track changes in this directory. There is no need to log in again. On subsequent startups VS Code opens the last used folder by default.
+#### Opening an existing project
+Start visual studio code. Open a directory (`File -> Open Folder...`). Select a folder on your file system. If Storyteller has tracked this directory in the past there will be a hidden directory (named .storyteller/) that holds the project's historical data. Storyteller will continue to track changes in this directory. There is no need to log in again. On subsequent startups VS Code opens the last used folder by default.
 
 ![Alt](images/openFolder.gif "Open a Storyteller project")
 
-**Starting a playback from the editor**
-In the editor, when you are ready to view a playback bring up VS Code's command palette (Ctrl-Shift P) and select 'Storyteller: Start Playback'. This will open a browser window with playback controls to view it.
+#### Starting a playback from the editor
+In the editor, when you are ready to view a playback bring up VS Code's command palette (`Ctrl-Shift P`) and select `Storyteller: Start Playback`. This will open a browser window with playback controls to view it.
 
 ![Alt](images/startPlaybackFromEditor.gif "View a playback")
 
-**Managing active developers**
+#### Managing active developers
 Storyteller records the developer or groups of developers who are responsible for new code. The developer groups' information is displayed during playback.
 
-To create a new developer use the command palette and choose 'Storyteller: Create a New Developer'
+To create a new developer use the command palette and choose `Storyteller: Create a New Developer`
 
 ![Alt](images/newDev.gif "Create a new developer")
 
-To add an existing developer to the current developer group use the command palette and choose 'Storyteller: Make Developers Active'
+To add an existing developer to the current developer group use the command palette and choose `Storyteller: Make Developers Active`
 
 ![Alt](images/makeDevActive.gif "Make a developer active")
 
-To remove an existing developer from the current developer group use the command palette and choose 'Storyteller: Make Developers Inactive'
+To remove an existing developer from the current developer group use the command palette and choose `Storyteller: Make Developers Inactive`
 
 ![Alt](images/makeDevInactive.gif "Make a developer inactive")
 
-**Viewing a playback**
+#### Viewing a playback
 A playback recreates one or more programming sessions. There are controls to play/pause (space bar shortcut), step one change at a time (left/right arrow shortcut), and jump to a point in the playback with a slider control.
 
 The playback shows the timestamp of when the latest change took place, the state of the file system at every point, the developer(s) who made the change, and which file and location in the file where the change takes place.
@@ -82,7 +83,7 @@ There are filters available to limit what gets played back. The filters include 
 
 ![Alt](images/basicPlayback.gif "Basic playback")
 
-**Making a comment**
+#### Making a comment
 While viewing a playback a comment can be added by pausing the playback and adding text, an image, or an audio recording. The comment will be stored at the pause point. In future playbacks the playback will pause and the comment will be displayed.
 
 ![Alt](images/makingAComment.gif "Making a comment")
@@ -100,6 +101,7 @@ While viewing a playback a comment can be added by pausing the playback and addi
 - The user can start with an existing set of code not previously created while using Storyteller. All existing code will be added to the Storyteller database in one big block. A developer can then add to the code from that import point and see the history from then on.
 - If some files or directories get deleted from the file system when Storyteller is not active, the code can be recreated and added back to the file system. The user has the option of adding the files back to the file system or leaving them deleted.
 - If some code gets changed by another editor or tool when Storyteller is not active, the differences are added to the Stroyteller database using a diff tool and will be played back as if they happened while Storyteller was active.
+
 ### Playback
 - A playback replays the coding events in a browser in the order that they happened. The information displayed about each event includes the type of event, the timestamp when the event happened, the developer(s) who created the event, and the place in the file and file system where the event happened.
 - When creating a playback a user can choose how much of a programming session to replay.
