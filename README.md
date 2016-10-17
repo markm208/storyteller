@@ -25,6 +25,20 @@ In addition to moving the code comments out of the code, Storyteller was designe
 
 - It is possible to create comments using a richer media than plain text so that developers can better describe their ideas and thought processes. Storyteller allows you to draw pictures in your comments, store screenshots that can be marked up, and record audio.
 
+### Examples
+Here are some full examples from an intro programming course that I teach (this tool is not solely for educational purposes- it is for anyone who wants to show others how they thought about a problem while coding it):
+- This is a program that [finds primes](https://dl.dropboxusercontent.com/u/1991139/isPrime.html)
+- This is a program that [finds day numbers in a year](https://dl.dropboxusercontent.com/u/1991139/dayOfYear.html)
+- This is a program that [finds square roots and nth roots](https://dl.dropboxusercontent.com/u/1991139/roots.html)
+- This is a program that [prints a calendar year](https://dl.dropboxusercontent.com/u/1991139/calendar.html)
+- This is a program that [finds the area under a curve](https://dl.dropboxusercontent.com/u/1991139/areaUnderCurve.html)
+
+Some notes about playback. To speed things up use `shift-up arrow` (`shift-down arrow` slows things down too). You can skip the animation of code altogether and just see the code and comments by speeding things up to the maximum speed (about six `shift-up arrow`'s). 
+
+You can use the pause/play button (`space bar`) to stop/restart a playback. You can control the speed entirely by using `right arrow` and `left arrow`. Each one of these key presses moves an event at a time. 
+
+Finally, you can control the font-size by going to the options menu in the bottom right of the screen and changing the setting there.
+
 ## Install
 Currently there is a [Visual Studio Code](https://code.visualstudio.com/) Storyteller editor plugin (this is not the full MS Visual Studio IDE- it is a newer, lightweight editor similar to notepad++, sublime, and atom).
 
