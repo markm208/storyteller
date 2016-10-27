@@ -167,6 +167,12 @@ While viewing a playback a comment can be added by pausing the playback and addi
 
 - The viewer can choose to skip the animation of the code and only show the state of the code and the comments at comment points.
 
+### Sharing
+- There are three ways to share playbacks with others.
+  - Download and save the web page that is displaying the playback using the browser (`ctrl-s` in most browsers). The page is self contained and can be viewed offline, sent in an email, or added to a web server.
+  - Download the state of the code at any point in the playback. This will cause a zip to be downloaded that will include the state of the file system at the pause point. One can use this to view a playback. It can also be used to branch from any point in the playback so others can build from your code. In order to perform this download click on "Download Files at this Point" in the web page and choose one of the history options. 
+  - Download the playback data only. A JSON file containing all of the data needed to animate a playback will be downloaded to your file system. That JSON file can be read in from a playback web page to load it. To download and read in existing JSON files choose the "Options" pop-up and select "Save this Playback" to download and "Upload a Playback" to read and existing JSON file.  
+
 ### Developers
 - One or more people can be identified as the developer(s) creating new code. This is good for recording code written in pair programming scenarios.
 - The active developers can be displayed, developers can be added and removed from the active group. New developers can be added to the system with just a name and email.
@@ -176,7 +182,7 @@ I am looking for people to contribute. Reach out to me if you are interested in 
 
 I welcome any comments, suggestions, or questions. I am looking forward to having discussions about the ideas that this tool addresses.
 
-Mark Mahoney mmahoney@carthage.edu
+Mark Mahoney [mmahoney@carthage.edu](mailto:mmahoney@carthage.edu)
 
 
 

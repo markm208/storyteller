@@ -6156,103 +6156,59 @@
             //                         ----------------------
             // This code has to do with scrolling to the active code event during a playback
             //*****************************************************************************
-
             /*
              * Handle the situation when a piece of code is off of the playback window. This
              * function will scroll (vertically and horizontally) to make sure the code element
-             * can be seen on the screen
-             */
-            function handleScroll(codeElement) {
-
-                //handle horizontal scroll if it is needed
-                handleHorizontalScroll(codeElement);
-
-                //handle vertical scroll if it is needed
-                handleVerticalScroll(codeElement);
-            }
-
-            /*
-             * Handles scrolling horizontally by looking at the width of the playback window
-             * and the distance from the left of the playback window where the code element
-             * is and if the code element is off the playback window it scrolls to the right.
-             * If the code event is on the screen the scroll amount is set back to 0.
-             *
-             * all <br>'s seem to have an offsetLeft of 0, this forces horizontal scrolling
-             * back to the far left.
-             */
-            function handleHorizontalScroll(codeElement) {
-
-                //get the playback window (the parent of the code element)
-                var playbackWindow = codeElement.parentNode;
-
-                //get the playback container (the owner of the scroll bars)
-                var scrollablePlaybackContainer = document.querySelector("#playbackWindows");
-
-                //get the width of the parent to this code element, #playbackWindow
-                var parentNodeClientWidth = playbackWindow.clientWidth;
-
-                //get the distance from the left edge of the parent, #playbackWindow
-                var offsetLeft = codeElement.offsetLeft
-
-                //if the element we are making visible is off of the playbackWindow we need to scroll
-                if(offsetLeft >= parentNodeClientWidth) {
-
-                    //get the amount of pixels that the element is to the right of the playback window's width
-                    var diff = offsetLeft - parentNodeClientWidth;
-
-                    //make the playback container scroll to the difference plus a little extra (so that
-                    //there is some room to the right of the new element if any other row is wider)
-                    scrollablePlaybackContainer.scrollLeft = diff + 100;
-
-                } else { //the code element is not off of the playback window
-
-                    //scroll back to the far left
-                    scrollablePlaybackContainer.scrollLeft = 0;
-                }
-            }
-
-            /*
-             * Handles scrolling vertically by looking at the height of the #playbackWindows
+             * can be seen on the screen.
+             * 
+             * Handles scrolling by looking at the height of the #playbackWindows
              * div which owns the scroll bars. Find the distance from the top of the
              * #playbackWindows div where the code element is and if the code element is off
              * the #playbackWindows div it scrolls down.
-             * If the code event is on the screen the scroll amount is set back to 0.
+             * 
+             * Similar for horizontal scroll, look for a position near the character and scroll there
              *
              * all <br>'s seem to have an offsetTop of 0, this requires us to not scroll
-             * vertically for <br>'s otherwise we would bounce up and down at every line break.
+             * for <br>'s otherwise we would bounce up and down at every line break.
              */
-            function handleVerticalScroll(codeElement) {
+            function handleScroll(codeElement) {
 
-                //get the playback container (the parent of the playback windows, playback tabs and the owner of the scroll bars)
-                var scrollablePlaybackContainer = document.querySelector("#playbackWindows");
+                //if the element is not a BR
+                if(codeElement.tagName !== "BR") {
+                
+                    //get the playback container (the parent of the playback windows, playback tabs and the owner of the scroll bars)
+                    var scrollablePlaybackContainer = document.querySelector("#playbackWindows");
 
-                //get the height of the owner of the scrollbars, #playbackWindows
-                var parentNodeClientHeight = scrollablePlaybackContainer.clientHeight;
+                    //get the height of the owner of the scrollbars, #playbackWindows
+                    var parentNodeClientHeight = scrollablePlaybackContainer.clientHeight;
 
-                //get the distance from the top edge of the parent which is the same as the distance
-                //from the owner of the scrollbars, #playbackWindows
-                var offsetTop = codeElement.offsetTop
+                    //get the width of the parent to this code element, a playbackWindow
+                    var parentNodeClientWidth = codeElement.parentNode.clientWidth;
 
-                //if the element we are making visible is off of the scrollablePlaybackContainer we need to scroll
-                if(offsetTop >= parentNodeClientHeight) {
-
+                    //get the distance from the top edge of the parent 
                     //get the amount of pixels that the element is underneath the scrollablePlaybackContainer's height
-                    var diff = offsetTop - parentNodeClientHeight;
+                    var verticalDiff = codeElement.offsetTop - parentNodeClientHeight;
+                    
+                    //get the distance from the left edge of the parent
+                    //get the amount of pixels that the element is to the right of the playback window's width
+                    var horizontalDiff = codeElement.offsetLeft - parentNodeClientWidth;
+ 
+                    //create a vertical scroll position that will place the character in the middle of the screen
+                    var targetScrollTop = verticalDiff + (parentNodeClientHeight / 2);
 
-                    //make the scrollablePlaybackContainer scroll to the difference plus a little extra (if there are
-                    //more lines there will be a little space from the bottom of the scrollablePlaybackContainer)
-                    scrollablePlaybackContainer.scrollTop = diff + (parentNodeClientHeight / 2);
+                    //create a horizontal scroll position that will place some space after the character if it is at the end of a line
+                    var targetScrollLeft = horizontalDiff + 100;
+                    
+                    //object that says where to scroll to
+                    var properties = {
+                        scrollTop: targetScrollTop, 
+                        scrollLeft: targetScrollLeft
+                    };
 
-                } else { //the code element is not off of the scrollablePlaybackContainer
-
-                    //line breaks don't seem to have any offsetLeft or offsetTop so we will ignore those
-                    //and only do a vertical scroll on non-<br>'s
-                    if(codeElement.tagName !== "BR"){
-
-                        //scroll back to the top
-                        scrollablePlaybackContainer.scrollTop = 0;
-                    }
-                }
+                    //make the scrollablePlaybackContainer scroll to the difference plus a little extra
+                    $(scrollablePlaybackContainer).animate(properties, playbackData.delay, "linear");
+                
+                } //else- can't scroll to a BR (TODO can we scroll to a line number div??)
             }
             
             //*****************************************************************************
