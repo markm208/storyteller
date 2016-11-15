@@ -279,6 +279,12 @@
                 float:right;
             }
 
+            .statistics-td {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+
         </style>
 
 		<title>Storyteller- Playback</title>
@@ -516,6 +522,18 @@
 							</ul>
 
 						</fieldset>
+
+                        <!-- show playback statistics up to current point -->
+                        <fieldset>
+                            <legend>Playback Statistics</legend>
+
+                            <!-- button to bring up the modal with statistics -->
+                            <div class="form-group">
+                                <button id="statisticsModalButton" data-toggle="modal" data-target="#statisticsModal" class = "btn btn-primary">
+                                    View Statistics
+                                </button>
+                            </div>
+                        </fieldset>
 					</div>
 					<!-- end of nested tabs for the playback windows -->
 				</div>
@@ -919,6 +937,29 @@
                 </div>
             </div>
         </div>
+
+        <!-- modal for showing playback statistics -->
+        <div id="statisticsModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <!-- header goes here -->
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h3 class="modal-title">Playback Statistics</h3>
+                    </div>
+
+                    <!-- important contents go here -->
+                    <div class="modal-body" id="statisticsModalBody">
+                        <!-- statistics go here -->
+                    </div>
+
+                    <!-- extra close button -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 		
         <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
         <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
@@ -986,6 +1027,19 @@
 
             //timer for UI blinking when recording
             var audioRecordBlinkTimer;
+
+            /*
+             *  This object holds statistics for events up to the current playback point
+             */
+            var statisticsData = {
+                numInserts: 0,              //number of insert events
+                numDeletes: 0,              //number of delete events
+                numFileDirEvents: 0,        //number of file and directory events
+                eventsByDevGroup: [],       //holds objects for each dev group that's contributed, giving number of inserts, deletes, and total events for each
+                lastDevGroupId: "none",     //the dev group responsible for the most recent event
+                lastDevGroupIndex: -1,      //most recently used index of eventsByDevGroup
+                modifiedFiles: [],          //files we've seen changes in during this playback
+            };
 
             //*****************************************************************************
             //                         Page setup related code
@@ -1490,6 +1544,7 @@
 
                     //reset the entire playback
                     getPlaybackWindowsReadyForAnimation(true);
+                    clearStatisticsData();
                 });
 
                 //for a selected text playback
@@ -1847,6 +1902,108 @@
 
                     //begin the read operation (as text)
                     fileReader.readAsText(uploadedFile);
+                });
+
+                //add statistics data to the modal only when the modal shows up
+                document.querySelector('#statisticsModalButton').addEventListener("click", function(e) {
+                    //clear out the modal body (in case this isn't the first time viewing statistics)
+                    $('#statisticsModalBody').html('');
+
+                    //make a table and populate it with general statistics
+                    $('#statisticsModalBody').append('<div class="container">');
+                    $('#statisticsModalBody').append('<h4>General Statistics</h3>')
+                    $('#statisticsModalBody').append('<table class="table table-striped table-hover">');
+                    //$('#statisticsModalBody').append('<caption>General Statistics</caption>');
+
+                    //text inserts
+                    $('#statisticsModalBody').append('<tr>');
+                    $('#statisticsModalBody').append('<td class = "statistics-td">Inserts</td>');
+                    $('#statisticsModalBody').append('<td class = "statistics-td">&nbsp;</td>');
+                    $('#statisticsModalBody').append('<td class = "statistics-td">' + statisticsData.numInserts + '</td>');
+                    $('#statisticsModalBody').append('</tr>');
+                    
+                    //text deletes
+                    $('#statisticsModalBody').append('<tr>');
+                    $('#statisticsModalBody').append('<td class = "statistics-td">Deletes</td>');
+                    $('#statisticsModalBody').append('<td class = "statistics-td">&nbsp;</td>');
+                    $('#statisticsModalBody').append('<td class = "statistics-td">' + statisticsData.numDeletes + '</td>');
+                    $('#statisticsModalBody').append('</tr>');
+                    
+                    //file and directory events
+                    $('#statisticsModalBody').append('<tr>');
+                    $('#statisticsModalBody').append('<td class = "statistics-td">File and Directory Events</td>');
+                    $('#statisticsModalBody').append('<td class = "statistics-td">&nbsp;</td>');
+                    $('#statisticsModalBody').append('<td class = "statistics-td">' + statisticsData.numFileDirEvents + '</td>');
+                    $('#statisticsModalBody').append('</tr>');
+
+                    $('#statisticsModalBody').append('</table>');
+                    $('#statisticsModalBody').append('</div>');
+
+                    //make a table for statistics by dev group (or just say no one has contributed)
+                    $('#statisticsModalBody').append('<div class="container">');
+                    if(statisticsData.eventsByDevGroup.length === 0) {
+                        $('#statisticsModalBody').append('<h4>No contributors yet.</h4>');
+                    }
+                    else { //we have at least one contributing developer group
+                        //make the table
+                        $('#statisticsModalBody').append('<h4>Events by Developer Group</h4>');
+                        $('#statisticsModalBody').append('<table class="table table-striped table-hover">');
+                        //$('#statisticsModalBody').append('<caption>Events by Developer Group</caption>');
+                        //label the columns
+                        $('#statisticsModalBody').append('<tr>');
+                        $('#statisticsModalBody').append('<th class = "statistics-td">Developer(s)</th>');
+                        $('#statisticsModalBody').append('<th class = "statistics-td">Inserts</th>');
+                        $('#statisticsModalBody').append('<th class = "statistics-td">Deletes</th>');
+                        $('#statisticsModalBody').append('<th class = "statistics-td">Total Events</th>');
+                        $('#statisticsModalBody').append('</tr>');
+                        //populate the table
+                        for(var i = 0; i < statisticsData.eventsByDevGroup.length; i++) {
+                            $('#statisticsModalBody').append('<tr>');
+                            var devs = getDevelopersInDevGroup(statisticsData.eventsByDevGroup[i].id);
+                            //If this group contains one developer, add that one developer to the table
+                            if(devs.length === 1) {
+                                $('#statisticsModalBody').append('<td class = "statistics-td"><a href="mailto:' + devs[0].email + '">' + devs[0].firstName + ' ' + devs[0].lastName + '</a></td>');
+                            }
+                            //I can't think of any reason for a dev group to be empty, so output something if one is
+                            else if(devs.length === 0) {
+                                console.log('This dev group has no developers: ' + statisticsData.eventsByDevGroup[i].id);
+                            }
+                            //If there are multiple devs in a group, print them all in one cell and hope the number of devs per group never gets too extreme
+                            else { //This group has multiple devs
+                                $('#statisticsModalBody').append('<td class = "statistics-td">');
+                                for(var j = 0; j < devs.length; j++) {
+                                    $('#statisticsModalBody').append("<a href='mailto:" + devs[j].email + "'>" + devs[j].firstName + " " + devs[j].lastName + "</a>");
+                                    //Add commas to separate developers
+                                    if(j < devs.length - 1) {
+                                        $('statisticsModalBody').append(' , ');
+                                    }
+                                }
+                                $('#statisticsModalBody').append('</td>');
+                            }
+                            //$('#statisticsModalBody').append('<td>' + statisticsData.eventsByDevGroup[i].id + '</td>');
+                            $('#statisticsModalBody').append('<td class = "statistics-td">' + statisticsData.eventsByDevGroup[i].numInserts + '</td>');
+                            $('#statisticsModalBody').append('<td class = "statistics-td">' + statisticsData.eventsByDevGroup[i].numDeletes + '</td>');
+                            $('#statisticsModalBody').append('<td class = "statistics-td">' + statisticsData.eventsByDevGroup[i].numEvents + '</td>');
+                            $('#statisticsModalBody').append('</tr>');
+                        }
+                        $('#statisticsModalBody').append('</table>');
+                    }
+                    $('#statisticsModalBody').append('</div>');
+
+                    //make a list of modified files (or say there are none)
+                    $('#statisticsModalBody').append('<div class="container">');
+                    if(statisticsData.modifiedFiles.length === 0) {
+                        $('#statisticsModalBody').append('<h4>No files have been modified yet.</h4>');
+                    }
+                    else { //Files have been modified
+                        $('#statisticsModalBody').append('<h4>Files with changes:</h4>');
+                        $('#statisticsModalBody').append('<ul>');
+                        for(var i = 0; i < statisticsData.modifiedFiles.length; i++) {
+                            $('#statisticsModalBody').append('<li>' + statisticsData.modifiedFiles[i].name + '</li>');
+                        }
+                        $('#statisticsModalBody').append('</ul>');
+                    }
+                    $('#statisticsModalBody').append('</div>');
                 });
             }
             
@@ -2774,6 +2931,9 @@
 
                             //forward
                             handleEventForward(stepData);
+
+                            //update statistics
+                            updateStatisticsOneStep(direction, stepData.codeEvent);
                             
                             //if this event is relevant 
                             if(stepData.codeEvent.relevant) {
@@ -2816,6 +2976,9 @@
 
                             //backward
                             handleEventBackward(stepData);
+
+                            //update statistics
+                            updateStatisticsOneStep(direction, stepData.codeEvent);
 
                             //if this is a relevant event
                             if(stepData.codeEvent.relevant) {
@@ -6151,108 +6314,64 @@
                     lineNumberGutter.children[lineNumber - 1].classList.add("currentLine");
                 }
             }
-            //*****************************************************************************
+           //*****************************************************************************
             //                         Scrolling related code
             //                         ----------------------
             // This code has to do with scrolling to the active code event during a playback
             //*****************************************************************************
-
             /*
              * Handle the situation when a piece of code is off of the playback window. This
              * function will scroll (vertically and horizontally) to make sure the code element
-             * can be seen on the screen
-             */
-            function handleScroll(codeElement) {
-
-                //handle horizontal scroll if it is needed
-                handleHorizontalScroll(codeElement);
-
-                //handle vertical scroll if it is needed
-                handleVerticalScroll(codeElement);
-            }
-
-            /*
-             * Handles scrolling horizontally by looking at the width of the playback window
-             * and the distance from the left of the playback window where the code element
-             * is and if the code element is off the playback window it scrolls to the right.
-             * If the code event is on the screen the scroll amount is set back to 0.
-             *
-             * all <br>'s seem to have an offsetLeft of 0, this forces horizontal scrolling
-             * back to the far left.
-             */
-            function handleHorizontalScroll(codeElement) {
-
-                //get the playback window (the parent of the code element)
-                var playbackWindow = codeElement.parentNode;
-
-                //get the playback container (the owner of the scroll bars)
-                var scrollablePlaybackContainer = document.querySelector("#playbackWindows");
-
-                //get the width of the parent to this code element, #playbackWindow
-                var parentNodeClientWidth = playbackWindow.clientWidth;
-
-                //get the distance from the left edge of the parent, #playbackWindow
-                var offsetLeft = codeElement.offsetLeft
-
-                //if the element we are making visible is off of the playbackWindow we need to scroll
-                if(offsetLeft >= parentNodeClientWidth) {
-
-                    //get the amount of pixels that the element is to the right of the playback window's width
-                    var diff = offsetLeft - parentNodeClientWidth;
-
-                    //make the playback container scroll to the difference plus a little extra (so that
-                    //there is some room to the right of the new element if any other row is wider)
-                    scrollablePlaybackContainer.scrollLeft = diff + 100;
-
-                } else { //the code element is not off of the playback window
-
-                    //scroll back to the far left
-                    scrollablePlaybackContainer.scrollLeft = 0;
-                }
-            }
-
-            /*
-             * Handles scrolling vertically by looking at the height of the #playbackWindows
+             * can be seen on the screen.
+             * 
+             * Handles scrolling by looking at the height of the #playbackWindows
              * div which owns the scroll bars. Find the distance from the top of the
              * #playbackWindows div where the code element is and if the code element is off
              * the #playbackWindows div it scrolls down.
-             * If the code event is on the screen the scroll amount is set back to 0.
+             * 
+             * Similar for horizontal scroll, look for a position near the character and scroll there
              *
              * all <br>'s seem to have an offsetTop of 0, this requires us to not scroll
-             * vertically for <br>'s otherwise we would bounce up and down at every line break.
+             * for <br>'s otherwise we would bounce up and down at every line break.
              */
-            function handleVerticalScroll(codeElement) {
+            function handleScroll(codeElement) {
 
-                //get the playback container (the parent of the playback windows, playback tabs and the owner of the scroll bars)
-                var scrollablePlaybackContainer = document.querySelector("#playbackWindows");
+                //if the element is not a BR
+                if(codeElement.tagName !== "BR") {
+                
+                    //get the playback container (the parent of the playback windows, playback tabs and the owner of the scroll bars)
+                    var scrollablePlaybackContainer = document.querySelector("#playbackWindows");
 
-                //get the height of the owner of the scrollbars, #playbackWindows
-                var parentNodeClientHeight = scrollablePlaybackContainer.clientHeight;
+                    //get the height of the owner of the scrollbars, #playbackWindows
+                    var parentNodeClientHeight = scrollablePlaybackContainer.clientHeight;
 
-                //get the distance from the top edge of the parent which is the same as the distance
-                //from the owner of the scrollbars, #playbackWindows
-                var offsetTop = codeElement.offsetTop
+                    //get the width of the parent to this code element, a playbackWindow
+                    var parentNodeClientWidth = codeElement.parentNode.clientWidth;
 
-                //if the element we are making visible is off of the scrollablePlaybackContainer we need to scroll
-                if(offsetTop >= parentNodeClientHeight) {
-
+                    //get the distance from the top edge of the parent 
                     //get the amount of pixels that the element is underneath the scrollablePlaybackContainer's height
-                    var diff = offsetTop - parentNodeClientHeight;
+                    var verticalDiff = codeElement.offsetTop - parentNodeClientHeight;
+                    
+                    //get the distance from the left edge of the parent
+                    //get the amount of pixels that the element is to the right of the playback window's width
+                    var horizontalDiff = codeElement.offsetLeft - parentNodeClientWidth;
+ 
+                    //create a vertical scroll position that will place the character in the middle of the screen
+                    var targetScrollTop = verticalDiff + (parentNodeClientHeight / 2);
 
-                    //make the scrollablePlaybackContainer scroll to the difference plus a little extra (if there are
-                    //more lines there will be a little space from the bottom of the scrollablePlaybackContainer)
-                    scrollablePlaybackContainer.scrollTop = diff + (parentNodeClientHeight / 2);
+                    //create a horizontal scroll position that will place some space after the character if it is at the end of a line
+                    var targetScrollLeft = horizontalDiff + 100;
+                    
+                    //object that says where to scroll to
+                    var properties = {
+                        scrollTop: targetScrollTop, 
+                        scrollLeft: targetScrollLeft
+                    };
 
-                } else { //the code element is not off of the scrollablePlaybackContainer
-
-                    //line breaks don't seem to have any offsetLeft or offsetTop so we will ignore those
-                    //and only do a vertical scroll on non-<br>'s
-                    if(codeElement.tagName !== "BR"){
-
-                        //scroll back to the top
-                        scrollablePlaybackContainer.scrollTop = 0;
-                    }
-                }
+                    //make the scrollablePlaybackContainer scroll to the difference plus a little extra
+                    $(scrollablePlaybackContainer).animate(properties, playbackData.delay, "linear");
+                
+                } //else- can't scroll to a BR (TODO can we scroll to a line number div??)
             }
             
             //*****************************************************************************
@@ -6282,6 +6401,9 @@
 
                 //set the number of relevant events back to 0
                 playbackData.numberOfRelevantEvents = 0;
+
+                //clear statistics
+                clearStatisticsData();
 
                 //go through all of the code events
                 for(var i = 0;i < playbackData.codeEvents.length;i++) {
@@ -7837,6 +7959,264 @@
                 }
             }
 
+            //*****************************************************************************
+            //                      Statistics-related code
+            //                      -----------------------
+            //*****************************************************************************
+            
+            /*//Object to hold statistics:
+            //numInserts, numDeletes, numFileDirEvents: the number of each event type we've encountered during playback
+            //eventsByDevGroup: a list of objects representing contributing developer groups in the format:
+            //  {id: developer group's id, numInserts: inserts by this dev group, numDeletes: deletes by this group, numEvents: total events from this group}
+            //lastDevGroupId, lastDevGroupIndex: the active developer group shouldn't change too often, so these ensure we only calculate the index for a dev group if we change groups
+            //modifiedFiles: files that have been changed
+            var statisticsData = {
+                numInserts: 0,
+                numDeletes: 0,
+                numFileDirEvents: 0,
+                eventsByDevGroup: [],
+                lastDevGroupId: "none",
+                lastDevGroupIndex: -1,
+                modifiedFiles: [],
+            };*/
+
+            /*
+             *  Looks for the specified dev group id in eventsByDevGroup. If found, returns the index for that group's object.
+             *  Otherwise, adds an object for them and returns the index to that.
+             */
+            function getDevGroupIndex(devGroupId) {
+                 //Set the position to an impossible value so we can know whether it was found
+                 var retVal = -1;
+                 
+                //If the list is empty, of course we're adding a new dev group
+                if(statisticsData.eventsByDevGroup.length === 0) {
+                    var newDevGroup = {
+                        id: devGroupId,
+                        numInserts: 0,
+                        numDeletes: 0,
+                        numEvents: 0
+                    };
+                    statisticsData.eventsByDevGroup.push(newDevGroup);
+                    //This is a one-item list, so 0 is the only valid index
+                    retVal = 0;
+                }
+                else { //There's already at least one dev group in the list
+                    //Find out if this dev group has done anything yet. If so, set currentDevGroupPosition accordingly
+                    //TODO: See if there's a better way to do this
+                    for(var i = 0; i < statisticsData.eventsByDevGroup.length; i++) {
+                        if(statisticsData.eventsByDevGroup[i].id === devGroupId) {
+                            retVal = i;
+                            break;
+                        }
+                    }
+                    //If this dev group hasn't done anything before, add them to the list and set their index as
+                    //the current position
+                    if(retVal === -1) {
+                        var newDevGroup = {
+                            id: devGroupId,
+                            numInserts: 0,
+                            numDeletes: 0,
+                            numEvents: 0
+                        };
+                        statisticsData.eventsByDevGroup.push(newDevGroup);
+                        //This dev group got pushed to the end of the list, so their position will be at the end of the list
+                        retVal = statisticsData.eventsByDevGroup.length - 1;
+                    }
+                }
+                //Give the people what they want
+                return retVal;
+            }
+
+            /*
+             *  When we take a step, update the counter for the appropriate event type
+             */
+            function updateStatisticsOneStep(direction, newEvent) {
+                //debug
+                //console.log("New Event's type: " + newEvent.type);
+                //make a short, sweet variable for the current step's type (trust step to keep us in bounds for now)
+                //var currentType = playbackData.codeEvents[playbackData.codeEventsIndex].type;
+                var currentType = newEvent.type;
+
+                //The file this event concerns (so we can check if this file has been modified before)
+                var currentFile = newEvent.fileId;
+                
+                //Make a variable for which index of the eventsByDevGroup list we're using
+                var currentDevGroupPosition = -1;
+
+                //The index in modifiedFiles for the file this event relates to
+                var currentModifiedFilePosition = -1;
+
+                //If the active dev group hasn't changed since the last event, then the index we're accessing hasn't changed either
+                if(newEvent.createdByDevGroupId === statisticsData.lastDevGroupId) {
+                    currentDevGroupPosition = statisticsData.lastDevGroupIndex;
+                }
+                else { //The active dev group changed
+                    //Get the new active dev group's index in eventsByDevGroup and update lastDevGroupId and Index
+                    currentDevGroupPosition = getDevGroupIndex(newEvent.createdByDevGroupId);
+                    statisticsData.lastDevGroupId = newEvent.createdByDevGroupId;
+                    statisticsData.lastDevGroupIndex = currentDevGroupPosition;
+                }
+
+                //If we know of any modified files and this event has a fileId (excludes directories)
+                if(statisticsData.modifiedFiles.length > 0 && newEvent.fileId !== undefined) {
+                    //We haven't started looking yet, so of course there's no match
+                    var found = false;
+                    //Go through the list and check for this file id
+                    for(var i = 0; i < statisticsData.modifiedFiles.length; i++) {
+                        //If we find a match, we can stop looking. We found a match
+                        if(statisticsData.modifiedFiles[i].id === newEvent.fileId) {
+                            found = true;
+                            currentModifiedFilePosition = i;
+                            break;
+                        }
+                    }
+                    //If we didn't find a match, this file isn't in the list yet. Add it.
+                    if(!found) {
+                        //We start the event counter at zero because it'll get incremented later. Otherwise events will never be 0
+                        //If events never hits 0, files will never be removed from the list going backwards
+                        statisticsData.modifiedFiles.push({name: newEvent.initialName, id: newEvent.fileId, events: 0});
+                        currentModifiedFilePosition = statisticsData.modifiedFiles.length - 1;
+                        //debug
+                        console.log('Added new file: ' + newEvent.fileId + ' : ' + newEvent.initialName);
+                    }
+                } 
+                //fileId is undefined for directory events, so we'll just ignore those
+                else if(newEvent.fileId === undefined) {
+                    //Do nothing
+                }
+                else { //The list is empty and we have a file id
+                    //We know this file is new, so just add it to the list
+                    statisticsData.modifiedFiles.push({name: newEvent.initialName, id: newEvent.fileId, events: 0});
+                    //This is the only file at this point, so of course it's at index 0
+                    currentModifiedFilePosition = 0;
+                    //debug
+                        console.log('Added new file: ' + newEvent.fileId + ' : ' + newEvent.initialName);
+                }
+
+                //If we're going forward, then figure out the new event's type and increment the
+                //appropriate counter (there's a new insert, delete, or whatever)
+                if(direction === "forward") {
+                    if(currentType === "Insert") {
+                        statisticsData.numInserts++;
+                        //This is an Insert Event for this dev group, so increments the insert and event counters 
+                        statisticsData.eventsByDevGroup[currentDevGroupPosition].numInserts++;
+                        statisticsData.eventsByDevGroup[currentDevGroupPosition].numEvents++;
+                        //debug
+                        //console.log("Plus one insert for " + eventsByDevGroup[currentDevGroupPosition].id);
+                    }
+                    else if(currentType === "Delete") {
+                        statisticsData.numDeletes++;
+                        //This is a Delete Event, so increment both counters
+                        statisticsData.eventsByDevGroup[currentDevGroupPosition].numDeletes++;
+                        statisticsData.eventsByDevGroup[currentDevGroupPosition].numEvents++;
+                        //debug
+                        //console.log("Plus one delete for " + eventsByDevGroup[currentDevGroupPosition].id);
+                    }
+                    else { //Either a file or directory event
+                        statisticsData.numFileDirEvents++;
+                        //The spec makes no mention of tracking file/dir events by dev, so ust up the total event counter
+                        statisticsData.eventsByDevGroup[currentDevGroupPosition].numEvents++;
+                        //debug
+                        //console.log("Plus one file/dir event");
+                    }
+                    //Make sure this event concerns a file
+                    if(currentModifiedFilePosition > -1) {
+                        statisticsData.modifiedFiles[currentModifiedFilePosition].events++;
+                    }
+                }
+                else { //We're going backwards, decrement the appropriate counter
+                    if(currentType === "Insert") {
+                        statisticsData.numInserts--;
+                        statisticsData.eventsByDevGroup[currentDevGroupPosition].numInserts--;
+                        statisticsData.eventsByDevGroup[currentDevGroupPosition].numEvents--;
+                        //debug
+                        //console.log("Minus one insert");
+                    }
+                    else if(currentType === "Delete") {
+                        statisticsData.numDeletes--;
+                        statisticsData.eventsByDevGroup[currentDevGroupPosition].numDeletes--;
+                        statisticsData.eventsByDevGroup[currentDevGroupPosition].numEvents--;
+                        //debug
+                        //console.log("Minus one delete");
+                    }
+                    else { //Either a file or directory event
+                        statisticsData.numFileDirEvents--;
+                        statisticsData.eventsByDevGroup[currentDevGroupPosition].numEvents--;
+                        //debug
+                        //console.log("Minus one file/dir event");
+                    }
+
+                    //If we've gone to a point before this dev group contributed anything, remove them from the contributor list
+                    if(statisticsData.eventsByDevGroup[currentDevGroupPosition].numEvents === 0) {
+                        statisticsData.eventsByDevGroup.splice(currentDevGroupPosition, 1);
+                        statisticsData.lastDevGroupIndex = -1;
+                        statisticsData.lastDevGroupId = "none";
+                    }
+                    //Make sure we're working with a valid index
+                    if(currentModifiedFilePosition > -1) {
+                        statisticsData.modifiedFiles[currentModifiedFilePosition].events--;
+                        //If we've gone back to before this file was modified, forget this file
+                        if(statisticsData.modifiedFiles[currentModifiedFilePosition].events === 0) {
+                            statisticsData.modifiedFiles.splice(currentModifiedFilePosition, 1);
+                            currentModifiedFilePosition = -1;
+                        }
+                    }
+                }
+                //debug
+                //printAllStatistics();
+                //printEachDevGroupEventCount();
+            }
+
+            /*
+             *  If we're going back to the beginning and/or changing filters, we need to be able to reset
+             *  counters and such. This function does that.
+             */
+            function clearStatisticsData() {
+                //Zero out all statistics data
+                statisticsData = {
+                    numInserts: 0,
+                    numDeletes: 0,
+                    numFileDirEvents: 0,
+                    eventsByDevGroup: [],
+                    lastDevGroupId: "none",
+                    lastDevGroupIndex: -1,
+                    modifiedFiles: [],
+                };
+            }
+
+            /*
+             *  Prints the total number of inserts, deletes, and file/dir events. Used for debugging
+             */
+            function printAllStatistics() {
+                console.log("Total inserts: " + statisticsData.numInserts);
+                console.log("Total deletes: " + statisticsData.numDeletes);
+                console.log("Total file and directory events: " + statisticsData.numFileDirEvents);
+                if(statisticsData.modifiedFiles.length === 0) {
+                    console.log("No files have been modified");
+                }
+                else {
+                    console.log("All files with changes:");
+                    for(var i = 0; i < statisticsData.modifiedFiles.length; i++) {
+                        console.log("    " + statisticsData.modifiedFiles[i]);
+                    }
+                }
+
+            }
+
+            /*
+             *  For each dev group that contributed, prints the id along with the number of inserts, deletes, and
+             *  total events
+             */
+            function printEachDevGroupEventCount() {
+                for(var i = 0; i < statisticsData.eventsByDevGroup.length; i++) {
+                    console.log("Dev Group ID: " + statisticsData.eventsByDevGroup[i].id);
+                    console.log("    Inserts: " + statisticsData.eventsByDevGroup[i].numInserts);
+                    console.log("    Deletes: " + statisticsData.eventsByDevGroup[i].numDeletes);
+                    console.log("    Total Events: " + statisticsData.eventsByDevGroup[i].numEvents);
+                    //Add a blank line between dev groups
+                    console.log(" ");
+                }
+            }
         </script>
 	</body>
 </html>
