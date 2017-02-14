@@ -27,11 +27,11 @@ In addition to moving the code comments out of the code, Storyteller was designe
 
 ### Examples
 Here are some full examples from an intro programming course that I teach (this tool is not solely for educational purposes- it is for anyone who wants to show others how they thought about a problem while coding it):
-- This is a program that [finds primes](https://dl.dropboxusercontent.com/u/1991139/isPrime.html)
-- This is a program that [finds day numbers in a year](https://dl.dropboxusercontent.com/u/1991139/dayOfYear.html)
-- This is a program that [finds square roots and nth roots](https://dl.dropboxusercontent.com/u/1991139/roots.html)
-- This is a program that [prints a calendar year](https://dl.dropboxusercontent.com/u/1991139/calendar.html)
-- This is a program that [finds the area under a curve](https://dl.dropboxusercontent.com/u/1991139/areaUnderCurve.html)
+- This is a program that [finds primes](http://personal.carthage.edu/mmahoney/playbacks/isPrime.html)
+- This is a program that [finds day numbers in a year](http://personal.carthage.edu/mmahoney/playbacks/dayOfYear.html)
+- This is a program that [finds square roots and nth roots](http://personal.carthage.edu/mmahoney/playbacks/roots.html)
+- This is a program that [prints a calendar year](http://personal.carthage.edu/mmahoney/playbacks/calendar.html)
+- This is a program that [finds the area under a curve](http://personal.carthage.edu/mmahoney/playbacks/areaUnderCurve.html)
 
 Some notes about playback. To speed things up use `shift-up arrow` (`shift-down arrow` slows things down too). You can skip the animation of code altogether and just see the code and comments by speeding things up to the maximum speed (about six `shift-up arrow`'s). 
 

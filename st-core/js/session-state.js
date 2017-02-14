@@ -662,7 +662,7 @@ function createEventsForDirsAndFiles(dirPath, timestamp, messages, stripFullPath
             var fullPathToFileOrDir = path.join(dirPath, allFilesAndDirs[i]).split("\\").join("/");
             
             //we ignore hidden files and dirs
-            if(!isHiddenFileOrDirInPath) {
+            if(!isHiddenFileOrDirInPath(fullPathToFileOrDir)) {
 
                 //get some stats about the file/dir
                 var stats = fs.statSync(fullPathToFileOrDir);
