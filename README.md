@@ -32,7 +32,7 @@ Here are some full examples from an intro programming course that I teach (this 
 - This is a program that [finds square roots and nth roots](http://personal.carthage.edu/mmahoney/playbacks/roots.html)
 - This is a program that [prints a calendar year](http://personal.carthage.edu/mmahoney/playbacks/calendar.html)
 - This is a program that [finds the area under a curve](http://personal.carthage.edu/mmahoney/playbacks/areaUnderCurve.html)
-- Here is another [area under the curve program in java] (http://personal.carthage.edu/mmahoney/playbacks/oopPlaybacks/07IntegralCalculator.html)
+- Another [area under the curve program in java](http://personal.carthage.edu/mmahoney/playbacks/oopPlaybacks/07IntegralCalculator.html)
 
 Some notes about playback. To speed things up use `shift-up arrow` (`shift-down arrow` slows things down too). You can skip the animation of code altogether and just see the code and comments by speeding things up to the maximum speed (about six `shift-up arrow`'s). 
 
