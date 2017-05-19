@@ -27,9 +27,9 @@
                 font-size: 200%;
             }
 
-            /* for code in a playback */
+            /* for code in a playback (by default all italics- relevant code will be changed to normal) */
             .codeChar {
-
+                font-style: italic;
             }
 
             /* to hide code characters that haven't been played yet */
@@ -49,24 +49,33 @@
                 display: none;
             }
 
-            /* to highlight code that has been recently deleted */
+            /* used to indicate recent changes since the last play/pause cycle.
+               Add a mark to the previous neighbor of a deleted character */
             .recentDelete {
+                border-right-color: red;
+                border-right-style: double;
+            }
+
+            /* used to indicate recent changes since the last play/pause cycle */
+            .recentInsert {
+                color: green;
+            }
+
+            /* used to highlight new inserts for a brief amount of time */
+            .briefInsertHighlight {
+                text-decoration: underline;
+            }
+
+            /* used to highlight new deletes for a brief amount of time */
+            .briefDeleteHighlight {
                 color: red;
                 text-decoration: line-through;
             }
 
             /* to highlight code that satisfies all of the filters */
             .relevantCode {
-                font-style: normal;
-                background-color: #DCF2AD;
+                font-style: normal; /* override the default italic */
                 font-weight: bold;
-            }
-
-            /* to highlight code that has been recently added */
-            .recentInsert {
-                color: green;
-                font-weight: bold;
-                text-decoration: underline;
             }
 
             /* for a blinking cursor */
@@ -77,9 +86,19 @@
                 50% { border-right-color: transparent; border-right-width: 2px; border-right-style: solid; } 
             }
 
-            /* for displaying a cursor in the playback */
-            .caretCursor {
+            /* for displaying a cursor in the playback after an insert */
+            .insertCaretCursor {
                 border-right-color: black;
+                border-right-width: 2px;
+                border-right-style: solid; 
+                
+                animation: blinkingCursor .60s step-end infinite alternate;
+                -webkit-animation: blinkingCursor .60s step-end infinite alternate;
+            }
+            
+            /* for displaying a cursor in the playback after a delete */
+            .deleteCaretCursor {
+                border-right-color: red;
                 border-right-width: 2px;
                 border-right-style: solid; 
                 
@@ -108,7 +127,6 @@
             .commentRelevant {
                 font-style: normal;
                 background-color: greenyellow;
-                font-weight: bold;
             }
 
             /* for comment images */
@@ -2656,6 +2674,28 @@
 
                 //create a timer to animate the next step with a call to timedPlayback() after a delay 
                 playbackData.playbackTimerId = window.setTimeout(timedPlayback, playbackData.delay);
+
+                //clear the all the new event highlights since the the last pause point
+                clearPreviousEventHighlights();
+            }
+
+            /*
+             * Clears the recent insert and delete highlights that get added when
+             * new events are handled during playback.
+             */
+            function clearPreviousEventHighlights() {
+
+                //get all events that have recently been inserted and remove the recent insert class
+                var previousEventHighlights = document.getElementsByClassName("recentInsert");
+                while (previousEventHighlights.length) {
+                    previousEventHighlights[0].classList.remove("recentInsert");
+                }
+
+                //now do the same with the recent deletes
+                previousEventHighlights = document.getElementsByClassName("recentDelete");
+                while (previousEventHighlights.length) {
+                    previousEventHighlights[0].classList.remove("recentDelete");
+                }
             }
 
             /*
@@ -2726,31 +2766,9 @@
              */
             function step(direction, numStepsRequested) {
 
-                //holds the number of steps to move (default to the requested amount- this may be changed below)
-                var numSteps = numStepsRequested;
+                //get the actual number of steps to move (this may be changed below)
+                var numSteps = getExactNumberOfStepsFromReqest(direction, numStepsRequested);
                 
-                //handle improper step requests
-                //if going forward in a playback
-                if(direction === "forward") {
-                    
-                    //if the user wants to go to the very end (this value is set in the playback server to go to the end of of a playback to add a comment) OR 
-                    //the number of steps is too great to playback
-                    if(numStepsRequested === Number.MAX_SAFE_INTEGER || (playbackData.relevantEventIndex + numStepsRequested) >= playbackData.numberOfRelevantEvents) {
-
-                        //scale back the number of steps to go to the end
-                        numSteps = playbackData.numberOfRelevantEvents - playbackData.relevantEventIndex;
-                    }
-
-                } else if(direction === "backward") { //backward through a playback
-
-                    //if the number of steps is too great to playback backwards
-                    if(numStepsRequested > playbackData.relevantEventIndex) {
-
-                        //scale back the number of steps to go back to the beginning
-                        numSteps = playbackData.relevantEventIndex;
-                    }
-                }
-
                 //if there are any steps to playback after adjusting numSteps
                 if(numSteps > 0) {
 
@@ -2927,7 +2945,7 @@
 
                             //TODO see if people prefer to have a caret- the problem is it may not be at the last insert in the file
                             //remove the caret from the screen
-                            removeCaretCursor(stepData.codeElement);
+                            removeCaretCursor();
 
                             //make the correct tab active
                             makePlaybackTabActive(stepData.codeEvent.fileId);
@@ -2945,7 +2963,7 @@
 
                             //TODO see if people prefer to have a caret- the problem is it may not be at the last insert in the file
                             //remove the caret from the screen
-                            removeCaretCursor(stepData.codeElement);
+                            removeCaretCursor();
 
                             //highlight the dir in the file system view  
                             addActiveDirectoryStyling(stepData.codeEvent.directoryId);                          
@@ -2956,6 +2974,39 @@
                     //affected by a code event (slider, timestamp, devs)
                     updateEventInfoUI(stepData.codeEvent);
                 }
+            }
+
+            /*
+             * Looks at the requested number of steps to move and returns an exact number of steps to move
+             * based on the direction of the step and whether there are enough events to move in that direction.
+             */
+            function getExactNumberOfStepsFromReqest(direction, numStepsRequested) {
+                
+                //default the exact number of steps to move to be the requested number
+                var exactNumberOfSteps = numStepsRequested;
+
+                //handle improper step requests if going forward in a playback
+                if(direction === "forward") {
+                    
+                    //if the user wants to go to the very end (this value is set in the playback server to go to the end of of a playback to add a comment) OR 
+                    //the number of steps is too great to playback
+                    if(numStepsRequested === Number.MAX_SAFE_INTEGER || (playbackData.relevantEventIndex + numStepsRequested) >= playbackData.numberOfRelevantEvents) {
+
+                        //scale back the number of steps to go to the end
+                        exactNumberOfSteps = playbackData.numberOfRelevantEvents - playbackData.relevantEventIndex;
+                    }
+
+                } else if(direction === "backward") { //backward through a playback
+
+                    //if the number of steps is too great to playback backwards
+                    if(numStepsRequested > playbackData.relevantEventIndex) {
+
+                        //scale back the number of steps to go back to the beginning
+                        exactNumberOfSteps = playbackData.relevantEventIndex;
+                    }
+                }
+
+                return exactNumberOfSteps;
             }
 
             /*
@@ -2972,16 +3023,16 @@
                     //get the hidden element for this code event and store it in the stepData
                     stepData.codeElement = document.querySelector("#" + stepData.codeEvent.id);
 
-                    //show the code on the screen 
-                    makeCodeVisible(stepData);
+                    //show the code on the screen and highlight it
+                    makeCodeVisible(stepData, true);
                     
                 } else if(stepData.codeEvent.type === "Delete") {
 
                     //get the visible element to hide as a result of this delete and store it in the stepData
                     stepData.codeElement = document.querySelector("#" + stepData.codeEvent.previousNeighborId);
 
-                    //hide the code on the screen 
-                    makeCodeInvisible(stepData);
+                    //hide the code on the screen and add a highlight to see the delete
+                    makeCodeInvisible(stepData, true);
 
                 } else if(stepData.codeEvent.type === "Create File") {
 
@@ -3060,8 +3111,8 @@
                     //get the visible element to hide as a result of this insert and store it in the stepData
                     stepData.codeElement = document.querySelector("#" + stepData.codeEvent.id);
 
-                    //hide the code on the screen 
-                    makeCodeInvisible(stepData);
+                    //hide the code on the screen and do not bother highlighting it since moving in reverse is not interesting to watch
+                    makeCodeInvisible(stepData, false);
 
                 } else if(stepData.codeEvent.type === "Delete") {
 
@@ -3069,8 +3120,8 @@
                     //get the hidden element to show as a result of this delete and store it in the stepData
                     stepData.codeElement = document.querySelector("#" + stepData.codeEvent.previousNeighborId);
 
-                    //show the code on the screen
-                    makeCodeVisible(stepData);
+                    //show the code on the screen and do not bother highlighting it since moving in reverse is not interesting to watch
+                    makeCodeVisible(stepData, false);
 
                 } else if(stepData.codeEvent.type === "Create File") {
 
@@ -3143,12 +3194,17 @@
 
             
             /*
-             * Makes an element visible on the screen. If it is a relevant event then it will be higlighted.
+             * Makes an element visible on the screen. Relatively new inserts will be highlighted
+             * until the next play/pause cycle and a brief highlight will appear to guide the
+             * reader's eye to new code (this is removed after a short time). 
              */
-            function makeCodeVisible(stepData) {
+            function makeCodeVisible(stepData, highlightChange) {
 
-                //make the span visible by removing the style that hides code on the screen
+                //make the span visible by removing the class that hides code on the screen
                 stepData.codeElement.classList.remove("codeNotVisible");
+
+                //if a new line was added, add the line number
+                addLineNumberIfNecessary(stepData.codeElement, stepData.codeEvent.fileId);
 
                 //if this is a relevant character
                 if(stepData.codeEvent.relevant) {
@@ -3156,40 +3212,40 @@
                     //add a style for relevant characters
                     stepData.codeElement.classList.add("relevantCode");
 
+                    //if a change highlight is needed (usually in forward direction only)
+                    if(highlightChange) {
+
+                        //highlight the element as reletively new
+                        stepData.codeElement.classList.add("recentInsert");
+                    }
+
                     //if there is any delay between characters we will highlight the insert
                     if(playbackData.delay > 0) {
-                        
-                        //for new insert highlighting (class will be removed with a timer below)
-                        stepData.codeElement.classList.add("recentInsert");
+
+                        //for brief insert highlighting (class will be removed with a timer below)
+                        stepData.codeElement.classList.add("briefInsertHighlight");
 
                         //set a timer to remove the .recentInsert class from the element
                         window.setTimeout(function(codeElement) {
 
                             //find the recent insert and remove the class
-                            codeElement.classList.remove("recentInsert");
-                            
-                            //remove the codeNotVisible class, perhaps again, since a very quick change of direction
-                            //can make this class be added again before this code executes. This is just to
-                            //ensure we always see code added
-                            codeElement.classList.remove("codeNotVisible");
-
+                            codeElement.classList.remove("briefInsertHighlight");
                         }, playbackData.highlightDelay, stepData.codeElement); //highlight delay and the element to remove the class from                        
-                    } 
+                    }
 
                 } else { //code is not relevant
 
                     //remove the class from the code element (it may have been set from a previous playback)
                     stepData.codeElement.classList.remove("relevantCode");
                 }
-
-                //if a new line was added, add the line number
-                addLineNumberIfNecessary(stepData.codeElement, stepData.codeEvent.fileId);
             }
 
             /*
-             * Makes an element invisible on the screen. If it is a relevant event it will be highlighted.
+             * Makes an element invisible on the screen. Its previous visible sibling will get marked to display 
+             * where the delete occurred. The text will stay on the screen for a short time and then be removed
+             * so the user can see what is being deleted.
              */
-            function makeCodeInvisible(stepData)
+            function makeCodeInvisible(stepData, highlightChange)
             {
                 //if this is a relevant character
                 if(stepData.codeEvent.relevant) {
@@ -3198,13 +3254,13 @@
                     if(playbackData.delay > 0) {
                         
                         //for new delete highlighting (class will be removed with a timer below)
-                        stepData.codeElement.classList.add("recentDelete");
+                        stepData.codeElement.classList.add("briefDeleteHighlight");
 
                         //set a timer to remove the .recentDelete class and to actually hide the event
                         window.setTimeout(function(codeElement, fileId){                            
                             
-                            //remove the recent delete class
-                            codeElement.classList.remove("recentDelete");
+                            //remove the recent brief highlight class
+                            codeElement.classList.remove("briefDeleteHighlight");
 
                             //add the 'code not visible' to hide it
                             codeElement.classList.add("codeNotVisible");
@@ -3221,6 +3277,41 @@
                         
                         //if a new line was removed, remove the line number
                         removeLineNumberIfNecessary(stepData.codeElement, stepData.codeEvent.fileId);
+                    }
+
+                    //if a change highlight is needed (usually in forward direction only)
+                    if(highlightChange) {
+
+                        //attempt to get the previous element from the one that is being deleted        
+                        var deletesPreviousSibling = stepData.codeElement.previousSibling;
+
+                        //while there are still previous siblings
+                        while(deletesPreviousSibling)
+                        {
+                            //if the previous sibling is a new line character
+                            if(deletesPreviousSibling.classList.contains("newLine")) {
+                                
+                                //get the line number gutter for this file
+                                var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
+
+                                //add the style to the line number element
+                                fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("recentDelete");
+
+                                break;
+
+                            } else if(deletesPreviousSibling.classList.contains("firstSpan") ||
+                                     (deletesPreviousSibling.classList.contains("codeChar") && deletesPreviousSibling.classList.contains("codeNotVisible") == false)) {
+                                
+                                //mark the previous sibling as a recent delete (used to highlight where a delete happened on the screen)
+                                deletesPreviousSibling.classList.add("recentDelete");
+
+                                //stop looking for visible previous siblings to mark
+                                break;
+                            }
+                            
+                            //move to the next previous sibling
+                            deletesPreviousSibling = deletesPreviousSibling.previousSibling;
+                        }
                     }
                     
                 } else { //not a relevant step
@@ -3245,7 +3336,7 @@
             function displayCaretCursor(stepData, isInsert) {
 
                 //remove the existing current caret cursor (if there is one)
-                removeCaretCursor(stepData.codeElement);
+                removeCaretCursor();
 
                 //if the code element was just inserted
                 if(isInsert) {
@@ -3257,12 +3348,12 @@
                         var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
 
                         //add the cursor to the line number element (the next line because of 0 based index)
-                        fileGutter.children[stepData.codeEvent.lineNumber].classList.add("caretCursor");
+                        fileGutter.children[stepData.codeEvent.lineNumber].classList.add("insertCaretCursor");
 
                     } else { //a non-newline character
 
                         //add the caret cursor class to the element (blink to the right)
-                        stepData.codeElement.classList.add("caretCursor");
+                        stepData.codeElement.classList.add("insertCaretCursor");
                     }           
                     
                 } else { //the code element has just been deleted
@@ -3276,7 +3367,7 @@
                     while(previousElement) {
 
                         //if the previous element is a code character AND it is visible, then the cursor should go here  
-                        if(previousElement.classList.contains("codeChar") && !previousElement.classList.contains("codeNotVisible")) {
+                        if(previousElement.classList.contains("firstSpan") || (previousElement.classList.contains("codeChar") && !previousElement.classList.contains("codeNotVisible"))) {
 
                                 //if it is a new line, put the cursor above on the previous line
                                 if(previousElement.classList.contains("newLine")) {
@@ -3285,12 +3376,12 @@
                                     var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
 
                                     //add the cursor to the line number element
-                                    fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("caretCursor");
+                                    fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("deleteCaretCursor");
 
                                 } else { //a non-newline character
 
                                     //add caret cursor to the previous element 
-                                    previousElement.classList.add("caretCursor");;
+                                    previousElement.classList.add("deleteCaretCursor");;
                                 }
 
                                 break;
@@ -3306,16 +3397,26 @@
             /* 
              * used to remove a visible cursor from the code 
              */
-            function removeCaretCursor(codeElement) {
+            function removeCaretCursor() {
                 
-                //get the existing current caret cursor
-                var caretCursor = document.querySelector(".caretCursor");
+                //get the existing current insert caret cursor
+                var caretCursor = document.querySelector(".insertCaretCursor");
 
                 //if there is a cursor on the screen
                 if(caretCursor) {
 
                     //remove it
-                    caretCursor.classList.remove("caretCursor");
+                    caretCursor.classList.remove("insertCaretCursor");
+                }
+
+                //now look for a delete caret cursor
+                caretCursor = document.querySelector(".deleteCaretCursor");
+
+                //if there is a cursor on the screen
+                if(caretCursor) {
+
+                    //remove it
+                    caretCursor.classList.remove("deleteCaretCursor");
                 }
             }
 
