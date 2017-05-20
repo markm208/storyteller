@@ -3256,7 +3256,7 @@
                         //for new delete highlighting (class will be removed with a timer below)
                         stepData.codeElement.classList.add("briefDeleteHighlight");
 
-                        //set a timer to remove the .recentDelete class and to actually hide the event
+                        //set a timer to remove the .briefDeleteHighlight class and to actually hide the event
                         window.setTimeout(function(codeElement, fileId){                            
                             
                             //remove the recent brief highlight class
@@ -3288,25 +3288,28 @@
                         //while there are still previous siblings
                         while(deletesPreviousSibling)
                         {
-                            //if the previous sibling is a new line character
-                            if(deletesPreviousSibling.classList.contains("newLine")) {
+                            //if the previous neighbor is visible and on the screen
+                            if(deletesPreviousSibling.classList.contains("codeNotVisible") == false) {
                                 
-                                //get the line number gutter for this file
-                                var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
+                                //if the previous sibling is a new line character
+                                if(deletesPreviousSibling.classList.contains("newLine")) {
+                                    
+                                    //get the line number gutter for this file
+                                    var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
 
-                                //add the style to the line number element
-                                fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("recentDelete");
+                                    //add the style to the line number element
+                                    fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("recentDelete");
 
-                                break;
+                                    break;
 
-                            } else if(deletesPreviousSibling.classList.contains("firstSpan") ||
-                                     (deletesPreviousSibling.classList.contains("codeChar") && deletesPreviousSibling.classList.contains("codeNotVisible") == false)) {
-                                
-                                //mark the previous sibling as a recent delete (used to highlight where a delete happened on the screen)
-                                deletesPreviousSibling.classList.add("recentDelete");
+                                } else if(deletesPreviousSibling.classList.contains("firstSpan") || deletesPreviousSibling.classList.contains("codeChar")) {
+                                    
+                                    //mark the previous sibling as a recent delete (used to highlight where a delete happened on the screen)
+                                    deletesPreviousSibling.classList.add("recentDelete");
 
-                                //stop looking for visible previous siblings to mark
-                                break;
+                                    //stop looking for visible previous siblings to mark
+                                    break;
+                                }
                             }
                             
                             //move to the next previous sibling
@@ -3365,27 +3368,31 @@
 
                     //while there are still some elements
                     while(previousElement) {
+                        
+                        //if the previous neighbor is visible and on the screen
+                        if(previousElement.classList.contains("codeNotVisible") == false) {
 
-                        //if the previous element is a code character AND it is visible, then the cursor should go here  
-                        if(previousElement.classList.contains("firstSpan") || (previousElement.classList.contains("codeChar") && !previousElement.classList.contains("codeNotVisible"))) {
+                            //if the previous element is either the first span or a code character then the cursor should go here  
+                            if(previousElement.classList.contains("firstSpan") || previousElement.classList.contains("codeChar")) {
 
-                                //if it is a new line, put the cursor above on the previous line
-                                if(previousElement.classList.contains("newLine")) {
+                                    //if it is a new line, put the cursor above on the previous line
+                                    if(previousElement.classList.contains("newLine")) {
 
-                                    //get the line number gutter for this file
-                                    var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
+                                        //get the line number gutter for this file
+                                        var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
 
-                                    //add the cursor to the line number element
-                                    fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("deleteCaretCursor");
+                                        //add the cursor to the line number element
+                                        fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("deleteCaretCursor");
 
-                                } else { //a non-newline character
+                                    } else { //a non-newline character
 
-                                    //add caret cursor to the previous element 
-                                    previousElement.classList.add("deleteCaretCursor");;
-                                }
+                                        //add caret cursor to the previous element 
+                                        previousElement.classList.add("deleteCaretCursor");;
+                                    }
 
-                                break;
+                                    break;
 
+                            } //else- this is not a candidate for a cursor
                         } //else- this is not a candidate for a cursor
 
                         //get the previous element's previous element to continue backwards
