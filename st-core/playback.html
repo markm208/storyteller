@@ -49,18 +49,6 @@
                 display: none;
             }
 
-            /* used to indicate recent changes since the last play/pause cycle.
-               Add a mark to the previous neighbor of a deleted character */
-            .recentDelete {
-                border-right-color: red;
-                border-right-style: double;
-            }
-
-            /* used to indicate recent changes since the last play/pause cycle */
-            .recentInsert {
-                color: green;
-            }
-
             /* used to highlight new inserts for a brief amount of time */
             .briefInsertHighlight {
                 text-decoration: underline;
@@ -76,6 +64,23 @@
             .relevantCode {
                 font-style: normal; /* override the default italic */
                 font-weight: bold;
+            }
+
+            /* used to indicate recent changes since the last play/pause cycle.
+               Add a mark to the previous neighbor of a deleted character */
+            .recentDelete {
+                border-right-color: red;
+                border-right-style: double;
+            }
+
+            /* used to indicate recent changes since the last play/pause cycle */
+            .recentInsert {
+                color: green;
+                font-style: italic;
+            }
+
+            .recentFileChange::after {
+                content: " *";
             }
 
             /* for a blinking cursor */
@@ -125,7 +130,6 @@
 
             /* to highlight code that is linked to a comment */
             .commentRelevant {
-                font-style: normal;
                 background-color: greenyellow;
             }
 
@@ -372,7 +376,7 @@
 											<button id="stepBackwardButton" class="btn btn-default"
 													data-toggle="tooltip" data-placement="left" title="Step Backwards (left arrow)">
 												<!-- image for the step backward button -->
-												<
+												&lt;
                                                 <!--<span class="glyphicon glyphicon-step-backward"></span>-->
 											</button>
 
@@ -388,7 +392,7 @@
 											<button id="stepForwardButton" class="btn btn-default"
 													data-toggle="tooltip" data-placement="right" title="Step Forwards (right arrow)">
 												<!-- image for the step forward button -->
-                                                >
+                                                &gt;
                                                 <!--<span class="glyphicon glyphicon-step-forward"></span>-->
 											</button>
 
@@ -592,6 +596,15 @@
 	                            <label for="cutPasteInBlocksCheckbox">
 	                                <input type="checkbox" id="cutPasteInBlocksCheckbox" checked="true">
 	                                Use blocks
+	                            </label>
+	                        </div>
+
+	                        <div class="col-sm-2">
+	                            <h4>Highlight new inserts and deletes</h4>
+
+	                            <label for="showRecentHighlightsCheckbox">
+	                                <input type="checkbox" id="showRecentHighlightsCheckbox" checked="true">
+	                                Highlight recent changes
 	                            </label>
 	                        </div>
 
@@ -974,6 +987,8 @@
                 delay: 150,							//delay in between playback events in ms
                 highlightDelay: 300,    			//amount of time a new element will be highlighted on insert/delete
                 showPastesInABlock: true,			//show any pasted code as a single big block of text
+                showRecentsChanges: true,           //highlight recent changes in between play/pause cycles
+                afterInitialCode: false,            //indicates whether we are past the initial state of the code in a playback
                 comments: {},						//an object that will hold event ids as a key and groups of comments to display at the event
                 pauseForComments: true          	//indicates whether playback should be paused if there is a comment
             };
@@ -1318,6 +1333,13 @@
 
                     //store the user's choice about whether to see all cuts/pastes in blocks
                     playbackData.showPastesInABlock = e.target.checked;
+                });
+
+                //indicates whether the user wants to highlight recent changes
+                document.querySelector("#showRecentHighlightsCheckbox").addEventListener("click", function(e) {
+
+                    //store the user's choice about whether to see recent changes
+                    playbackData.showRecentsChanges = e.target.checked;
                 });
 
                 //indicates whether the user wants to have playback pause whenever there is a comment
@@ -1932,8 +1954,10 @@
             /*
              * Used to get the playback window ready for animating code. There are two types
              * of preparation. If the user wants a complete intitialization (or re-init) then
-             * all the playback windows will be wiped out and
-             *
+             * all the playback windows will be wiped out (after uploading a new playback or
+             * clearing all filters). If the user has added a new filter then a partial 
+             * re-init will happen.
+             * 
              * - reset the playback object's data to get ready for a new playback
              * - add an initial span for all 'first' characters in the file to go in front of
              * - add an invisible last span to always have the playback window take up some space
@@ -1950,6 +1974,7 @@
                 playbackData.activeFileId = null;
                 playbackData.activeLineNumber = null;
                 playbackData.latestPlaybackEventDevGroupId = null;
+                playbackData.afterInitialCode = false;
 
                 //set the slider back to the beginning and empty the timestamp
                 var playbackProgressBar = document.querySelector("#playbackProgressBar");
@@ -2680,25 +2705,6 @@
             }
 
             /*
-             * Clears the recent insert and delete highlights that get added when
-             * new events are handled during playback.
-             */
-            function clearPreviousEventHighlights() {
-
-                //get all events that have recently been inserted and remove the recent insert class
-                var previousEventHighlights = document.getElementsByClassName("recentInsert");
-                while (previousEventHighlights.length) {
-                    previousEventHighlights[0].classList.remove("recentInsert");
-                }
-
-                //now do the same with the recent deletes
-                previousEventHighlights = document.getElementsByClassName("recentDelete");
-                while (previousEventHighlights.length) {
-                    previousEventHighlights[0].classList.remove("recentDelete");
-                }
-            }
-
-            /*
              * This function will be called every playbackData.delay ms during the playing state.
              * When the end of the playback is reached it will automatically stop.
              * If the requested delay ever hits 0 it will jump right to the end in one big step.
@@ -2731,6 +2737,10 @@
                         playbackData.playbackTimerId = window.setTimeout(timedPlayback, playbackData.delay);
                     }
                 }
+
+                //indicate that we are at least past the first step in the code playback
+                playbackData.afterInitialCode = true;
+
             }
 
             /*
@@ -2797,13 +2807,20 @@
                             //move backward to the previous position
                             playbackData.codeEventsIndex--;
 
-                        } else if(direction === "backward" && playbackData.mostRecentDirection === "forward") { //changing direction
-                            
+                        } else if(direction === "backward" && playbackData.mostRecentDirection === "forward") { //changing direction from forward to backward
+                                                        
+                            //store the most recent direction
+                            playbackData.mostRecentDirection = "backward";  
+
                             //switch to going from forwards to backwards, don't change the playbackData.codeEventsIndex
                             //clear the comments
                             clearPreviousComment();
+
+                        } else { //change of direction from backwards to forwards, no need to change the code events index
+                
+                            //store the most recent direction
+                            playbackData.mostRecentDirection = "forward";                          
                         }
-                        //else- change of direction from backwards to forwards, no need to change the code events index
 
                         //get the next code event in sequence
                         stepData.codeEvent = playbackData.codeEvents[playbackData.codeEventsIndex];
@@ -2822,10 +2839,7 @@
 
                                 //indicate that we have handled the current step
                                 stepData.currentStep++;
-                            }
-                            
-                            //store the most recent direction
-                            playbackData.mostRecentDirection = "forward";
+                            }                            
                             
                             //display comments (if there are any for this event)
                             //if we are supposed to display comments AND there are any comments for this event AND the event is relevant
@@ -2865,9 +2879,6 @@
                                 //indicate that we have handled the current step
                                 stepData.currentStep++;
                             }
-
-                            //store the most recent direction
-                            playbackData.mostRecentDirection = "backward";                            
                         }
 
                         //if showing cuts/pastes in blocks, and we are at the final step in this group, look for 
@@ -3023,16 +3034,16 @@
                     //get the hidden element for this code event and store it in the stepData
                     stepData.codeElement = document.querySelector("#" + stepData.codeEvent.id);
 
-                    //show the code on the screen and highlight it
-                    makeCodeVisible(stepData, true);
+                    //show the code on the screen 
+                    makeCodeVisible(stepData);
                     
                 } else if(stepData.codeEvent.type === "Delete") {
 
                     //get the visible element to hide as a result of this delete and store it in the stepData
                     stepData.codeElement = document.querySelector("#" + stepData.codeEvent.previousNeighborId);
 
-                    //hide the code on the screen and add a highlight to see the delete
-                    makeCodeInvisible(stepData, true);
+                    //hide the code on the screen 
+                    makeCodeInvisible(stepData);
 
                 } else if(stepData.codeEvent.type === "Create File") {
 
@@ -3111,8 +3122,8 @@
                     //get the visible element to hide as a result of this insert and store it in the stepData
                     stepData.codeElement = document.querySelector("#" + stepData.codeEvent.id);
 
-                    //hide the code on the screen and do not bother highlighting it since moving in reverse is not interesting to watch
-                    makeCodeInvisible(stepData, false);
+                    //hide the code on the screen 
+                    makeCodeInvisible(stepData);
 
                 } else if(stepData.codeEvent.type === "Delete") {
 
@@ -3120,8 +3131,8 @@
                     //get the hidden element to show as a result of this delete and store it in the stepData
                     stepData.codeElement = document.querySelector("#" + stepData.codeEvent.previousNeighborId);
 
-                    //show the code on the screen and do not bother highlighting it since moving in reverse is not interesting to watch
-                    makeCodeVisible(stepData, false);
+                    //show the code on the screen 
+                    makeCodeVisible(stepData);
 
                 } else if(stepData.codeEvent.type === "Create File") {
 
@@ -3198,7 +3209,7 @@
              * until the next play/pause cycle and a brief highlight will appear to guide the
              * reader's eye to new code (this is removed after a short time). 
              */
-            function makeCodeVisible(stepData, highlightChange) {
+            function makeCodeVisible(stepData) {
 
                 //make the span visible by removing the class that hides code on the screen
                 stepData.codeElement.classList.remove("codeNotVisible");
@@ -3213,10 +3224,10 @@
                     stepData.codeElement.classList.add("relevantCode");
 
                     //if a change highlight is needed (usually in forward direction only)
-                    if(highlightChange) {
+                    if(shouldHighlightChanges()) {
 
-                        //highlight the element as reletively new
-                        stepData.codeElement.classList.add("recentInsert");
+                        //highlight the new insert
+                        addRecentInsertHighlight(stepData);
                     }
 
                     //if there is any delay between characters we will highlight the insert
@@ -3225,7 +3236,7 @@
                         //for brief insert highlighting (class will be removed with a timer below)
                         stepData.codeElement.classList.add("briefInsertHighlight");
 
-                        //set a timer to remove the .recentInsert class from the element
+                        //set a timer to remove the .briefInsertHighlight class from the element
                         window.setTimeout(function(codeElement) {
 
                             //find the recent insert and remove the class
@@ -3245,7 +3256,7 @@
              * where the delete occurred. The text will stay on the screen for a short time and then be removed
              * so the user can see what is being deleted.
              */
-            function makeCodeInvisible(stepData, highlightChange)
+            function makeCodeInvisible(stepData)
             {
                 //if this is a relevant character
                 if(stepData.codeEvent.relevant) {
@@ -3280,41 +3291,10 @@
                     }
 
                     //if a change highlight is needed (usually in forward direction only)
-                    if(highlightChange) {
+                    if(shouldHighlightChanges()) {
 
-                        //attempt to get the previous element from the one that is being deleted        
-                        var deletesPreviousSibling = stepData.codeElement.previousSibling;
-
-                        //while there are still previous siblings
-                        while(deletesPreviousSibling)
-                        {
-                            //if the previous neighbor is visible and on the screen
-                            if(deletesPreviousSibling.classList.contains("codeNotVisible") == false) {
-                                
-                                //if the previous sibling is a new line character
-                                if(deletesPreviousSibling.classList.contains("newLine")) {
-                                    
-                                    //get the line number gutter for this file
-                                    var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
-
-                                    //add the style to the line number element
-                                    fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("recentDelete");
-
-                                    break;
-
-                                } else if(deletesPreviousSibling.classList.contains("firstSpan") || deletesPreviousSibling.classList.contains("codeChar")) {
-                                    
-                                    //mark the previous sibling as a recent delete (used to highlight where a delete happened on the screen)
-                                    deletesPreviousSibling.classList.add("recentDelete");
-
-                                    //stop looking for visible previous siblings to mark
-                                    break;
-                                }
-                            }
-                            
-                            //move to the next previous sibling
-                            deletesPreviousSibling = deletesPreviousSibling.previousSibling;
-                        }
+                        //highlight a delete
+                        addRecentDeleteHighlight(stepData);
                     }
                     
                 } else { //not a relevant step
@@ -3328,6 +3308,128 @@
                     //if a new line was removed, remove the line number
                     removeLineNumberIfNecessary(stepData.codeElement, stepData.codeEvent.fileId);
                 }
+            }
+
+            /*
+             * Used to indicate if we should mark recent events for the user to see on the screen.
+             * This happens if the user is moving forward, has chosen to highlight recent changes (in 
+             * the options), and if we are past the intial state of the code (to skip any large starting
+             * state of code)  
+             */
+            function shouldHighlightChanges() {
+
+                //assume that we should not highlight recent changes
+                var retVal = false;
+
+                //if the playback is moving forward AND
+                //the user wants to see the recent changes AND
+                //this step is after the initial state of the code
+                if(playbackData.mostRecentDirection === "forward" &&
+                   playbackData.showRecentsChanges && 
+                   playbackData.afterInitialCode) {
+
+                    retVal = true; 
+                }
+
+                return retVal;
+            }
+
+            /*
+             * Highlights a newly inserted character so the user knows what change has been made. It also higlights
+             * a file name so the user knows which files have changed. 
+             */ 
+            function addRecentInsertHighlight(stepData) {
+
+                //highlight the new code character as being reletively new
+                stepData.codeElement.classList.add("recentInsert");
+
+                //highlight the file name where the change took place
+                highlightChangedFileName(stepData.codeEvent.fileId);
+            }
+
+            /* 
+             * Highlights a newly deleted character so the user knows what change has been made. It also higlights
+             * a file name so the user knows which files have changed. 
+             */ 
+            function addRecentDeleteHighlight(stepData) {
+
+                //attempt to get the previous visible element from the one that is being deleted        
+                var deletesPreviousSibling = getLastVisibleSibling(stepData.codeElement);
+
+                //if the previous sibling is a new line character
+                if(deletesPreviousSibling.classList.contains("newLine")) {
+                    
+                    //get the line number gutter for this file
+                    var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
+
+                    //add the style to the line number element
+                    fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("recentDelete");
+
+                } else { //a visible span with some code in it
+                    
+                    //mark the previous sibling as a recent delete (used to highlight where a delete happened on the screen)
+                    deletesPreviousSibling.classList.add("recentDelete");
+                }
+
+                //highlight the file name where the change took place
+                highlightChangedFileName(stepData.codeEvent.fileId);
+            }
+
+            /*
+             * Gets the anchor associated with a file name and adds a class to highlight that a change has occured
+             */
+            function highlightChangedFileName(fileId) {
+
+                //get the anchor that holds the file name in the group of tabs with filenames
+                var changedPlaybackWindowLinkListItem = document.querySelector("#playbackWindowLinkListItem-" + fileId);
+                var changedPlaybackWIndowAnchor = changedPlaybackWindowLinkListItem.children[0];
+                
+                //highlight the file name
+                changedPlaybackWIndowAnchor.classList.add("recentFileChange");
+            }
+
+            /*
+             * Clears the recent insert and delete highlights that get added when
+             * new events are handled during playback.
+             */
+            function clearPreviousEventHighlights() {
+
+                //get all events that have recently been inserted and remove the recent insert class
+                var previousEventHighlights = document.querySelector("#playbackWindows").getElementsByClassName("recentInsert");
+                while (previousEventHighlights.length) {
+                    previousEventHighlights[0].classList.remove("recentInsert");
+                }
+
+                //now do the same with the recent deletes
+                previousEventHighlights = document.querySelector("#playbackWindows").getElementsByClassName("recentDelete");
+                while (previousEventHighlights.length) {
+                    previousEventHighlights[0].classList.remove("recentDelete");
+                }
+
+                //get all the file tab links that are highlighted and remove the recentFileChange class
+                var allRecentlyChangedLinks = document.querySelector("#playbackWindowTabLinks").getElementsByClassName("recentFileChange");
+                while (allRecentlyChangedLinks.length) {
+                    allRecentlyChangedLinks[0].classList.remove("recentFileChange");
+                }
+            }
+            
+            /*
+             * When passed in a code element this function will return the closest previous sibling that does NOT have the
+             * codeNotVisible class. In other words, the closest previous sibling that is visible on the screen.
+             */
+            function getLastVisibleSibling(codeElement) {
+
+                //attempt to get the previous element 
+                var previousVisibleSibling = codeElement.previousSibling;
+
+                //while the siblings are visible on the screen
+                while(previousVisibleSibling.classList.contains("codeNotVisible") === true)
+                {                    
+                    //move to the next previous sibling
+                    previousVisibleSibling = previousVisibleSibling.previousSibling;
+                }
+
+                return previousVisibleSibling;
             }
 
             /* 
@@ -3364,39 +3466,25 @@
                     //add the caret to the previous visible code character that is not a newline
                     
                     //get the element immeditately previous to the code element
-                    var previousElement = stepData.codeElement.previousSibling;
+                    var previousElement = getLastVisibleSibling(stepData.codeElement);
 
-                    //while there are still some elements
-                    while(previousElement) {
+                    //if there is an element
+                    if(previousElement) {
                         
-                        //if the previous neighbor is visible and on the screen
-                        if(previousElement.classList.contains("codeNotVisible") == false) {
+                        //if it is a new line, put the cursor above on the previous line
+                        if(previousElement.classList.contains("newLine")) {
 
-                            //if the previous element is either the first span or a code character then the cursor should go here  
-                            if(previousElement.classList.contains("firstSpan") || previousElement.classList.contains("codeChar")) {
+                            //get the line number gutter for this file
+                            var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
 
-                                    //if it is a new line, put the cursor above on the previous line
-                                    if(previousElement.classList.contains("newLine")) {
+                            //add the cursor to the line number element
+                            fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("deleteCaretCursor");
 
-                                        //get the line number gutter for this file
-                                        var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
+                        } else { //a non-newline character
 
-                                        //add the cursor to the line number element
-                                        fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("deleteCaretCursor");
-
-                                    } else { //a non-newline character
-
-                                        //add caret cursor to the previous element 
-                                        previousElement.classList.add("deleteCaretCursor");;
-                                    }
-
-                                    break;
-
-                            } //else- this is not a candidate for a cursor
-                        } //else- this is not a candidate for a cursor
-
-                        //get the previous element's previous element to continue backwards
-                        previousElement = previousElement.previousSibling;
+                            //add caret cursor to the previous element 
+                            previousElement.classList.add("deleteCaretCursor");;
+                        }
                     }
                 }
             }
