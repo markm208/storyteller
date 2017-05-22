@@ -606,6 +606,11 @@
 	                                <input type="checkbox" id="showRecentHighlightsCheckbox" checked="true">
 	                                Highlight recent changes
 	                            </label>
+
+                                <button id="clearRecentChangesButton" class="btn btn-default">
+                                    Clear recent changes
+                                </button>
+
 	                        </div>
 
 	                        <div class="col-sm-2">
@@ -1340,6 +1345,13 @@
 
                     //store the user's choice about whether to see recent changes
                     playbackData.showRecentsChanges = e.target.checked;
+                });
+
+                //indicates whether the user wants to clear all the recent change highlights
+                document.querySelector("#clearRecentChangesButton").addEventListener("click", function(e) {
+
+                    //clear all the recent changes
+                    clearPreviousEventHighlights();
                 });
 
                 //indicates whether the user wants to have playback pause whenever there is a comment
