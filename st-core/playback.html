@@ -63,7 +63,7 @@
             /* to highlight code that satisfies all of the filters */
             .relevantCode {
                 font-style: normal; /* override the default italic */
-                font-weight: bold;
+                font-weight: normal;
             }
 
             /* used to indicate recent changes since the last play/pause cycle.
@@ -77,6 +77,7 @@
             .recentInsert {
                 color: green;
                 font-style: italic;
+                font-weight: bold;
             }
 
             .recentFileChange::after {
@@ -93,7 +94,7 @@
 
             /* for displaying a cursor in the playback after an insert */
             .insertCaretCursor {
-                border-right-color: black;
+                border-right-color: green;
                 border-right-width: 2px;
                 border-right-style: solid; 
                 
@@ -183,7 +184,7 @@
                 overflow: auto; /* for scrolling */
                 height:700px;
                 white-space: nowrap; /* for horizontal scrolling to prevent wrap */
-                font-size: 24px;
+                font-size: 18px;
                 background-color: #C9DBA3;
                 font-family: 'Courier New';
             }
@@ -374,7 +375,7 @@
 										<td id="playbackControlTD">
 											<!-- step backward button -->
 											<button id="stepBackwardButton" class="btn btn-default"
-													data-toggle="tooltip" data-placement="left" title="Step Backwards (left arrow)">
+													data-toggle="tooltip" data-placement="bottom" title="Step Backwards (left arrow)">
 												<!-- image for the step backward button -->
 												&lt;
                                                 <!--<span class="glyphicon glyphicon-step-backward"></span>-->
@@ -390,7 +391,7 @@
 
 											<!-- step forward button -->
 											<button id="stepForwardButton" class="btn btn-default"
-													data-toggle="tooltip" data-placement="right" title="Step Forwards (right arrow)">
+													data-toggle="tooltip" data-placement="bottom" title="Step Forwards (right arrow)">
 												<!-- image for the step forward button -->
                                                 &gt;
                                                 <!--<span class="glyphicon glyphicon-step-forward"></span>-->
@@ -500,16 +501,6 @@
 									<div id="codeCommentContainer">
 										--
 									</div>
-
-                                    <!-- control to pause playbacks at comment points -->
-									<div class="form-group">
-										<div class="checkbox">
-											<label>
-												<input type="checkbox" id="pauseForCommentsCheckbox" name="pauseForComments" value="0" checked="checked">
-												<span>Pause playback for all comments</span>
-											</label>
-										</div>
-									</div>
 								</div>
 							</div>
 						</fieldset>
@@ -546,114 +537,194 @@
 
 
 		<!-- playback modals -->
-
 		<!-- playback options modal -->
-        <div id="playbackOptionsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+        <div id="playbackOptionsModal" class="modal fade in" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h3 class="modal-title">Playback Options</h3>
                     </div>
 
                     <div class="modal-body">
-                        <div class="row">
-                            <div class="col-sm-2">
-                                <h4>Playback Speed</h4>
-                                <!-- playback speed control -->
-                                <div class="text-left" data-toggle="tooltip" data-placement="left" title="Playback Speed: Use the buttons or the 'shift' + up/down arrow keys to speed up or slow down the playback.">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#playbackControlOptionsTab" role="tab" data-toggle="tab">Playback Control</a></li>
+                            <li role="presentation"><a href="#savingReplayingPlaybackOptionsTab" role="tab" data-toggle="tab">Saving and Replaying Playbacks</a></li>
+                            <li role="presentation"><a href="#otherOptionsTab" role="tab" data-toggle="tab">Other</a></li>
+                        </ul>
 
-                                    <!-- increase speed button -->
-                                    <button id="playbackSpeedIncreaseButton" class="btn btn-default">
-                                        +
-                                        <!-- image for increase speed button -->
-                                        <!--<span class="glyphicon glyphicon-arrow-down"></span>-->
-                                    </button>
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active" id="playbackControlOptionsTab">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label>Play/Pause</label>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p>
+                                            The <button class="btn btn-default btn-xs">Play/Pause</button> button starts and pauses a playback. You can hit the <code>space bar</code> to toggle this from the keyboard.
+                                            You can also use the slider to go to any point in the playback.
+                                        </p>
+                                        <p>
+                                            The <button class="btn btn-default btn-xs">&lt;</button> and <button class="btn btn-default btn-xs">&gt;</button> buttons move the playback one step at a time for fine grained control of a playback. 
+                                            You can use <code>left arrow</code> and <code>right arrow</code> keys to control this from the keyboard.
+                                        </p>
+                                    </div>
+                                </div>
+                                <hr/>
+                                <div class="row">
+                                    <div class="col-sm-6">                                    
+                                        <label>Playback speed </label>   
+                                        <br/>                                  
+                                        <div class="btn-group" role="group">
+                                            <button type="button" id="playbackSpeedIncreaseButton" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Make the playback move faster">Faster</button>
+                                            <button type="button" id="playbackSpeedDecreaseButton" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Make the playback move slower">Slower</button>
+                                            <button type="button" id="skipAnimationPlaybackSpeedIncreaseButton" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="When you choose to 'skip the animation of code' there is no delay in between events. If there are no Storyteller comments, then you will be brought to the final state of the code. However, if the 'Pause playback for all comments' option is selected the playback will pause on all comments. When viewing a playback with comments it is often desirable to see the code only at comment points.">Skip the animation of code</button>
+                                        </div>
+                                        <p>
+                                            Current speed: <span id="currentPlaybackSpeed"><strong>100 ms</strong> in between events</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p>
+                                            There is a user defined amount of time in between each coding event. You can adjust this amount of time by using this control.
+                                        </p>
+                                        
+                                        <p>
+                                            You can hit <code>shift + up arrow</code> to speed up and <code>shift + down arrow</code> to slow down the playback from the keyboard.
+                                        </p>
+                                    </div>
+                                </div>      
+                                <hr/>
+                                <div class="row">
+                                    <div class="col-sm-6">                                    
+                                        <label for="pauseForCommentsCheckbox">
+                                            <input type="checkbox" id="pauseForCommentsCheckbox" checked="true">
+                                                Pause playback for all comments
 
-                                    <!-- decrease speed button -->
-                                    <button id="playbackSpeedDecreaseButton" class="btn btn-default">
-                                        -
-                                        <!-- image for decrease speed button -->
-                                        <!--<span class="glyphicon glyphicon-arrow-up"></span>-->
-	                                </button>
+                                        </label>
+                                    </div>
+                                
+                                    <div class="col-sm-6">
+                                        <p>
+                                            When a comment is encountered the playback will be paused so the user can see it and the current state of the code.
+                                            By default, the playback will pause for all comments.
+                                        </p>
+                                    </div>                  
+                                </div>
+                                <hr/>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label for="cutPasteInBlocksCheckbox">
+                                            <input type="checkbox" id="cutPasteInBlocksCheckbox" checked="true">
+                                            Show all cuts and pastes in blocks
+                                        </label>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p>
+                                            Cuts, pastes, and group tabbing affect many different code characters at once. These operations can be slow to watch. 
+                                            By default, entire groups of characters that were cut, pasted, or tabbed will be shown in a single step to improve watchability. 
+                                            If you'd like to animate each individual character, use this control.
+                                        </p>
+                                    </div>    
+                                </div>
+                                <hr/>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label for="showRecentHighlightsCheckbox">
+                                            <input type="checkbox" id="showRecentHighlightsCheckbox" checked="true">
+                                            Highlight recent changes
+                                        </label>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p>
+                                            To make it easier to see what changes have been made since the last pause point, new inserts and deletes are highlighted.
+                                            The highlights are removed each time you resume a playback by hitting <button class="btn btn-default btn-xs">Play</button>.                                        
+                                        </p>
+                                    </div>    
+                                </div>
 
-                                    <!-- description of the current speed -->
-                                    <!--<span id="playbackSpeedDisplay">
-                                        <strong>Fast</strong>
-                                    </span>-->
-
-                                    <!-- progress bar for the speed -->
-                                    <!--<div class="progress" id="speedControlProgressBarContainer" style="height:5px;margin-top:5px">
-                                        <div class="progress-bar progress-bar-success" role="progressbar" id="speedControlPlaybackProgressBar" style="width:70%;"></div>
-                                    </div>-->
-	                            </div>
-	                        </div>
-
-	                        <div class="col-sm-2">
-	                            <h4>Cut/paste in blocks</h4>
-	                            <!-- show all events with the same timestamp in a single block -->
-	                            <label for="cutPasteInBlocksCheckbox">
-	                                <input type="checkbox" id="cutPasteInBlocksCheckbox" checked="true">
-	                                Use blocks
-	                            </label>
-	                        </div>
-
-	                        <div class="col-sm-2">
-	                            <h4>Highlight new inserts and deletes</h4>
-
-	                            <label for="showRecentHighlightsCheckbox">
-	                                <input type="checkbox" id="showRecentHighlightsCheckbox" checked="true">
-	                                Highlight recent changes
-	                            </label>
-
-                                <button id="clearRecentChangesButton" class="btn btn-default">
-                                    Clear recent changes
-                                </button>
-
-	                        </div>
-
-	                        <div class="col-sm-2">
-	                            <h4>Font size</h4>
-                                <!-- control font size -->
-                                <!-- decrease font button -->
-                                <button id="fontIncreaseButton" class="btn btn-default">
-                                    +
-                                    <!-- image for decrease font button -->
-                                    <!--<span class="glyphicon glyphicon-arrow-down"></span>-->
-                                </button>
-
-                                <!-- increase font button -->
-                                <button id="fontDecreaseButton" class="btn btn-default">
-                                    -
-                                    <!-- image for increase font button -->
-                                    <!--<span class="glyphicon glyphicon-arrow-up"></span>-->
-                                </button>
-	                        </div>
-
-                            <div class="col-sm-2">
-                                <h4>Save this playback</h4>
-                                <!-- save the state of a playback in a json file -->
-                                <button id="savePlaybackButton" class="btn btn-default">
-                                    Download 
-                                    <!--<span class="glyphicon glyphicon-save"></span>-->
-                                </button>
-                                <!-- link to a json file to download -->
-                                <!--<a id="playbackDownloadLink"></a> -->
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <button id="clearRecentChangesButton" class="btn btn-default"  data-toggle="tooltip" data-placement="top" title="Clear recent change highlights">
+                                            Clear recent changes
+                                        </button>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p>
+                                            To clear all recent changes without resuming the playback use this control. You can hit <code>shift + c</code> to clear the changes from the keyboard.
+                                        </p>
+                                    </div>    
+                                </div>
                             </div>
-
-                            <div class="col-sm-2">
-                                <h4>Upload a playback</h4>
-                                <!-- load a previously downloaded playback to display -->
-                                <input type="file" id="uploadPlaybackButton">
-                                Upload 
-                                <!--<span class="glyphicon glyphicon-upload"></span>-->
+                            
+                            <div role="tabpanel" class="tab-pane" id="savingReplayingPlaybackOptionsTab">
+                                <div class="row">                                
+                                    <div class="col-sm-6">                                
+                                        <p>
+                                            <label>Download playback to your filesystem</label>
+                                            <button id="savePlaybackButton" class="btn btn-default"  data-toggle="tooltip" data-placement="top" title="Download playback to your file system">Download this playback</button>
+                                        </p>                                        
+                                    </div>
+                                    
+                                    <div class="col-sm-6">
+                                        <p>
+                                            Save the current playback to your file system in a file. This file can be uploaded in the future to replay the exact same playback.
+                                        </p>
+                                    </div>    
+                                </div>
+                                <hr/>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <p>
+                                            <label>Upload a previous playback</label>
+                                            <input type="file" id="uploadPlaybackButton"  data-toggle="tooltip" data-placement="top" title="Play a previous playback">
+                                        </p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p>
+                                            Select a previously downloaded playback file to replay it. The current playback information will be lost.
+                                        </p>
+                                    </div>    
+                                </div>
                             </div>
-
-	                    </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            
+                            <div role="tabpanel" class="tab-pane" id="otherOptionsTab">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <p>
+                                            <label>
+                                                Increase/decrease the font size: 
+                                            </label>         
+                                            <br/>                           
+                                            <div class="btn-group" role="group">
+                                                <button type="button" id="fontIncreaseButton" class="btn btn-default"  data-toggle="tooltip" data-placement="top" title="Make the text bigger">Bigger</button>
+                                                <button type="button" id="fontDecreaseButton" class="btn btn-default"  data-toggle="tooltip" data-placement="top" title="Make the text smaller">Smaller</button>
+                                            </div>
+                                        </p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p>
+                                            Change the size of the text on the screen.
+                                        </p>
+                                    </div>    
+                                </div>
+                                <hr/>
+                                <div class="row">
+                                    <div class="col-sm-6">                                    
+                                        <label>Options</label>                                    
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p>
+                                            <code>shift o</code> opens this options window. <code>esc</code> closes it.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
@@ -792,6 +863,31 @@
                             <div class="tab-content">
                                 <!-- by time -->
                                 <div class="tab-pane active" id="filterByTimeTab">
+                                    <p>
+                                        This filter allows you to see coding activity during different periods of time. 
+                                        Below is a list of all time spans that, if code was written in that time frame, it will be animated.
+                                        Any code written outside of these time spans will <em><strong>not</strong></em> be animated but it will still be shown among the rest of the code.
+                                    </p>
+                                    <p>
+                                        You can use the timestamp of the current event to make your filters.
+                                        This is useful to skip unintersting parts of the development process.
+                                    </p>
+                                    <p>
+                                        By default, a time span with the entire history is provided. 
+                                        You can add multiple time spans and remove them as needed. 
+                                    </p>
+                                    <hr/>
+                                    <div>                                        
+                                        <table id="userSelectedTimeSpans" class="table table-striped table-condensed table-hover"> 
+                                            <caption>Selected time span filters</caption>
+                                            <tr>
+                                                <th>&nbsp;</th>
+                                                <th>Start Time</th>
+                                                <th>End Time</th>
+                                            </tr>                                            
+                                        </table>
+                                    </div>
+                                    <hr/>
                                     <div>
                                         <div class="form-group">
                                             <label for="startTimeInput" >Start time: </label>
@@ -820,27 +916,39 @@
                                             </button>
                                             
                                         </div>
-                                    </div>
-
-                                    <div>                                        
-                                        <table id="userSelectedTimeSpans" class="table table-striped table-condensed table-hover"> 
-                                            <caption>Selected filters</caption>
-                                            <tr>
-                                                <th>&nbsp;</th>
-                                                <th>Start Time</th>
-                                                <th>End Time</th>
-                                            </tr>                                            
-                                        </table>
-                                    </div>
+                                    </div>                                    
                                 </div>
 
                                 <!-- by dev group -->
                                 <div class="tab-pane" id="filterByDevGroupTab">
+                                    <p>
+                                        This filter allows you to animate the code written by certain developer(s). 
+                                    </p>
+                                    <p>
+                                        All selected developers' code will be animated. 
+                                        The code from developers who were not selected is still shown but it is <em><strong>not</strong></em> animated in the playback.
+                                    </p>
+                                    <p>
+                                        This is useful for focusing on the contribution of one or more developers.
+                                    </p>
+                                    <hr/>
                                     <div id="devGroupFilter"></div>
                                 </div>
 
                                 <!-- by file -->
                                 <div class="tab-pane" id="filterByFileTab">
+                                    <p>
+                                        This filter allows you to animate the code written in certain files. 
+                                    </p>
+                                    <p>
+                                        Only the code in the selected files will be animated and displayed. 
+                                        The code in the other files will be shown but will <em><strong>not</strong></em> be animated.
+                                        This is useful for focusing on one or more files.
+                                    </p>
+                                    <p>
+                                        Files and folders that were added and then deleted will be available for selection.
+                                    </p>
+                                    <hr/>
                                     <div class="form-group">
                                         <!-- list of all files/dirs in the system even deleted ones -->
                                         <ul id="viewOfFileSystemForFiltering" class="fileOrDirListForFiltering"></ul>
@@ -853,13 +961,19 @@
 
                                 <!-- by selected text -->                                
                                 <div class="tab-pane" id="filterBySelectedTextTab">
+                                    <p>
+                                        This filter allows you to select some code and have it be animated in a playback. 
+                                        Only the selected text on the screen will be played back.
+                                    </p>
+                                    <p>
+                                        It will show all the code that ever touched the selected code. 
+                                        This is useful for finding out the full history of a block of code (like a method).                                        
+                                    </p>
+                                    <hr/>
                                     <div class="form-group">
-                                        <p>
-                                            The selected text on the screen will be played back.
-                                        </p>
                                         <!-- choose the text that is selected on the screen -->
                                         <button type="button" id="selectedTextButton" class="btn btn-default" data-dismiss="modal">
-                                            Selected Text Playback 
+                                            Playback the Selected Text  
                                             <!--<span class="glyphicon glyphicon-blackboard"></span>-->
                                         </button>
                                     </div>
@@ -989,7 +1103,7 @@
                 latestPlaybackEventDevGroupId: null,//the id of the last dev group to make a relevant contribution during playback 
                 allFiles: null,             		//an object with info about all the files ever created in the system 
                 allDirs: null,              		//an object with info about all of the directories ever created in the system 
-                delay: 150,							//delay in between playback events in ms
+                delay: 100,							//delay in between playback events in ms
                 highlightDelay: 300,    			//amount of time a new element will be highlighted on insert/delete
                 showPastesInABlock: true,			//show any pasted code as a single big block of text
                 showRecentsChanges: true,           //highlight recent changes in between play/pause cycles
@@ -1048,8 +1162,7 @@
                 //for tooltips- can remove if move away from bootstrap
                 //the tooltips won't show until a hover that lasts 1000 ms and will go away
                 //after 200 ms hover out
-                $('[data-toggle="tooltip"]').tooltip({delay: {show: 1000, hide: 200}});
-
+                $('[data-toggle="tooltip"]').tooltip({delay: {show: 500, hide: 200}});
                 //construct the playback object. There is a bit of magic here, loadPlaybackData() is added 
                 //to this file dynamically by the playback web server and it includes all of the events,
                 //dev info, commments, etc.                
@@ -1183,15 +1296,24 @@
                 document.querySelector("#playbackSpeedIncreaseButton").addEventListener("click", function(e) {
 
                     //increase the delay in between playing back events (function takes a delta)
-                    changeSpeed(-25);
+                    changeSpeed(-100);
                 });
 
                 //playback speed decrease button
                 document.querySelector("#playbackSpeedDecreaseButton").addEventListener("click", function(e) {
 
                     //decrease the delay in between playing back events (function takes a delta)
-                    changeSpeed(25);
+                    changeSpeed(100);
                 });
+
+                //playback speed decrease button
+                document.querySelector("#skipAnimationPlaybackSpeedIncreaseButton").addEventListener("click", function(e) {
+
+                    //set the delay in between playing back events to a negative number (function takes a delta)
+                    //negate the current value and subtract 1 to make it negative
+                    changeSpeed(-playbackData.delay - 1);
+                });
+
 
                 //font increase button
                 document.querySelector("#fontIncreaseButton").addEventListener("click", function(e) {
@@ -1214,8 +1336,8 @@
 
                     } else { //no defined font size
 
-                        //default is 24 so make it 2 points bigger
-                        playbackWindows.style.fontSize = "26px";
+                        //default is 18 so make it 2 points bigger
+                        playbackWindows.style.fontSize = "20px";
                     }
                 });
 
@@ -1239,8 +1361,8 @@
 
                     } else { //no defined font size
 
-                        //default is 24 so make it 2 points smaller
-                        playbackWindows.style.fontSize = "22px";
+                        //default is 18 so make it 2 points smaller
+                        playbackWindows.style.fontSize = "16px";
                     }
                 });
 
@@ -1249,16 +1371,18 @@
 
                     //left arrow, right arrow, up arrow, down arrow, and space bar control
                     //the playing of events
+                    
+                    //if the event happened in any of the editable text areas (comments, start/end filter time)
+                    if(e.target.getAttribute("id") === "textCommentTextArea" || 
+                       e.target.getAttribute("id") === "startTimeInput" || 
+                       e.target.getAttribute("id") === "endTimeInput") {
+                        
+                        //don't handle the keydown here 
+                        e.stopImmediatePropagation();
 
-                    if(e.keyCode === 37){ //left
+                    } else { //the keydown did not happen in one of the editable text areas
 
-                        //if the left arrow happened in the comment text area
-                        if(e.target.getAttribute("id") === "textCommentTextArea") {
-
-                            //don't let it move the playback backwards
-                            e.stopImmediatePropagation();
-
-                        } else { //left arrow happened outside of the comment text area
+                        if(e.keyCode === 37){ //left
 
                             //pause the playback
                             pausePlayback();
@@ -1274,17 +1398,8 @@
                                 //move back one step
                                 step("backward", 1);
                             }
-                        }
 
-                    } else if(e.keyCode === 39){ //right
-
-                        //if the right arrow happened in the comment text area
-                        if(e.target.getAttribute("id") === "textCommentTextArea") {
-
-                            //don't let it move the playback forwards
-                            e.stopImmediatePropagation();
-
-                        } else { //right arrow happened outside of the comment text area
+                        } else if(e.keyCode === 39){ //right
 
                             //pause the playback
                             pausePlayback();
@@ -1300,35 +1415,55 @@
                                 //move forward one step
                                 step("forward", 1);
                             }
-                        }
 
-                    } else if(e.keyCode === 38 && e.shiftKey){ //shift + up
+                        } else if(e.keyCode === 38 && e.shiftKey){ //shift + up
 
-                        //decrease the delay in between playing back events, increases playback speed (function takes a delta)
-                        changeSpeed(-25);
+                            //decrease the delay in between playing back events, increases playback speed (function takes a delta)
+                            changeSpeed(-100);
 
-                    } else if(e.keyCode === 40 && e.shiftKey){ //shift + down
+                        } else if(e.keyCode === 40 && e.shiftKey){ //shift + down
 
-                        //increase the delay in between playing back events, decreases playback speed (function takes a delta)
-                        changeSpeed(25);
+                            //increase the delay in between playing back events, decreases playback speed (function takes a delta)
+                            changeSpeed(100);
 
-                    } else if(e.keyCode === 32){ //space bar
+                        } else if(e.keyCode === 79 && e.shiftKey){ //shift + o
 
-                        //if the space bar happened in the comment text area
-                        if(e.target.getAttribute("id") === "textCommentTextArea") {
+                            //open the options modal
+                            $('#playbackOptionsModal').modal('show');
 
-                            //don't let it start playback
-                            e.stopImmediatePropagation();
+                        } else if(e.keyCode === 70 && e.shiftKey){ //shift + f
 
-                            //console.log("blocking space bar in comment");
+                            //open the filters modal
+                            $('#filtersModal').modal('show');
 
-                        } else { //space bar outside of the text area
+                        } else if(e.keyCode === 68 && e.shiftKey){ //shift + d
 
-                            //toggle playing and pausing
-                            togglePlayPause();
+                            //open the download modal
+                            $('#saveStateModal').modal('show');
 
-                            //prevent the screen from scrolling on play/pause
-                            e.preventDefault();
+                        } else if(e.keyCode === 67 && e.shiftKey){ //shift + c
+
+                            //clear all the recent changes
+                            clearPreviousEventHighlights();
+
+                        } else if(e.keyCode === 32){ //space bar
+
+                            //if the space bar happened in the comment text area
+                            if(e.target.getAttribute("id") === "textCommentTextArea") {
+
+                                //don't let it start playback
+                                e.stopImmediatePropagation();
+
+                                //console.log("blocking space bar in comment");
+
+                            } else { //space bar outside of the text area
+
+                                //toggle playing and pausing
+                                togglePlayPause();
+
+                                //prevent the screen from scrolling on play/pause
+                                e.preventDefault();
+                            }
                         }
                     }
                 });
@@ -3745,7 +3880,7 @@
                 }
 
                 //get the speed controls
-                //var playbackSpeedDisplay = document.querySelector("#playbackSpeedDisplay");
+                var playbackSpeedDisplay = document.querySelector("#currentPlaybackSpeed");
                 //var speedControlPlaybackProgressBar = document.querySelector("#speedControlPlaybackProgressBar");
 
                 //if we are at the speed where there is no animation at all
@@ -3755,7 +3890,7 @@
                     //speedControlPlaybackProgressBar.setAttribute("style", "width:100%");
 
                     //change the text to indicate no animation
-                    //playbackSpeedDisplay.innerHTML = "<strong>None</strong>";
+                    playbackSpeedDisplay.innerHTML = "<strong>0 ms</strong> in between events";
 
                 } else if(playbackData.delay < 175) { //new speed is fast
 
@@ -3766,7 +3901,7 @@
                     //speedControlPlaybackProgressBar.setAttribute("style", "width:" + width + "%");
 
                     //change the text to indicate a fast playback speed
-                    //playbackSpeedDisplay.innerHTML = "<strong>Fast</strong>";
+                    playbackSpeedDisplay.innerHTML = "<strong>" + playbackData.delay + " ms</strong> in between events";
 
                 } else { //new speed is slow
 
@@ -3774,7 +3909,7 @@
                     //speedControlPlaybackProgressBar.setAttribute("style", "width:25%");
 
                     //change the text to indicate a slow playback speed
-                    //playbackSpeedDisplay.innerHTML = "<strong>Slow</strong>";
+                    playbackSpeedDisplay.innerHTML = "<strong>" + playbackData.delay + " ms</strong> in between events";
                 }
             }
 
