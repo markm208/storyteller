@@ -1448,22 +1448,13 @@
 
                         } else if(e.keyCode === 32){ //space bar
 
-                            //if the space bar happened in the comment text area
-                            if(e.target.getAttribute("id") === "textCommentTextArea") {
+                            //space bar outside of the text area
 
-                                //don't let it start playback
-                                e.stopImmediatePropagation();
+                            //toggle playing and pausing
+                            togglePlayPause();
 
-                                //console.log("blocking space bar in comment");
-
-                            } else { //space bar outside of the text area
-
-                                //toggle playing and pausing
-                                togglePlayPause();
-
-                                //prevent the screen from scrolling on play/pause
-                                e.preventDefault();
-                            }
+                            //prevent the screen from scrolling on play/pause
+                            e.preventDefault();                        
                         }
                     }
                 });
