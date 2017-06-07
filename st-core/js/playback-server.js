@@ -91,12 +91,81 @@ var server = http.createServer(function(req, res) {
 
                     //add the comment to the array of comments for this particular event
                     playbackData.comments[comment.displayCommentEvent.id].push(comment);
+
+                    //stop looking for the event
+                    break;
                 }
             }
+
+            //copy the new state of the playback data into the other module
+            editorNode.setPlaybackData(playbackData);
 
             //send a success response back
             res.writeHead(200, {"Content-Type": "application/json"});
             res.end(JSON.stringify({"result": "success"}));
+        });
+        
+    } else if(req.url === "/comment" && req.method === "PUT") { //updating a comment from a playback
+        
+        //body of http request
+        var body = [];
+
+        req.on('error', function(err) {
+            console.error(err);
+
+            //send an error message
+            res.writeHead(404, {"Content-Type": "text/plain"});
+            res.end("Problem processing a comment" + err);
+
+        }).on('data', function(chunk) {
+
+            //add a new chunk of data to the body
+            body.push(chunk);
+
+        }).on('end', function() {
+            
+            //turn the body into a string
+            body = Buffer.concat(body).toString();
+
+            //turn the string into an object
+            var comment = JSON.parse(body);
+
+            //add a comment to the events before writing them all back to the file system
+            //get the latest playback data from the editor
+            var playbackData = editorNode.getPlaybackData();
+
+            //if the list of comments exists for the specified event 
+            if(playbackData.comments[comment.displayCommentEvent.id]) {
+
+                //get the list of comments for the event
+                var allCommentsForAnEvent = playbackData.comments[comment.displayCommentEvent.id];
+
+                //search for the correct comment
+                for(var i = 0;i < allCommentsForAnEvent.length;i++) {
+    
+                    //find the correct comment based on the timestamp when the comment was created
+                    if(allCommentsForAnEvent[i].timestamp === comment.timestamp) {
+
+                        //update the comment
+                        allCommentsForAnEvent[i] = comment;
+
+                        break;
+                    }
+                }
+
+                //copy the new state of the playback data into the other module
+                editorNode.setPlaybackData(playbackData);
+                
+                //send a success response back
+                res.writeHead(200, {"Content-Type": "application/json"});
+                res.end(JSON.stringify({"result": "success"}));
+
+            } else {
+
+                //send an error message
+                res.writeHead(404, {"Content-Type": "text/plain"});
+                res.end("Problem processing a comment" + err);
+            }
         });
         
     } else if(req.url === "/comment" && req.method === "DELETE") { //removing a comment
@@ -158,12 +227,55 @@ var server = http.createServer(function(req, res) {
                     delete playbackData.comments[comment.displayCommentEvent.id];
                 }
             }
+            
+            //copy the new state of the playback data into the other module
+            editorNode.setPlaybackData(playbackData);
 
             //send a success response back
             res.writeHead(200, {"Content-Type": "application/json"});
             res.end(JSON.stringify({"result": "success"}));
         });
 
+    } else if(req.url === "/playbackDescription" && req.method === "PUT") { //updating the title/description of a playback
+        
+        //body of http request
+        var body = [];
+
+        req.on('error', function(err) {
+            console.error(err);
+
+            //send an error message
+            res.writeHead(404, {"Content-Type": "text/plain"});
+            res.end("Problem processing a title/description change" + err);
+
+        }).on('data', function(chunk) {
+
+            //add a new chunk of data to the body
+            body.push(chunk);
+
+        }).on('end', function() {
+            
+            //turn the body into a string
+            body = Buffer.concat(body).toString();
+
+            //turn the string into an object
+            var updatedPlaybackDescription = JSON.parse(body);
+
+            //get the latest playback data from the editor
+            var playbackData = editorNode.getPlaybackData();
+
+            //store the supplied title and description in the playback data
+            playbackData.playbackDescription = updatedPlaybackDescription;
+
+            //copy the new state of the playback data into the other module
+            editorNode.setPlaybackData(playbackData);
+
+            //send a success response back
+            res.writeHead(200, {"Content-Type": "application/json"});
+            res.end(JSON.stringify({"result": "success"}));
+
+        });
+        
     } else { //error
 
         //send an error message
@@ -210,6 +322,7 @@ function replaceLoadPlaybackDataFunction(playbackPage, isComment, playbackData) 
             playbackData.allDirs = ${JSON.stringify(playbackData.allDirs)};
             playbackData.currentDevGroupId = ${JSON.stringify(playbackData.currentDevGroupId)};
             playbackData.comments = ${JSON.stringify(playbackData.comments)};
+            playbackData.playbackDescription = ${JSON.stringify(playbackData.playbackDescription)};
 
             //setup a new playback with the current data
             getPlaybackWindowsReadyForAnimation(true);

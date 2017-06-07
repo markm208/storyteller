@@ -25,6 +25,22 @@
                 color: green;
                 font-weight: bold;
                 font-size: 200%;
+                margin-bottom: 10px;
+            }
+
+            .titleDescriptionLink a {
+                color: darkgreen;
+                font-size: 140%;
+            }
+
+            #textCommentTextArea {
+                height: auto;
+                min-height: 150px;
+            }
+
+            #textCommentTextArea:empty:before {
+                content: attr(data-text);
+                color:gray;
             }
 
             /* for code in a playback (by default all italics- relevant code will be changed to normal) */
@@ -118,15 +134,20 @@
                 font-style: italic;
             }
 
-            .commentMarker {
-                width: 2px;
-                background-color: blue;
-                position: absolute;
-                top: 0px;  
+            .activeCommentMarkerContainer {
+                background-color:rgba(0, 0, 255, 1.0);
             }
 
-            .hiddenCommentMarker {
-                visibility: hidden;
+            /* make this very close to the color of the slider to people can get a sense of where the comments are */
+            .inactiveCommentMarkerContainer {
+                background-color:rgba(0, 0, 255, 0.17);
+            }
+
+            .commentMarker {
+                width: 2px;
+                background-color: inherit;
+                position: absolute;
+                top: 0px;  
             }
 
             #codeCommentContainer {
@@ -323,132 +344,42 @@
 		<!-- bootstrap container -->
 		<div class="container-fluid">
 			<div id="playbackContainer">
-                <div class="logo">
-                    Storyteller
-                </div>
+                <!-- playback title and description -->
+                <div id="playbackTitleAccordion" role="tablist">
+                    <div>
+                        <div role="tab" id="playbackTitleLink">
+                            <span class="logo">
+                                Storyteller:
+                            </span>   
+                            <span class="titleDescriptionLink"> 
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#playbackTitleAccordion" href="#playbackDescriptionPanel" aria-expanded="false" aria-controls="playbackDescriptionPanel">
+                                <span id="playbackTitle"></span> <span class="caret"></span>
+                            </a>
+                            </span>
+                        </div>
+
+                        <div id="playbackDescriptionPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="playbackTitleLink">
+                            <div class="panel-body">
+                                <fieldset>
+                                    <legend>
+                                        <div id="playbackTitleEditable" class="editablePlaybackTitleDescription storytellerEditable">
+                                            Playback Title
+                                        </div>
+                                    </legend>
+                                    <div id="playbackDescriptionEditable" class="editablePlaybackTitleDescription storytellerEditable">
+                                        Playback description
+                                    </div>
+                                    <hr/>
+                                    <div class="pull-right">
+                                        <a id="editPlaybackTitleDescriptionButton" class="btn btn-default btn-xs" href="#">Edit title/description</a>
+                                    </div>
+                                </fieldset>
+                            </div>                                    
+                        </div>
+                    </div>
+                </div>            
+
 				<div class="row">     
-                    <!-- playback window 75% of screen -->                   
-					<div class="col-md-9">
-
-						<!-- tabs for the playback windows -->
-						<!-- start with a group of clickable file names -->
-						<ul id="playbackWindowTabLinks" class="nav nav-tabs nav-rtl">
-                            <!--
-							<li class="playbackWindowLinkListItem" id="playbackWindowLinkListItem-fileId">
-								<a href="#playbackWindowTab-fileId" data-toggle="tab">file name</a>
-							</li>
-							-->
-						</ul>
-
-                        <!-- next the tabs -->
-						<div id="playbackWindows" class="tab-content">
-
-							<!-- All playback window tab ids will look like this "playbackWindowTab-fileId" -->
-							<!--
-							<div id="playbackWindowTab-fileId" class="playbackWindowTab tab-pane fade in">
-
-								<!-- gutter for line numbers -- >
-								<div id="lineNumberGutter-fileId" class="lineNumberGutter">
-									<div class='lineNum'></div>
-								</div>
-
-								<!-- this is a playback window where code will go -- >
-								<div id="playbackWindow-fileId" class="playbackWindow">
-									<span id="firstSpan-fileId" class="firstSpan"></span>
-									<span id="lastSpan-fileId" class="lastSpan">X</span>
-								</div>
-							</div>
-							-->
-						</div>
-
-						<!-- this holds the controls for a code playback -->
-						<div id="codeControl">
-
-							<!-- this is where the playback slider (bootstrap progress bar) will go -->
-							<div class="progress" id="progressBarContainer"
-								 data-toggle="tooltip" data-placement="right"
-								 title="Use the left/right arrow keys or click anywhere in the slider to move the playback.">
-
-								<!-- adjustable part of the progress bar -->
-								<div class="progress-bar progress-bar-success" role="progressbar" id="playbackProgressBar" style="width:0%"></div>
-                                
-                                <!-- used to show where comments are in the playback -->
-                                <div id="commentMarkerContainer">
-                                </div>
-							</div>
-                            
-
-							<!-- this is a table of playback controls and playback info -->
-							<div>
-								<table class="table table-bordered">
-									<tr>
-										<th>Playback Control</th>
-										<th>Event Info</th>
-										<th>Developer Group</th>
-									</tr>
-
-									<tr>
-                                        <!-- pause/play, step, and filter controls -->
-										<td id="playbackControlTD">
-											<!-- step backward button -->
-											<button id="stepBackwardToBeginningButton" class="btn btn-default"
-													data-toggle="tooltip" data-placement="bottom" title="Step backward to the beginning of the playback (shift + left arrow)">
-												&lt;&lt;
-											</button>
-
-                                            <button id="stepBackwardButton" class="btn btn-default"
-													data-toggle="tooltip" data-placement="bottom" title="Step backward one step (left arrow)">
-												&lt;
-											</button>
-											
-                                            <!-- play/pause button -->
-											<button id="playPauseButton" class="btn btn-default btn-lg"
-													data-toggle="tooltip" data-placement="bottom" title="Play/Pause (space bar)">
-                                                Play
-											</button>
-
-											<!-- step forward button -->
-											<button id="stepForwardButton" class="btn btn-default"
-													data-toggle="tooltip" data-placement="bottom" title="Step forward one step (right arrow)">
-                                                &gt;
-											</button>
-
-                                            <button id="stepForwardToEndButton" class="btn btn-default"
-													data-toggle="tooltip" data-placement="bottom" title="Step forward to the next comment (shift + right arrow)">
-												<!-- image for the step forward button -->
-                                                &gt;&gt;
-											</button>
-
-                                            <!-- filter button -->
-											<button id="playbackOptionsDropUp" data-toggle="modal" data-target="#filtersModal" class="btn btn-primary btn-lg pull-right">
-												Filters 
-											</button>
-
-										</td>
-
-                                        <!-- event info -->
-										<td id="eventInfoTD">
-                                            <div>Event count: <span id="eventCountDiv"></span></div>
-											<div>Event type: <span id="eventTypeDiv"></span></div>
-											<div>Details: <span id="eventInfoDiv"></span></div >
-											<div>Timestamp: <span id="timestampDiv"></span></div >
-										</td>
-
-                                        <!-- developer group info -->
-										<td id="eventDevInfo"></td>
-									</tr>                                    
-								</table>
-
-
-                                <!-- options link at bottom of page -->
-								<div class="text-right">
-									<a href="#" data-toggle="modal" data-target="#playbackOptionsModal">Options 
-                                    </a>
-								</div>
-							</div>
-						</div>									
-					</div>
-
                     <!-- playback comments 25% of screen -->
 					<div class="col-md-3">
 						<fieldset>
@@ -466,7 +397,8 @@
                                         <legend>Text for the Comment</legend>                                        
                                         <!-- a place to add comment text -->
                                         <div class="form-group">
-                                            <textarea id="textCommentTextArea" class="form-control" rows="10" placeholder="Select some text and add a comment at this point in the playback."></textarea>
+                                            <div id="textCommentTextArea" contenteditable="true" class="form-control storytellerEditable" data-text="Add a comment at this point in the playback. Highlight some code if you'd like to link the comment to it."></div>
+                                            <!--<textarea id="textCommentTextArea" class="form-control" rows="10" placeholder="Select some text and add a comment at this point in the playback."></textarea>-->
                                        </div>
                                     </fieldset>
 
@@ -511,10 +443,6 @@
                                             Add Comment 
                                         </button>
 									</div>
-                                    <br/>
-                                    <br/>
-                                    <div id="commentAlertArea">
-                                    </div>
 								</div>
 
                                 <!-- tab to display comments from a playback -->
@@ -524,6 +452,10 @@
 									</div>
 								</div>
 							</div>
+                            <br/>
+                            <br/>
+                            <div id="commentAlertArea">
+                            </div>
 						</fieldset>
 
                         <!-- the view of the file system at any point in a playback -->
@@ -549,7 +481,128 @@
 							</ul>
 
 						</fieldset>
+					</div>                    
+                    <!-- playback window 75% of screen -->                   
+					<div class="col-md-9">
+						<!-- tabs for the playback windows -->
+						<!-- start with a group of clickable file names -->
+						<ul id="playbackWindowTabLinks" class="nav nav-tabs nav-rtl">
+                            <!--
+							<li class="playbackWindowLinkListItem" id="playbackWindowLinkListItem-fileId">
+								<a href="#playbackWindowTab-fileId" data-toggle="tab">file name</a>
+							</li>
+							-->
+						</ul>
+
+                        <!-- next the tabs -->
+						<div id="playbackWindows" class="tab-content">
+
+							<!-- All playback window tab ids will look like this "playbackWindowTab-fileId" -->
+							<!--
+							<div id="playbackWindowTab-fileId" class="playbackWindowTab tab-pane fade in">
+
+								<!-- gutter for line numbers -- >
+								<div id="lineNumberGutter-fileId" class="lineNumberGutter">
+									<div class='lineNum'></div>
+								</div>
+
+								<!-- this is a playback window where code will go -- >
+								<div id="playbackWindow-fileId" class="playbackWindow">
+									<span id="firstSpan-fileId" class="firstSpan"></span>
+									<span id="lastSpan-fileId" class="lastSpan">X</span>
+								</div>
+							</div>
+							-->
+						</div>
+
+						<!-- this holds the controls for a code playback -->
+						<div id="codeControl">
+
+							<!-- this is where the playback slider (bootstrap progress bar) will go -->
+							<div class="progress" id="progressBarContainer">
+
+								<!-- adjustable part of the progress bar -->
+								<div class="progress-bar progress-bar-success" role="progressbar" id="playbackProgressBar" style="width:0%"></div>
+                                
+                                <!-- used to show where comments are in the playback -->
+                                <div id="commentMarkerContainer" class="activeCommentMarkerContainer">
+                                </div>
+							</div>
+                            
+
+							<!-- this is a table of playback controls and playback info -->
+							<div>
+								<table class="table table-bordered">
+									<tr>
+										<th>Playback Control</th>
+										<th>Event Info</th>
+										<th>Developer(s)</th>
+									</tr>
+
+									<tr>
+                                        <!-- pause/play, step, and filter controls -->
+										<td id="playbackControlTD">
+                                            <div>
+                                                <!-- step backward button -->
+                                                <button id="stepBackwardToBeginningButton" class="btn btn-default"
+                                                        data-toggle="tooltip" data-placement="bottom" title="Step backward to the beginning of the playback (shift + left arrow)">
+                                                    &lt;&lt;
+                                                </button>
+
+                                                <button id="stepBackwardButton" class="btn btn-default"
+                                                        data-toggle="tooltip" data-placement="bottom" title="Step backward one step (left arrow)">
+                                                    &lt;
+                                                </button>
+                                                
+                                                <!-- play/pause button -->
+                                                <button id="playPauseButton" class="btn btn-default btn-lg"
+                                                        data-toggle="tooltip" data-placement="bottom" title="Play/Pause (space bar)">
+                                                    Play
+                                                </button>
+
+                                                <!-- step forward button -->
+                                                <button id="stepForwardButton" class="btn btn-default"
+                                                        data-toggle="tooltip" data-placement="bottom" title="Step forward one step (right arrow)">
+                                                    &gt;
+                                                </button>
+
+                                                <button id="stepForwardToEndButton" class="btn btn-default"
+                                                        data-toggle="tooltip" data-placement="bottom" title="Step forward to the next comment (shift + right arrow)">
+                                                    <!-- image for the step forward button -->
+                                                    &gt;&gt;
+                                                </button>
+                                            </div>
+                                            <div class="pull-right">
+                                                <!-- filter button -->
+                                                <button id="playbackOptionsDropUp" data-toggle="modal" data-target="#filtersModal" class="btn btn-primary btn-lg pull-right">
+                                                    Filters 
+                                                </button>
+                                            </div>
+										</td>
+
+                                        <!-- event info -->
+										<td id="eventInfoTD">
+                                            <div>Event count: <span id="eventCountDiv"></span></div>
+											<div>Event type: <span id="eventTypeDiv"></span></div>
+											<div>Details: <span id="eventInfoDiv"></span></div >
+											<div>Timestamp: <span id="timestampDiv"></span></div >
+										</td>
+
+                                        <!-- developer group info -->
+										<td id="eventDevInfo"></td>
+									</tr>                                    
+								</table>
+
+
+                                <!-- options link at bottom of page -->
+								<div class="text-right">
+									<a href="#" data-toggle="modal" data-target="#playbackOptionsModal">Options 
+                                    </a>
+								</div>
+							</div>
+						</div>									
 					</div>
+
 					<!-- end of nested tabs for the playback windows -->
 				</div>
 			</div>
@@ -577,10 +630,10 @@
                         <div class="tab-content">
                             <div role="tabpanel" class="tab-pane active" id="playbackControlOptionsTab">
                                 <div class="row">
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-4">
                                         <label>Play/Pause</label>
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-8">
                                         <p>
                                             The <button class="btn btn-default btn-xs">Play/Pause</button> button starts and pauses a playback. You can hit the <code>space bar</code> to toggle this from the keyboard.
                                             You can also use the slider to go to any point in the playback.
@@ -593,26 +646,23 @@
                                             The <button class="btn btn-default btn-xs">&lt;&lt;</button> moves the playback to the beginning and the <button class="btn btn-default btn-xs">&gt;&gt;</button> buttons move the playback to the next comment (or the end if there are none). 
                                             You can use <code>shift + left arrow</code> and <code>shift + right arrow</code> keys to control this from the keyboard.
                                         </p>
-                                        <p>
-                                            <code>control + shift + right arrow</code> will bypass all comments and go right to the end of the playback.    
-                                        </p>
                                     </div>
                                 </div>
                                 <hr/>
                                 <div class="row">
-                                    <div class="col-sm-6">                                    
+                                    <div class="col-sm-4">                                    
                                         <label>Playback speed </label>   
                                         <br/>                                  
                                         <div class="btn-group" role="group">
                                             <button type="button" id="playbackSpeedIncreaseButton" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Make the playback move faster">Faster</button>
                                             <button type="button" id="playbackSpeedDecreaseButton" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Make the playback move slower">Slower</button>
-                                            <button type="button" id="skipAnimationPlaybackSpeedIncreaseButton" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="When you choose to 'skip the animation of code' there is no delay in between events. If there are no Storyteller comments, then you will be brought to the final state of the code. However, if the 'Pause playback for all comments' option is selected the playback will pause on all comments. When viewing a playback with comments it is often desirable to see the code only at comment points.">Skip the animation of code</button>
+                                            <button type="button" id="skipAnimationPlaybackSpeedIncreaseButton" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="When you choose to 'skip the animation of code' there is no delay in between events. If there are no Storyteller comments, then you will be brought to the final state of the code. However, if the 'Pause playback for all comments' option is selected the playback will pause on all comments. When viewing a playback with comments it is often desirable to see the code only at comment points.">Skip animation</button>
                                         </div>
                                         <p>
                                             Current speed: <span id="currentPlaybackSpeed"><strong>100 ms</strong> in between events</span>
                                         </p>
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-8">
                                         <p>
                                             There is a user defined amount of time in between each coding event. You can adjust this amount of time by using this control.
                                         </p>
@@ -624,15 +674,15 @@
                                 </div>      
                                 <hr/>
                                 <div class="row">
-                                    <div class="col-sm-6">                                    
-                                        <label for="pauseForCommentsCheckbox">
-                                            <input type="checkbox" id="pauseForCommentsCheckbox" checked="true">
+                                    <div class="col-sm-4">                                    
+                                        <label for="userWantsPauseOnCommentsCheckbox">
+                                            <input type="checkbox" id="userWantsPauseOnCommentsCheckbox" checked="true">
                                                 Pause playback for all comments
 
                                         </label>
                                     </div>
                                 
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-8">
                                         <p>
                                             When a comment is encountered the playback will be paused so the user can see it and the current state of the code.
                                             By default, the playback will pause for all comments.
@@ -644,13 +694,13 @@
                                 </div>
                                 <hr/>
                                 <div class="row">
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-4">
                                         <label for="cutPasteInBlocksCheckbox">
                                             <input type="checkbox" id="cutPasteInBlocksCheckbox" checked="true">
                                             Show all cuts and pastes in blocks
                                         </label>
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-8">
                                         <p>
                                             Cuts, pastes, and group tabbing affect many different code characters at once. These operations can be slow to watch. 
                                             By default, entire groups of characters that were cut, pasted, or tabbed will be shown in a single step to improve watchability. 
@@ -663,13 +713,13 @@
                                 </div>
                                 <hr/>
                                 <div class="row">
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-4">
                                         <label for="showRecentHighlightsCheckbox">
                                             <input type="checkbox" id="showRecentHighlightsCheckbox" checked="true">
                                             Highlight recent changes
                                         </label>
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-8">
                                         <p>
                                             To make it easier to see what changes have been made since the last pause point, new inserts and deletes are highlighted.
                                             The highlights are removed each time you resume a playback by hitting <button class="btn btn-default btn-xs">Play</button>.                                        
@@ -681,12 +731,12 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-4">
                                         <button id="clearRecentChangesButton" class="btn btn-default"  data-toggle="tooltip" data-placement="top" title="Clear recent change highlights">
                                             Clear recent changes
                                         </button>
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-8">
                                         <p>
                                             To clear all recent changes without resuming the playback use this control. You can hit <code>shift + c</code> to clear the changes from the keyboard.
                                         </p>
@@ -696,14 +746,14 @@
                             
                             <div role="tabpanel" class="tab-pane" id="savingReplayingPlaybackOptionsTab">
                                 <div class="row">                                
-                                    <div class="col-sm-6">                                
+                                    <div class="col-sm-4">                                
                                         <p>
                                             <label>Download playback to your filesystem</label>
                                             <button id="savePlaybackButton" class="btn btn-default"  data-toggle="tooltip" data-placement="top" title="Download playback to your file system">Download this playback</button>
                                         </p>                                        
                                     </div>
                                     
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-8">
                                         <p>
                                             Save the current playback to your file system in a file. This file can be uploaded in the future to replay the exact same playback.
                                         </p>
@@ -711,13 +761,13 @@
                                 </div>
                                 <hr/>
                                 <div class="row">
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-4">
                                         <p>
                                             <label>Upload a previous playback</label>
                                             <input type="file" id="uploadPlaybackButton"  data-toggle="tooltip" data-placement="top" title="Play a previous playback">
                                         </p>
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-8">
                                         <p>
                                             Select a previously downloaded playback file to replay it. The current playback information will be lost.
                                         </p>
@@ -727,7 +777,7 @@
                             
                             <div role="tabpanel" class="tab-pane" id="otherOptionsTab">
                                 <div class="row">
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-4">
                                         <p>
                                             <label>
                                                 Increase/decrease the font size: 
@@ -739,7 +789,7 @@
                                             </div>
                                         </p>
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-8">
                                         <p>
                                             Change the size of the text on the screen.
                                         </p>
@@ -750,10 +800,10 @@
                                 </div>
                                 <hr/>
                                 <div class="row">
-                                    <div class="col-sm-6">                                    
+                                    <div class="col-sm-4">                                    
                                         <label>Options</label>                                    
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-8">
                                         <p>
                                             <code>shift o</code> opens this options window. <code>esc</code> closes it.
                                         </p>
@@ -930,7 +980,7 @@
                                         <div class="form-group">
                                             <label for="startTimeInput" >Start time: </label>
                                             <div class="input-group">
-                                                <input type="text" class="form-control" id="startTimeInput" placeholder="MM/DD/YYYY HH:MM::SS"/>
+                                                <input type="text" class="form-control storytellerEditable" id="startTimeInput" placeholder="MM/DD/YYYY HH:MM::SS"/>
                                                 <span class="input-group-btn">
                                                     <button type="button" id="useCurrentEventStartTimeButton" class="btn btn-default">
                                                         Use the current event's time
@@ -940,7 +990,7 @@
                                         
                                             <label for="endTimeInput" >End time: </label>
                                             <div class="input-group">
-                                                <input type="text" class="form-control" id="endTimeInput" placeholder="MM/DD/YYYY HH:MM::SS"/>
+                                                <input type="text" class="form-control storytellerEditable" id="endTimeInput" placeholder="MM/DD/YYYY HH:MM::SS"/>
                                                 <span class="input-group-btn">
                                                     <button type="button" id="useCurrentEventEndTimeButton" class="btn btn-default">
                                                         Use the current event's time
@@ -1138,9 +1188,9 @@
                 highlightDelay: 300,    			//amount of time a new element will be highlighted on insert/delete
                 showPastesInABlock: true,			//show any pasted code as a single big block of text
                 showRecentsChanges: true,           //highlight recent changes in between play/pause cycles
-                afterInitialCode: false,            //indicates whether we are past the initial state of the code in a playback
                 comments: {},						//an object that will hold event ids as a key and groups of comments to display at the event
-                pauseForComments: true          	//indicates whether playback should be paused if there is a comment
+                userWantsPauseOnComments: true,     //indicates whether playback should be paused if there is a comment
+                playbackDescription: {}             //holds some descriptive info about the playback like the title, description, etc.
             };
             //when adding to this make sure to update getPlaybackWindowsReadyForAnimation()
 
@@ -1278,8 +1328,11 @@
                     //stop the playback
                     pausePlayback();
 
+                    //clear the all the new event highlights since the the last pause point
+                    clearPreviousEventHighlights();
+
                     //move back as far as possible
-                    step("backward", Number.MAX_SAFE_INTEGER);
+                    step("backward", Number.MAX_SAFE_INTEGER, true);
                 });
 
                 //single step backwards button
@@ -1289,7 +1342,7 @@
                     pausePlayback();
 
                     //move backward one element
-                    step("backward", 1);
+                    step("backward", 1, true);
                 });
 
                 //toggle play/pause
@@ -1306,7 +1359,7 @@
                     pausePlayback();
 
                     //move forward one element
-                    step("forward", 1);
+                    step("forward", 1, true);
                 });
 
                 //step forwards to the end of the playback button
@@ -1315,8 +1368,11 @@
                     //stop the playback
                     pausePlayback();
 
+                    //clear the all the new event highlights since the the last pause point
+                    clearPreviousEventHighlights();
+                    
                     //move forward to the end
-                    step("forward", Number.MAX_SAFE_INTEGER - 1);
+                    step("forward", Number.MAX_SAFE_INTEGER, true);
                 });
                 //event slider
                 document.querySelector("#progressBarContainer").addEventListener("click", function(e) {
@@ -1355,13 +1411,16 @@
                     //if the clicked event index is before the current position
                     if(clickedEventIndex < playbackData.relevantEventIndex) {
 
-                        //move backwards to the click point
-                        step("backward", playbackData.relevantEventIndex - clickedEventIndex);
+                        //clear the all the new event highlights since the the last pause point
+                        clearPreviousEventHighlights();
+
+                        //move backwards to the click point and do not pause for comments
+                        step("backward", playbackData.relevantEventIndex - clickedEventIndex, false);
 
                     } else if (clickedEventIndex > playbackData.relevantEventIndex) { //clicked after the current position
 
-                        //move forwards to the click point
-                        step("forward", clickedEventIndex - playbackData.relevantEventIndex);
+                        //move forwards to the click point and do not pause for comments
+                        step("forward", clickedEventIndex - playbackData.relevantEventIndex, false);
                     }
                     //else- it is equal and the code does not have to move
 
@@ -1447,12 +1506,10 @@
                     //left arrow, right arrow, up arrow, down arrow, and space bar control
                     //the playing of events
                     
-                    //if the event happened in any of the editable text areas (comments, start/end filter time)
-                    if(e.target.getAttribute("id") === "textCommentTextArea" || 
-                       e.target.getAttribute("id") === "startTimeInput" || 
-                       e.target.getAttribute("id") === "endTimeInput") {
+                    //if the event happened in any of the editable text areas
+                    if(e.target.classList.contains("storytellerEditable")) {
                         
-                        //don't handle the keydown here 
+                        //don't handle the keydown here because the user could be typing a comment, entering a playback description, etc.
                         e.stopImmediatePropagation();
 
                     } else { //the keydown did not happen in one of the editable text areas
@@ -1476,19 +1533,8 @@
                             //if this is a shift + arrow
                             if(e.shiftKey) { 
 
-                                if(e.ctrlKey) { //ctrl + shift + right
-
-                                    //stop the playback
-                                    pausePlayback();
-
-                                    //move forward to the end
-                                    step("forward", Number.MAX_SAFE_INTEGER);
-
-                                } else { //shift + right arrow
-
-                                    //simulate a corresponding button click
-                                    document.querySelector("#stepForwardToEndButton").click();
-                                }
+                                //simulate a corresponding button click
+                                document.querySelector("#stepForwardToEndButton").click();
 
                             } else { //just an arrow
                                 
@@ -1527,7 +1573,7 @@
                         } else if(e.keyCode === 80 && e.shiftKey){ //shift + p
 
                             //toggle the pause for comments option
-                            document.querySelector("#pauseForCommentsCheckbox").click();
+                            document.querySelector("#userWantsPauseOnCommentsCheckbox").click();
 
                         } else if(e.keyCode === 66 && e.shiftKey){ //shift + b
 
@@ -1594,24 +1640,75 @@
                 });
 
                 //indicates whether the user wants to have playback pause whenever there is a comment
-                document.querySelector("#pauseForCommentsCheckbox").addEventListener("click", function(e) {
+                document.querySelector("#userWantsPauseOnCommentsCheckbox").addEventListener("click", function(e) {
 
                     //store the user's choice about whether to pause for comments
-                    playbackData.pauseForComments = e.target.checked;
+                    playbackData.userWantsPauseOnComments = e.target.checked;
     
                     //get the div that holds all of the comment markers
                     var commentMarkerContainer = document.querySelector("#commentMarkerContainer");
 
                     //if we would like to see comments
-                    if(playbackData.pauseForComments) {
+                    if(playbackData.userWantsPauseOnComments) {
 
                         //remove the hidden class
-                        commentMarkerContainer.classList.remove("hiddenCommentMarker");
+                        commentMarkerContainer.classList.remove("inactiveCommentMarkerContainer");
+                        commentMarkerContainer.classList.add("activeCommentMarkerContainer");
 
                     } else { //we do not want to see comments
 
                         //add the class to hide all of the comment markers
-                        commentMarkerContainer.classList.add("hiddenCommentMarker");
+                        commentMarkerContainer.classList.remove("activeCommentMarkerContainer");
+                        commentMarkerContainer.classList.add("inactiveCommentMarkerContainer");
+                    }
+                });
+
+                //used to edit the title description of the playback
+                document.querySelector("#editPlaybackTitleDescriptionButton").addEventListener("click", function(e) {
+                    
+                    //get the button that was clicked
+                    var button = e.target;
+                    
+                    //get references to the containers that hold the title and description
+                    var playbackTitleEditable = document.querySelector("#playbackTitleEditable");
+                    var playbackDescriptionEditable = document.querySelector("#playbackDescriptionEditable");
+
+                    //if this is a save operation
+                    if(button.innerHTML === "Save changes") {
+
+                        //change the text on the button to enable editing
+                        button.innerHTML = "Edit title/description";
+                        button.classList.add("btn-default");
+                        button.classList.remove("btn-primary");
+                        
+                        //make both divs uneditable
+                        playbackTitleEditable.setAttribute("contentEditable", false);
+                        playbackDescriptionEditable.setAttribute("contentEditable", false);
+                        
+                        //get the simple text for the title
+                        var title = playbackTitleEditable.textContent;
+                        //get the markup for the description
+                        var description = playbackDescriptionEditable.innerHTML;
+
+                        //make a call to the server to update the title and description
+                        updatePlaybackDescriptionInEditorsDB(title, description);
+
+                        //set the title of the playback
+                        document.querySelector("#playbackTitle").innerHTML = title;
+
+                    } else { //this is an edit operation
+
+                        //change the text on the button to make enable saving any changes
+                        button.innerHTML = "Save changes";
+                        button.classList.remove("btn-default");
+                        button.classList.add("btn-primary");
+
+                        //make both divs editable
+                        playbackTitleEditable.setAttribute("contentEditable", true);
+                        playbackDescriptionEditable.setAttribute("contentEditable", true);
+
+                        //give the focus to the desription since this is likely to be updated
+                        playbackDescriptionEditable.focus();
                     }
                 });
 
@@ -1815,6 +1912,9 @@
                 //used to turn this back into an unfiltered playback
                 document.querySelector("#clearFilterButton").addEventListener("click", function(e) {
 
+                    //remove the property that states whether an event is relevant or not (the events in a brand new playback do not have this property)
+                    clearAllRelevantEvents();
+
                     //reset the entire playback
                     getPlaybackWindowsReadyForAnimation(true);
                 });
@@ -1990,7 +2090,10 @@
                         var textCommentTextArea = document.querySelector("#textCommentTextArea");
 
                         //get the comment text
-                        var commentText = textCommentTextArea.value.trim();
+                        var commentText = textCommentTextArea.innerHTML;
+                        if(commentText) {
+                            commentText = commentText.trim();
+                        }
 
                         //get any selected text ids if there are any
                         var selectedCodeIds = getSelectedCodeIds(false);
@@ -2014,7 +2117,7 @@
                            commentImagesInComment.children.length > 0 || audioComments.length > 0) {
 
                             //clear out the text area
-                            textCommentTextArea.value = "";
+                            textCommentTextArea.innerHTML = "";
 
                             //get each potential clip audio control and revoke the object url
                             revokePotentialAudioComments()
@@ -2059,29 +2162,8 @@
                             //add the comment to the array of comments for this particular event
                             playbackData.comments[commentEvent.id].push(comment);
 
-
-                            //send the comment to the server
-                            var xmlhttp = new XMLHttpRequest();   
-                            xmlhttp.addEventListener("load", function(){
-
-                                //TODO maybe add a message to the UI indicating that the message was received and saved???
-                                console.log("successfully added a comment and receieved a response");
-                            });
-
-                            xmlhttp.addEventListener("error", function(){
-
-                                //TODO add a message to the UI indicating that there is no server to respond
-                                console.log("was not able to add a comment");
-
-                                //notify the user that there was a problem
-                                makeAnAlert("We were unable to permanently store your comment", "alert-danger", "commentAlertArea");
-
-                            });
-
-                            //send the comment to the server
-                            xmlhttp.open("POST", "/comment");
-                            xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-                            xmlhttp.send(JSON.stringify(comment));
+                            //attempt to add the comment to the server 
+                            addCommentInEditorsDB(comment);
 
                             //clear the images in comment
                             commentImagesInComment.innerHTML = "";
@@ -2247,7 +2329,6 @@
                 playbackData.activeFileId = null;
                 playbackData.activeLineNumber = null;
                 playbackData.latestPlaybackEventDevGroupId = null;
-                playbackData.afterInitialCode = false;
 
                 //set the slider back to the beginning and empty the timestamp
                 var playbackProgressBar = document.querySelector("#playbackProgressBar");
@@ -2328,6 +2409,11 @@
                     document.querySelector("#playbackWindowTabLinks").innerHTML = "";
                     document.querySelector("#playbackWindows").innerHTML = "";
 
+                    //update the title and description of this playback
+                    document.querySelector("#playbackTitle").textContent = playbackData.playbackDescription.title;
+                    document.querySelector("#playbackTitleEditable").textContent = playbackData.playbackDescription.title;
+                    document.querySelector("#playbackDescriptionEditable").innerHTML = playbackData.playbackDescription.description;
+
                     //clear out the number of relevant events (we'll count them below)
                     playbackData.numberOfRelevantEvents = 0;
 
@@ -2375,12 +2461,12 @@
                         if(playbackData.comments[playbackData.codeEvents[i].id]) {
 
                             //store the index of the event and the id of the event where the comment will be displayed
-                            posOfComments.push({"pos": i, eventId: playbackData.codeEvents[i].id});
+                            posOfComments.push({"pos": playbackData.numberOfRelevantEvents - 1, eventId: playbackData.codeEvents[i].id});
                         }
                     }
 
                     //add a marker to show where each comment it
-                    setCommentMarkers(posOfComments, playbackData.codeEvents.length);
+                    setCommentMarkers(posOfComments, playbackData.numberOfRelevantEvents);
 
                 } else { //do not need to reinitialize the whole playback, we just want to start an existing playback over again
 
@@ -2420,9 +2506,16 @@
              */
             function setCommentMarkers(posOfComments, numberOfEvents) {
 
+                //get the container that will hold the markers
+                var commentMarkerContainer = document.querySelector("#commentMarkerContainer");
+
+                //clear out the old comment markers
+                commentMarkerContainer.innerHTML = "";
+
                 //go through each comment position
                 for(var i = 0;i < posOfComments.length;i++) {
 
+                    //add a comment marker
                     setCommentMarker(posOfComments[i].pos, numberOfEvents, posOfComments[i].eventId);
                 }
             }
@@ -2467,6 +2560,7 @@
                 //     </div>
                 // </div>
             }
+
             /*
              * Adds a character to the playback window. It creates a new element (either a <span>
              * for code characters and a <br> for new line characters) and sets the id to
@@ -3054,8 +3148,8 @@
 
                 } else if(playbackData.delay <= 0) { //if the delay is so small they don't want to see any animation
 
-                    //step forward to the very end of the code
-                    step("forward", playbackData.numberOfRelevantEvents);
+                    //step forward to the very end of the code (unless paused for a comment)
+                    step("forward", playbackData.numberOfRelevantEvents, true);
 
                     //stop the playback
                     pausePlayback();
@@ -3063,7 +3157,7 @@
                 } else { //normal playback operation
 
                     //take one step forward
-                    step("forward", 1, playbackData);
+                    step("forward", 1, true);
 
                     //if we haven't been interrupted by a comment
                     if(playbackData.playbackState === "playing") {
@@ -3072,10 +3166,6 @@
                         playbackData.playbackTimerId = window.setTimeout(timedPlayback, playbackData.delay);
                     }
                 }
-
-                //indicate that we are at least past the first step in the code playback
-                playbackData.afterInitialCode = true;
-
             }
 
             /*
@@ -3105,16 +3195,13 @@
              * event in sequence to see if it has the same timestamp. If so, and the user wants to see cuts/pastes in 
              * a big block then it will move forward since events with the same timestamp are cuts/pastes.
              */
-            function step(direction, numStepsRequested) {
+            function step(direction, numRelevantStepsRequested, pauseForComments) {
 
-                //get the actual number of steps to move (this may be changed below)
-                var numSteps = getExactNumberOfStepsFromReqest(direction, numStepsRequested);
-                
-                //if there are any steps to playback after adjusting numSteps
-                if(numSteps > 0) {
+                //get the actual number of relevant steps to move
+                numRelevantStepsRequested = getExactNumberOfRelevantStepsFromReqest(direction, numRelevantStepsRequested);
 
-                    //when numStepsRequested is equal to Number.MAX_SAFE_INTEGER we want to jump to the end of the playback without comments being displayed
-                    var skipAllComments = (numStepsRequested === Number.MAX_SAFE_INTEGER);
+                //if there are any steps to playback after adjusting numRelevantStepsRequested
+                if(numRelevantStepsRequested > 0) {
 
                     //holds information about a step
                     var stepData = {
@@ -3123,27 +3210,28 @@
                         currentStep: 0		//holds the number of steps handled so far
                     };
                     
-                    //for each requested step
-                    while(stepData.currentStep < numSteps) {
-
+                    //for each requested relevant step
+                    while(stepData.currentStep < numRelevantStepsRequested) {
+                        
                         //move the code event index forward/backward to move through the events before the animated step
-                        //if continuing forward
-                        if(direction === "forward" && playbackData.mostRecentDirection === "forward") {
+                        //if we are continuing forward (either in a single large step or from a previous step)
+                        if(playbackData.mostRecentDirection === "forward" && direction === "forward") {
 
                             //move forward to the next event in sequence
                             playbackData.codeEventsIndex++;
 
-                        } else if(direction === "backward" && playbackData.mostRecentDirection === "backward") { //continuing backward
+                        } else if(playbackData.mostRecentDirection === "backward" && direction === "backward") { //continuing backward
 
                             //move backward to the previous position
                             playbackData.codeEventsIndex--;
 
-                        } else if(direction === "backward" && playbackData.mostRecentDirection === "forward") { //changing direction from forward to backward
+                        } else if(playbackData.mostRecentDirection === "forward" && direction === "backward") { //changing direction from forward to backward
                                                         
                             //store the most recent direction
                             playbackData.mostRecentDirection = "backward";  
 
                             //switch to going from forwards to backwards, don't change the playbackData.codeEventsIndex
+
                             //clear the comments
                             clearPreviousComment();
 
@@ -3154,51 +3242,51 @@
                         }
 
                         //get the next code event in sequence
-                        stepData.codeEvent = playbackData.codeEvents[playbackData.codeEventsIndex];
+                        var currentEvent = playbackData.codeEvents[playbackData.codeEventsIndex];
+                        
+                        //store it as part of the step data
+                        stepData.codeEvent = currentEvent;
 
-                        //handle the event in either directions
+                        //progress either forward or backwards
                         if(direction === "forward") {
 
-                            //forward
+                            //display the event as if it were happening in the forward direction
                             handleEventForward(stepData);
                             
                             //if this event is relevant 
-                            if(stepData.codeEvent.relevant) {
+                            if(currentEvent.relevant) {
 
                                 //we have moved to the next relevant event
                                 playbackData.relevantEventIndex++;
 
-                                //indicate that we have handled the current step
+                                //indicate that we have handled a relevant step
                                 stepData.currentStep++;
-                            }                            
+
+                                //display comments (if there are any for this relevant event)
+                                //if there are any comments for this event
+                                if(playbackData.comments[currentEvent.id]) {
+
+                                    //get the group of all comments for this event (there can be more than one)
+                                    var commentsForAnEvent = playbackData.comments[currentEvent.id];
+
+                                    //display the next comment
+                                    displayComments(commentsForAnEvent);
+                                    
+                                    //if we are supposed to pause for comments
+                                    if(pauseForComments && playbackData.userWantsPauseOnComments) {
+
+                                        //pause the playback
+                                        pausePlayback();
+
+                                        //stop handling events after displaying a new set of comments
+                                        break;
+                                    }
+                                }
+                            }                                                        
                             
-                            //display comments (if there are any for this event)
-                            //if we are supposed to display comments AND there are any comments for this event AND the event is relevant
-                            if(!skipAllComments && playbackData.comments[stepData.codeEvent.id] && stepData.codeEvent.relevant) {
-
-                                //clear the previous comment
-                                clearPreviousComment();
-
-                                //get the group of all comments for this event (there can be more than one)
-                                var commentsForAnEvent = playbackData.comments[stepData.codeEvent.id];
-
-                                //display the next comment
-                                displayComments(commentsForAnEvent);
-
-                                //if the user wants to pause for all comments
-                                if(playbackData.pauseForComments) {
-
-                                    //pause the playback
-                                    pausePlayback();
-
-                                    //stop handling events for now
-                                    break;
-                                }                                
-                            }
-
                         } else { //moving backwards
 
-                            //backward
+                            //display the event as if it were happening in the backward direction
                             handleEventBackward(stepData);
 
                             //if this is a relevant event
@@ -3206,9 +3294,44 @@
 
                                 //we have moved backward to the previous relevant event
                                 playbackData.relevantEventIndex--;
+                                
+                                //indicate that we have handled a relevant step
+                                stepData.currentStep++;                                
+                            }
 
-                                //indicate that we have handled the current step
-                                stepData.currentStep++;
+                            //display comments (if there are any for the event that comes before this one sequentially)
+
+                            //if there is at least one event left
+                            if(playbackData.codeEventsIndex > 0) {
+
+                                //TODO may have to search deeper for the last relevant event!!!
+                                //get the event that comes before this one sequentially
+                                var previousEvent = playbackData.codeEvents[playbackData.codeEventsIndex - 1];
+
+                                //TODO may have to search deeper for the last relevant event!!!
+                                //if the previous event is relevant
+                                if(previousEvent.relevant) {
+
+                                    //if there are any comments for the previous event 
+                                    if(playbackData.comments[previousEvent.id]) {
+
+                                        //get the group of all comments for this event (there can be more than one)
+                                        var commentsForAnEvent = playbackData.comments[previousEvent.id];
+
+                                        //display the next comment
+                                        displayComments(commentsForAnEvent);
+
+                                        //if we are supposed to pause for comments
+                                        if(pauseForComments && playbackData.userWantsPauseOnComments) {
+                                            
+                                            //pause the playback
+                                            pausePlayback();
+
+                                            //stop handling events for now
+                                            break;
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -3217,7 +3340,7 @@
 
                         //if the user wants to see pastes in a big block at once AND
                         //this is the last event in the group to step through 
-                        if(playbackData.showPastesInABlock && stepData.currentStep === numSteps) {
+                        if(playbackData.showPastesInABlock && stepData.currentStep === numRelevantStepsRequested) {
 
                             //if we are going forward
                             if(direction === "forward") {
@@ -3230,7 +3353,7 @@
                                    playbackData.codeEvents[playbackData.codeEventsIndex + 1].relevant === true) {
 
                                     //add another step to playback
-                                    numSteps++;
+                                    numRelevantStepsRequested++;
                                 }
 
                             } else { //we are going backwards
@@ -3243,11 +3366,11 @@
                                    playbackData.codeEvents[playbackData.codeEventsIndex - 1].relevant === true) {
 
                                     //add another step to playback
-                                    numSteps++;
+                                    numRelevantStepsRequested++;
                                 }
                             }
                         }
-                    }
+                    } //end while
 
                     //for the last event in this step, perform some UI related updates that only affect the last in the step
                     //if the last event in this group of events played back is a code character event being added or removed in the editor
@@ -3322,33 +3445,33 @@
              * Looks at the requested number of steps to move and returns an exact number of steps to move
              * based on the direction of the step and whether there are enough events to move in that direction.
              */
-            function getExactNumberOfStepsFromReqest(direction, numStepsRequested) {
+            function getExactNumberOfRelevantStepsFromReqest(direction, numRelevantStepsRequested) {
                 
                 //default the exact number of steps to move to be the requested number
-                var exactNumberOfSteps = numStepsRequested;
+                var exactNumberOfRelevantSteps = numRelevantStepsRequested;
 
                 //handle improper step requests if going forward in a playback
                 if(direction === "forward") {
                     
-                    //if the user wants to go to the very end (this value is set in the playback server to go to the end of of a playback to add a comment) OR 
-                    //the number of steps is too great to playback
-                    if(numStepsRequested === Number.MAX_SAFE_INTEGER || (playbackData.relevantEventIndex + numStepsRequested) >= playbackData.numberOfRelevantEvents) {
+                    //if the user wants to go to the very end of the playback (special value Number.MAX_SAFE_INTEGER) OR 
+                    //the number of relevant steps is too great to playback                    
+                    if(numRelevantStepsRequested === Number.MAX_SAFE_INTEGER || (playbackData.relevantEventIndex + numRelevantStepsRequested) >= playbackData.numberOfRelevantEvents) { 
 
                         //scale back the number of steps to go to the end
-                        exactNumberOfSteps = playbackData.numberOfRelevantEvents - playbackData.relevantEventIndex;
+                        exactNumberOfRelevantSteps = playbackData.numberOfRelevantEvents - playbackData.relevantEventIndex;
                     }
 
                 } else if(direction === "backward") { //backward through a playback
 
                     //if the number of steps is too great to playback backwards
-                    if(numStepsRequested > playbackData.relevantEventIndex) {
+                    if(numRelevantStepsRequested > playbackData.relevantEventIndex) {
 
                         //scale back the number of steps to go back to the beginning
-                        exactNumberOfSteps = playbackData.relevantEventIndex;
+                        exactNumberOfRelevantSteps = playbackData.relevantEventIndex;
                     }
                 }
 
-                return exactNumberOfSteps;
+                return exactNumberOfRelevantSteps;
             }
 
             /*
@@ -3531,7 +3654,7 @@
 
                     console.log("ERROR: event does not have the correct type");
                     return;
-                }
+                }             
             }
 
             
@@ -3653,11 +3776,9 @@
                 var retVal = false;
 
                 //if the playback is moving forward AND
-                //the user wants to see the recent changes AND
-                //this step is after the initial state of the code
+                //the user wants to see the recent changes 
                 if(playbackData.mostRecentDirection === "forward" &&
-                   playbackData.showRecentsChanges && 
-                   playbackData.afterInitialCode) {
+                   playbackData.showRecentsChanges) {
 
                     retVal = true; 
                 }
@@ -3671,8 +3792,12 @@
              */ 
             function addRecentInsertHighlight(stepData) {
 
-                //highlight the new code character as being reletively new
-                stepData.codeElement.classList.add("recentInsert");
+                //if the current event comes after the first event then it was not part of the initial state of the code
+                if(stepData.codeEvent.timestamp > playbackData.codeEvents[0].timestamp) {
+
+                    //highlight the new code character as being reletively new
+                    stepData.codeElement.classList.add("recentInsert");
+                }
 
                 //highlight the file name where the change took place
                 highlightChangedFileName(stepData.codeEvent.fileId);
@@ -3715,8 +3840,12 @@
                 var changedPlaybackWindowLinkListItem = document.querySelector("#playbackWindowLinkListItem-" + fileId);
                 var changedPlaybackWIndowAnchor = changedPlaybackWindowLinkListItem.children[0];
                 
-                //highlight the file name
-                changedPlaybackWIndowAnchor.classList.add("recentFileChange");
+                //if the anchor is not already marked with the recentFileChange class
+                if(!changedPlaybackWIndowAnchor.classList.contains("recentFileChange")) {
+
+                    //highlight the file name
+                    changedPlaybackWIndowAnchor.classList.add("recentFileChange");
+                }
             }
 
             /*
@@ -3814,7 +3943,7 @@
                         } else { //a non-newline character
 
                             //add caret cursor to the previous element 
-                            previousElement.classList.add("deleteCaretCursor");;
+                            previousElement.classList.add("deleteCaretCursor");
                         }
                     }
                 }
@@ -6769,6 +6898,9 @@
                 //set the number of relevant events back to 0
                 playbackData.numberOfRelevantEvents = 0;
 
+                //holds the positions and ids of all of the comment points
+                var posOfComments = [];
+                
                 //go through all of the code events
                 for(var i = 0;i < playbackData.codeEvents.length;i++) {
 
@@ -6853,12 +6985,22 @@
                         //increase the number of relevant events
                         playbackData.numberOfRelevantEvents++;
 
+                        //if there is a comment at this event (there may be multiple comments but we only need to know the index of the event)
+                        if(playbackData.comments[playbackData.codeEvents[i].id]) {
+
+                            //store the index of the event and the id of the event where the comment will be displayed
+                            posOfComments.push({"pos": playbackData.numberOfRelevantEvents - 1, eventId: playbackData.codeEvents[i].id});
+                        }
+
                     } else { //one or more filter were not satisfied
 
                         //mark the event as NOT relevant
                         playbackData.codeEvents[i].relevant = false;
                     }
                 }
+
+                //add a marker to show where each comment it
+                setCommentMarkers(posOfComments, playbackData.numberOfRelevantEvents);
             }
 
             /*
@@ -6927,6 +7069,9 @@
                     //reset the number of relevant events
                     playbackData.numberOfRelevantEvents = 0;
 
+                    //holds the positions and ids of all of the comment points
+                    var posOfComments = [];
+                    
                     //go through all of the events and mark them as relevant or not
                     for(var i = 0;i < playbackData.codeEvents.length;i++) {
 
@@ -6939,6 +7084,14 @@
                             //count it as relevant
                             playbackData.numberOfRelevantEvents++;
 
+                            //if there is a comment at this event (there may be multiple comments but we only need to know the index of the event)
+                            if(playbackData.comments[playbackData.codeEvents[i].id]) {
+
+                                //store the index of the event and the id of the event where the comment will be displayed
+                                posOfComments.push({"pos": playbackData.numberOfRelevantEvents - 1, eventId: playbackData.codeEvents[i].id});
+                            }
+                            
+
                         //if the event is a delete AND its previous neighbor is one of the relevant ids
                         } else if(playbackData.codeEvents[i].type === "Delete" && relevantIds[playbackData.codeEvents[i].previousNeighborId]) {
 
@@ -6948,14 +7101,40 @@
                             //count it as relevant
                             playbackData.numberOfRelevantEvents++;
 
+                            //if there is a comment at this event (there may be multiple comments but we only need to know the index of the event)
+                            if(playbackData.comments[playbackData.codeEvents[i].id]) {
+
+                                //store the index of the event and the id of the event where the comment will be displayed
+                                posOfComments.push({"pos": playbackData.numberOfRelevantEvents - 1, eventId: playbackData.codeEvents[i].id});
+                            }
+                            
+
                         } else { //not a selected event and not in the history of selected events
 
                             //mark as not relevant
                             playbackData.codeEvents[i].relevant = false;
                         }
                     }
+
+                    //add a marker to show where each comment it
+                    setCommentMarkers(posOfComments, playbackData.numberOfRelevantEvents);
+
                 }
             }
+
+            /*
+             * Removes the 'relevant' property from every object in the code events list. 
+             */
+            function clearAllRelevantEvents() {
+
+                //go through all of the events
+                for(var i = 0;i < playbackData.codeEvents.length;i++) {
+                    
+                    //remove the relevant property from the object
+                    delete playbackData.codeEvents[i].relevant;
+                }
+            }
+
             //*****************************************************************************
             //                         File system related filtering
             //                         -----------------------------
@@ -7508,7 +7687,7 @@
                     for(var j = 0;j < allGroups[i].members.length;j++) {
 
                         //add a dev group member name
-                        devName.innerHTML += " " + allGroups[i].members[j].firstName + " " + allGroups[i].members[j].lastName;
+                        devName.innerHTML += " " + allGroups[i].members[j].firstName + " " + allGroups[i].members[j].lastName + " (" + allGroups[i].members[j].email + ")";
 
                         //if there are more add a comma
                         if(j < allGroups[i].members.length - 1) {
@@ -7621,7 +7800,10 @@
              * Display one or more comments for the passed in event.
              */
             function displayComments(commentsForAnEvent) {
-                
+
+                //clear the previous comment
+                clearPreviousComment();
+
                 //revoke any previous audio comments before adding new ones
                 revokeActualAudioComments();                 
 
@@ -7639,7 +7821,7 @@
                     var comment = commentsForAnEvent[i];
 
                     //build up the ui for the comment
-                    buildCommentUI(comment, codeCommentContainer);
+                    buildCommentUI(comment, codeCommentContainer, (i + 1), commentsForAnEvent.length);
                 }
 
                 //if there are any highlighted code characters make sure the playback tab is visible and the highlighted code is visible
@@ -7653,12 +7835,12 @@
              */
             function focusOnHighlightedCommentCode(comment) {
                     
+                //remove any previous highlights
+                removeCommentCodeHighlights();
+
                 //if there is at least one highlighted code
                 if(comment.selectedCodeIds.length > 0) {
                     
-                    //remove any previous highlights
-                    removeCommentCodeHighlights();
-
                     //add the new highlights
                     addCommentCodeHighlights(comment);
 
@@ -7735,7 +7917,7 @@
             /*
              * Build a UI for the comment.
              */
-            function buildCommentUI(comment, codeCommentContainer) {
+            function buildCommentUI(comment, codeCommentContainer, currentCommentIndex, totalComments) {
 
                 //grab the relevant info from the comment
                 var text = comment.commentText;
@@ -7746,7 +7928,7 @@
                 var outerDiv = document.createElement("div");
                 outerDiv.classList.add("well");
                 outerDiv.classList.add("well-lg");
-                
+
                 //when someone clicks the comment
                 outerDiv.addEventListener("click", function(e){
 
@@ -7832,13 +8014,10 @@
                 //add the comment text
                 var commentTextDiv = document.createElement("div");
                 commentTextDiv.classList.add("codeCommentText");
+                commentTextDiv.classList.add("storytellerEditable");
                 commentTextDiv.classList.add("panel-body");
-                //create a span to hold to hold the comment text
-                var commentSpan = document.createElement("span");
-                //add the text replacing newlines with br's
-                //TODO change to support full markdown
-                commentSpan.innerHTML = text === "" ? "--" : text.replace(/\n/g, "<br/>");
-                commentTextDiv.appendChild(commentSpan);
+                commentTextDiv.setAttribute("contenteditable", "false");
+                commentTextDiv.innerHTML = (text === "") ? "--" : text;
                 //add the comment author and timestamp
                 var commentInfoDiv = document.createElement("div");
                 commentInfoDiv.classList.add("panel-footer");
@@ -7864,97 +8043,149 @@
                 divPanel.appendChild(commentInfoDiv);
                 outerDiv.appendChild(divPanel);
 
-                //TODO edit the comment
-            	// var editCommentButton = document.createElement("button");
-            	// editCommentButton.innerHTML = "Edit";
-            	// editCommentButton.classList.add("btn");
-            	// editCommentButton.classList.add("btn-default");
-            	// editCommentButton.classList.add("btn-xs");
-            	// editCommentButton.addEventListener("click", function(e) {console.log("edit");});
+                //add a button group for edit and delete
+                var editCommentButtonGroup = document.createElement("div");
+                editCommentButtonGroup.classList.add("btn-group"); 
 
-
-                //build a dropdown list of options to delete from the playback only or the playback and the db
-                // <div class="btn-group">
-                //     <button type="button" class="btn">Delete</button>
-                //     <button type="button" class="btn dropdown-toggle" data-toggle="dropdown">
-                //         <span class="caret"></span>
-                //     </button>
-                //     <ul class="dropdown-menu">
-                //         <li><a href="#">Delete in the browser only</a></li>
-                //         <li><a href="#">Delete in the browser and in the editor's database</a></li>
-                //     </ul>
-                // </div>
-
-                var deleteCommentButtonGroup = document.createElement("div");
-                deleteCommentButtonGroup.classList.add("btn-group"); 
-                //deleteCommentButtonGroup.classList.add("pull-right");
-
-                var deleteCommentButton = document.createElement("button");
-                deleteCommentButton.classList.add("btn");
-                deleteCommentButton.classList.add("btn-xs");
-                deleteCommentButton.innerHTML = "Delete";
-                deleteCommentButton.addEventListener("click", function(e) {
+                //edit button
+                var editCommentButton = document.createElement("button");
+                editCommentButton.classList.add("btn");
+                editCommentButton.classList.add("btn-xs");
+                editCommentButton.innerHTML = "Edit Comment";
+                editCommentButton.addEventListener("click", function(e) {
                     
-                    //by default if the either of the options is not selected then do a full delete
+                    //if the user has selected to edit a comment
+                    if(editCommentButton.innerHTML === "Edit Comment") {
 
-                    //delete the comment in the browser
-                    deleteCommentInBrowserOnly(comment, outerDiv);
+                        //make the comment editable
+                        commentTextDiv.setAttribute("contenteditable", "true");
+                        commentTextDiv.focus();
+                        editCommentButton.innerHTML = "Save changes";
 
-                    //delete the comment in the editor's database
-                    deleteCommentInEditorsDB(comment);
+                    } else { //the user chose to save after an edit
+
+                        commentTextDiv.setAttribute("contenteditable", "false");
+                        updateCommentInBrowserOnly(comment, commentTextDiv);
+                        updateCommentInEditorsDB(comment);
+                        editCommentButton.innerHTML = "Edit Comment";
+                    }
                 });
 
-                var deleteCommentButtonToggle = document.createElement("button");
-                deleteCommentButtonToggle.classList.add("btn");
-                deleteCommentButtonToggle.classList.add("btn-xs");
-                deleteCommentButtonToggle.classList.add("dropdown-toggle");
-                deleteCommentButtonToggle.setAttribute("data-toggle", "dropdown");
-
+                //toggle button
+                var editCommentButtonToggle = document.createElement("button");
+                editCommentButtonToggle.classList.add("btn");
+                editCommentButtonToggle.classList.add("btn-xs");
+                editCommentButtonToggle.classList.add("dropdown-toggle");
+                editCommentButtonToggle.setAttribute("data-toggle", "dropdown");
                 var toggleButtonSpan = document.createElement("span");
                 toggleButtonSpan.classList.add("caret");
-                deleteCommentButtonToggle.appendChild(toggleButtonSpan);
+                editCommentButtonToggle.appendChild(toggleButtonSpan);
 
-                var deleteCommentListOptions = document.createElement("ul");
-                deleteCommentListOptions.classList.add("dropdown-menu");
+                //list of other buttons
+                var editCommentListOptions = document.createElement("ul");
+                editCommentListOptions.classList.add("dropdown-menu");
 
-                var deleteInBrowserOnlyListItem = document.createElement("li");
-                var deleteInBrowserOnlyAnchor = document.createElement("a");
-                deleteInBrowserOnlyAnchor.setAttribute("href", "#");
-                deleteInBrowserOnlyAnchor.innerHTML = "Delete in the browser only";
-                deleteInBrowserOnlyAnchor.addEventListener("click", function(e) {
-
-                    //delete in the browser, do not send a request to delete to the editor
-                    deleteCommentInBrowserOnly(comment, outerDiv);
-                });
-                deleteInBrowserOnlyListItem.appendChild(deleteInBrowserOnlyAnchor);
-
-                var deleteInBrowserAndEditorDBListItem = document.createElement("li");
-                var deleteInBrowserAndEditorDBAnchor = document.createElement("a");
-                deleteInBrowserAndEditorDBAnchor.setAttribute("href", "#");
-                deleteInBrowserAndEditorDBAnchor.innerHTML = "Delete in the browser and in the editor's database";
-                deleteInBrowserAndEditorDBAnchor.addEventListener("click", function(e) {
+                //full delete of comment
+                var deleteCommentListItem = document.createElement("li");
+                var deleteCommentAnchor = document.createElement("a");
+                deleteCommentAnchor.setAttribute("href", "#");
+                deleteCommentAnchor.innerHTML = "Delete the comment";
+                deleteCommentAnchor.addEventListener("click", function(e) {
                     
                     //delete in the browser and in the db
                     deleteCommentInBrowserOnly(comment, outerDiv);
                     deleteCommentInEditorsDB(comment);
                 });
-                deleteInBrowserAndEditorDBListItem.appendChild(deleteInBrowserAndEditorDBAnchor);
+                deleteCommentListItem.appendChild(deleteCommentAnchor);
 
-                deleteCommentListOptions.appendChild(deleteInBrowserOnlyListItem);
-                deleteCommentListOptions.appendChild(deleteInBrowserAndEditorDBListItem);
+                editCommentListOptions.appendChild(deleteCommentListItem);
 
-                deleteCommentButtonGroup.appendChild(deleteCommentButton);
-                deleteCommentButtonGroup.appendChild(deleteCommentButtonToggle);
-                deleteCommentButtonGroup.appendChild(deleteCommentListOptions);
+                editCommentButtonGroup.appendChild(editCommentButton);
+                editCommentButtonGroup.appendChild(editCommentButtonToggle);
+                editCommentButtonGroup.appendChild(editCommentListOptions);
 
-                var deleteCommentDiv = document.createElement("div");
-                deleteCommentDiv.appendChild(deleteCommentButton);
-                deleteCommentDiv.appendChild(deleteCommentButtonGroup);
-                outerDiv.appendChild(deleteCommentDiv);
+                var editCommentDiv = document.createElement("div");
+                editCommentDiv.appendChild(editCommentButton);
+                editCommentDiv.appendChild(editCommentButtonGroup);
+                outerDiv.appendChild(editCommentDiv);
+
+                var commentNumberSpan = document.createElement("div");
+                commentNumberSpan.classList.add("small");
+                commentNumberSpan.classList.add("pull-right");
+                commentNumberSpan.innerHTML = currentCommentIndex + "/" + totalComments;
+                outerDiv.appendChild(commentNumberSpan);
 
                 codeCommentContainer.appendChild(outerDiv);
             }
+            
+            /*
+             * adds a new comment to the storyteller server
+             */
+            function addCommentInEditorsDB(insertedComment) {
 
+                //insert the comment on the server
+                var xmlhttp = new XMLHttpRequest();   
+                xmlhttp.addEventListener("load", function(){
+
+                    console.log("successfully added a comment and receieved a response");
+                });
+
+                xmlhttp.addEventListener("error", function(){
+                    
+                    //notify the user that there was a problem
+                    makeAnAlert("We were unable to permanently store your comment", "alert-danger", "commentAlertArea");
+                });
+
+                xmlhttp.open("POST", "/comment");
+                xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                xmlhttp.send(JSON.stringify(insertedComment));
+            }
+
+            /*
+             * updates a comment in the browser only
+             */
+            function updateCommentInBrowserOnly(comment, codeCommentText) {
+                
+                //get the array of events at the event id
+                var arrayOfCommentsAtThisEvent = playbackData.comments[comment.displayCommentEvent.id];
+                var indexOfComment = arrayOfCommentsAtThisEvent.indexOf(comment);
+
+                //if the comment was found
+                if(indexOfComment >= 0) {
+                    
+                    //update the comment text for this event
+                    arrayOfCommentsAtThisEvent[indexOfComment].commentText = codeCommentText.innerHTML;
+                }
+            }
+
+            /*
+             * updates a comment to the storyteller server
+             */
+            function updateCommentInEditorsDB(updatedComment) {
+                
+                //update the comment on the server
+                var xmlhttp = new XMLHttpRequest();   
+                xmlhttp.addEventListener("load", function(){
+
+                    //TODO add something to the UI
+                    console.log("successfully updated a comment and receieved a response");
+                });
+
+                xmlhttp.addEventListener("error", function(){
+                    
+                    //notify the user that there was a problem
+                    makeAnAlert("We were unable to update your comment", "alert-danger", "commentAlertArea");
+
+                });
+
+                xmlhttp.open("PUT", "/comment");
+                xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                xmlhttp.send(JSON.stringify(updatedComment));
+            }
+
+            /*
+             * Deletes a comment in the browser only
+             */
             function deleteCommentInBrowserOnly(comment, outerDiv) {
                 
                 //get the array of events at the event id
@@ -7983,6 +8214,9 @@
                 }
             }
 
+            /*
+             * Deletes a comment in the storyteller server
+             */
             function deleteCommentInEditorsDB(deletedComment) {
                 
                 //delete the comment on the server
@@ -7999,13 +8233,47 @@
                     console.log("was not able to delete a comment");
                     
                     //notify the user that there was a problem
-                    makeAnAlert("We were unable to add your comment", "alert-danger", "commentAlertArea");
+                    makeAnAlert("We were unable to delete your comment", "alert-danger", "commentAlertArea");
 
                 });
 
                 xmlhttp.open("DELETE", "/comment");
                 xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
                 xmlhttp.send(JSON.stringify(deletedComment));
+            }
+
+            /*
+             * Updates a playback description (title and descriptive text) in the storyteller server
+             */
+            function updatePlaybackDescriptionInEditorsDB(updatedTitle, updatedDescription) {
+                
+                //update the title and description on the server
+                var xmlhttp = new XMLHttpRequest();   
+                xmlhttp.addEventListener("load", function(){
+
+                    //TODO add something to the UI
+                    console.log("successfully updated a comment and receieved a response");
+                });
+
+                xmlhttp.addEventListener("error", function(){
+
+                    //TODO add a message to the UI indicating that there is no server to respond
+                    console.log("was not able to update a comment");
+                    
+                    //notify the user that there was a problem
+                    makeAnAlert("We were unable to update your comment", "alert-danger", "commentAlertArea");
+
+                });
+
+                //make an object with the new title and description
+                var updatedPlaybackDescription = {
+                    title: updatedTitle,
+                    description: updatedDescription
+                };
+
+                xmlhttp.open("PUT", "/playbackDescription");
+                xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                xmlhttp.send(JSON.stringify(updatedPlaybackDescription));
             }
 
             /*
