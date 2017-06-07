@@ -32,7 +32,7 @@ var isStorytellerCurrentlyActive = false;
 //Since we don't know which circumstance it is until we either receive a delete event or don't, 
 //we store the path and make a determination later (in either a timeout function or the handle 
 //delete function) 
-var recentlyCreated = [];
+var recentlyCreatedFileOrDir = [];
 
 //this is the number of milliseconds to wait after receiving a create event to see if there is 
 //a corresponding delete event indicating a move/rename
@@ -115,10 +115,10 @@ function deactivate() {
     console.log("Deactiviating storyteller extension--");
     
     //if there is anything in the list of recently created file paths
-    if(recentlyCreated.length > 0) {
+    if(recentlyCreatedFileOrDir.length > 0) {
         
         //clear out any old info from previous workspaces
-        recentlyCreated.splice(0, recentlyCreated.length);        
+        recentlyCreatedFileOrDir.splice(0, recentlyCreatedFileOrDir.length);        
     }
     
     //if we are tracking changes
@@ -649,7 +649,7 @@ function addRecentCreate(createEvent) {
         } else { //check if this is a new file/dir (not due to reconciliation) or a move/rename 
 
             //add the path to an array where it might be removed if this event is followed by a delete 
-            recentlyCreated.push(newPath);
+            recentlyCreatedFileOrDir.push(newPath);
             
             //give some time for the addRecentDelete() function to remove this new path if this happens
             //to be a rename or a move. Currently, giving 5ms for the delete handler to run.
@@ -659,7 +659,7 @@ function addRecentCreate(createEvent) {
             setTimeout(function () {            
                     
                 //look for the entry with the new path
-                var index = recentlyCreated.indexOf(newPath);
+                var index = recentlyCreatedFileOrDir.indexOf(newPath);
                 
                 //if the path is still in the array of recently added items then this is a true create
                 //new file/dir event not a move or rename
@@ -690,16 +690,16 @@ function addRecentCreate(createEvent) {
                     }
                                 
                     //remove the path since we have handled it
-                    recentlyCreated.splice(index, 1);
+                    recentlyCreatedFileOrDir.splice(index, 1);
                             
                 } else { 
                     
-                    console.log(`The file: ${newPath} is not present in recentlyCreated- it was moved/renamed`);
+                    console.log(`The file: ${newPath} is not present in recentlyCreatedFileOrDir- it was moved/renamed`);
 
                     //if the path is gone it is because the create event was followed by a delete 
                     //event (a move or rename) that was handled in the delete function
                     
-                    //console.log("File is not present in recentlyCreated[]");                        
+                    //console.log("File is not present in recentlyCreatedFileOrDir[]");                        
                 }
 
                 eventCollector.printAllPathToIdMappings();
@@ -734,12 +734,12 @@ function addRecentDelete(deleteEvent) {
     var deletePath = deleteEvent.fsPath.split("\\").join("/");
     
     //if there are any elements on this array we are going to assume this delete is part of a move or rename
-    if(recentlyCreated.length > 0) {
+    if(recentlyCreatedFileOrDir.length > 0) {
         
         //get the first entry- this is the path that has changed. I am assuming that with a move the create 
         //and delete events are queued right next to each other and will be handled in sequence by calling
         //addRecentCreate() immediately followed by addRecentDelete()
-        var newPath = recentlyCreated.shift();
+        var newPath = recentlyCreatedFileOrDir.shift();
                 
         //parse the path of the old and new file path
         var parsedNewPath = path.parse(newPath);
@@ -801,7 +801,7 @@ function addRecentDelete(deleteEvent) {
             //console.log(stats);
         }
         
-    } else { //this is a true delete, there are no file paths in the recentlyCreated array
+    } else { //this is a true delete, there are no file paths in the recentlyCreatedFileOrDir array
         
         //since the deleted file/dir is gone we can't check to see if it is a file or dir so
         //we will let storyteller check the type based on the path and call the correct delete
@@ -883,7 +883,7 @@ function handleTextEditorChange(event) {
  */
 function handleFileSave(event) {
     
-    //console.log("saved file");
+    console.log("saved file");
 
     //if we are tracking changes
     if(isStorytellerCurrentlyActive) {

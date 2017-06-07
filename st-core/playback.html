@@ -363,11 +363,11 @@
                                 <fieldset>
                                     <legend>
                                         <div id="playbackTitleEditable" class="editablePlaybackTitleDescription storytellerEditable">
-                                            Playback Title
+                                            
                                         </div>
                                     </legend>
                                     <div id="playbackDescriptionEditable" class="editablePlaybackTitleDescription storytellerEditable">
-                                        Playback description
+                                        
                                     </div>
                                     <hr/>
                                     <div class="pull-right">
@@ -1943,8 +1943,15 @@
                     var imgId = images.prependId + images.sequenceNumber
                     images.sequenceNumber++;
 
-                    //store the data url in a global image repo
-                    images[imgId] = dataURL;
+                    //create an image object
+                     var image = {
+                        imgId: imgId,
+                        dataURL: dataURL,
+                        timestamp: Date.now()
+                    };
+
+                    //store the image object in the global image object 
+                    images[image.imgId] = image;
 
                     //add the image to the collection that shows images that will be added to the comment
                     //get the collection of images that will be added to the comment
@@ -1953,39 +1960,14 @@
                     //get an image element with a scaled down picture of the image
                     var previewImg = getCommentImagePreview(80, 80, dataURL);
 
-                    //create a small image preview of what is in the canvas
+                    //create a small image preview that can be selected or deselected
                     var commentImagePreview = getSelectableCommentImagePreview(previewImg, imgId, "selectedCommentImage");
 
                     //append a preview of the comment image
                     commentImagesInComment.appendChild(commentImagePreview);
 
-
-                    //add the image to the collection of images to build off of
-                    //get the gallery of images to build off of
-                    var commentImageStartingPointGallery = document.querySelector("#commentImageStartingPointGallery");
-
-                    //create a small image
-                    var commentImageStartingPointImage = getCommentImagePreview(60, 60, dataURL);
-
-                    //make a link that points to nothing
-                    var commentImageStartingPointLink = document.createElement("a");
-                    commentImageStartingPointLink.setAttribute("href", "#");
-
-                    //put the image in the link
-                    commentImageStartingPointLink.appendChild(commentImageStartingPointImage);
-
-                    //when the user clicks on this link
-                    commentImageStartingPointLink.addEventListener("click", function(e){
-
-                        //clear the drawing canvas
-                        canvasData.commentCanvasContext.clearRect(0, 0, canvasData.commentCanvas.width, canvasData.commentCanvas.height);
-
-                        //redraw the image from the link on to the canvas
-                        canvasData.commentCanvasContext.drawImage(commentImageStartingPointImage, 0, 0);
-                    });
-
-                    //add the image to the gallery
-                    commentImageStartingPointGallery.appendChild(commentImageStartingPointLink);
+                    //add an image to the gallery of starting points
+                    addImageToStartingPointGallery(images[imgId]);
                 });
 
                 //import an image onto the comment drawing canvas
@@ -2108,13 +2090,13 @@
                             //get the image id from the checkbox
                             var imgId = selectedImageCheckBoxes[i].getAttribute("value");
 
-                            //use the image id to retrieve the data url of the image
+                            //use the image id to retrieve the image object
                             commentImages.push(images[imgId]);
                         }
                         
-                        //if there was a comment, some selected text, at least one image, or one audio comment
+                        //if there was some text for a comment, some selected text, at least one image, or one audio comment
                         if(commentText.length > 0 || selectedCodeIds.length > 0 || 
-                           commentImagesInComment.children.length > 0 || audioComments.length > 0) {
+                           commentImages.length > 0 || audioComments.length > 0) {
 
                             //clear out the text area
                             textCommentTextArea.innerHTML = "";
@@ -2165,6 +2147,8 @@
                             //attempt to add the comment to the server 
                             addCommentInEditorsDB(comment);
 
+                            //get the collection of images that will be added to the comment
+                            var commentImagesInComment = document.querySelector("#commentImagesInComment");
                             //clear the images in comment
                             commentImagesInComment.innerHTML = "";
 
@@ -2413,6 +2397,9 @@
                     document.querySelector("#playbackTitle").textContent = playbackData.playbackDescription.title;
                     document.querySelector("#playbackTitleEditable").textContent = playbackData.playbackDescription.title;
                     document.querySelector("#playbackDescriptionEditable").innerHTML = playbackData.playbackDescription.description;
+
+                    //take the images from the comments and add them to the starting image gallery
+                    displayCommentImagesInGallery();
 
                     //clear out the number of relevant events (we'll count them below)
                     playbackData.numberOfRelevantEvents = 0;
@@ -7954,7 +7941,7 @@
                 for(var i = 0;i < comment.images.length;i++) {
                     
                     //get a small pic of the image 
-                    var smallImage = getCommentImagePreview(286, 225, comment.images[i]);
+                    var smallImage = getCommentImagePreview(286, 225, comment.images[i].dataURL);
 
                     //create a link so users can click the small image and bring up the comment pic modal
                     var smallImageLink = document.createElement("a");
@@ -8383,6 +8370,104 @@
                     canvasData.commentCanvasContext.closePath();
                     canvasData.commentCanvasContext.stroke();
                 };
+            }
+
+            /*
+             * This function will add an image to the starting point image gallery (a gallery where images
+             * can be selected as a starting point to build on)
+             */
+            function addImageToStartingPointGallery(img) {
+
+                //get the gallery of images to build off of
+                var commentImageStartingPointGallery = document.querySelector("#commentImageStartingPointGallery");
+
+                //create a small image
+                var commentImageStartingPointImage = getCommentImagePreview(60, 60, img.dataURL);
+
+                //make a link that points to nothing
+                var commentImageStartingPointLink = document.createElement("a");
+                commentImageStartingPointLink.setAttribute("href", "#");
+
+                //put the image in the link
+                commentImageStartingPointLink.appendChild(commentImageStartingPointImage);
+
+                //when the user clicks on this link
+                commentImageStartingPointLink.addEventListener("click", function(e){
+
+                    //clear the drawing canvas
+                    canvasData.commentCanvasContext.clearRect(0, 0, canvasData.commentCanvas.width, canvasData.commentCanvas.height);
+
+                    //redraw the image from the link on to the canvas
+                    canvasData.commentCanvasContext.drawImage(commentImageStartingPointImage, 0, 0);
+                });
+
+                //add the image to the gallery
+                commentImageStartingPointGallery.appendChild(commentImageStartingPointLink);                
+            }
+
+            /*
+             * This function gets all the images from the comments in a playback and adds them to the
+             * images collection and the starting point image gallery.
+             */
+            function displayCommentImagesInGallery() {
+                
+                //holds all of the images from the comments
+                var allCommentImages = [];
+
+                //go through each of events where there is at least one comment
+                for(var eventId in playbackData.comments) {
+                    if(playbackData.comments.hasOwnProperty(eventId)) {
+
+                        //get all of the comments at each event                         
+                        var commentsForAnEvent = playbackData.comments[eventId];
+
+                        //go through all of the comments at an event
+                        for(var i = 0;i < commentsForAnEvent.length;i++) {
+                            
+                            //if there is one or more images for this comment
+                            if(commentsForAnEvent[i].images && commentsForAnEvent[i].images.length > 0) {
+                                
+                                //get the images for this comment
+                                var imagesForAnEvent = commentsForAnEvent[i].images;
+
+                                //go through all of the images
+                                for(var j = 0;j < imagesForAnEvent.length;j++) {
+
+                                    //get the image
+                                    var image = imagesForAnEvent[j]; 
+                                                                        
+                                    //add the image to a collection
+                                    allCommentImages.push(image);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //if there were any images from the comments
+                if(allCommentImages.length > 0) {
+                    
+                    //get the gallery of images to build off of
+                    var commentImageStartingPointGallery = document.querySelector("#commentImageStartingPointGallery");
+                    //clear all existing images
+                    commentImageStartingPointGallery.innerHTML = "";
+
+                    //sort the images by their creation timestamp
+                    allCommentImages.sort(function(firstImg, secondImg) {return firstImg.timestamp - secondImg.timestamp;});
+
+                    //go through each of the images from the comments
+                    for(var i = 0;i < allCommentImages.length;i++) {
+
+                        //get the image
+                        var image = allCommentImages[i];
+
+                        //add the image to the collection of all images
+                        images[image.imgId] = image;
+
+                        //add the image to the gallery
+                        addImageToStartingPointGallery(image);
+                    }
+                }
             }
 
             /*
