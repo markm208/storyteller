@@ -43,6 +43,66 @@
                 color:gray;
             }
 
+            .penTable .penColor {
+                border-style: solid;
+                border-color: gray;                
+            }
+
+            #bluePen {
+                background-color: blue;
+                width: 40px;
+                height: 40px;
+                padding-left: 10px;
+            }
+
+            #blackPen {
+                background-color: black;
+                width: 40px;
+                height: 40px;
+                padding-left: 10px;
+            }
+
+            #whitePen {
+                background-color: white;
+                width: 40px;
+                height: 40px;
+                padding-left: 10px;
+            }
+            
+            #redPen {
+                background-color: red;
+                width: 40px;
+                height: 40px;
+                padding-left: 10px;
+            }
+
+            .penColorSelected {
+                border-color: gray;
+                border-style: solid; 
+                border-width: 4px;
+            }
+
+            #extraLargePen {
+                font-size: 250%;
+            }
+
+            #largePen {
+                font-size: 200%;
+            }
+
+            #mediumPen {
+                font-size: 150%;
+            }
+
+            #smallPen {
+                font-size: 100%;
+            }
+
+            .penSizeSelected {
+                border-color: gray;
+                border-style: solid; 
+                border-width: 4px;
+            }
             /* for code in a playback (by default all italics- relevant code will be changed to normal) */
             .codeChar {
                 font-style: italic;
@@ -135,12 +195,12 @@
             }
 
             .activeCommentMarkerContainer {
-                background-color:rgba(0, 0, 255, 1.0);
+                background-color:rgba(0, 120, 0, 1.0);
             }
 
             /* make this very close to the color of the slider to people can get a sense of where the comments are */
             .inactiveCommentMarkerContainer {
-                background-color:rgba(0, 0, 255, 0.17);
+                background-color:rgba(0, 120, 0, 0.30);
             }
 
             .commentMarker {
@@ -763,8 +823,9 @@
                                 <div class="row">
                                     <div class="col-sm-4">
                                         <p>
-                                            <label>Upload a previous playback</label>
-                                            <input type="file" id="uploadPlaybackButton"  data-toggle="tooltip" data-placement="top" title="Play a previous playback">
+                                            <label class="btn btn-default btn-file" data-toggle="tooltip" data-placement="top" title="Play a previous playback">
+                                                Upload a previous playback<input type="file" id="uploadPlaybackButton" style="display: none;">
+                                            </label> 
                                         </p>
                                     </div>
                                     <div class="col-sm-8">
@@ -1096,12 +1157,65 @@
 
                     <div class="modal-body">
                         <!-- the drawing canvas -->
-                        <canvas id="commentCanvas" class="img-thumbnail" height="675" width="860">
+                        <canvas id="commentCanvas" class="img-thumbnail" height="675" width="860">                            
                         </canvas>
 
-                        <!-- a collection of previous images to start a new image from -->
-                        <div id="commentImageStartingPointGallery">
-                            <input type="file" id="importImageButton">
+                        <div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <table class="penTable">
+                                        <tr>
+                                            <td>Pen Color &nbsp;</td>
+                                            <td id="bluePen" class="penColorSelected penColor">&nbsp;</td> 
+                                            <td id="blackPen" class="penColor">&nbsp;</td> 
+                                            <td id="whitePen" class="penColor">&nbsp;</td>
+                                            <td id="redPen" class="penColor">&nbsp;</td>
+                                        </tr>
+                                    </table>
+                                </div>
+
+                                <div class="col-sm-4">
+                                    <table>
+                                        <tr>
+                                            <td>Pen size &nbsp;</td>
+                                            <td id="extraLargePen">&#x25CF;</td>
+                                            <td id="largePen">&#x25CF;</td>
+                                            <td id="mediumPen" class="penSizeSelected">&#x25CF;</td>
+                                            <td id="smallPen">&#x25CF;</td>
+                                        </tr>
+                                    </table>
+                                </div>
+
+                                <div class="col-sm-4">
+                                    <table>
+                                        <tr>
+                                            <td>&nbsp;History &nbsp;</td>
+                                            <td>
+                                                <div class="form-group">
+                                                    <button type="button" id="undoDraw" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="ctrl/cmd + z">
+                                                        Undo
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="form-group">
+                                                    <button type="button" id="redoDraw" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="ctrl/cmd + y">
+                                                        Redo
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <label class="btn btn-default btn-file">
+                                    Browse for an image <input type="file" id="importImageButton" style="display: none;"/>
+                            </label>
+                            <!-- a collection of previous images to start a new image from -->                                               
+                            <div id="commentImageStartingPointGallery">  
+                                                          
+                            </div>
                         </div>
 
                     </div>
@@ -1114,7 +1228,7 @@
                             </button>
 
                             <!-- save the image -->
-                            <button type="button" id="saveCommentImageButton" class="btn btn-default" data-dismiss="modal">
+                            <button type="button" id="useImageInACommentButton" class="btn btn-default" data-dismiss="modal">
                                 Use this Image 
                             </button>
                         </div>
@@ -1201,7 +1315,9 @@
                 commentCanvas: null,				//the canvas to draw on
                 commentCanvasContext: null,			//the context used to do the drawing
                 currentMousePosition: {x: 0, y: 0},	//current mouse position on the canvas
-                previousMousePosition: {x: 0, y: 0}	//previous mouse position on the canvas
+                previousMousePosition: {x: 0, y: 0},//previous mouse position on the canvas
+                undoList: [],                       //list of points to undo
+                redoList: []                        //list of points to redo
             };
 
             /*
@@ -1613,7 +1729,28 @@
                             document.querySelector("#playPauseButton").click();
                             
                             //prevent the screen from scrolling on play/pause
-                            e.preventDefault();                        
+                            e.preventDefault();    
+
+                        } else { //check if it is from the drawing modal
+
+                            //get the modal with the drawing canvas
+                            var editCommentPictureModal = document.querySelector("#editCommentPictureModal");
+                            
+                            //if the picture editor modal is open on the screen
+                            if(editCommentPictureModal.classList.contains("in")) {
+                                
+                                //if the user wants to undo
+                                if(e.keyCode === 90 && (e.ctrlKey || e.metaKey)) { //ctrl/cmd + z
+                                    
+                                    //simulate clicking the undo button
+                                    document.querySelector("#undoDraw").click();
+
+                                } else if(e.keyCode === 89 && e.ctrlKey) { //ctrl/cmd + y, redo
+                                    
+                                    //simulate clicking the redo button
+                                    document.querySelector("#redoDraw").click();
+                                } 
+                            }
                         }
                     }
                 });
@@ -1926,83 +2063,6 @@
                     selectedTextFilter();
                 });
 
-                //clear the drawing canvas
-                document.querySelector("#clearCommentImageButton").addEventListener("click", function(e) {
-
-                    //clear the drawing canvas
-                    canvasData.commentCanvasContext.clearRect(0, 0, canvasData.commentCanvas.width, canvasData.commentCanvas.height);
-                });
-
-                //use the drawing in a comment and save it to build on later
-                document.querySelector("#saveCommentImageButton").addEventListener("click", function(e) {
-
-                    //turn the canvas into a data url
-                    var dataURL = canvasData.commentCanvas.toDataURL("image/png", 1.0);
-
-                    //generate a unique image id
-                    var imgId = images.prependId + images.sequenceNumber
-                    images.sequenceNumber++;
-
-                    //create an image object
-                     var image = {
-                        imgId: imgId,
-                        dataURL: dataURL,
-                        timestamp: Date.now()
-                    };
-
-                    //store the image object in the global image object 
-                    images[image.imgId] = image;
-
-                    //add the image to the collection that shows images that will be added to the comment
-                    //get the collection of images that will be added to the comment
-                    var commentImagesInComment = document.querySelector("#commentImagesInComment");
-
-                    //get an image element with a scaled down picture of the image
-                    var previewImg = getCommentImagePreview(80, 80, dataURL);
-
-                    //create a small image preview that can be selected or deselected
-                    var commentImagePreview = getSelectableCommentImagePreview(previewImg, imgId, "selectedCommentImage");
-
-                    //append a preview of the comment image
-                    commentImagesInComment.appendChild(commentImagePreview);
-
-                    //add an image to the gallery of starting points
-                    addImageToStartingPointGallery(images[imgId]);
-                });
-
-                //import an image onto the comment drawing canvas
-                document.querySelector("#importImageButton").addEventListener("change", function(e) {
-
-                    //get the selected file from the file input control
-                    var imageFile = this.files[0];
-
-                    //create a reader to read the data
-                    var fileReader = new FileReader();
-
-                    //once the data is done being read
-                    fileReader.onload = function(data) {
-
-                        //create an image
-                        var img = new Image();
-
-                        //when the image is finally loaded
-                        img.onload = function() {
-
-                            //clear the drawing canvas
-                            canvasData.commentCanvasContext.clearRect(0, 0, canvasData.commentCanvas.width, canvasData.commentCanvas.height);
-
-                            //draw a scaled image onto the canvas
-                            canvasData.commentCanvasContext.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvasData.commentCanvas.width, canvasData.commentCanvas.height);
-                        }
-
-                        //load the image with the image file selected
-                        img.src = data.target.result;
-                    };
-
-                    //begin the read operation to read the selected image file
-                    fileReader.readAsDataURL(imageFile);
-                });
-
                 //to get a zip with the state of the file system
                 document.querySelector("#saveStateOfFilesButton").addEventListener("click", function(e) {
 
@@ -2247,6 +2307,105 @@
 
                     //begin the read operation (as text)
                     fileReader.readAsText(uploadedFile);
+                });
+
+                //clear the drawing canvas
+                document.querySelector("#clearCommentImageButton").addEventListener("click", function(e) {
+
+                    //clear the image completely from the canvas
+                    clearCanvasImage();
+                    
+                });
+
+                //use the drawing in a comment and save it to build on later
+                document.querySelector("#useImageInACommentButton").addEventListener("click", function(e) {
+
+                    //use the image in the canvas for a comment
+                    useImageInAComment();
+                });
+
+                //import an image onto the comment drawing canvas
+                document.querySelector("#importImageButton").addEventListener("change", function(e) {
+
+                    //get the selected file from the file input control
+                    var imageFile = this.files[0];
+
+                    //import the imae into the canvas
+                    importImageIntoCanvas(imageFile);
+
+                });
+
+                //undo a drawn line
+                document.querySelector("#undoDraw").addEventListener("click", function(e) {
+                    
+                    //undo a drawn line
+                    undoADrawnLine();
+                });
+
+                document.querySelector("#redoDraw").addEventListener("click", function(e) {
+
+                    //redo a drawn line
+                    redoADrawnLine();
+                });
+
+                //change the pen color
+                document.querySelector("#bluePen").addEventListener("click", function(e) {
+                    
+                    //set the pen color
+                    setPenColor("blue", e.target);
+
+                });
+
+                //change the pen color
+                document.querySelector("#blackPen").addEventListener("click", function(e) {
+                    
+                    //set the pen color
+                    setPenColor("black", e.target);
+
+                });
+
+                //change the pen color
+                document.querySelector("#whitePen").addEventListener("click", function(e) {
+                    
+                    //set the pen color
+                    setPenColor("white", e.target);
+
+                });
+
+                //change the pen color
+                document.querySelector("#redPen").addEventListener("click", function(e) {
+                    
+                    //set the pen color
+                    setPenColor("red", e.target);
+
+                });
+
+                //change the pen size
+                document.querySelector("#extraLargePen").addEventListener("click", function(e) {
+                    
+                    //set the pen width
+                    setPenWidth(17, e.target);
+                });
+
+                //change the pen size
+                document.querySelector("#largePen").addEventListener("click", function(e) {
+                    
+                    //set the pen width
+                    setPenWidth(7, e.target);
+                });
+                
+                //change the pen size
+                document.querySelector("#mediumPen").addEventListener("click", function(e) {
+
+                   //set the pen width
+                    setPenWidth(4, e.target);
+                });
+
+                //change the pen size
+                document.querySelector("#smallPen").addEventListener("click", function(e) {
+                    
+                   //set the pen width
+                    setPenWidth(2, e.target);
                 });
             }
             
@@ -8323,15 +8482,15 @@
                 canvasData.commentCanvasContext = commentCanvas.getContext("2d");
 
                 //set the drawing line parameters
-                canvasData.commentCanvasContext.lineWidth = 3;
+                canvasData.commentCanvasContext.lineWidth = 4; //if this changes, make a change in the html to highlight the selected width
                 canvasData.commentCanvasContext.lineJoin = 'round';
                 canvasData.commentCanvasContext.lineCap = 'round';
-                canvasData.commentCanvasContext.strokeStyle = 'blue';
+                canvasData.commentCanvasContext.strokeStyle = 'blue'; //if this changes, make a change in the html to highlight the selected color
 
                 //get the modal that holds the canvas
                 var editCommentPictureModal = document.querySelector("#editCommentPictureModal");
 
-                //capture mouse moves
+                //capture mouse moves and always have a current mouse position
                 canvasData.commentCanvas.addEventListener("mousemove", function(e){
 
                     //store the old current mouse position and the previous mouse position
@@ -8349,8 +8508,26 @@
                 //mouse down
                 canvasData.commentCanvas.addEventListener('mousedown', function(e) {
 
-                    //add an additional listener to draw
+                    //draw the first line segment 
+                    canvasData.commentCanvasContext.beginPath();
+                    canvasData.commentCanvasContext.moveTo(canvasData.previousMousePosition.x, canvasData.previousMousePosition.y);
+                    canvasData.commentCanvasContext.lineTo(canvasData.currentMousePosition.x, canvasData.currentMousePosition.y);
+                    canvasData.commentCanvasContext.stroke();
+
+                    //add an additional listener to draw all future line segments while the mouse is down
                     commentCanvas.addEventListener('mousemove', onPaint);
+
+                    //create a point that represents the beginning of the line
+                    var startOfLinePoint = {
+                        x: canvasData.previousMousePosition.x, 
+                        y: canvasData.previousMousePosition.y,
+                        width: canvasData.commentCanvasContext.lineWidth,
+                        color: canvasData.commentCanvasContext.strokeStyle,
+                        type: "start"
+                    };
+
+                    //add it to the list of points to undo
+                    canvasData.undoList.push(startOfLinePoint);
                 });
 
                 //mouse up
@@ -8358,6 +8535,16 @@
 
                     //remove the additional mouse move listener
                     canvasData.commentCanvas.removeEventListener('mousemove', onPaint);
+
+                    //create a point that represents the end of the line
+                    var endOfLinePoint = {
+                        x: canvasData.currentMousePosition.x, 
+                        y: canvasData.currentMousePosition.y,
+                        type: "end"
+                    };      
+
+                    //add it to the list of points to undo
+                    canvasData.undoList.push(endOfLinePoint);              
                 });
 
                 //an additional mouse listener to paint part of a line
@@ -8367,9 +8554,318 @@
                     canvasData.commentCanvasContext.beginPath();
                     canvasData.commentCanvasContext.moveTo(canvasData.previousMousePosition.x, canvasData.previousMousePosition.y);
                     canvasData.commentCanvasContext.lineTo(canvasData.currentMousePosition.x, canvasData.currentMousePosition.y);
-                    canvasData.commentCanvasContext.closePath();
                     canvasData.commentCanvasContext.stroke();
+
+                    //create a point that represents the interior of the line
+                    var interiorOfLinePoint = {
+                        x: canvasData.currentMousePosition.x, 
+                        y: canvasData.currentMousePosition.y,
+                        type: "interior"
+                    };
+
+                    //add it to the list of points to undo
+                    canvasData.undoList.push(interiorOfLinePoint);
                 };
+            }
+
+            /*
+             * Sets the pen width for drawing. Also highlights an element on the screen so the user knows which pen width is selected
+             */
+            function setPenWidth(newPenSize, selectedPenElement) {
+
+                //remove the previous selected pen size class from the width chooser
+                var previousSelectedPenWidth = document.getElementsByClassName("penSizeSelected")[0];
+                previousSelectedPenWidth.classList.remove("penSizeSelected");
+
+                //highlight the new selected element
+                selectedPenElement.classList.add("penSizeSelected");
+
+                //store the chosen pen size
+                canvasData.commentCanvasContext.lineWidth = newPenSize;
+            }
+
+            /*
+             * Sets the pen color for drawing. Also highlights an element on the screen so the user knows which pen color is selected
+             */
+            function setPenColor(newColor, selectedPenElement) {
+                    
+                //remove the selected pen color class
+                var previousSelectedPenColor = document.getElementsByClassName("penColorSelected")[0];
+                previousSelectedPenColor.classList.remove("penColorSelected");
+
+                //make this the selected pen color
+                selectedPenElement.classList.add("penColorSelected");
+
+                //store the chosen pen color
+                canvasData.commentCanvasContext.strokeStyle = newColor;
+            }
+
+            /*
+             * Completely clears the image on the drawing canvas- removes all pen strokes, removes any background image that may be on the canvas, 
+             * and clears out the undo history
+             */
+            function clearCanvasImage() {
+
+                //if there is an image on the canvas
+                if(canvasData.basePicture) {
+
+                    //remove the image info from the canvas object
+                    canvasData.basePicture = null;                        
+                }
+                
+                //clear out the undo history
+                clearUndoHistory();
+                
+                //completely clear the drawing canvas
+                canvasData.commentCanvasContext.clearRect(0, 0, canvasData.commentCanvas.width, canvasData.commentCanvas.height);
+            }
+
+            /*
+             * Adds an image to the drawing canvas to be a part of a comment (can also be drawn on)
+             */
+            function importImageIntoCanvas(imageFile) {
+
+                //create a reader to read the data
+                var fileReader = new FileReader();
+
+                //once the data is done being read
+                fileReader.onload = function(data) {
+
+                    //clear any undo history since this will start a 'fresh' image
+                    clearUndoHistory();
+
+                    //draw the selected image on the canvas
+                    setImageOnDrawingCanvas(data.target.result);
+                };
+
+                //begin the read operation to read the selected image file
+                fileReader.readAsDataURL(imageFile);
+            }
+
+            /*
+             * This is called when the user chooses to use an image in a comment. The comment may or may not be saved or
+             * the user may choose to deselect the image preview so this does not guarantee that the canvas image will
+             * for sure be part of a comment.
+             */
+            function useImageInAComment() {
+                
+                //turn the image on the canvas into a data url
+                var dataURL = canvasData.commentCanvas.toDataURL("image/png", 1.0);
+
+                //generate a unique image id
+                var imgId = images.prependId + images.sequenceNumber
+                images.sequenceNumber++;
+
+                //create an image object
+                    var image = {
+                    imgId: imgId,
+                    dataURL: dataURL,
+                    timestamp: Date.now()
+                };
+
+                //store the image object in the global image object 
+                images[image.imgId] = image;
+
+                //add the image to the collection that shows images that will be added to the comment
+                //get the collection of images that will be added to the comment
+                var commentImagesInComment = document.querySelector("#commentImagesInComment");
+
+                //get an image element with a scaled down picture of the image
+                var previewImg = getCommentImagePreview(80, 80, dataURL);
+
+                //create a small image preview that can be selected or deselected
+                var commentImagePreview = getSelectableCommentImagePreview(previewImg, imgId, "selectedCommentImage");
+
+                //append a preview of the comment image
+                commentImagesInComment.appendChild(commentImagePreview);
+
+                //add an image to the gallery of starting points
+                addImageToStartingPointGallery(images[imgId]);
+            }
+
+            /*
+             * Clear the undo history
+             */
+            function clearUndoHistory() {
+                
+                //clear out the undo history
+                canvasData.undoList = [];
+                canvasData.redoList = [];
+            }
+
+            /*
+             * Adds an image to the drawing canvas and scales it so that it fits in it.
+             * If there are any points on the canvas they will be redrawn.
+             */
+            function setImageOnDrawingCanvas(dataURL) {
+                
+                //completely clear the drawing canvas
+                canvasData.commentCanvasContext.clearRect(0, 0, canvasData.commentCanvas.width, canvasData.commentCanvas.height);
+
+                //create an image
+                var img = new Image();
+
+                //when the image is finally loaded
+                img.onload = function() {
+
+                    //scale the image to fit completely on the canvas                    
+                    var scaledWidth;
+                    var scaledHeight;
+                        
+                    //get the ratios of the width and height to the canvas dimensions
+                    var widthRatio = canvasData.commentCanvas.width / img.width;
+                    var heightRatio = canvasData.commentCanvas.height / img.height;
+
+                    //if the width ratio is smaller than the height ratio
+                    if(widthRatio <= heightRatio) {
+                        
+                        //scale using the smaller width ratio to scale the height
+                        scaledWidth = canvasData.commentCanvas.width;
+                        scaledHeight = widthRatio * img.height;
+
+                    } else { //the height ratio is smaller that the width ratio
+
+                        //scale using the smaller height ratio to scale the width ratio
+                        scaledWidth = heightRatio * img.width;
+                        scaledHeight = canvasData.commentCanvas.height;
+                    }
+
+                    //draw a scaled image onto the canvas
+                    canvasData.commentCanvasContext.drawImage(img, 0, 0, img.width, img.height, 0, 0, scaledWidth, scaledHeight);
+
+                    //redraw any lines that are left in the undo history
+                    redrawAllPoints();
+                }
+
+                //load the image with the image file selected
+                img.src = dataURL;
+
+                //store the data url in the canvas data
+                canvasData.basePicture = dataURL;
+            }
+
+            /*
+             * Redraws the canvas including any lines that are on it. If there is an image
+             * it will be redrawn before the lines are added.
+             */
+            function redrawCanvasWithLines() {
+                
+                //if there is NOT a value for the base picture
+                if(!canvasData.basePicture) {
+                    
+                    //completely clear the drawing canvas
+                    canvasData.commentCanvasContext.clearRect(0, 0, canvasData.commentCanvas.width, canvasData.commentCanvas.height);
+
+                    //redraw all the lines
+                    redrawAllPoints();
+
+                } else { //there is a base picture for the canvas
+
+                    //redraw the base image (lines will be redrawn once the background image is drawn)
+                    setImageOnDrawingCanvas(canvasData.basePicture);
+                }
+            }
+
+            /*
+             * Undo the latest line drawn
+             */
+            function undoADrawnLine() {
+
+                //get all the points that have been drawn
+                var points = canvasData.undoList;
+
+                //if there are any points
+                if(points.length > 0) {
+
+                    //remove the last "end" point and add it to the list
+                    canvasData.redoList.push(points.pop());
+
+                    //remove all the other points until we run out of points or encounter the previous "end" point
+                    while(points.length > 0 && points[points.length - 1].type !== "end") {
+
+                        //add the points to the redo list
+                        canvasData.redoList.push(points.pop());
+                    }
+
+                    //redraw the remaining points (the last line is not included anymore)
+                    redrawCanvasWithLines();
+                }
+            }
+
+            /*
+             * Redo the latest line that was undone
+             */
+             function redoADrawnLine() {
+                
+                //get all the points that have been undone
+                var points = canvasData.redoList;
+
+                //if there are any points
+                if(points.length > 0) {
+
+                    //remove the last "start" point and add it to the list
+                    canvasData.undoList.push(points.pop());
+
+                    //remove all the other points until we run out of points or encounter the previous "start" point
+                    while(points.length > 0 && points[points.length - 1].type !== "start") {
+
+                        //add the points to the undo list
+                        canvasData.undoList.push(points.pop());
+                    }
+
+                    //redraw the points with the undone points added back
+                    redrawCanvasWithLines();
+                }
+            }
+
+            /*
+             * Redraw all of the points on the canvas connecting them into lines
+             */
+            function redrawAllPoints() {
+                
+                //if there are some points to redraw
+                if(canvasData.undoList.length > 0) {
+
+                    //store the current pen configuration
+                    var previousPenWidth = canvasData.commentCanvasContext.lineWidth;
+                    var previousPenColor = canvasData.commentCanvasContext.strokeStyle;
+
+                    //go through each point
+                    for(var i = 0;i < canvasData.undoList.length;i++) {
+
+                        //get the most recent point 
+                        var point = canvasData.undoList[i];
+
+                        //if this is the start of a line
+                        if(point.type === "start") {
+
+                            //set the context to the line's width and color
+                            canvasData.commentCanvasContext.lineWidth = point.width;
+                            canvasData.commentCanvasContext.strokeStyle = point.color;
+                            
+                            //begin the path and move to the first point
+                            canvasData.commentCanvasContext.beginPath();
+                            canvasData.commentCanvasContext.moveTo(point.x, point.y);
+
+                        } else if(point.type === "interior") { //this is the interior of a line
+
+                            //connect to the next interior point
+                            canvasData.commentCanvasContext.lineTo(point.x, point.y);
+
+                        } else if(point.type === "end") { //this is the end of a line
+
+                            //connect the last point
+                            canvasData.commentCanvasContext.lineTo(point.x, point.y);
+
+                            //draw the line
+                            canvasData.commentCanvasContext.stroke();
+                        } 
+                    }
+
+                    //restore the pen to its previous state
+                    canvasData.commentCanvasContext.lineWidth = previousPenWidth;
+                    canvasData.commentCanvasContext.strokeStyle = previousPenColor;
+                }
             }
 
             /*
@@ -8394,11 +8890,11 @@
                 //when the user clicks on this link
                 commentImageStartingPointLink.addEventListener("click", function(e){
 
-                    //clear the drawing canvas
-                    canvasData.commentCanvasContext.clearRect(0, 0, canvasData.commentCanvas.width, canvasData.commentCanvas.height);
+                    //clear any undo history since this will start a 'fresh' image
+                    clearUndoHistory();
 
-                    //redraw the image from the link on to the canvas
-                    canvasData.commentCanvasContext.drawImage(commentImageStartingPointImage, 0, 0);
+                    //draw the selected image on the canvas
+                    setImageOnDrawingCanvas(img.dataURL);
                 });
 
                 //add the image to the gallery
@@ -8466,6 +8962,9 @@
 
                         //add the image to the gallery
                         addImageToStartingPointGallery(image);
+
+                        //increase the image sequence number so new images get unique ids
+                        images.sequenceNumber++;
                     }
                 }
             }
