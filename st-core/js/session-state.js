@@ -727,7 +727,7 @@ function createEventsForDirsAndFiles(dirPath, timestamp, messages, stripFullPath
                         editorNode.createFile(stripFullPathToProjectPath(fullPathToFileOrDir), fileName, stripFullPathToProjectPath(dirPath), timestamp);                                        
                         
                         //add an insert event for each character in the file                    
-                        editorNode.insertText(stripFullPathToProjectPath(fullPathToFileOrDir), fileText, 0, 0, timestamp);
+                        editorNode.insertText(stripFullPathToProjectPath(fullPathToFileOrDir), fileText, 0, 0, false, [], timestamp);
                     }
                 } else {
                 
@@ -807,7 +807,7 @@ function diffAndUpdateFile(filePath, fileText, editorText, timestamp) {
             //console.log("Adding " + changeText.length + " characters at row: " + currRow + " col: " + currCol);                                                      
             
             //tell the editor to insert some text            
-            editorNode.insertText(filePath, changeText, currRow, currCol, timestamp);
+            editorNode.insertText(filePath, changeText, currRow, currCol, false, [], timestamp);
             
             //update the current row and column 
             for(var k = 0;k < changeText.length;k++) {

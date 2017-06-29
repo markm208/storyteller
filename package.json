@@ -16,32 +16,44 @@
   "main": "./extension",
   "contributes": {
     "commands": [{
-        "command": "extension.startPlaybackNoComment",
+        "command": "storyteller.startPlaybackNoComment",
         "title": "Storyteller: Start Playback"
       },
       {
-        "command": "extension.storytellerState",
+        "command": "storyteller.storytellerState",
         "title": "Storyteller: State"
       },
       {
-        "command": "extension.currentActiveDevelopers",
+        "command": "storyteller.currentActiveDevelopers",
         "title": "Storyteller: Active Developers"
       },
       {
-        "command": "extension.createNewDeveloper",
+        "command": "storyteller.createNewDeveloper",
         "title": "Storyteller: Create a New Developer"
       },
       {
-        "command": "extension.addDevelopersToActiveGroup",
+        "command": "storyteller.addDevelopersToActiveGroup",
         "title": "Storyteller: Make Developers Active"
       },
       {
-        "command": "extension.removeDevelopersFromActiveGroup",
+        "command": "storyteller.removeDevelopersFromActiveGroup",
         "title": "Storyteller: Make Developers Inactive"
       },
       {
-        "command": "extension.startPlaybackToMakeAComment",
+        "command": "storyteller.startPlaybackToMakeAComment",
         "title": "Storyteller: Comment"
+      },
+      {
+        "command": "storyteller.st-copy",
+        "title": "Storyteller: Copy"
+      },
+      {
+        "command": "storyteller.st-cut",
+        "title": "Storyteller: Cut"
+      },
+      {
+        "command": "storyteller.st-paste",
+        "title": "Storyteller: Paste"
       }]
   },
   "scripts": {

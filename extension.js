@@ -51,6 +51,13 @@ var projectRootPath;
 //function that will strip a full path to a project path
 var stripFullPathToProjectPath;
 
+//this holds information about code copied to the clipboard. This is used to track cut/copy and pastes
+var clipboardData = {
+    text: "",
+    eventIds: [],
+    activePaste: false
+};
+
 //status bars that needs to be available from a couple of different spots
 var reconciliationStausBarItem;
 var storytellerStausBarItem;
@@ -67,14 +74,114 @@ var storytellerStausBarItem;
 function activate(context) {
     
     //commands for this plugin  
-    context.subscriptions.push(vscode.commands.registerCommand('extension.startPlaybackNoComment', startPlaybackNoComment));
-    context.subscriptions.push(vscode.commands.registerCommand('extension.startPlaybackToMakeAComment', startPlaybackToMakeAComment));
-    context.subscriptions.push(vscode.commands.registerCommand('extension.storytellerState', storytellerState));
-    context.subscriptions.push(vscode.commands.registerCommand('extension.currentActiveDevelopers', currentActiveDevelopers));
-    context.subscriptions.push(vscode.commands.registerCommand('extension.createNewDeveloper', createNewDeveloper));
-    context.subscriptions.push(vscode.commands.registerCommand('extension.addDevelopersToActiveGroup', addDevelopersToActiveGroup));
-    context.subscriptions.push(vscode.commands.registerCommand('extension.removeDevelopersFromActiveGroup', removeDevelopersFromActiveGroup));
-    
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.startPlaybackNoComment', startPlaybackNoComment));
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.startPlaybackToMakeAComment', startPlaybackToMakeAComment));
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.storytellerState', storytellerState));
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.currentActiveDevelopers', currentActiveDevelopers));
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.createNewDeveloper', createNewDeveloper));
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.addDevelopersToActiveGroup', addDevelopersToActiveGroup));
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.removeDevelopersFromActiveGroup', removeDevelopersFromActiveGroup));
+    //for copy and paste (users must map keyboard shortcuts to these commands)
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.st-copy', storytellerCopy));
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.st-cut', storytellerCut));
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.st-paste', storytellerPaste));
+
+    //alternate copy/paste functionality- this seemed to work but I am not sure if it the best thing to do right now
+    //cut/copy/paste overides
+    //override the editor.action.clipboardCopyAction with our own
+    // var clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction); 
+    // context.subscriptions.push(clipboardCopyDisposable);
+    // /*
+    //  * Function that overrides the default copy behavior. We get the selection and use it, dispose of this registered
+    //  * command (returning to the default editor.action.clipboardCopyAction), invoke
+    //  */
+    // function overriddenClipboardCopyAction(textEditor, edit, params) {
+        
+    //     //debug
+    //     console.log("---COPY TEST---");
+        
+    //     //use the selected text that is being copied here
+    //     getCurrentSelectionEvents();
+
+    //     //dispose of the overridden editor.action.clipboardCopyAction- back to default copy behavior
+    //     clipboardCopyDisposable.dispose();
+
+    //     //execute the default editor.action.clipboardCopyAction to copy
+    //     vscode.commands.executeCommand("editor.action.clipboardCopyAction").then(function(){
+            
+    //         console.log("After Copy");
+
+    //         //add the overridden editor.action.clipboardCopyAction back
+    //         clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction);
+    //         context.subscriptions.push(clipboardCopyDisposable);
+    //     }); 
+    // }
+
+    // //override the editor.action.clipboardCutAction with our own
+    // var clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction); 
+    // context.subscriptions.push(clipboardCutDisposable);
+    // /*
+    //  * Function that overrides the default cut behavior. We get the selection and use it, dispose of this registered
+    //  * command (returning to the default editor.action.clipboardCutAction), invoke
+    //  */
+    // function overriddenClipboardCutAction(textEditor, edit, params) {
+        
+    //     //debug
+    //     console.log("---CUT TEST---");
+        
+    //     //use the selected text that is being cut here
+    //     getCurrentSelectionEvents();
+
+    //     //dispose of the overridden editor.action.clipboardCutAction- back to default cut behavior
+    //     clipboardCutDisposable.dispose();
+
+    //     //execute the default editor.action.clipboardCutAction to cut
+    //     vscode.commands.executeCommand("editor.action.clipboardCutAction").then(function(){
+            
+    //         console.log("After Cut");
+
+    //         //add the overridden editor.action.clipboardCutAction back
+    //         clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction);
+    //         context.subscriptions.push(clipboardCutDisposable);
+    //     }); 
+    // }
+
+    // //override the editor.action.clipboardPasteAction with our own
+    // var clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction); 
+    // context.subscriptions.push(clipboardPasteDisposable);
+    // /*
+    //  * Function that overrides the default paste behavior. We get the selection and use it, dispose of this registered
+    //  * command (returning to the default editor.action.clipboardPasteAction), invoke
+    //  */
+    // function overriddenClipboardPasteAction(textEditor, edit, params) {
+        
+    //     //debug
+    //     console.log("---PASTE TEST---");
+        
+    //     //use the selected text that is being copied here
+    //     //indicate that there was a paste operation
+    //     clipboardData.activePaste = true;
+
+    //     //dispose of the overridden editor.action.clipboardPasteAction- back to default paste behavior
+    //     clipboardPasteDisposable.dispose();
+
+    //     //execute the default editor.action.clipboardPasteAction to paste
+    //     vscode.commands.executeCommand("editor.action.clipboardPasteAction").then(function(){
+            
+    //         console.log("After Paste");
+
+    //         //add the overridden editor.action.clipboardPasteAction back
+    //         clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction);
+    //         context.subscriptions.push(clipboardPasteDisposable);
+    //     }); 
+    // }
+    //debug
+    vscode.commands.getCommands(false).then(function(commands){
+        commands.sort();
+
+        console.log(commands);
+    });
+
     //register a handler to capture changes to files in the editor
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(handleTextEditorChange));
 
@@ -311,12 +418,12 @@ function storytellerInitComplete() {
     //add a storyteller item to the status bar
     storytellerStausBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
     storytellerStausBarItem.text = "Storyteller";
-    storytellerStausBarItem.command = "extension.storytellerState";
+    storytellerStausBarItem.command = "storyteller.storytellerState";
     storytellerStausBarItem.tooltip = "See which directory is being tracked and who the active developers are";
     storytellerStausBarItem.show();
 
     //notify the new user that storyteller is ready to be used
-    vscode.commands.executeCommand("extension.storytellerState");       
+    vscode.commands.executeCommand("storyteller.storytellerState");       
 }
 
 //****************************** Command Implementations ****************************** 
@@ -413,7 +520,7 @@ function createNewDeveloper() {
             eventCollector.createDeveloper(developerInfoObject.first, developerInfoObject.last, developerInfoObject.email);
             
             //allow the user to select the new user if they'd like
-            vscode.commands.executeCommand("extension.addDevelopersToActiveGroup");
+            vscode.commands.executeCommand("storyteller.addDevelopersToActiveGroup");
                 
         } else { //string is empty
                 
@@ -867,10 +974,36 @@ function handleTextEditorChange(event) {
             var newTextStartLine = change.range.start.line;
             var newTextStartColumn = change.range.start.character;
             
+            //a set of all the event ids from a copy/cut
+            var pastedInsertEventIds = [];
+            var isPaste = false;
+
+            //if this was a paste
+            if(clipboardData.activePaste) { 
+                
+                //this is a paste
+                isPaste = true;
+
+                //if the new text is exactly the same as what was on our clipboard
+                if(newText === clipboardData.text) {
+    
+                    //store the pasted event ids
+                    pastedInsertEventIds = clipboardData.eventIds;
+
+                } else { //this is a paste but it doesn't match the last storyteller copy/cut (pasted from another source)
+                    
+                    //clear out any old data
+                    clipboardData.text = "";
+                    clipboardData.eventIds = [];
+                }
+
+                //we handled the most current paste, set this back to false
+                clipboardData.activePaste = false;
+            }
             //console.log("Inserting " + newText.length + " characters '" + newText + "'"); 
             //console.log("at (line: " + newTextStartLine + " col: " + newTextStartColumn + ")");      
             //insert the new text        
-            eventCollector.insertText(stripFullPathToProjectPath(filePath), newText, newTextStartLine, newTextStartColumn);        
+            eventCollector.insertText(stripFullPathToProjectPath(filePath), newText, newTextStartLine, newTextStartColumn, isPaste, pastedInsertEventIds);        
         }
     }
 
@@ -1005,6 +1138,117 @@ function getDevInfo(devInfoString, devInfoObject) {
         }
     }
     //else- no change to the dev info object      
+}
+
+//****************************** Cut/Copy/Paste Changes ****************************** 
+/*
+ * Used to handle a storyteller copy operation. It will gather any selected text and the insert
+ * events that were used to create them and add them to the storyteller clipboard data. This
+ * will be used during a paste to identify pasted insert events.
+ */
+function storytellerCopy() {
+    
+    console.log("Storyteller Copy");
+
+    //get the events that were copied and then execute vs code's copy command
+    //we override the default behavior of copying a whole line when no text is selected
+    //nothing will be copied unless there is a selection
+    getCurrentSelectionEvents("editor.action.clipboardCopyAction");
+}
+/*
+ * Used to handle a storyteller cut operation. It will gather any selected text and the insert
+ * events that were used to create them and add them to the storyteller clipboard data. This
+ * will be used during a paste to identify pasted insert events.
+ */
+function storytellerCut() {
+    
+    console.log("Storyteller Cut");
+
+    //get the events that were cut and then execute vs code's cut command
+    //we override the default behavior of cutting a whole line when no text is selected
+    //nothing will be cut unless there is a selection
+    getCurrentSelectionEvents("editor.action.clipboardCutAction");
+}
+/*
+ * Used to handle a storyteller paste operation. We indicate that a paste has occured.
+ * This info will be used when new text is noticed in the editor.
+ */
+function storytellerPaste() {
+    
+    console.log("Storyteller Paste");
+    
+    //indicate that there was a paste operation
+    clipboardData.activePaste = true;
+
+    //let the editor execute the paste
+    vscode.commands.executeCommand("editor.action.clipboardPasteAction");
+}
+/*
+ * This function gets any selected text in the current open editor and then copies the 
+ * data about the insert events that will get placed on the clipboard.
+ */
+function getCurrentSelectionEvents(actionIfSelectedText) {
+
+    //get the active editor
+    var editor = vscode.window.activeTextEditor;
+
+    //if there is an active text editor
+    if(editor) {
+                
+        //get the editor selection (we only handle a single selection)
+        var selection = editor.selection;
+
+        //if there is a selection
+        if(!selection.isEmpty) {
+
+            //if there are some selected characters in the selection
+            if(!selection.start.isEqual(selection.end)) {
+                
+                //name of the file where the copy occured and strip the leading part of the path 
+                var filePath = stripFullPathToProjectPath(editor.document.fileName.split("\\").join("/"));
+                
+                //get the storyteller events associated with the selected text
+                var selectedEvents = eventCollector.getInsertEventsByPos(filePath, selection.start.line, selection.start.character, selection.end.line, selection.end.character);        
+                
+                //clear out any old data
+                clipboardData.text = "";
+                clipboardData.eventIds = [];
+
+                //var selectedText = "";
+
+                //go through the selected events
+                for(var j = 0;j < selectedEvents.length;j++) {
+                    
+                    //debug
+                    // if(selectedEvents[j].character === "\r") {
+                    //     selectedText = selectedText + selectedEvents[j].id + ": \\r ";
+
+                    // } else if(selectedEvents[j].character === "\n") {
+                    //     selectedText = selectedText + selectedEvents[j].id + ": \\n\n";
+
+                    // } else {
+                    //     selectedText = selectedText + selectedEvents[j].id + ": '" + selectedEvents[j].character +"' ";            
+                    // }
+
+                    //append the individual selected characters to the clipboard data
+                    clipboardData.text = clipboardData.text + selectedEvents[j].character;
+                    
+                    //add the event id to the clipboard data
+                    clipboardData.eventIds.push(selectedEvents[j].id);
+                }
+
+                //debug
+                //console.log(selectedText);
+
+                //if these is a command to execute
+                if(actionIfSelectedText && actionIfSelectedText.length > 0) {
+
+                    //execute the vscode command only if there was some selected text
+                    vscode.commands.executeCommand(actionIfSelectedText);
+                }
+            }
+        }
+    }
 }
 
 exports.activate = activate;

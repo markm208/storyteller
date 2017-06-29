@@ -33,6 +33,10 @@
                 font-size: 140%;
             }
 
+            .selectedCode {
+                background-color: yellowgreen;            
+            }
+
             #textCommentTextArea {
                 height: auto;
                 min-height: 150px;
@@ -478,7 +482,7 @@
                                     
 
                                     <fieldset>
-                                        <legend>Audio Comment</legend>
+                                        <legend>Audio for the Comment</legend>
                                         <!-- control to whether to allow audio comments or not -->
                                         <div class="form-group">
                                             <div class="checkbox">
@@ -605,7 +609,7 @@
                                             <div>
                                                 <!-- step backward button -->
                                                 <button id="stepBackwardToBeginningButton" class="btn btn-default"
-                                                        data-toggle="tooltip" data-placement="bottom" title="Step backward to the beginning of the playback (shift + left arrow)">
+                                                        data-toggle="tooltip" data-placement="bottom" title="Step backward to the previous comment (shift + left arrow)">
                                                     &lt;&lt;
                                                 </button>
 
@@ -676,7 +680,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h3 class="modal-title">Playback Options</h3>
+                        <h3 class="modal-title">Storyteller Options</h3>
                     </div>
 
                     <div class="modal-body">
@@ -705,6 +709,9 @@
                                         <p>
                                             The <button class="btn btn-default btn-xs">&lt;&lt;</button> moves the playback to the beginning and the <button class="btn btn-default btn-xs">&gt;&gt;</button> buttons move the playback to the next comment (or the end if there are none). 
                                             You can use <code>shift + left arrow</code> and <code>shift + right arrow</code> keys to control this from the keyboard.
+                                        </p>
+                                        <p>
+                                            You can use <code>ctrl + shift + left arrow</code> and <code>ctrl + shift + right arrow</code> keys to move to the beginning and end of the playback. All comments will be skipped.
                                         </p>
                                     </div>
                                 </div>
@@ -1120,9 +1127,17 @@
                                     <hr/>
                                     <div class="form-group">
                                         <!-- choose the text that is selected on the screen -->
-                                        <button type="button" id="selectedTextButton" class="btn btn-default" data-dismiss="modal">
-                                            Playback the Selected Text  
-                                        </button>
+                                        <label for="selectedTextCheckbox">
+                                            <input type="checkbox" id="selectedTextCheckbox">
+                                            Playback the Selected Text on the Screen
+                                        </label>  
+                                        <br/>
+                                        &nbsp;&nbsp;&nbsp;<input type="radio" name="selectedTextFilterType" id="noOtherFiltersRadio" checked="true">
+                                        <label for="noOtherFiltersRadio">use only the selected text and no other filters</label>
+                                        <br/>
+                                        &nbsp;&nbsp;&nbsp;<input type="radio" name="selectedTextFilterType" id="withOtherFiltersRadio">
+                                        <label for="withOtherFiltersRadio">use the selected text and the other filters (time, dev group, file)</label>
+
                                     </div>
                                 </div>
                             </div>
@@ -1131,6 +1146,12 @@
 
                     <div class="modal-footer">
                         <div class="form-group">
+                            
+                            <label for="showRelevantCutCopyPastesCheckbox">
+                                <input type="checkbox" id="showRelevantCutCopyPastesCheckbox">
+                                Show where relevant code was cut/copied from
+                            </label>
+                            &nbsp;&nbsp;&nbsp;&nbsp;
                             <!-- clear all filters -->
                             <button type="button" id="clearFilterButton" class="btn btn-default" data-dismiss="modal">
                                 Clear All Filters 
@@ -1336,6 +1357,9 @@
             //timer for UI blinking when recording
             var audioRecordBlinkTimer;
 
+            //flag that says whether the ctrl or command button is pressed
+            var ctrlCmdPressed;
+
             //*****************************************************************************
             //                         Page setup related code
             //                         -----------------------
@@ -1349,6 +1373,11 @@
              */
             document.addEventListener("DOMContentLoaded", function(event) {
 
+                //construct the playback object. There is a bit of magic here, loadPlaybackData() is added 
+                //to this file dynamically by the playback web server and it includes all of the events,
+                //dev info, commments, etc.                
+                loadPlaybackData();
+                
                 //set up the UI event handlers
                 setUpUIEventHandlers();
 
@@ -1360,10 +1389,7 @@
                 //the tooltips won't show until a hover that lasts 1000 ms and will go away
                 //after 200 ms hover out
                 $('[data-toggle="tooltip"]').tooltip({delay: {show: 500, hide: 200}});
-                //construct the playback object. There is a bit of magic here, loadPlaybackData() is added 
-                //to this file dynamically by the playback web server and it includes all of the events,
-                //dev info, commments, etc.                
-                loadPlaybackData();
+                
             });
 
 			/*
@@ -1635,8 +1661,24 @@
                             //if this is a shift + arrow
                             if(e.shiftKey) {            
 
-                                //simulate a corresponding button click
-                                document.querySelector("#stepBackwardToBeginningButton").click();
+                                //ctrl + shift + arrow 
+                                if(e.ctrlKey || e.metaKey) {
+
+                                    //go to the very beginning of the playback
+                                    //stop the playback
+                                    pausePlayback();
+
+                                    //clear the all the new event highlights since the the last pause point
+                                    clearPreviousEventHighlights();
+                                    
+                                    //move backward to the beginning
+                                    step("backward", Number.MAX_SAFE_INTEGER, false);
+
+                                } else {
+
+                                    //simulate a corresponding button click
+                                    document.querySelector("#stepBackwardToBeginningButton").click();
+                                }
 
                             } else { //this is just an arrow
 
@@ -1649,9 +1691,24 @@
                             //if this is a shift + arrow
                             if(e.shiftKey) { 
 
-                                //simulate a corresponding button click
-                                document.querySelector("#stepForwardToEndButton").click();
+                                //ctrl + shift + arrow
+                                if(e.ctrlKey || e.metaKey) {
 
+                                    //go to the very end of the playback
+                                    //stop the playback
+                                    pausePlayback();
+
+                                    //clear the all the new event highlights since the the last pause point
+                                    clearPreviousEventHighlights();
+                                    
+                                    //move forward to the end
+                                    step("forward", Number.MAX_SAFE_INTEGER, false);                                    
+
+                                } else {
+
+                                    //simulate a corresponding button click
+                                    document.querySelector("#stepForwardToEndButton").click();
+                                }
                             } else { //just an arrow
                                 
                                 //simulate a corresponding button click
@@ -2036,14 +2093,32 @@
                         };
                     }
 
-                    //selected text filtering is somewhat different, it is handled in its own event handler
-                    
+                    //if the user wants to see the selected text as well
+                    var showSelectedText = document.querySelector("#selectedTextCheckbox").checked;
+                    //if the user wants to use other filters in addition to the selected text 
+                    var showSelectedTextWithOtherFilters = document.querySelector("#withOtherFiltersRadio").checked;
 
+                    //determines if we should show relevant cut/copies/pastes
+                    var showRelevantCutCopyPastes = document.querySelector("#showRelevantCutCopyPastesCheckbox").checked;
+
+                    //collect the info about the filters
+                    var filterInfo = {
+                        timeFilters: timeFilters,
+                        devGroupFilter: devGroupFilter,
+                        fileDirFilter: fileDirFilter,
+                        showSelectedText: showSelectedText,
+                        showSelectedTextWithOtherFilters: showSelectedTextWithOtherFilters,
+                        showRelevantCutCopyPastes: showRelevantCutCopyPastes
+                    };
+                    
                     //reset the window for a new playback
                     getPlaybackWindowsReadyForAnimation(false);
 
                     //filter the playback data to mark some of the code as relevant
-                    filterPlayback(timeFilters, devGroupFilter, fileDirFilter);
+                    filterPlayback(filterInfo);
+
+                    //clear any highlighted text
+                    clearSelectedCode();
                 });
 
                 //used to turn this back into an unfiltered playback
@@ -2054,13 +2129,6 @@
 
                     //reset the entire playback
                     getPlaybackWindowsReadyForAnimation(true);
-                });
-
-                //for a selected text playback
-                document.querySelector("#selectedTextButton").addEventListener("click", function(e) {
-
-                    //filter by selected text
-                    selectedTextFilter();
                 });
 
                 //to get a zip with the state of the file system
@@ -2160,6 +2228,9 @@
 
                             //clear out the text area
                             textCommentTextArea.innerHTML = "";
+
+                            //clear the previously selected code
+                            clearSelectedCode();
 
                             //get each potential clip audio control and revoke the object url
                             revokePotentialAudioComments()
@@ -2407,6 +2478,31 @@
                    //set the pen width
                     setPenWidth(2, e.target);
                 });
+
+                //when some code is selected
+                document.querySelector("#playbackWindows").addEventListener("mouseup", function(e) {
+                    
+                    //mark the selected code
+                    markSelectedCode();
+                });
+                
+                //additional listeners to listen for the ctrl or command key presses (used for multiple selections in the playback wondows)
+                document.addEventListener("keydown", function (e) {
+
+                    //if ctrl or cmd are pressed
+                    if(e.key === "Control" || e.key === "Command" || e.ctrlKey || e.metaKey) {
+                        ctrlCmdPressed = true;
+                        //console.log("Ctrl pressed");
+                    }
+                });
+                document.addEventListener("keyup", function (e) {
+
+                    //if ctrl or cmd are pressed
+                    if(e.key === "Control" || e.key === "Command" || e.ctrlKey || e.metaKey) {
+                        ctrlCmdPressed = false;
+                        //console.log("Ctrl released");
+                    }
+                });    
             }
             
             /*
@@ -2650,7 +2746,7 @@
             /*
              * This function adds markers to the progress bar to show where comments are in the playback.
              */
-            function setCommentMarkers(posOfComments, numberOfEvents) {
+            function setCommentMarkers(posOfComments, numberOfRelevantEvents) {
 
                 //get the container that will hold the markers
                 var commentMarkerContainer = document.querySelector("#commentMarkerContainer");
@@ -2662,20 +2758,20 @@
                 for(var i = 0;i < posOfComments.length;i++) {
 
                     //add a comment marker
-                    setCommentMarker(posOfComments[i].pos, numberOfEvents, posOfComments[i].eventId);
+                    setCommentMarker(posOfComments[i].pos, numberOfRelevantEvents, posOfComments[i].eventId);
                 }
             }
 
              /*
              * This function adds a marker to the progress bar to show where a comments is in the playback.
              */
-            function setCommentMarker(posOfComment, numberOfEvents, eventId) {
+            function setCommentMarker(posOfComment, numberOfRelevantEvents, eventId) {
 
                 //get the container that will hold the markers
                 var commentMarkerContainer = document.querySelector("#commentMarkerContainer");
 
                 //calculate the percentage offset for every comment
-                var percentageOffset = (posOfComment + 1.0) / numberOfEvents * 100.0;
+                var percentageOffset = (posOfComment + 1.0) / numberOfRelevantEvents * 100.0;
                 
                 //comments near the 100% mark do not show up well in the progress bar, bring all the ones
                 //near the end back a bit so that the marker is visible
@@ -4234,19 +4330,33 @@
                     //if it is a newline or a tab show the user some text
                     if(codeEvent.character === "\n") {
 
-                        eventTypeString += " (newline '\\n') ";
+                        eventTypeString += ": '\\n' ";
 
-                    } if(codeEvent.character === "\r") {
+                    } else if(codeEvent.character === "\r") {
 
-                        eventTypeString += " (carriage return '\\r') ";
+                        eventTypeString += ": '\\r' ";
 
                     } else if(codeEvent.character === " ") {
 
-                        eventTypeString += " (space) ";
+                        eventTypeString += ": space ";
 
                     } else if(codeEvent.character === "\t") {
 
-                        eventTypeString += " (tab '\\t') ";
+                        eventTypeString += ": tab ";
+
+                    } else {
+
+                        eventTypeString += ": '" + codeEvent.character + "'";
+                    }
+                    
+                    //show the paste source (if this event was pasted)
+                    if(codeEvent.pastedEventId === "other") {
+
+                        eventTypeString += " (paste from outside source) ";
+
+                    } else if(codeEvent.pastedEventId) {
+
+                        eventTypeString += " (paste from this repo) ";
                     }
                 }
 
@@ -7027,122 +7137,79 @@
             /*
              * Filters the events of a playback by time, dev group id, and by file.
              */
-            function filterPlayback(timeFilters, devGroupFilter, fileDirFilter) {
-
-                //flags indicating whether each filter type has been satisfied
-                var satisfyTimeFilter;
-                var satisfyDevGroupFilter;
-                var satisfyFileFilter;
+            function filterPlayback(filterInfo) {
 
                 //event info for filtering
-                var currentEventTimestamp;
-                var currentEventDevGroupId;
-                var currentEventType;
-                var currentEventFileId;
-                var currentEventDirectoryId;
+                var currentEvent;
 
                 //set the number of relevant events back to 0
                 playbackData.numberOfRelevantEvents = 0;
 
                 //holds the positions and ids of all of the comment points
                 var posOfComments = [];
-                
-                //go through all of the code events
-                for(var i = 0;i < playbackData.codeEvents.length;i++) {
 
-                    //reset the flags, assume each event is not relevant
-                    satisfyTimeFilter = false;
-                    satisfyDevGroupFilter = false;
-                    satisfyFileFilter = false;
+                //holds the ids of all the selected events
+                var relevantSelectedEventIds = {};
 
-                    //grab the current event's relevant data
-                    currentEventTimestamp = playbackData.codeEvents[i].timestamp;
-                    currentEventDevGroupId = playbackData.codeEvents[i].createdByDevGroupId;
-                    currentEventType = playbackData.codeEvents[i].type;
-                    currentEventFileId = playbackData.codeEvents[i].fileId;
-                    currentEventDirectoryId = playbackData.codeEvents[i].directoryId;
+                //holds the ids of the source of relevant events that were pasted
+                var relevantEventsPasteParentIds = {};
 
-                    //if there is at least one time filter
-                    if(timeFilters.length > 0) {
+                //if the user wants to see the selected text
+                if(filterInfo.showSelectedText) {
+                    
+                    //get all of the ids of the selected text and code that is related to it
+                    relevantSelectedEventIds = getRelevantSelectedInsertEventIds();
+                }
 
-                        //go through each of the time filters
-                        for(var j = 0;j < timeFilters.length;j++) {
-                            
-                            //get each time filter
-                            var timeFilter = timeFilters[j];
+                //go through all of the code events in reverse order (reverse is for copy/paste handling)
+                for(var i = playbackData.codeEvents.length - 1;i >= 0;i--) {  
 
-                            //if the current timestamp comes after the filter's start timestamp AND before the filter's end timestamp
-                            if(currentEventTimestamp >= timeFilter.startTimestamp && currentEventTimestamp <= timeFilter.endTimestamp) {
+                    //grab the current event
+                    currentEvent = playbackData.codeEvents[i];
 
-                                //this event is within at least one of the time filter parameters
-                                satisfyTimeFilter = true;
-
-                                break;
-                            }
-                        }
-                    }
-
-                    //if there is a dev group filter
-                    if(devGroupFilter) {
-
-                        //if the event's dev group is in the array of selected dev group ids
-                        if(devGroupFilter.devGroupIds.indexOf(currentEventDevGroupId) !== -1) {
-
-                            //event's dev group id is in the selected dev groups filter
-                            satisfyDevGroupFilter = true;
-                        }
-                    }
-
-                    //if there is a file/dir filter
-                    if(fileDirFilter) {
-
-                        //some events have a fileId and some have a directoryId
-                        if(currentEventType === "Insert" || currentEventType === "Delete" ||
-                           currentEventType === "Create File" || currentEventType === "Rename File" ||
-                           currentEventType === "Move File" || currentEventType === "Delete File") {
-                           //these events have a fileId
-
-                            //if the event's file id is in the array of selected files
-                            if(fileDirFilter.fileDirIds.indexOf(currentEventFileId) !== -1) {
-
-                                //the user has wants to see it
-                                satisfyFileFilter = true;
-                            }
-
-                        } else if (currentEventType === "Create Directory" || currentEventType === "Rename Directory" ||
-                                   currentEventType === "Move Directory" || currentEventType === "Delete Directory") {
-                                   //these events have a directoryId
-
-                            //if the event's directory id is NOT in the array of selected directories
-                            if(fileDirFilter.fileDirIds.indexOf(currentEventDirectoryId) !== -1) {
-
-                                //the user wants to see it
-                                satisfyFileFilter = true;
-                            }
-                        }
-                    }
-
-                    //if the event satisfies all of the filter info
-                    if(satisfyTimeFilter === true && satisfyDevGroupFilter === true && satisfyFileFilter === true) {
-
+                    //if the current event satisfies the filters OR 
+                    //if the event is the source of a paste of a relevant event OR
+                    //this is the last event in all of the code events (last one is always relevant to see the final state)
+                    if(doesEventSatisfyFilter(currentEvent, filterInfo, relevantSelectedEventIds) || 
+                       relevantEventsPasteParentIds[currentEvent.id] || 
+                       i === playbackData.codeEvents.length - 1) {
+                        
                         //mark the event as relevant
-                        playbackData.codeEvents[i].relevant = true;
+                        currentEvent.relevant = true;
 
                         //increase the number of relevant events
                         playbackData.numberOfRelevantEvents++;
 
-                        //if there is a comment at this event (there may be multiple comments but we only need to know the index of the event)
-                        if(playbackData.comments[playbackData.codeEvents[i].id]) {
+                        //if the user wants to see cut/copy/pastes
+                        if(filterInfo.showRelevantCutCopyPastes) {
 
-                            //store the index of the event and the id of the event where the comment will be displayed
-                            posOfComments.push({"pos": playbackData.numberOfRelevantEvents - 1, eventId: playbackData.codeEvents[i].id});
+                            //if this event was pasted from another insert event in this repo
+                            if(currentEvent.pastedEventId && currentEvent.pastedEventId !== "other") {
+
+                                //add the id of the event where this relevant event was pasted from
+                                relevantEventsPasteParentIds[currentEvent.pastedEventId] = currentEvent.pastedEventId;
+                            }
                         }
 
-                    } else { //one or more filter were not satisfied
+                        //if there is a comment at this event (there may be multiple comments but we only need to know the index of the event)
+                        if(playbackData.comments[currentEvent.id]) {
+
+                            //store the index of the event and the id of the event where the comment will be displayed
+                            posOfComments.push({"pos": playbackData.numberOfRelevantEvents - 1, eventId: currentEvent.id});
+                        }
+
+                    } else { //none of the filtering was satisfied
 
                         //mark the event as NOT relevant
-                        playbackData.codeEvents[i].relevant = false;
+                        currentEvent.relevant = false;
                     }
+                }
+
+                //since we went through the events in reverse or the positions are backwards, this loop straightens them out
+                for(var i = 0;i < posOfComments.length;i++) {
+
+                    //reverse the order of the positions based on the number of relevant events
+                    posOfComments[i].pos = playbackData.numberOfRelevantEvents - 1 - posOfComments[i].pos;
                 }
 
                 //add a marker to show where each comment it
@@ -7150,7 +7217,131 @@
             }
 
             /*
-             * Marks all of the selected code elements on the screen as relevant but also goes deeper.
+             * This function takes an event an info about the selected filters and determines if the event is relevant.
+             * It checks for a selected text filter and for the other filters (time, dev group, file/dir).
+             */
+            function doesEventSatisfyFilter(currentEvent, filterInfo, relevantSelectedEventIds) {
+                
+                //assume the current event does not satisfy the conditions to make it a relevant event
+                var retVal = false;
+
+                //if this is a selected text filter
+                if(filterInfo.showSelectedText) {
+
+                    //if the user also wants to involve the other filters (time, dev group, file)
+                    if(filterInfo.showSelectedTextWithOtherFilters) {
+
+                        //if the current event is in the list of selected events AND 
+                        //the current events satisfies the other filters
+                        if(relevantSelectedEventIds[currentEvent.id] &&
+                           doesEventSatisfyTimeDevFileDirFilters(currentEvent, filterInfo)) {
+
+                            //this is a relevant event
+                            retVal = true;                           
+                        }
+
+                    } else { //selected text with no filters
+                        
+                        //if the current event is in the list of selected events
+                        if(relevantSelectedEventIds[currentEvent.id]) {
+
+                            //this is a relevant event
+                            retVal = true;
+                        }
+                    }
+
+                } else { //not a selected text filter 
+                    
+                    //if the event satisfies the time, dev, and file filters
+                    if(doesEventSatisfyTimeDevFileDirFilters(currentEvent, filterInfo)) {
+
+                        //this is a relevant event
+                        retVal = true;
+                    }
+                } 
+
+                return retVal;
+            }
+            
+            /*
+             * function that determines whether an event satisfies the user selected time, dev group, and file filters
+             */
+            function doesEventSatisfyTimeDevFileDirFilters(currentEvent, filterInfo) {
+
+                //assume each event is not relevant
+                var satisfyTimeFilter = false;
+                var satisfyDevGroupFilter = false;
+                var satisfyFileFilter = false;
+
+                //if there is at least one time filter
+                if(filterInfo.timeFilters.length > 0) {
+
+                    //go through each of the time filters
+                    for(var i = 0;i < filterInfo.timeFilters.length;i++) {
+                        
+                        //get each time filter
+                        var timeFilter = filterInfo.timeFilters[i];
+
+                        //if the current timestamp comes after the filter's start timestamp AND before the filter's end timestamp
+                        if(currentEvent.timestamp >= timeFilter.startTimestamp && currentEvent.timestamp <= timeFilter.endTimestamp) {
+
+                            //this event is within at least one of the time filter parameters
+                            satisfyTimeFilter = true;
+
+                            //break from the loop of timeFilters
+                            break;
+                        }
+                    }
+                }
+
+                //if there is a dev group filter
+                if(filterInfo.devGroupFilter) {
+
+                    //if the event's dev group is in the array of selected dev group ids
+                    if(filterInfo.devGroupFilter.devGroupIds.indexOf(currentEvent.createdByDevGroupId) !== -1) {
+
+                        //event's dev group id is in the selected dev groups filter
+                        satisfyDevGroupFilter = true;
+                    }
+                }
+
+                //if there is a file/dir filter
+                if(filterInfo.fileDirFilter) {
+
+                    //some events have a fileId and some have a directoryId
+                    if(currentEvent.type === "Insert" || currentEvent.type === "Delete" ||
+                       currentEvent.type === "Create File" || currentEvent.type === "Rename File" ||
+                       currentEvent.type === "Move File" || currentEvent.type === "Delete File") {
+                        
+                        //these events have a fileId
+
+                        //if the event's file id is in the array of selected files
+                        if(filterInfo.fileDirFilter.fileDirIds.indexOf(currentEvent.fileId) !== -1) {
+
+                            //the user has wants to see it
+                            satisfyFileFilter = true;
+                        }
+
+                    } else if (currentEvent.type === "Create Directory" || currentEvent.type === "Rename Directory" || 
+                               currentEvent.type === "Move Directory" || currentEvent.type === "Delete Directory") {
+                                
+                        //these events have a directoryId
+
+                        //if the event's directory id is NOT in the array of selected directories
+                        if(filterInfo.fileDirFilter.fileDirIds.indexOf(currentEvent.directoryId) !== -1) {
+
+                            //the user wants to see it
+                            satisfyFileFilter = true;
+                        }
+                    }
+                }
+
+                //return true only if all of the filters are stisfied for this event
+                return (satisfyTimeFilter === true && satisfyDevGroupFilter === true && satisfyFileFilter === true);
+            }
+
+            /*
+             * Returns the ids of all of the selected code elements on the screen but also goes deeper.
              * For each of the selected code elements, if there are any events that at one time backed
              * up to a selected element but were then deleted, those are marked as relevant too. If any
              * events that backed up to those deleted elements and were deleted too, they are marked as
@@ -7164,16 +7355,17 @@
              * should be able to see all the related history (events that were added and deleted but
              * backed up to one of the selected events)
              */
-            function selectedTextFilter() {
+            function getRelevantSelectedInsertEventIds() {
 
-                //get the ids of all of the selected code elements
-                var selectedCodeIds = getSelectedCodeIds(true);
+                //get the ids of all of the currently selected code elements
+                //there may be more than one range of selected code elements
+                var selectedCodeIds = getSelectedRangeCodeIds(true);
 
-                //reset the entire playback
-                getPlaybackWindowsReadyForAnimation(false);
+                //hold the ids of the relevant elements in the history if the selected code
+                var relevantIds = {};
 
-                //if there are some selected events
-                if(selectedCodeIds.length > 0) {
+                //go through each of the selected ranges
+                for(var i = 0;i < selectedCodeIds.length;i++) {
 
                     //in the dom, because of the way we add all of the code elements by previous
                     //neighbor id, all events that ever backed up to an element are right in front
@@ -7182,17 +7374,14 @@
                     //element and we should be able to see all the related history (events that
                     //were added and deleted but backed up to one of the selected events)
 
-                    //hold the ids of the relevant elements in the history if the selected code
-                    var relevantIds = {};
-
-                    //get the first and last selected elements
-                    var firstSelectedEventId = selectedCodeIds[0];
-                    var lastSelectedEventId = selectedCodeIds[selectedCodeIds.length - 1];
+                    //get the first and last selected elements in each range
+                    var firstSelectedEventId = selectedCodeIds[i][0];
+                    var lastSelectedEventId = selectedCodeIds[i][1];
 
                     //get the first selected element in the dom
                     var relevantElement = document.querySelector("#" + firstSelectedEventId);
 
-                    //while there are more relevant elements
+                    //while we have not reached the end of the selection
                     while(relevantElement) {
 
                         //get the id from the element
@@ -7211,61 +7400,12 @@
                         //move to the next element
                         relevantElement = relevantElement.nextElementSibling;
                     }
-
-                    //reset the number of relevant events
-                    playbackData.numberOfRelevantEvents = 0;
-
-                    //holds the positions and ids of all of the comment points
-                    var posOfComments = [];
-                    
-                    //go through all of the events and mark them as relevant or not
-                    for(var i = 0;i < playbackData.codeEvents.length;i++) {
-
-                        //if the event is an insert AND it has one of the relevant ids
-                        if(playbackData.codeEvents[i].type === "Insert" && relevantIds[playbackData.codeEvents[i].id]) {
-
-                            //mark the event as relevant
-                            playbackData.codeEvents[i].relevant = true;
-
-                            //count it as relevant
-                            playbackData.numberOfRelevantEvents++;
-
-                            //if there is a comment at this event (there may be multiple comments but we only need to know the index of the event)
-                            if(playbackData.comments[playbackData.codeEvents[i].id]) {
-
-                                //store the index of the event and the id of the event where the comment will be displayed
-                                posOfComments.push({"pos": playbackData.numberOfRelevantEvents - 1, eventId: playbackData.codeEvents[i].id});
-                            }
-                            
-
-                        //if the event is a delete AND its previous neighbor is one of the relevant ids
-                        } else if(playbackData.codeEvents[i].type === "Delete" && relevantIds[playbackData.codeEvents[i].previousNeighborId]) {
-
-                            //the delete is relevant
-                            playbackData.codeEvents[i].relevant = true;
-
-                            //count it as relevant
-                            playbackData.numberOfRelevantEvents++;
-
-                            //if there is a comment at this event (there may be multiple comments but we only need to know the index of the event)
-                            if(playbackData.comments[playbackData.codeEvents[i].id]) {
-
-                                //store the index of the event and the id of the event where the comment will be displayed
-                                posOfComments.push({"pos": playbackData.numberOfRelevantEvents - 1, eventId: playbackData.codeEvents[i].id});
-                            }
-                            
-
-                        } else { //not a selected event and not in the history of selected events
-
-                            //mark as not relevant
-                            playbackData.codeEvents[i].relevant = false;
-                        }
-                    }
-
-                    //add a marker to show where each comment it
-                    setCommentMarkers(posOfComments, playbackData.numberOfRelevantEvents);
-
                 }
+
+                //this holds the id of every insert event between the first and last selected 
+                //element on the screen (in ranges). This includes code that may have been added and then
+                //deleted
+                return relevantIds;
             }
 
             /*
@@ -7518,70 +7658,118 @@
             // one to get the selected code characters from the playback window. There is a
             // function to get the selected code's text and the selected code's id's
             //*****************************************************************************
-            /*
-             * This function looks for selected elements in the document that are
-             * code characters (class 'codeChar') and returns a list of them.
-             */
-            function getSelectedCodeElements(shouldDeselectCode) {
-
-                //holds all of the selected code characters
-                var allSelectedCodeCharacters = [];
+            function markSelectedCode() {
 
                 //get the document's selected elements
                 var selection = document.getSelection();
 
+                //if the ctrl or cmd key is NOT pressed
+                if(ctrlCmdPressed === false) {
+
+                    //clear the previously selected code
+                    clearSelectedCode();
+
+                } //else- the ctrl or cmd key is pressed and the user wants muliple selections
+
                 //if there are some selected elements in the dom
                 if(selection.rangeCount > 0) {
+                    
+                    //go through each selection (there may be more than one)
+                    for(var i = 0;i < selection.rangeCount;i++) {
 
-                    //this is a very special case where one code character is selected, the code
-                    //in the else block doesn't work with one character of code selected
+                        //get a range
+                        var range = selection.getRangeAt(i);
+                        
+                        //if there was actually one or more code characters selected
+                        if(range.collapsed === false) {
+                            
+                            //get all the elements that have 'beginSelectedCode-' in the class name (one for each selection), 
+                            //count them, and add 1 for the next id
+                            var selectedCodeNumber = document.querySelectorAll("[class*=beginSelectedCode-").length + 1;
+                            
+                            //a selected code span
+                            var nextSelectedElement = range.startContainer.parentNode;
 
-                    //if there is a single element selected and its parent is a visible code char
-                    if(selection.anchorNode === selection.focusNode &&
-                       selection.anchorNode.parentElement.classList.contains("codeChar") &&
-                       !selection.anchorNode.parentElement.classList.contains("codeNotVisible")) {
+                            //mark it as the first selected text in a group
+                            nextSelectedElement.classList.add("beginSelectedCode-" + selectedCodeNumber);
+                            
+                            //while there are more selected code spans
+                            while(nextSelectedElement) {
+                                
+                                //if this is a currently visible code span
+                                if(nextSelectedElement.classList && 
+                                   nextSelectedElement.classList.contains("codeChar") && 
+                                   nextSelectedElement.classList.contains("codeNotVisible") === false) {
 
-                        //add the parent element (selected code) to the array
-                        allSelectedCodeCharacters.push(selection.anchorNode.parentElement);
+                                    //mark it as selected text
+                                    nextSelectedElement.classList.add("selectedCode");
+                                }
 
-                    } else {
-                        //go through each selection (there may be more than one)
-                        for(var i = 0;i < selection.rangeCount;i++) {
+                                //if this is the last selected code span
+                                if(nextSelectedElement === range.endContainer.parentNode) {
 
-                            //find all the selected code characters in a range that are currently visible on the screen
-                            var range = selection.getRangeAt(i).cloneContents().querySelectorAll(".codeChar:not(.codeNotVisible)");
+                                    //stop moving through the siblings
+                                    break;
+                                }
 
-                            //iterate through all of the selected code characters
-                            for(var j = 0;j < range.length;j++) {
-
-                                //add the current selected element to the return array
-                                allSelectedCodeCharacters.push(range[j]);
+                                //move to the next neighbor
+                                nextSelectedElement = nextSelectedElement.nextSibling;
                             }
+
+                            //mark it as the last selected text in a group
+                            nextSelectedElement.classList.add("endSelectedCode-" + selectedCodeNumber);
                         }
                     }
-                }
 
-                //if the user wants the code deselected
-                if(shouldDeselectCode) {
-
-                    //deselect
+                    //deselect the browser's selection
                     selection.removeAllRanges();
                 }
+            }
+            
+            function clearSelectedCode() {
 
-                return allSelectedCodeCharacters;
+                //get all of the selected code
+                var allSelectedCode = document.querySelectorAll(".selectedCode");
+
+                //go through all the selected code
+                for(var i = 0;i < allSelectedCode.length;i++) {
+
+                    //remove the class that makes this selected code
+                    allSelectedCode[i].classList.remove("selectedCode");
+                }
+
+                //get all of the beginning elements of selected code
+                var allBeginningSelectedCode = document.querySelectorAll("[class*=beginSelectedCode-");
+
+                //go through all the beginning selected code elements
+                for(var i = 0;i < allBeginningSelectedCode.length;i++) {
+
+                    //remove the class that makes this selected code
+                    allBeginningSelectedCode[i].classList.remove("beginSelectedCode-" + (i + 1));
+                }
+
+                //get all of the ending elements of selected code
+                var allEndingSelectedCode = document.querySelectorAll("[class*=endSelectedCode-");
+
+                //go through all the ending selected code elements
+                for(var i = 0;i < allEndingSelectedCode.length;i++) {
+
+                    //remove the class that makes this selected code
+                    allEndingSelectedCode[i].classList.remove("endSelectedCode-" + (i + 1));
+                }
             }
 
             /*
              * This function gets all of the selected code character elements and returns
              * a string with all of the unadorned text.
              */
-            function getSelectedCodeText(shouldDeselectCode) {
+            function getSelectedCodeText() {
 
                 //just the text of the selected elements
                 var codeText = "";
 
                 //holds all of the selected code characters
-                var allSelectedCodeCharacters = getSelectedCodeElements(shouldDeselectCode);
+                var allSelectedCodeCharacters = document.querySelectorAll(".selectedCode");
 
                 //go through all the selected elements
                 for(var i = 0;i < allSelectedCodeCharacters.length;i++) {
@@ -7606,19 +7794,48 @@
              * This function gets all of the selected code character elements and returns
              * their ids.
              */
-            function getSelectedCodeIds(shouldDeselectCode) {
+            function getSelectedCodeIds() {
 
                 //all the ids of the selected elements
                 var codeIds = [];
 
                 //holds all of the selected code characters
-                var allSelectedCodeCharacters = getSelectedCodeElements(shouldDeselectCode);
+                var allSelectedCodeCharacters = document.querySelectorAll(".selectedCode");
 
                 //go through the selected elements
                 for(var i = 0;i < allSelectedCodeCharacters.length;i++) {
 
                     //add the ids of the elements to the return array
-                    codeIds.push(allSelectedCodeCharacters[i].id);
+                    codeIds.push(allSelectedCodeCharacters[i].getAttribute("id"));
+                }
+
+                return codeIds;
+            }
+
+            /*
+             * This function gets the ids of the first and last element in all of the selected ranges.
+             */
+            function getSelectedRangeCodeIds() {
+
+                //all the ids of the selected elements
+                var codeIds = [];
+                var selectedRangeNumber = 1;
+                
+                //get the beginning and end of each range
+                var selectedCodeRangeBegin = document.querySelector(".beginSelectedCode-" + selectedRangeNumber);
+                var selectedCodeRangeEnd = document.querySelector(".endSelectedCode-" + selectedRangeNumber);
+
+                while(selectedCodeRangeBegin) {
+                    
+                    //add the starting and ending id of each range
+                    codeIds.push([selectedCodeRangeBegin.getAttribute("id"), selectedCodeRangeEnd.getAttribute("id")]);
+                    
+                    //add one to look for the next range
+                    selectedRangeNumber++;
+
+                    //see if there is another range
+                    selectedCodeRangeBegin = document.querySelector(".beginSelectedCode-" + selectedRangeNumber);
+                    selectedCodeRangeEnd = document.querySelector(".endSelectedCode-" + selectedRangeNumber);
                 }
 
                 return codeIds;
