@@ -4,6 +4,10 @@
   "description": "Plugin that allows devs to show and tell  others how their code has evolved.",
   "version": "0.0.1",
   "publisher": "markm208",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/markm208/storyteller.git"
+  },
   "engines": {
     "vscode": "^1.0.0"
   },
