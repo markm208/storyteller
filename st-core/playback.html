@@ -2645,7 +2645,22 @@
                     //update the title and description of this playback
                     document.querySelector("#playbackTitle").textContent = playbackData.playbackDescription.title;
                     document.querySelector("#playbackTitleEditable").textContent = playbackData.playbackDescription.title;
-                    document.querySelector("#playbackDescriptionEditable").innerHTML = playbackData.playbackDescription.description;
+                    //get the editable playback description
+                    var playbackDescriptionEditable = document.querySelector("#playbackDescriptionEditable");
+                    //if there is no description from the playback data
+                    if(playbackData.playbackDescription.description === "") {
+                        
+                        //put some default text in the editable
+                        playbackDescriptionEditable.innerHTML = "Put a playback description here"
+
+                    } else { //there is a description from the playback data
+
+                        //put the description in the editable
+                        playbackDescriptionEditable.innerHTML = playbackData.playbackDescription.description;
+
+                        //make the full title/description visible in the playback
+                        document.querySelector("#playbackDescriptionPanel").classList.add("in");
+                    }
 
                     //take the images from the comments and add them to the starting image gallery
                     displayCommentImagesInGallery();

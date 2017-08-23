@@ -5,7 +5,7 @@
 //holds the title and description of a playback
 var playbackDescription = {
     title: "Playback",
-    description: "Put a playback description here"
+    description: ""
 };
 
 //************************* Events *************************
