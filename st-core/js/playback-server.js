@@ -323,7 +323,8 @@ function replaceLoadPlaybackDataFunction(playbackPage, isComment, playbackData) 
             playbackData.currentDevGroupId = ${JSON.stringify(playbackData.currentDevGroupId)};
             playbackData.comments = ${JSON.stringify(playbackData.comments)};
             playbackData.playbackDescription = ${JSON.stringify(playbackData.playbackDescription)};
-
+            playbackData.branchId = ${JSON.stringify(playbackData.branchId)};
+            
             //setup a new playback with the current data
             getPlaybackWindowsReadyForAnimation(true);
         

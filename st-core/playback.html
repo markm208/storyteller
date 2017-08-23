@@ -129,23 +129,13 @@
                 display: none;
             }
 
-            /* used to highlight new inserts for a brief amount of time */
-            .briefInsertHighlight {
-                text-decoration: underline;
-            }
-
-            /* used to highlight new deletes for a brief amount of time */
-            .briefDeleteHighlight {
-                color: red;
-                text-decoration: line-through;
-            }
-
             /* to highlight code that satisfies all of the filters */
             .relevantCode {
+                color: green;
                 font-style: normal; /* override the default italic */
-                font-weight: normal;
+                font-weight: bold;
             }
-
+            
             /* used to indicate recent changes since the last play/pause cycle.
                Add a mark to the previous neighbor of a deleted character */
             .recentDelete {
@@ -155,10 +145,25 @@
 
             /* used to indicate recent changes since the last play/pause cycle */
             .recentInsert {
-                color: green;
-                font-style: italic;
-                font-weight: bold;
+                color: blue;
+                /*font-style: italic;*/
             }
+            
+            /* used to highlight new inserts for a brief amount of time */
+            .briefInsertHighlight {
+                text-decoration: underline;
+            }
+
+            /* used to highlight new deletes for a brief amount of time */
+            .briefDeleteHighlight {
+                color: red;
+                text-decoration: line-through;
+                display: initial;
+            }
+
+            
+
+            
 
             .recentFileChange::after {
                 content: " *";
@@ -533,11 +538,9 @@
                                 </button>
 
                                 <!-- merge in a different history to this playback -->
-                                <!-- TODO merge!!
                                 <label class="btn btn-default btn-file">
                                     Merge <input id="mergeButton" type="file" style="display: none;">
                                 </label>
-                                -->
                             </div>
                             
                             <!-- display of the files system at the current point in the playback -->
@@ -1314,7 +1317,7 @@
                 activeFileId: null,					//the latest active file id in the playback
                 activeLineNumber: null,				//the latest active line number in the playback
                 allDevelopers: null,				//an object of all of the developers (each dev id is a key)
-                allDeveloperGroups: null,			//an array of all of the developer groups
+                allDeveloperGroups: null,			//an object with of all of the developer groups
                 currentDevGroupId: null,			//the id of the dev group that will be used to create new comments and events
                 latestPlaybackEventDevGroupId: null,//the id of the last dev group to make a relevant contribution during playback 
                 allFiles: null,             		//an object with info about all the files ever created in the system 
@@ -1325,7 +1328,8 @@
                 showRecentsChanges: true,           //highlight recent changes in between play/pause cycles
                 comments: {},						//an object that will hold event ids as a key and groups of comments to display at the event
                 userWantsPauseOnComments: true,     //indicates whether playback should be paused if there is a comment
-                playbackDescription: {}             //holds some descriptive info about the playback like the title, description, etc.
+                playbackDescription: {},            //holds some descriptive info about the playback like the title, description, etc.
+                branchId: ""                        //holds the branch id of this playback
             };
             //when adding to this make sure to update getPlaybackWindowsReadyForAnimation()
 
@@ -1358,7 +1362,7 @@
             var audioRecordBlinkTimer;
 
             //flag that says whether the ctrl or command button is pressed
-            var ctrlCmdPressed;
+            var ctrlCmdPressed = false;
 
             //*****************************************************************************
             //                         Page setup related code
@@ -2155,40 +2159,32 @@
                     }
                 });
 
-                // //merge with another playbackData file
-                // document.querySelector("#mergeButton").addEventListener("change", function(e) {
+                //merge with another playbackData file
+                document.querySelector("#mergeButton").addEventListener("change", function(e) {
 
-                //     //pause the playback if it is not already paused
-                //     pausePlayback();
+                    //pause the playback if it is not already paused
+                    pausePlayback();
 
-                //     //get the file from the file input
-                //     var uploadedFile = this.files[0];
+                    //get the file from the file input
+                    var uploadedFile = this.files[0];
 
-                //     //create a reader to read the data
-                //     var fileReader = new FileReader();
+                    //create a reader to read the data
+                    var fileReader = new FileReader();
 
-                //     //once the data is done being read
-                //     fileReader.onload = function(data){
+                    //once the data is done being read
+                    fileReader.onload = function(data){
 
-                //         //get the events in the playback up to the pause point
-                //         var playbackDataEventsBranch1 = playbackData.codeEvents.slice(0, playbackData.codeEventsIndex + 1);
-
-                //         //get the selected playback.json file
-                //         var playbackDataBranch2 = JSON.parse(data.target.result);
+                        //get the selected playback.json file
+                        var playbackDataBranch2 = JSON.parse(data.target.result);
                         
-                //         //get the code events from it
-                //         var playbackDataEventsBranch2 = playbackDataBranch2.codeEvents;
+                        //send it to the merge function
+                        storytellerMerge(playbackDataBranch2);
+                    };
 
-                //         //TODO end the entire data structure, playbackDataBranch2, to merge not just events to merge in comments as well
-
-                //         //begin the merge process 
-                //         merge(playbackDataEventsBranch1, playbackDataEventsBranch2);
-                //     };
-
-                //     //begin the read operation (as text)
-                //     fileReader.readAsText(uploadedFile);
+                    //begin the read operation (as text)
+                    fileReader.readAsText(uploadedFile);
                     
-                // });
+                });
                 
                 //to add a comment
                 document.querySelector("#addCommentButton").addEventListener("click", function(e) {
@@ -2595,20 +2591,18 @@
 
                 //filter start and end time
                 var startDateTime;
-                var endDateTime;
+                var endDateTime = new Date();
 
                 //if there are some code events
                 if(playbackData.codeEvents.length > 0) {
 
-                    //get the time of the first and last events and populate the text inputs
+                    //get the time of the first event and populate the text inputs
                     startDateTime = new Date(playbackData.codeEvents[0].timestamp);
-                    endDateTime = new Date(playbackData.codeEvents[playbackData.codeEvents.length - 1].timestamp);
 
                 } else { //no events
 
                     //use the current time for both inputs just to show something
-                    startDateTime = new Date();
-                    endDateTime = startDateTime;
+                    startDateTime = endDateTime;
                 }
 
                 //display the start and end time of events for filtering
@@ -2894,7 +2888,7 @@
                 //add the new element right after the previous element (there is no insertAfter)
                 previousElement.parentNode.insertBefore(newElement, previousElement.nextSibling);
             }
-
+            
             //*****************************************************************************
             //                         Event compression related code
             //                         ------------------------------
@@ -2910,7 +2904,7 @@
 
             //event compression can be used or not (it is useful to NOT use compression 
             //while debugging), this flag indicates whether to use it or not
-            var useCompressionForEvents = true;
+            var useCompressionForEvents = false;
 
             /*
             * This function minimizes the footprint of insert and delete events. This is done because the event info eventually
@@ -2927,172 +2921,196 @@
             */
             function compressEvents(events) {
 
-                //create an object to hold all of the values that may be used for future events
-                var latestEventValues = {
-                    type: null,
-                    timestamp: 0,
-                    createdByDevGroupId: null,  
-                    previousNeighborId: null,
-                    lineNumber: null,
-                    column: null,
-                    fileId: null,
-                    anticipatedNextEventId: null,
-                    relevant: null
-                };
-
                 //holds the compressed events
                 var compressedEvents = [];
 
-                //loop through all the events and compress them
-                for(var i = 0;i < events.length;i++) {
+                //if we are supposed to compress events
+                if(useCompressionForEvents) {
 
-                    //get the uncompressed event            
-                    var event = events[i];
+                    //create an object to hold all of the values that may be used for future events
+                    var latestEventValues = {
+                        type: null,
+                        timestamp: 0,
+                        createdByDevGroupId: null,  
+                        previousNeighborId: null,
+                        lineNumber: null,
+                        column: null,
+                        fileId: null,
+                        anticipatedNextEventId: null,
+                        relevant: null,
+                        branchId: null
+                    };
 
-                    //default to the uncompressed event (this will hold a new object if there is any compression to do)
-                    var compressedEvent = event;
+                    //loop through all the events and compress them
+                    for(var i = 0;i < events.length;i++) {
 
-                    //if we are compressing events AND the event is not already compressed (compressed events don't have an 'id') AND this is an insert or a delete
-                    if(useCompressionForEvents && event.id && (event.type === "Insert" || event.type === "Delete")) {
-                        
-                        //get the numeric part of the event's id (without the 'ev_') and turn it into a number
-                        var numericPartOfEventId = parseInt(event.id.substr("ev_".length), 10);
+                        //get the uncompressed event            
+                        var event = events[i];
 
-                        //every compressed insert/delete event has an id and a character in it
-                        compressedEvent = {
-                            c: event.character,
-                            i: numericPartOfEventId.toString(36) //shorten the id num associated with the event
-                        };
-                        
-                        //if the event type is different than the last one
-                        if(event.type !== latestEventValues.type) {
+                        //default to the uncompressed event (this will hold a new object if there is any compression to do)
+                        var compressedEvent = event;
 
-                            //add the type (abbreviated to 'ty' to make the json file smaller) to the compressed event
-                            compressedEvent.ty = event.type;
-
-                            //store the latest type
-                            latestEventValues.type = event.type;
-
-                        } //else- same as the last event, leave this attribute out to make it a smaller event object
-
-                        //if there is a difference between this event's timestamp and the last event's time stamp
-                        if(event.timestamp - latestEventValues.timestamp !== 0) {
-
-                            //add the difference between the two timestamps (in base 36 to shorten the string)
-                            compressedEvent.t = (event.timestamp - latestEventValues.timestamp).toString(36);
-
-                            //store the latest timestamp
-                            latestEventValues.timestamp = event.timestamp;
-
-                        } //else- same as the last event, leave this attribute out to make it a smaller event object
-
-                        //if the dev group is different than the last one
-                        if(event.createdByDevGroupId !== latestEventValues.createdByDevGroupId) {
-
-                            //add the dev group (abbreviated to 'd' to make the json file smaller) to the compressed event
-                            compressedEvent.d = event.createdByDevGroupId;
-
-                            //store the latest dev group
-                            latestEventValues.createdByDevGroupId = event.createdByDevGroupId;
-                        
-                        } //else- same as the last event, leave this attribute out to make it a smaller event object
-                        
-                        //if the file id is different than the last one
-                        if(event.fileId !== latestEventValues.fileId) {
-
-                            //add the file id (abbreviated to 'f' to make the json file smaller) to the compressed event
-                            compressedEvent.f = event.fileId;
-
-                            //store the latest file id
-                            latestEventValues.fileId = event.fileId;
-
-                        } //else- same as the last event, leave this attribute out to make it a smaller event object
-
-                        //if the previous neighbor id is different than the last event added/removed
-                        if(event.previousNeighborId !== latestEventValues.anticipatedNextEventId) {
-
-                            //add the previous neighbor (abbreviated to 'p' to make the json file smaller) to the compressed event
-                            compressedEvent.p = event.previousNeighborId;
-
-                            //the latestEventValues's anticipatedNextEventId will get set below
-
-                        } //else- same as the last event, leave this attribute out to make it a smaller event object
-
-                        //if the line number is different than the last one
-                        if(event.lineNumber !== latestEventValues.lineNumber) {
-
-                            //add the line number (abbreviated to 'l' to make the json file smaller) to the compressed event
-                            compressedEvent.l = event.lineNumber;
-
-                            //store the latest line number
-                            latestEventValues.lineNumber = event.lineNumber;
-
-                        } //else- same as the last event, leave this attribute out to make it a smaller event object
-                        
-                        //if there is a 'relevant' member in the event 
-                        //the 'relevant' member gets added only after filtering is done in a playback, this only happens when saving a filtered 
-                        //playback to a json file (in most cases will be absent). If one event has it, all will have it
-                        if(event.relevant !== undefined) {
+                        //if the event is not already compressed (compressed events don't have an 'id') AND this is an insert or a delete
+                        if(event.id && (event.type === "Insert" || event.type === "Delete")) {
                             
-                            //if the relevancy is different from the last one
-                            if(event.relevant !== latestEventValues.relevant) {
+                            //get the numeric part of the event's id (without the 'ev_' and 5 digit branch id) and turn it into a number
+                            var numericPartOfEventId = parseInt(event.id.substr("ev_XXXXX_".length), 10);
 
-                                //add the relevancy (abbreviated to 'r' to make the json file smaller) to the compressed event
-                                compressedEvent.r = event.relevant;
+                            //every compressed insert/delete event has an id and a character in it
+                            compressedEvent = {
+                                c: event.character,
+                                i: numericPartOfEventId.toString(36) //shorten the id num associated with the event
+                            };
 
-                                //store the last relevancy value
-                                latestEventValues.relevant = event.relevant;
-                            }
-
-                        } //else- no relevant member, do nothing
-
-                        //if this is an insert
-                        if(event.type === "Insert") {
-
-                            //if the column is different than one more than the last one
-                            if(event.column !== (latestEventValues.column + 1)) {
-
-                                //add the column (abbreviated to 'co' to make the json file smaller) to the compressed event
-                                compressedEvent.co = event.column;
-
-                                //store the latest column
-                                latestEventValues.column = event.column;
-
-                            } else { //same as the last event, leave this attribute out to make it a smaller event object
+                            //get the 5 digit branch id
+                            var branchId = event.id.substr("ev_".length, 5);
+                            
+                            //if the branch id is different from the last one
+                            if(branchId !== latestEventValues.branchId) {
                                 
-                                //add one to get ready for the next event
-                                latestEventValues.column = latestEventValues.column + 1;                
-                            }
+                                //add the type (abbreviated to 'ty' to make the json file smaller) to the compressed event
+                                compressedEvent.bi = branchId;
 
-                            //store the id of the current event in anticipation of the next one also being an 
-                            //insert event that will back to this one
-                            latestEventValues.anticipatedNextEventId = event.id;
+                                //store the latest branch id
+                                latestEventValues.branchId = branchId;
 
-                        } else if(event.type === "Delete") { //this is a delete
+                            } //else- same as last event, leave this attribute out to make it a smaller event object
 
-                            //if the column is different than one more than the last one
-                            if(event.column !== latestEventValues.column) {
+                            //if the event type is different than the last one
+                            if(event.type !== latestEventValues.type) {
 
-                                //add the column (abbreviated to 'co' to make the json file smaller) to the compressed event
-                                compressedEvent.co = event.column;
+                                //add the type (abbreviated to 'ty' to make the json file smaller) to the compressed event
+                                compressedEvent.ty = event.type;
 
-                                //store the latest column
-                                latestEventValues.column = event.column;
+                                //store the latest type
+                                latestEventValues.type = event.type;
+
+                            } //else- same as the last event, leave this attribute out to make it a smaller event object
+
+                            //if there is a difference between this event's timestamp and the last event's time stamp
+                            if(event.timestamp - latestEventValues.timestamp !== 0) {
+
+                                //add the difference between the two timestamps (in base 36 to shorten the string)
+                                compressedEvent.t = (event.timestamp - latestEventValues.timestamp).toString(36);
+
+                                //store the latest timestamp
+                                latestEventValues.timestamp = event.timestamp;
+
+                            } //else- same as the last event, leave this attribute out to make it a smaller event object
+
+                            //if the dev group is different than the last one
+                            if(event.createdByDevGroupId !== latestEventValues.createdByDevGroupId) {
+
+                                //add the dev group (abbreviated to 'd' to make the json file smaller) to the compressed event
+                                compressedEvent.d = event.createdByDevGroupId;
+
+                                //store the latest dev group
+                                latestEventValues.createdByDevGroupId = event.createdByDevGroupId;
+                            
+                            } //else- same as the last event, leave this attribute out to make it a smaller event object
+                            
+                            //if the file id is different than the last one
+                            if(event.fileId !== latestEventValues.fileId) {
+
+                                //add the file id (abbreviated to 'f' to make the json file smaller) to the compressed event
+                                compressedEvent.f = event.fileId;
+
+                                //store the latest file id
+                                latestEventValues.fileId = event.fileId;
+
+                            } //else- same as the last event, leave this attribute out to make it a smaller event object
+
+                            //if the previous neighbor id is different than the last event added/removed
+                            if(event.previousNeighborId !== latestEventValues.anticipatedNextEventId) {
+
+                                //add the previous neighbor (abbreviated to 'p' to make the json file smaller) to the compressed event
+                                compressedEvent.p = event.previousNeighborId;
+
+                                //the latestEventValues's anticipatedNextEventId will get set below
+
+                            } //else- same as the last event, leave this attribute out to make it a smaller event object
+
+                            //if the line number is different than the last one
+                            if(event.lineNumber !== latestEventValues.lineNumber) {
+
+                                //add the line number (abbreviated to 'l' to make the json file smaller) to the compressed event
+                                compressedEvent.l = event.lineNumber;
+
+                                //store the latest line number
+                                latestEventValues.lineNumber = event.lineNumber;
 
                             } //else- same as the last event, leave this attribute out to make it a smaller event object
                             
-                            //get the numeric value associated with the delete event's previous neighbor and increment it
-                            var nextEventIdNumber = parseInt(event.previousNeighborId.substr("ev_".length), 10) + 1;
+                            //if there is a 'relevant' member in the event 
+                            //the 'relevant' member gets added only after filtering is done in a playback, this only happens when saving a filtered 
+                            //playback to a json file (in most cases will be absent). If one event has it, all will have it
+                            if(event.relevant !== undefined) {
+                                
+                                //if the relevancy is different from the last one
+                                if(event.relevant !== latestEventValues.relevant) {
 
-                            //deletes usually happen in blocks (as do inserts) so anticipate that the next event deleted 
-                            //will have an id that it one more than the current event being deleted 
-                            latestEventValues.anticipatedNextEventId = "ev_" + nextEventIdNumber;            
-                        }
+                                    //add the relevancy (abbreviated to 'r' to make the json file smaller) to the compressed event
+                                    compressedEvent.r = event.relevant;
 
-                    } //else- no compression for non-inserts/deletes
+                                    //store the last relevancy value
+                                    latestEventValues.relevant = event.relevant;
+                                }
 
-                    //add the compressed event to the collection of all compressed events
-                    compressedEvents.push(compressedEvent);
+                            } //else- no relevant member, do nothing
+
+                            //if this is an insert
+                            if(event.type === "Insert") {
+
+                                //if the column is different than one more than the last one
+                                if(event.column !== (latestEventValues.column + 1)) {
+
+                                    //add the column (abbreviated to 'co' to make the json file smaller) to the compressed event
+                                    compressedEvent.co = event.column;
+
+                                    //store the latest column
+                                    latestEventValues.column = event.column;
+
+                                } else { //same as the last event, leave this attribute out to make it a smaller event object
+                                    
+                                    //add one to get ready for the next event
+                                    latestEventValues.column = latestEventValues.column + 1;                
+                                }
+
+                                //store the id of the current event in anticipation of the next one also being an 
+                                //insert event that will back to this one
+                                latestEventValues.anticipatedNextEventId = event.id;
+
+                            } else if(event.type === "Delete") { //this is a delete
+
+                                //if the column is different than one more than the last one
+                                if(event.column !== latestEventValues.column) {
+
+                                    //add the column (abbreviated to 'co' to make the json file smaller) to the compressed event
+                                    compressedEvent.co = event.column;
+
+                                    //store the latest column
+                                    latestEventValues.column = event.column;
+
+                                } //else- same as the last event, leave this attribute out to make it a smaller event object
+                                
+                                //get the numeric value associated with the delete event's previous neighbor and increment it
+                                var nextEventIdNumber = parseInt(event.previousNeighborId.substr("ev_XXXXX_".length), 10) + 1;
+
+                                //deletes usually happen in blocks (as do inserts) so anticipate that the next event deleted 
+                                //will have an id that it one more than the current event being deleted 
+                                latestEventValues.anticipatedNextEventId = "ev_" + branchId + nextEventIdNumber;            
+                            }
+
+                        } //else- no compression for non-inserts/deletes
+
+                        //add the compressed event to the collection of all compressed events
+                        compressedEvents.push(compressedEvent);
+                    }
+
+                } else { //no compression
+
+                    //return the original uncompressed events
+                    compressedEvents = events;
                 }
 
                 return compressedEvents;
@@ -3111,227 +3129,254 @@
             * The file/dir related events happen infrequently enough (and they don't share much in common with other events)
             * that there is no attemp to compress them. 
             */
-            function decompressEvents(compressedEvents) {
-
-                //create an object to hold all of the values that may be used for future events
-                var latestEventValues = {
-                    type: null,
-                    timestamp: 0,
-                    createdByDevGroupId: null,  
-                    previousNeighborId: null,
-                    lineNumber: null,
-                    column: null,
-                    fileId: null,
-                    anticipatedNextEventId: null,
-                    relevant: null
-                };
+            function decompressEvents(events) {
 
                 //holds the decompressed events
                 var decompressedEvents = [];
 
-                //loop through all the compressed events and decompress them
-                for(var i = 0;i < compressedEvents.length;i++) {
-                
-                    //get the latest event
-                    var event = compressedEvents[i];
+                //if we are supposed to compress events
+                if(useCompressionForEvents) {
 
-                    //decompressed event- start with an empty object
-                    var decompressedEvent = {};
+                    //create an object to hold all of the values that may be used for future events
+                    var latestEventValues = {
+                        type: null,
+                        timestamp: 0,
+                        createdByDevGroupId: null,  
+                        previousNeighborId: null,
+                        lineNumber: null,
+                        column: null,
+                        fileId: null,
+                        anticipatedNextEventId: null,
+                        relevant: null,
+                        branchId: null
+                    };
 
-                    //if the object has a full 'id' property then it is NOT a compressed event 
-                    if(event.id) {
-
-                        //use the passed in event (likely a file/dir event)
-                        decompressedEvent = event;
-
-                    } else { //this is a compressed event
-
-                        //get the numeric part of the id and turn it back into a base 10 number
-                        decompressedEvent.id = "ev_" + parseInt(event.i, 36);
-
-                        //every compressed event has the original event's character, no need to do anything with these
-                        decompressedEvent.character = event.c;
-
-                        //'ty' === 'type'
-                        //if the event has a type 
-                        if(event.ty) {
-                            
-                            //change it into a type
-                            decompressedEvent.type = event.ty;
-
-                            //store the last event type
-                            latestEventValues.type = event.ty;
-                            
-                        } else { //there is not a 'ty' property, use the same as the latest event
-                            
-                            //add the last event's type to the decompressed event
-                            decompressedEvent.type = latestEventValues.type;
-                        }
-                        
-                        //'t' === 'timestamp'
-                        //if the event has a timestamp (really it's a difference between the last two timestamps)
-                        if(event.t) {
-                            
-                            //change it into a timestamp- add the last timestamp value to the difference received in the event (converted from a base 36 to a base 10)
-                            decompressedEvent.timestamp = latestEventValues.timestamp + parseInt(event.t, 36);
-
-                            //store the last event type
-                            latestEventValues.timestamp = decompressedEvent.timestamp; 
-                            
-                        } else { //there is not a 't' property, use the same as the latest event
-                            
-                            //add the last event's type to the decompressed event
-                            decompressedEvent.timestamp = latestEventValues.timestamp;
-                        }
-
-                        //'d' === 'createdByDevGroupId'
-                        //if the event has a dev group                     
-                        if(event.d) {
-
-                            //use the shortened property 
-                            decompressedEvent.createdByDevGroupId = event.d;
-
-                            //use this as the last dev group
-                            latestEventValues.createdByDevGroupId = event.d; 
-
-                        } else { //there is not a 'd' property, use the same as the latest event
-
-                            //use the last event's dev group id 
-                            decompressedEvent.createdByDevGroupId = latestEventValues.createdByDevGroupId;                            
-                        }
-                        
-                        //'f' === 'fileId'
-                        //if the event has a file id                     
-                        if(event.f) {
-
-                            //use the shortened property 
-                            decompressedEvent.fileId = event.f;
-
-                            //use this as the last file id
-                            latestEventValues.fileId = event.f;
-                            
-                        } else { //there is no 'f' property, use the same as the latest event
-
-                            //use the last event's file id
-                            decompressedEvent.fileId = latestEventValues.fileId;
-                        }
-                        
-                        //'p' === 'previousNeighborId'
-                        //if the event has a prev neighbor id                     
-                        if(event.p) {
-
-                            //use the shortened property 
-                            decompressedEvent.previousNeighborId = event.p; 
-                            
-                            //the latestEventValues's anticipatedNextEventId will get set below
-
-                        } else { //there is no 'p' property, use the same as the latest event
-
-                            //use the last event as a prev neighbor id
-                            decompressedEvent.previousNeighborId = latestEventValues.anticipatedNextEventId;
-                        }
-                        
-                        //'l' === 'lineNumber'
-                        //if the event has a line number 
-                        if(event.l) {
-
-                            //use the shortened property 
-                            decompressedEvent.lineNumber = event.l;
-
-                            //use this as the last line number 
-                            latestEventValues.lineNumber = event.l;                         
-
-                        } else { //there is no 'l' property, use the same as the latest event 
-
-                            //use the last event's line number 
-                            decompressedEvent.lineNumber = latestEventValues.lineNumber;
-                        }
+                    //loop through all the compressed events and decompress them
+                    for(var i = 0;i < events.length;i++) {
                     
-                        //'r' === 'relevant'
-                        //if the event has a relevant field from a playback  
-                        if(event.r !== undefined) {
+                        //get the latest event
+                        var event = events[i];
 
-                            //use the shortened property 
-                            decompressedEvent.relevant = event.r;
+                        //decompressed event- start with an empty object
+                        var decompressedEvent = {};
 
-                            //use this as the relevant value 
-                            latestEventValues.relevant = event.r;                         
+                        //if the object has a full 'id' property then it is NOT a compressed event 
+                        if(event.id) {
 
-                        } else { //there is no 'r' property 
+                            //use the passed in event (likely a file/dir event)
+                            decompressedEvent = event;
 
-                            //if the 'relevant' field has been set before
-                            if(latestEventValues.relevant !== null) {
+                        } else { //this is a compressed event
 
-                                //use the last event's relevant value
-                                decompressedEvent.relevant = latestEventValues.relevant; 
+                            var branchId;
 
-                            } //else- none of the events so far have had a relevant value, the event does need this property
-                        }
+                            //'bi' === 'branch id'
+                            //if the event has a branch id
+                            if(event.bi) {
+                                
+                                //change it into a branch id
+                                branchId = event.bi;
 
-                        //if this is an insert
-                        if(decompressedEvent.type === "Insert") {
+                                //store the last branch id
+                                latestEventValues.branchId = event.bi;
 
-                            //'co' === 'column'
-                            //if the event has a column
-                            if(event.co) {
+                            } else { //there is not a 'bi' property, use the same as the latest event
 
-                                //use the shortened property 
-                                decompressedEvent.column = event.co;                        
-
-                                //use this as the last column
-                                latestEventValues.column = event.co; 
-
-                            } else { //there is no 'co' property, use the same as the latest event 
-
-                                //move the column forward one position
-                                latestEventValues.column = latestEventValues.column + 1;
-
-                                //use the last event's column plus one 
-                                decompressedEvent.column = latestEventValues.column;
+                                //use the latest branch id
+                                branchId = latestEventValues.branchId;
                             }
 
-                            //store the id of the current event in anticipation of the next one also being an 
-                            //insert event that will back to this one
+                            //get the numeric part of the id and turn it back into a base 10 number
+                            decompressedEvent.id = "ev_" + branchId + "_" + parseInt(event.i, 36);
 
-                            //store the id of the event so the next call knows what came before
-                            latestEventValues.anticipatedNextEventId = decompressedEvent.id;
+                            //every compressed event has the original event's character, no need to do anything with these
+                            decompressedEvent.character = event.c;
 
-                        } else if(decompressedEvent.type === "Delete") { //this is a delete
+                            //'ty' === 'type'
+                            //if the event has a type 
+                            if(event.ty) {
+                                
+                                //change it into a type
+                                decompressedEvent.type = event.ty;
+
+                                //store the last event type
+                                latestEventValues.type = event.ty;
+                                
+                            } else { //there is not a 'ty' property, use the same as the latest event
+                                
+                                //add the last event's type to the decompressed event
+                                decompressedEvent.type = latestEventValues.type;
+                            }
                             
-                            //'co' === 'column'
-                            //if the event has a column
-                            if(event.co) {
+                            //'t' === 'timestamp'
+                            //if the event has a timestamp (really it's a difference between the last two timestamps)
+                            if(event.t) {
+                                
+                                //change it into a timestamp- add the last timestamp value to the difference received in the event (converted from a base 36 to a base 10)
+                                decompressedEvent.timestamp = latestEventValues.timestamp + parseInt(event.t, 36);
 
-                                //use the shortened property 
-                                decompressedEvent.column = event.co;                        
-
-                                //use this as the last column
-                                latestEventValues.column = event.co; 
-
-                            } else { //there is no 'co' property, use the same as the latest event 
-
-                                //deletes do not move the column forward like inserts do
-
-                                //use the last event's column plus one 
-                                decompressedEvent.column = latestEventValues.column;
+                                //store the last event type
+                                latestEventValues.timestamp = decompressedEvent.timestamp; 
+                                
+                            } else { //there is not a 't' property, use the same as the latest event
+                                
+                                //add the last event's type to the decompressed event
+                                decompressedEvent.timestamp = latestEventValues.timestamp;
                             }
 
-                            //get the numeric value associated with the delete event's previous neighbor and increment it
-                            var nextEventIdNumber = parseInt(decompressedEvent.previousNeighborId.substr("ev_".length), 10) + 1;
+                            //'d' === 'createdByDevGroupId'
+                            //if the event has a dev group                     
+                            if(event.d) {
 
-                            //deletes usually happen in blocks (as do inserts) so anticipate that the next event deleted 
-                            //will have an id that it one more than the current event being deleted 
-                            latestEventValues.anticipatedNextEventId = "ev_" + nextEventIdNumber;            
+                                //use the shortened property 
+                                decompressedEvent.createdByDevGroupId = event.d;
+
+                                //use this as the last dev group
+                                latestEventValues.createdByDevGroupId = event.d; 
+
+                            } else { //there is not a 'd' property, use the same as the latest event
+
+                                //use the last event's dev group id 
+                                decompressedEvent.createdByDevGroupId = latestEventValues.createdByDevGroupId;                            
+                            }
+                            
+                            //'f' === 'fileId'
+                            //if the event has a file id                     
+                            if(event.f) {
+
+                                //use the shortened property 
+                                decompressedEvent.fileId = event.f;
+
+                                //use this as the last file id
+                                latestEventValues.fileId = event.f;
+                                
+                            } else { //there is no 'f' property, use the same as the latest event
+
+                                //use the last event's file id
+                                decompressedEvent.fileId = latestEventValues.fileId;
+                            }
+                            
+                            //'p' === 'previousNeighborId'
+                            //if the event has a prev neighbor id                     
+                            if(event.p) {
+
+                                //use the shortened property 
+                                decompressedEvent.previousNeighborId = event.p; 
+                                
+                                //the latestEventValues's anticipatedNextEventId will get set below
+
+                            } else { //there is no 'p' property, use the same as the latest event
+
+                                //use the last event as a prev neighbor id
+                                decompressedEvent.previousNeighborId = latestEventValues.anticipatedNextEventId;
+                            }
+                            
+                            //'l' === 'lineNumber'
+                            //if the event has a line number 
+                            if(event.l) {
+
+                                //use the shortened property 
+                                decompressedEvent.lineNumber = event.l;
+
+                                //use this as the last line number 
+                                latestEventValues.lineNumber = event.l;                         
+
+                            } else { //there is no 'l' property, use the same as the latest event 
+
+                                //use the last event's line number 
+                                decompressedEvent.lineNumber = latestEventValues.lineNumber;
+                            }
+                        
+                            //'r' === 'relevant'
+                            //if the event has a relevant field from a playback  
+                            if(event.r !== undefined) {
+
+                                //use the shortened property 
+                                decompressedEvent.relevant = event.r;
+
+                                //use this as the relevant value 
+                                latestEventValues.relevant = event.r;                         
+
+                            } else { //there is no 'r' property 
+
+                                //if the 'relevant' field has been set before
+                                if(latestEventValues.relevant !== null) {
+
+                                    //use the last event's relevant value
+                                    decompressedEvent.relevant = latestEventValues.relevant; 
+
+                                } //else- none of the events so far have had a relevant value, the event does need this property
+                            }
+
+                            //if this is an insert
+                            if(decompressedEvent.type === "Insert") {
+
+                                //'co' === 'column'
+                                //if the event has a column
+                                if(event.co) {
+
+                                    //use the shortened property 
+                                    decompressedEvent.column = event.co;                        
+
+                                    //use this as the last column
+                                    latestEventValues.column = event.co; 
+
+                                } else { //there is no 'co' property, use the same as the latest event 
+
+                                    //move the column forward one position
+                                    latestEventValues.column = latestEventValues.column + 1;
+
+                                    //use the last event's column plus one 
+                                    decompressedEvent.column = latestEventValues.column;
+                                }
+
+                                //store the id of the current event in anticipation of the next one also being an 
+                                //insert event that will back to this one
+
+                                //store the id of the event so the next call knows what came before
+                                latestEventValues.anticipatedNextEventId = decompressedEvent.id;
+
+                            } else if(decompressedEvent.type === "Delete") { //this is a delete
+                                
+                                //'co' === 'column'
+                                //if the event has a column
+                                if(event.co) {
+
+                                    //use the shortened property 
+                                    decompressedEvent.column = event.co;                        
+
+                                    //use this as the last column
+                                    latestEventValues.column = event.co; 
+
+                                } else { //there is no 'co' property, use the same as the latest event 
+
+                                    //deletes do not move the column forward like inserts do
+
+                                    //use the last event's column plus one 
+                                    decompressedEvent.column = latestEventValues.column;
+                                }
+
+                                //get the numeric value associated with the delete event's previous neighbor and increment it
+                                var nextEventIdNumber = parseInt(decompressedEvent.previousNeighborId.substr("ev_".length), 10) + 1;
+
+                                //deletes usually happen in blocks (as do inserts) so anticipate that the next event deleted 
+                                //will have an id that it one more than the current event being deleted 
+                                latestEventValues.anticipatedNextEventId = "ev_" + nextEventIdNumber;            
+                            }
                         }
+
+                        //add the decompressed event to the collection
+                        decompressedEvents.push(decompressedEvent);
                     }
 
-                    //add the decompressed event to the collection
-                    decompressedEvents.push(decompressedEvent);
+                } else { //we are not supposed to decompress events
+
+                    //return the events as they were received
+                    decompressedEvents = events;
                 }
 
                 return decompressedEvents;
             }
-
             //*****************************************************************************
             //                         Animation related code
             //                         ----------------------
@@ -3485,6 +3530,9 @@
 
                         //get the next code event in sequence
                         var currentEvent = playbackData.codeEvents[playbackData.codeEventsIndex];
+
+                        //if the line number or column is missing search for them manually (this can happen on certain downloads and merges)
+                        lineNumberColumnCheck(currentEvent);
                         
                         //store it as part of the step data
                         stepData.codeEvent = currentEvent;
@@ -3617,9 +3665,6 @@
                     //for the last event in this step, perform some UI related updates that only affect the last in the step
                     //if the last event in this group of events played back is a code character event being added or removed in the editor
                     if(stepData.codeEvent.type === "Insert" || stepData.codeEvent.type === "Delete") {
-
-                        //if the line number or column is missing search for them manually
-                        lineNumberColumnCheck(stepData.codeEvent);
 
                         //determines if the event is an insert (if not it must be a delete)
                         var isInsert = (stepData.codeEvent.type === "Insert" && direction === "forward") || (stepData.codeEvent.type === "Delete" && direction === "backward");
@@ -3957,33 +4002,30 @@
                 //if this is a relevant character
                 if(stepData.codeEvent.relevant) {
 
+                    //for new delete highlighting (class will be removed with a timer below)
+                    stepData.codeElement.classList.add("briefDeleteHighlight");
+                    
+                    //add the 'code not visible' to hide it
+                    stepData.codeElement.classList.add("codeNotVisible");
+                    
                     //if there is any delay between characters
                     if(playbackData.delay > 0) {
                         
-                        //for new delete highlighting (class will be removed with a timer below)
-                        stepData.codeElement.classList.add("briefDeleteHighlight");
-
                         //set a timer to remove the .briefDeleteHighlight class and to actually hide the event
                         window.setTimeout(function(codeElement, fileId){                            
                             
                             //remove the recent brief highlight class
                             codeElement.classList.remove("briefDeleteHighlight");
 
-                            //add the 'code not visible' to hide it
-                            codeElement.classList.add("codeNotVisible");
-
                             //if a new line was removed, remove the line number
                             removeLineNumberIfNecessary(codeElement, fileId);
 
                         }, playbackData.highlightDelay, stepData.codeElement, stepData.codeEvent.fileId); //highlight delay, the element to remove, and the id of the file where the delete is
                     
-                    } else { //no delay, 
-                        
-                        //add the 'code not visible' to hide it
-                        stepData.codeElement.classList.add("codeNotVisible");
-                        
+                    } else {
+
                         //if a new line was removed, remove the line number
-                        removeLineNumberIfNecessary(stepData.codeElement, stepData.codeEvent.fileId);
+                        removeLineNumberIfNecessary(stepData.codeElement, stepData.codeEvent.fileId);                        
                     }
 
                     //if a change highlight is needed (usually in forward direction only)
@@ -5160,6 +5202,10 @@
              */
             function saveStateOfPlaybackAtPausePoint(typeOfSave) {
                 
+                //every saved playback is considered a new branch of the same repo
+                //create a 5 digit branch id for the new repo
+                var newBranchId = createRandomNumberBase62(5);
+
                 //get all of the playback data (map of insert events on screen, allFiles, allDirs, allDevGroups, etc)
                 var playbackDataOnScreenAtPausePoint = getAllPlaybackDataOnScreenAtPausePoint();
 
@@ -5179,7 +5225,7 @@
                 zipUpCurrentStateOfFiles(rootfileSystemViewAtPausePoint, zip);
                 
                 //create a representation of the playback data and add it to the zip
-                zipUpPlaybackData(rootfileSystemViewAtPausePoint, rootDirName, editorStateJson, playbackDataOnScreenAtPausePoint, zip, typeOfSave);
+                zipUpPlaybackData(rootfileSystemViewAtPausePoint, rootDirName, editorStateJson, playbackDataOnScreenAtPausePoint, zip, typeOfSave, newBranchId);
 
                 //create a representation of the editor state and add it to the zip
                 zipUpEditorState(rootDirName, editorStateJson, zip);
@@ -5189,8 +5235,33 @@
             }
 
             /*
+            * Creates a random number using base 62. The digits are 0-9, a-z, A-Z. The user specifies how many digits they would like
+            * the number to be.
+            */
+            function createRandomNumberBase62(numDigits) {
+                
+                //a 'numDigits' digit random number (in base 62: 0-9,a-z,A-Z)
+                var randomId = "";
+
+                //the 62 digits that are available
+                var digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+                
+                //for each digit
+                for(var i = 0;i < numDigits;i++) {
+                    
+                    //pick a random number between 0-61
+                    var randPos = Math.floor(Math.random() * 62);
+
+                    //add a random digit to the result
+                    randomId += digits[randPos];
+                }
+
+                return randomId;
+            }
+            
+            /*
              * This function scans the events in a playback by going through all the events from the first up to the point 
-             * where it was paused (up to and including the event at index playbackData.codeEventsIndexGets) and collects 
+             * where it was paused (up to and including the event at index playbackData.codeEventsIndex) and collects 
              * data about the contribution up to that point. 
              * 
              * The data that is collected is:
@@ -5755,8 +5826,8 @@
                     //get the id of the last event played back
                     var lastPlaybackEvent = playbackData.codeEvents[playbackData.codeEventsIndex];
                     
-                    //pick out the number at the end of the id
-                    var lastEventIntId = parseInt(lastPlaybackEvent.id.substr("ev_".length), 10);
+                    //pick out the number at the end of the id (there is a 5 digit branch id before it)
+                    var lastEventIntId = parseInt(lastPlaybackEvent.id.substr("ev_XXXXX_".length), 10);
                     
                     //add one for the next valid auto generated number
                     editorStateJson.autoGeneratedEventId = lastEventIntId + 1;
@@ -5913,7 +5984,7 @@
              * 
              * The choice the user makes decides how mucgh history will be stored in any future development. 
              */
-            function zipUpPlaybackData(fileSystemViewAtPausePoint, rootDirName, editorStateJson, playbackDataOnScreenAtPausePoint, zip, typeOfSave) {
+            function zipUpPlaybackData(fileSystemViewAtPausePoint, rootDirName, editorStateJson, playbackDataOnScreenAtPausePoint, zip, typeOfSave, newBranchId) {
                 
                 //empty object to hold playback data
                 var playbackDataJson = {
@@ -5923,7 +5994,12 @@
                     allFiles: {},
                     allDirs: {},
                     currentDevGroupId: null,
-                    comments: {}
+                    comments: {},
+                    playbackDescription: {
+                        title: playbackData.playbackDescription.title,
+                        description: playbackData.playbackDescription.description
+                    },
+                    branchId: newBranchId
                 }; 
 
                 //if this is a minimum history request
@@ -5944,7 +6020,7 @@
                     //fill the playback data with the state required at the pause point
                     //all the history before and after the pause point with the events afterwar undone by inverse events
                     //inverse of insert is a delete, inverse of a create file is a delete file, etc.
-                    getPlaybackDataFutureEventsUndone(playbackDataJson, editorStateJson);
+                    getPlaybackDataFutureEventsUndone(playbackDataJson, editorStateJson, newBranchId);
                 }
 
                 //all code events that are stored on the disk should be compressed
@@ -6142,12 +6218,12 @@
              * point. This keeps the history after the pause point but wipes it out in future playbacks in one 
              * big block.
              */
-            function getPlaybackDataFutureEventsUndone(playbackDataJson, editorStateJson) {
+            function getPlaybackDataFutureEventsUndone(playbackDataJson, editorStateJson, newBranchId) {
                 
                 //playbackDataJson.codeEvents
                 //undo all of the events from the end until the pause point
                 var undoEvents = [];
-                getUndoEvents(undoEvents, editorStateJson);
+                getUndoEvents(undoEvents, editorStateJson, newBranchId);
 
                 //add the existing events from the playback and the undo events
                 playbackDataJson.codeEvents = playbackData.codeEvents.concat(undoEvents);
@@ -6193,7 +6269,7 @@
              * and we need the autoGeneratedEventId to be updated to reflect the new events. The playbackData.json
              * file must be zipped before editorState.json because of this.
              */
-            function getUndoEvents(undoEvents, editorStateJson) {
+            function getUndoEvents(undoEvents, editorStateJson, newBranchId) {
                 
                 //all the undo events will have the same timestamp
                 var timestamp = new Date().getTime();
@@ -6205,7 +6281,7 @@
                 var lastEvent = playbackData.codeEvents[playbackData.codeEvents.length - 1];
 
                 //get the last event in the playback's id num and increase it
-                editorStateJson.autoGeneratedEventId = parseInt(lastEvent.id.substr("ev_".length), 10) + 1;
+                editorStateJson.autoGeneratedEventId = parseInt(lastEvent.id.substr("ev_XXXXX_".length), 10) + 1;
 
                 //holds the ids of the insert/delete events after the pause point
                 var insertedAfterPausePoint = {};
@@ -6269,7 +6345,7 @@
                         //the inverse of an insert is a delete
                         //fill in the rest of the event details
                         var inverseInsertEvent = {
-                            id: "ev_" + editorStateJson.autoGeneratedEventId,
+                            id: "ev_" + newBranchId + "_" + editorStateJson.autoGeneratedEventId,
                             timestamp: timestamp,
                             createdByDevGroupId: playbackData.currentDevGroupId,
                             type: "Delete",
@@ -6292,7 +6368,7 @@
                         //the inverse of a delete is an insert
                         //fill in the rest of the event details
                         var inverseDeleteEvent = {
-                            id: "ev_" + editorStateJson.autoGeneratedEventId,
+                            id: "ev_" + newBranchId + "_" + editorStateJson.autoGeneratedEventId,
                             timestamp: timestamp,
                             createdByDevGroupId: playbackData.currentDevGroupId,
                             type: "Insert",
@@ -6314,7 +6390,7 @@
                         //the inverse of a create file is a delete file
                         //fill in the rest of the event details
                         var inverseCreateFileEvent = {
-                            id: "ev_" + editorStateJson.autoGeneratedEventId,
+                            id: "ev_" + newBranchId + "_" + editorStateJson.autoGeneratedEventId,
                             timestamp: timestamp,
                             createdByDevGroupId: playbackData.currentDevGroupId, 
                             type: "Delete File",
@@ -6334,7 +6410,7 @@
                         //the inverse of a delete file is a create file
                         //fill in the rest of the event details
                         var inverseDeleteFileEvent = {
-                            id: "ev_" + editorStateJson.autoGeneratedEventId,
+                            id: "ev_" + newBranchId + "_" + editorStateJson.autoGeneratedEventId,
                             timestamp: timestamp,
                             createdByDevGroupId: playbackData.currentDevGroupId, 
                             type: "Create File",
@@ -6354,7 +6430,7 @@
                         //the inverse of a create dir is a delete dir
                         //fill in the rest of the event details
                         var inverseCreateDirectoryEvent = {
-                            id: "ev_" + editorStateJson.autoGeneratedEventId,
+                            id: "ev_" + newBranchId + "_" + editorStateJson.autoGeneratedEventId,
                             timestamp: timestamp,
                             createdByDevGroupId: playbackData.currentDevGroupId, 
                             type: "Delete Directory",
@@ -6374,7 +6450,7 @@
                         //the inverse of a delete dir is a create dir
                         //fill in the rest of the event details
                         var inverseDeleteDirectoryEvent = {
-                            id: "ev_" + editorStateJson.autoGeneratedEventId,
+                            id: "ev_" + newBranchId + "_" + editorStateJson.autoGeneratedEventId,
                             timestamp: timestamp,
                             createdByDevGroupId: playbackData.currentDevGroupId, 
                             type: "Create Directory",
@@ -6394,7 +6470,7 @@
                         //the inverse of a move file is another move file
                         //fill in the rest of the event details
                         var inverseMoveFileEvent = {
-                            id: "ev_" + editorStateJson.autoGeneratedEventId,
+                            id: "ev_" + newBranchId + "_" + editorStateJson.autoGeneratedEventId,
                             timestamp: timestamp,
                             createdByDevGroupId: playbackData.currentDevGroupId, 
                             type: "Move File",
@@ -6417,7 +6493,7 @@
                         //the inverse of a move dir is another move dir
                         //fill in the rest of the event details
                         var inverseMoveDirectoryEvent = {
-                            id: "ev_" + editorStateJson.autoGeneratedEventId,
+                            id: "ev_" + newBranchId + "_" + editorStateJson.autoGeneratedEventId,
                             timestamp: timestamp,
                             createdByDevGroupId: playbackData.currentDevGroupId, 
                             type: "Move Directory",
@@ -6440,7 +6516,7 @@
                         //the inverse of a rename file is another rename file
                         //fill in the rest of the event details
                         var inverseRenameFileEvent = {
-                            id: "ev_" + editorStateJson.autoGeneratedEventId,
+                            id: "ev_" + newBranchId + "_" + editorStateJson.autoGeneratedEventId,
                             timestamp: timestamp,
                             createdByDevGroupId: playbackData.currentDevGroupId, 
                             type: "Rename File",
@@ -6460,7 +6536,7 @@
                         //the inverse of a rename dir is another rename dir
                         //fill in the rest of the event details
                         var inverseRenameDirectoryEvent = {
-                            id: "ev_" + editorStateJson.autoGeneratedEventId,
+                            id: "ev_" + newBranchId + "_" + editorStateJson.autoGeneratedEventId,
                             timestamp: timestamp,
                             createdByDevGroupId: playbackData.currentDevGroupId, 
                             type: "Rename Directory",
@@ -6552,453 +6628,1313 @@
                 });
             }
 
-//*********************************************** experimental merging code *****************************************
-            function merge(playbackDataEventsBranch1, playbackDataEventsBranch2) {
-                
-                console.log("Merging...");
-                
-                //an object with three sets of events- common to both branches and distinct events in both
-                var eventsBySourceSets = {
-                    common: {},     //events that are common to both branches
-                    branch1: {},    //events that are only in branch 1
-                    branch2: {}     //events that are only in branch 2
-                };
-
-                //build the sets of events
-                getEventsBySourceSets(playbackDataEventsBranch1, playbackDataEventsBranch2, eventsBySourceSets);
-
-                //each file has a 'conflict' array to identify conflicts
-                var conflictArraysByFile = {};
-
-                //add the common events to the conflict arrays
-                addCommonEvents(playbackDataEventsBranch1, eventsBySourceSets.common, conflictArraysByFile);
-
-                //add the events from branch 1 to the conflict arrays
-                addBranchEvents(playbackDataEventsBranch1, "branch1", eventsBySourceSets.branch1, conflictArraysByFile);
-                
-                //add the events from branch 2 to the conflict arrays
-                addBranchEvents(playbackDataEventsBranch2, "branch2", eventsBySourceSets.branch2, conflictArraysByFile);
-
-                //each file may have one or more conflict events
-                var insertConflictsByFile = {};
-                var deleteConflictsByFile = {};
-
-                //identify the conflicts
-                identifyConflicts(conflictArraysByFile, insertConflictsByFile, deleteConflictsByFile);
-
-                //build up the events for the new playbackData file.
-
-                //create a file with the two branches and the conflict detection events
-            }
- 
-            /*
-             * Assign each event into one of the sets- common, branch1, or branch2. This is used to identify
-             * what group each event belongs to.
-             */
-            function getEventsBySourceSets(playbackDataEventsBranch1, playbackDataEventsBranch2, eventsBySourceSets) {
-                
-                var event;
-
-                //go through all of the events in the first branch
-                for(var i = 0;i < playbackDataEventsBranch1.length;i++) {
-
-                    //get the event
-                    event = playbackDataEventsBranch1[i];
-
-                    //add the event to the branch1 map
-                    eventsBySourceSets.branch1[event.id] = event;
-                }
-
-                //go through all of the events in the second branch
-                for(var i = 0;i < playbackDataEventsBranch2.length;i++) {
-
-                    //get the event
-                    event = playbackDataEventsBranch2[i];
-                    
-                    //if there is an entry in the branch 1 set and it is the exact same event (two events from different branches
-                    //can have the same id but be different)
-                    //if this event from the second branch is also in the first, it is a common event
-                    if(eventsBySourceSets.branch1[event.id] && compareEvents(event, eventsBySourceSets.branch1[event.id])) {
-                        
-                        //add the event to the common map
-                        eventsBySourceSets.common[event.id] = event;
-
-                        //since it is not unique to branch 1, remove it from that map
-                        delete eventsBySourceSets.branch1[event.id];
-
-                    } else { //this event is not in the first branch, it is unique to branch2
-
-                        //add the event to the correct map
-                        eventsBySourceSets.branch2[event.id] = event;
-                    }
-                }
-            }
-
-             /*
-             * Compares if two events are the same. Since we are not using truly unique UUIDs we check the 
-             * id, the timestamp, and the dev group id. The idea is that it is extremely unlikely that the
-             * exact same developer group can generate two events at exactly the same time.  
-             */
-            function compareEvents(ev1, ev2) {
-
-                //assume the two events are not the same
-                var retVal = false;
-
-                //if the event ids are the same (two different events from different branches could have the same id) AND 
-                //the timestamps are the same AND
-                //the events were created by the same dev group
-                if(ev1.id === ev2.id && 
-                   ev1.timestamp === ev2.timestamp && 
-                   ev1.createdByDevGroupId === ev2.createdByDevGroupId) {
-
-                    //the events are the same
-                    retVal = true;
-                }
-
-                return retVal;
-            }
-
-           /*
-             * This function adds events that are common to both branches to each file's 'conflict array' which is used
-             * to identify conflicts. Each file has its own conflict array. The common events are added in the order that
-             * they appear in the original branches. 
-             */
-            function addCommonEvents(playbackDataEvents, commonEventSet, conflictArraysByFile) {
-                
-                //go through all of the events in the branch
-                for(var i = 0;i < playbackDataEvents.length;i++) {
-                    
-                    //get the event
-                    var event = playbackDataEvents[i];                    
-
-                    //if there is an entry in the common set and it is the exact same event (two events from different branches
-                    //can have the same id but be different)
-                    //if it is a common event
-                    if(commonEventSet[event.id] && compareEvents(event, commonEventSet[event.id])) {
-
-                        //if this is an insert event
-                        if(event.type === "Insert") {
-
-                            //if there is not already an array of conflict events for this file
-                            if(!conflictArraysByFile[event.fileId]) {
-
-                                //create an empty array
-                                conflictArraysByFile[event.fileId] = [];
-                            }
-
-                            //get the conflict array for a file
-                            var conflictArray = conflictArraysByFile[event.fileId];
-
-                            //create a special representation of the event
-                            var commonConflictEvent = {
-                                event: event,
-                                type: "common",
-                                branch1InsertBacksUpToThis: false,
-                                branch2InsertBacksUpToThis: false,
-                                deletedbyBranch1: false,
-                                deletedbyBranch2: false,
-                                nextCommon: null
-                            };
-
-                            //add it to the conflict array
-                            conflictArray.push(commonConflictEvent);
-
-                            //if we are past the first event
-                            if(conflictArray.length > 1) {
-
-                                //make the previous event have a reference to the next
-                                conflictArray[conflictArray.length - 2].nextCommon = commonConflictEvent; 
-                            } 
-                        }
-                    }
-                }
-            }
+            //*****************************************************************************
+            //                  Version control merging related code
+            //                  ------------------------------------
+            // Merging in storyteller happens in the browser during playback. The user can
+            // choose another branch of development to 'merge' into the current playback
+            // by selecting a playback.json file from another repo. The playback will be 
+            // altered to show the current code and the merged code. One can begin a merge 
+            // at any point during a playback.
+            //
+            // If there is a line conflict between the two branches both versions of the 
+            // code in two different branches will be shown with markers to identify which
+            // branch the code came from. If the changes on the two branches happen in 
+            // different parts of the file there will not be a conflict and the changes 
+            // will be automatically merged.
+            //
+            // If the user likes how the merge turned out they can download the state of 
+            // the playback and continue development on it. If they don't like how the
+            // merge turned out they can ignore the playback since no changes to the files
+            // happen. They can just refresh their browswer and see the current state of
+            // the files.
+            //*****************************************************************************
 
             /*
-             * This function adds events that are specific to each branch to each file's 'conflict array' which is used
-             * to identify conflicts. Each file has its own conflict array. The branch events are added in the order that
-             * they appear in the original branches.
+             * Controls the whole merge operation. Combines non-event data (files, devs, etc) and event 
+             * data (inserts, deletes, etc.) into a new playback. The user can review the new playback 
+             * with both branches of development and choose to download it as a new repo. Development 
+             * can continue based off of this new repo.
              */
-            function addBranchEvents(playbackDataEvents, branchName, branchEventSet, conflictArraysByFile) {
+            function storytellerMerge(playbackDataBranch2) {
+
+                //get the events in the current playback up to the pause point
+                var branch1CodeEvents = playbackData.codeEvents.slice(0, playbackData.codeEventsIndex + 1);
+
+                //get the code events from the branch we are merging in and decompress them
+                var branch2CodeEvents = decompressEvents(playbackDataBranch2.codeEvents);
+
+                //get all of the events that are in both branches
+                var commonEvents = getCommonEvents(branch1CodeEvents, branch2CodeEvents);
                 
-                //go through all of the events in the branch
-                for(var i = 0;i < playbackDataEvents.length;i++) {
-                    
-                    //get the event
-                    var event = playbackDataEvents[i];
+                //get the events specific to each branch (slice out the common events at the beginning of both from each branch)
+                var branch1OnlyEvents = branch1CodeEvents.slice(commonEvents.length);
+                var branch2OnlyEvents = branch2CodeEvents.slice(commonEvents.length);
+                
+                //combine the events from the two branches into one set that can be played back
+                var combinedEvents = combineEventPlaybackData(commonEvents, branch1OnlyEvents, branch2OnlyEvents);
 
-                    //if there is an entry in the branch set and it is the exact same event (two events from different branches
-                    //can have the same id but be different)
-                    //if it is a branch event (not a common one)
-                    if(branchEventSet[event.id] && compareEvents(event, branchEventSet[event.id])) {
+                //combine the merged in branch to this playback's data
+                combinedNonEventData = combineNonEventPlaybackData(branch1CodeEvents, playbackData, playbackDataBranch2);
 
-                        //if this is an insert event
-                        if(event.type === "Insert") {
+                //update this playback so the user can view what the merge looks like
+                playbackData.codeEvents = combinedEvents;
+                playbackData.allDeveloperGroups = combinedNonEventData.allDeveloperGroups;
+                playbackData.allDevelopers = combinedNonEventData.allDevelopers;
+                playbackData.allFiles = combinedNonEventData.allFiles;
+                playbackData.allDirs = combinedNonEventData.allDirs;
+                playbackData.comments = combinedNonEventData.comments;
 
-                            //if there is not already an array of conflict events for this file
-                            if(!conflictArraysByFile[event.fileId]) {
+                //reset this playback to display the changes
+                getPlaybackWindowsReadyForAnimation(true);
 
-                                //create an empty array
-                                conflictArraysByFile[event.fileId] = [];
-                            }
-
-                            //get the conflict array for a file
-                            var conflictArray = conflictArraysByFile[event.fileId];
-
-                            //create a special representation of the event
-                            var conflictEvent = {
-                                event: event,
-                                type: branchName
-                            };
-
-                            //get the index of the insert event's previous neighbor
-                            var prevNeighborIndex = findEventInConflictArray(event.previousNeighborId, branchName, conflictArray);
-
-                            //add the event to the conflict array so that it backs up to its previous neighbor
-                            conflictArray.splice(prevNeighborIndex + 1, 0, conflictEvent);
-
-                            //get the previous neighbor conflict event
-                            var prevNeighborEvent = conflictArray[prevNeighborIndex];
-
-                            //if the previous neighbor is a common event, a branch insert backs up to a common insert event
-                            if(prevNeighborEvent.type === "common") {
-
-                                //if it is branch 1
-                                if(branchName === "branch1") {
-                                    
-                                    //indicate that an insert from branch 1 backs up to a common insert event
-                                    prevNeighborEvent.branch1InsertBacksUpToThis = true;
-
-                                } else { //its from branch 2
-                                    
-                                    //indicate that an insert from branch 1 backs up to a common insert event
-                                    prevNeighborEvent.branch2InsertBacksUpToThis = true;
-                                }
-
-                            } //else- the previous neighbor is not common, it comes from the same branch
-
-                        } else if (event.type === "Delete") {
-
-                            //get the index of the insert event's previous neighbor
-                            var prevNeighborIndex = findEventInConflictArray(event.previousNeighborId, branchName, conflictArray);
-
-                            //get the previous neighbor conflict event
-                            var prevNeighborEvent = conflictArray[prevNeighborIndex];
-
-                            //if the previous neighbor is a common event, a branch insert backs up to a common insert event
-                            if(prevNeighborEvent.type === "common") {
-
-                                //if it is branch 1
-                                if(branchName === "branch1") {
-                                    
-                                    //indicate that a delete from branch 1 is deleting a common event                                    
-                                    prevNeighborEvent.deletedbyBranch1 = true;
-
-                                } else { //its from branch 2
-                                    
-                                    //indicate that a delete from branch 1 is deleting a common event
-                                    prevNeighborEvent.deletedbyBranch2 = true;
-                                }
-
-                            } else { //the previous neighbor is not common, it comes from the same branch
-
-	                            //remove it from the conflict array since this will cause no conflicts
-                                conflictArray.splice(prevNeighborIndex, 1);
-                            }
-                        }
-                    }
-                }
-            }
+                //TODO
+                //move to the end of the playback so they can see the final result                
+                //disable anything in the browser that may cause data to be sent back to the browser (comments and title/description changes)
+                //handle file operations that conflict
+            }        
 
             /*
-             * Finds the index of an event based on an event id in a given branch or in the common group. 
+             * Get all of the events that are present in both branches. All common events will be at the beginning of
+             * each collection of events so as soon as one different event is found we know that the common events have
+             * ended.
              */
-            function findEventInConflictArray(eventId, branchName, conflictArray) {
-                
-                //index of event in the conflict array
-                var retVal = -1;
+            function getCommonEvents(playbackDataEventsBranch1, playbackDataEventsBranch2) {
 
-                //go through all of the events in the conflict array
-                for(var i = 0;i < conflictArray.length;i++) {
+                //holds all of the events that are common to both brances
+                var commonEvents = [];
 
-                    //if the event id matches and it is either from the common events or the same branch 
-                    if(conflictArray[i].event.id === eventId && (conflictArray[i].type === "common" || conflictArray[i].type === branchName)) {
-                        
-                        //store the index and stop looking
-                        retVal = i;
+                //go through all of the events (one branch may be shorter than the other)
+                for(var i = 0;i < playbackDataEventsBranch1.length && i < playbackDataEventsBranch2.length;i++) {
+
+                    //if the two events are the same
+                    if(playbackDataEventsBranch1[i].id === playbackDataEventsBranch2[i].id) {
+
+                        //add this to the common events collection
+                        commonEvents.push(playbackDataEventsBranch1[i]);
+
+                    } else { //the two events differ for the first time
+
+                        //stop looking for common events
                         break;
                     }
                 }
 
+                return commonEvents;
+            }
+
+            /*
+             * This function combines the playback data (events) from two separate branches of development. The basic
+             * output of this operation is a group of events that can be played back to show the development of the
+             * first branch, the conflicts that arise when both branches affect the same line(s) of code, and the 
+             * development of the second branch:
+             * 
+             * all common events + non-common branch 1 events + conflict marker events + non-common branch 2 events 
+             * 
+             * These events are then added to the current playback so the user can view how the system merged the 
+             * two branches together. If the user is happy with the merge they can download a copy of the repo.
+             * Line conflicts are identified and need to be resolved by the user. This happens in the new repo.
+             * 
+             * The algorithm is as follows:
+             * - get the final state of the common events as if they were animated in a playback. This is the
+             *   final state of all of the files where the two branches diverge. The events are in the order they
+             *   appeared on the screen at the branch point 
+             * - go through the non-common events in branch 1 and branch 2 and indicate how they affect the common
+             *   events. If a branch 1 or 2 insert event comes after a common event or deletes a common event the 
+             *   common event is marked with a 'branch 1' or 'branch 2' label.
+             * - line conflicts are identified when a branch 1 AND a branch 2 event occur on the same line in the
+             *   common events. When both branches affect the same common line we need to have a developer resolve 
+             *   the changes.
+             *   -- we collect the line(s) of common events that are affected by the conflict along with some 
+             *      surrounding code if it contains some changes from either branch.
+             *   (If one branch affects a line but the other branch does not we do not consider that a conflict
+             *   that needs to be resolved manually)
+             * - we build up some conflict marker events that will get added to the collection of events that will 
+             *   make up a new playback. These events include markers to identify where any line conflicts occurred
+             *   along with a copy of some common events. The second branch needs the same common events as a 
+             *   starting point that branch 1 had. So, copies of the common events are added back and branch 2
+             *   events are updated to affect the copies.
+             * - the events are combined from branch 1, the conflict marker events, and the non-common events from
+             *   branch 2 (the common events from branch 2 will have already been played back from the first branch)
+             * - some comments are added to summarize what happened in the merge
+             */
+            function combineEventPlaybackData(commonEvents, branch1OnlyEvents, branch2OnlyEvents) {
+                
+                //create an object to hold all of the common insert events at the branch point for each common file
+                var commonInsertEventsAtBranchPoint = {};
+
+                //get an ordered collection of insert events as if they were played back up to the branch point
+                //this structure holds the state of the code at the last point the two branches share in common
+                getInsertEventsAtFinalPositions(commonEvents, commonInsertEventsAtBranchPoint, "common", true);
+
+
+                //identify where branch 1 and 2 interact with the common events to find potential conflicts
+                //mark common events that have a branch event that backs up to it (either insert or delete)
+                markCommonEventsFromBranchEvents(branch1OnlyEvents, "branch1", commonInsertEventsAtBranchPoint);
+                markCommonEventsFromBranchEvents(branch2OnlyEvents, "branch2", commonInsertEventsAtBranchPoint);                
+                printAffectedFiles(commonInsertEventsAtBranchPoint);//debug
+
+
+                //identify lines in the common code where both branches have events that affect the same line
+                //and collect information about the conflicts
+                var allConflicts = getConflicts(commonInsertEventsAtBranchPoint);
+                
+
+                //add the non-common events from branch 1 to get a complete set of inserts at the end of branch 1
+                //this is used to get the conflict markers relative to the final state of branch 1
+                getInsertEventsAtFinalPositions(branch1OnlyEvents, commonInsertEventsAtBranchPoint, "branch1", false);
+
+                //an object that holds the ids of events that were copied from the common events and used to resolve conflicts
+                //the events in branch 2 will need to refer to these copies rather than the original common events
+                var copiedEventIdMap = {};
+
+                //get the conflict marker events (markers where the conflicts begin and end along with copies of the common events
+                //that are needed for branch 2's events to work correctly)
+                var conflictMarkerEvents = getConflictMarkerEvents(allConflicts, commonInsertEventsAtBranchPoint, copiedEventIdMap);
+
+                //make the branch 2 events refer to the copies of common events that were created in the last step instead of the originals
+                updateBranchEventsToReferToCopies(copiedEventIdMap, branch2OnlyEvents);
+
+
+                //collect the events to add to a new playback
+                var allEventsInNewRepo = [];
+                
+                //add the common events
+                for(var i = 0;i <commonEvents.length;i++) {
+                    allEventsInNewRepo.push(commonEvents[i]);
+                }
+
+                //add the branch 1 events
+                for(var i = 0;i <branch1OnlyEvents.length;i++) {
+                    allEventsInNewRepo.push(branch1OnlyEvents[i]);
+                }
+
+                //next add the conflict marker events
+                for(var i = 0;i <conflictMarkerEvents.length;i++) {
+                    allEventsInNewRepo.push(conflictMarkerEvents[i]);
+                }
+
+                //finally, add the events (not the common ones) from branch2
+                for(var i = 0;i <branch2OnlyEvents.length;i++) {
+                    allEventsInNewRepo.push(branch2OnlyEvents[i]);
+                }
+
+                //TODO add comments to the events to describe what has happened in the merge
+
+                return allEventsInNewRepo;
+            }
+
+            /*
+             * This function will get all of the insert events at a point in time in the order they appear on the screen. 
+             * 'Create file' events will create a new collection for each file. An 'insert' event will be added after its
+             * previous neighbor. A 'delete' event will either remove the insert referred to by its previous neighbor or
+             * mark the previous neighbor as deleted depending on the parameter passed in. A branch name will be added
+             * to each node specifying where the event came from (common, branch 1, branch 2, merge algo)
+             * 
+             * A Linked list is created to hold the insert events in order. A hash map is used to quickly find where to
+             * insert and remove linked list nodes.
+             *
+             * The parameter allInsertEventsByFile holds the linked lists of events by file (the fileId is the key in this 
+             * object, a linked list/map is the value).
+             * 
+             * The parameter removeDeletedNodes specifies whether to remove nodes from the linked list/map that are deleted 
+             * by delete events. If this is false, the nodes are left in the linked list but marked as deleted. 
+             */
+            function getInsertEventsAtFinalPositions(allEvents, allInsertEventsByFile, sourceOfEvent, removeDeletedNodes) {
+                
+                //reference to the current event that will affect the list
+                var currentEvent;
+
+                //go through all of the events
+                for(var i = 0;i < allEvents.length;i++) {
+                    
+                    //get the next event
+                    currentEvent = allEvents[i];
+
+                    //insert the current event in the linked list
+                    insertEventInLinkedListMap(currentEvent, allInsertEventsByFile, sourceOfEvent, removeDeletedNodes);
+                }
+
+                return allInsertEventsByFile;
+            }
+            
+            /*
+             * This function will take an event and use it to alter the representation of the files. A 'Create File' event
+             * will add a new entry for a file. An 'Insert' event will result in a new node being added to a linked list.
+             * The new node will be placed after the node specified by the event's previous neighbor id. A 'Delete' event
+             * will cause a node to be removed based on the event's previous neighbor id or the previous neighbor will be
+             * marked and the node will remain. This recreates a file that is played back.
+             * 
+             * In order to make this an efficient operation a hash map is used in addition to a linked list to find nodes
+             * by their previous neighbor id. Every time a new node is added to the linked list an entry is made in the hash
+             * map that holds a reference to the node with that event's id as the key. When a node is removed the hash map
+             * is adjusted by removing the key/value pair for that node. 
+             */
+            function insertEventInLinkedListMap(currentEvent, allInsertEventsByFile, sourceOfEvent, removeDeletedNodes) {
+
+                //if the current event is a create file event
+                if(currentEvent.type === "Create File") {
+                    
+                    //create a dummy node so that all first characters in a file can refer back to a node
+                    var firstNode = {
+                        event: null,                    //no real event
+                        next: null,                     //link to the next node
+                        previous: null,                 //link to the previous node
+                        createdByBranch: sourceOfEvent  //the branch that is responsible for creating this insert event
+                    };
+
+                    //create the empty linked list for a specified file
+                    allInsertEventsByFile[currentEvent.fileId] = {                        
+                        head: firstNode,                //reference to the first node in the file
+                        tail: firstNode,                //reference to the last node in the file
+                        nodeMap: {"none": firstNode},   //used to identify nodes in the linked list ("none" is the prev neighbor id for all first characters in a file)
+                        numNodes: 1,                    //the number of nodes stored in the node map
+                        createdByBranch: sourceOfEvent  //the branch that is responsible for creating this file
+                    };
+
+                } else if(currentEvent.type === "Insert") { //insert event
+
+                    //get the list of insert events for the file this event is in
+                    var allInsertsInAFile = allInsertEventsByFile[currentEvent.fileId];
+
+                    //create a new node
+                    var newNode = {
+                        event: currentEvent,            //the insert event
+                        next: null,                     //link to the next node
+                        previous: null,                 //link to the previous node
+                        createdByBranch: sourceOfEvent  //the branch that is responsible for creating this insert event
+                    };
+
+                    //if this insert event is the first character in a file (it has a 'none' previous neighbor id)
+                    if(currentEvent.previousNeighborId === "none") {
+
+                        //set the new node's next to be the dummy head's next
+                        newNode.next = allInsertsInAFile.head.next;
+                        
+                        //set the new node's previous to the dummy node
+                        newNode.previous = allInsertsInAFile.head;
+
+                        //if there is a node past the dummy node
+                        if(allInsertsInAFile.head.next) {
+
+                            //set the previous of the node after the dummy node to this new node
+                            allInsertsInAFile.head.next.previous = newNode;
+                        
+                        } else { //there are no nodes other than the dummy head node
+
+                            //make the new node the tail
+                            allInsertsInAFile.tail = newNode;
+                        }
+
+                        //make the dummy node's next point to the new node
+                        allInsertsInAFile.head.next = newNode;
+
+                    } else if(currentEvent.previousNeighborId === allInsertsInAFile.tail.event.id) { //this is an insert at the end of the file
+
+                        //set the new node's previous to be the current tail
+                        newNode.previous = allInsertsInAFile.tail;
+
+                        //set the old tail's next to this new node
+                        allInsertsInAFile.tail.next = newNode;
+                        
+                        //add the tail node to the list
+                        allInsertsInAFile.tail = newNode;
+
+                    } else { //this is an insert somewhere in the middle of the file
+
+                        //use the event's previous neighbor id to find the node in the linked list that this event refers to
+                        var previousNode = allInsertsInAFile.nodeMap[currentEvent.previousNeighborId];
+
+                        //get the next node 
+                        var nextNode = previousNode.next;
+
+                        //set the new node's next and previous
+                        newNode.next = nextNode;
+                        newNode.previous = previousNode;
+
+                        //update the surrounding nodes
+                        previousNode.next = newNode;
+
+                        //if there is a next node (an empty file will only have a dummy node)
+                        if(nextNode) {
+
+                            //adjust the next node's previous
+                            nextNode.previous = newNode;
+                        }
+                    }
+                    
+                    //store a reference to the new node that can be looked up by event id
+                    allInsertsInAFile.nodeMap[currentEvent.id] = newNode;
+
+                    //increase the size of the list
+                    allInsertsInAFile.numNodes++;
+                
+                } else if(currentEvent.type === "Delete") { //delete event
+
+                    //get the list of insert events for the file this event is in
+                    var allInsertsInAFile = allInsertEventsByFile[currentEvent.fileId];
+                
+                    //get the node that holds the insert event that is deleted
+                    var deletedNode = allInsertsInAFile.nodeMap[currentEvent.previousNeighborId];
+
+                    //if the user wants to remove the nodes from the linked list/map
+                    if(removeDeletedNodes) {
+
+                        //if the deleted node is the last one in the list (the dummy head will never be removed by an event)
+                        if (deletedNode === allInsertsInAFile.tail) { 
+                            
+                            //make the tail point to the second to last node
+                            allInsertsInAFile.tail = deletedNode.previous;
+                            
+                            //set the new tails's next to null (it is the new end of the list)
+                            allInsertsInAFile.tail.next = null;
+
+                        } else { //this is a node in the middle of the list
+
+                            //rearrange the nodes on either side of the deleted node
+                            deletedNode.previous.next = deletedNode.next;
+                            deletedNode.next.previous = deletedNode.previous;
+                        }
+
+                        //decrease the size of the list
+                        allInsertsInAFile.numNodes--;
+
+                        //delete the node from the map of all nodes
+                        delete allInsertsInAFile.nodeMap[currentEvent.previousNeighborId];
+                    
+                    } else { //the user would like the deleted node to stay but be marked as deleted
+
+                        //mark the branch that deleted this event
+                        deletedNode["deletedBy"] = sourceOfEvent;
+                    }
+
+                } //else- an event type that will not affect the final group of insert events
+            }
+
+            /*
+             * This function takes a collection of events from one of the branches and if the branch event inserts
+             * after a common event or deletes a common event then the common event is marked as being affected.
+             * This is used later to see if both branches affect events on the same line of common events. If so,
+             * we have a conflict that will need to be resolved by a human. 
+             */
+            function markCommonEventsFromBranchEvents(events, branchName, commonInsertEventsAtBranchPoint) {
+                
+                //go through all of the events in the branch
+                for(var i = 0;i < events.length;i++) {
+                    
+                    //get the next branch event
+                    branchEvent = events[i];
+
+                    //get the inserts for the event's file
+                    var allCommonInsertsInAFile = commonInsertEventsAtBranchPoint[branchEvent.fileId];
+
+                    //if this is a file in the common set of files (not a new file to this branch)
+                    if(allCommonInsertsInAFile) {
+
+                        //get the linked list node that the insert backs up to
+                        var affectedCommonNode = allCommonInsertsInAFile.nodeMap[branchEvent.previousNeighborId];
+
+                        //if there is a node that means the event backs up to a common event
+                        if(affectedCommonNode) {
+
+                            //we only care about insert and delete events that may cause a conflict
+                            if(branchEvent.type === "Insert") { //insert event
+                                
+                                //add a member that says the branch contributed an insert event to the common event
+                                affectedCommonNode[branchName + "Insert"] = true;
+
+                            } else if(branchEvent.type === "Delete") { //delete event
+
+                                //add a member that says the branch contributed a delete event to the common event
+                                affectedCommonNode[branchName + "Delete"] = true;
+                        
+                            } //else- this is not an event that will cause a conflict
+
+                        } //else- this event backs up to a newer branch event
+
+                    } //else- this is not a common file, it is specific to one of the branches
+                }
+            }
+
+            /*
+             * Helper to help debugging the state of the common events after the branch events have been marked
+             */
+            function printAffectedFiles(commonInsertEventsAtBranchPoint) {
+
+                //text from the file with +/- for insert and delete and 1/2 for either branch
+                var text = "";
+
+                //go through all of the common files
+                for (var fileId in commonInsertEventsAtBranchPoint) {
+                    if (commonInsertEventsAtBranchPoint.hasOwnProperty(fileId)) {
+                        
+                        text += "\n**** " + fileId + " ****\n"
+
+                        //get the ordered inserts for the event's file
+                        var allCommonInsertsInAFile = commonInsertEventsAtBranchPoint[fileId];
+
+                        //get the start of the text (bypass the dummy node)
+                        var node = allCommonInsertsInAFile.head;
+
+                        //while there are more nodes to process
+                        while(node) {
+                            
+                            //if there is an event in the node (there is a dummy node at the beginning of every file)
+                            if(node.event) {
+
+                                //if it is a non-printable carriage return
+                                if(node.event.character === "\r") {
+
+                                    //add some text for the carriage return
+                                    text += "\\r";    
+
+                                } else if(node.event.character === "\n") { //non-printable newline
+
+                                    //add a visible newline and then a real newline
+                                    text += "\\n";    
+
+                                } else { //a printable character
+
+                                    //add the character to the output
+                                    text += node.event.character;
+                                } 
+
+                            } else { //first node
+
+                                //add a marker to indicate the beginning
+                                text += "*";
+                            }
+
+                            //if a branch affected the node add one or more markers
+                            if(node.branch1Insert) {
+                                text += "(+1)"
+                            }
+                            if(node.branch1Delete) {
+                                text += "(-1)"
+                            }
+
+                            if(node.branch2Insert) {
+                                text += "(+2)"
+                            }
+                            if(node.branch2Delete) {
+                                text += "(-2)"
+                            }
+                            
+                            //if the character was a newline
+                            if(node.event && node.event.character === "\n") { 
+
+                                //add a visible newline and then a real newline
+                                text += "\n";    
+                            }
+                            
+                            //move on to the next node
+                            node = node.next;
+                        }
+                    }
+                }
+
+                //display the text
+                console.log(text);
+            }
+
+            /*
+             * When both branches make a change on the same common line of code then a human must resolve which events are valid 
+             * and which are not. This function finds lines of the common code that both branches have affected (either with inserts
+             * or deletes). Once a conflict line has been found on a line all of the common events that are on that line are 
+             * collected (and eventually copied) so that branch 2 has the same common code to work from. 
+             *
+             * If there are any changes to the lines above or below a conflict line from branch 1 and branch 2 those lines are collected 
+             * too so that groups of lines that have changed can be considered together. Doing this attempts to collect groups of changes 
+             * to lines in order to minimize the number of conflict markers. It would be inconvenient, for example, if several lines
+             * of deletes had their own conflict markers for each line. We are trying to group changes to contiguous lines because
+             * they may be related.
+             * 
+             * The conflict events are defined as the events in between the start and end of the conflict lines along with any contiguous
+             * lines directly above or below a conflict line that has been affected by either one of the two branches. 
+             */
+            function getConflicts(commonInsertEventsAtBranchPoint) {
+                
+                //holds information about each line conflict in all of the files
+                var allLineConflictsByFile = {};
+
+                //go through all of the common files
+                for (var fileId in commonInsertEventsAtBranchPoint) {
+                    if (commonInsertEventsAtBranchPoint.hasOwnProperty(fileId)) {
+                        
+                        //every file starts with an empty array of line conflicts
+                        allLineConflictsByFile[fileId] = [];
+
+                        //get the ordered inserts for the event's file
+                        var allCommonInsertsInAFile = commonInsertEventsAtBranchPoint[fileId];
+
+                        //holds the events in a line(s) that are in conflict 
+                        var commonConflictEvents = [];
+                        
+                        //a flag that says whether we need to make a conflict object or not
+                        var createConflictObject = false;
+
+                        //break the file into lines of nodes (with an extra empty unaffected line at the end)
+                        var lines = breakFileIntoLines(allCommonInsertsInAFile.head);                        
+                        
+                        //go through all of the lines
+                        for(var i = 0;i < lines.length;i++) {
+
+                            //get the affect that the branches have on a line ("both", "branch 1", "branch 2", "neither")
+                            var affectOnLine = checkLine(lines[i]);
+
+                            //if at least one of the branches affected the line
+                            if(affectOnLine === "branch 1" || affectOnLine === "branch 2" || affectOnLine === "both") {
+
+                                //add the events from this line to the collection of events that will be considered in conflict
+                                addConflictEventsFromLine(lines[i], commonConflictEvents);
+
+                                //if both branches had an affect on the same line then there was a conflict on this line
+                                if(affectOnLine === "both") {
+
+                                    //record that we must create a conflict object on the next unaffected line
+                                    createConflictObject = true;
+                                }
+
+                            } else { //neither branch affected this line
+
+                                //if there was a conflict since the last unaffected line AND 
+                                //there are some common events (on an empty file there will not be any)
+                                if(createConflictObject && commonConflictEvents.length > 0) {
+
+                                    //create the conflict
+                                    var conflictInfo = {                                            
+                                        events: commonConflictEvents //get all of the events on and around the conflict line
+                                    };
+
+                                    //add the conflict info for this file
+                                    allLineConflictsByFile[fileId].push(conflictInfo);
+
+                                    //reset for next time
+                                    createConflictObject = false;
+                                }
+
+                                //clear the collection of events for the next time around
+                                commonConflictEvents = [];                                
+                            }
+                        }
+                    }
+                }
+
+                return allLineConflictsByFile;
+            }
+
+            /*
+             * This takes a linked list of nodes with insert events and turns them into arrays of lines. Each line has one or more
+             * nodes in them. The last node in each line (except the last line in the file) is a newline. We duplicate
+             * this newline as the first node on the next line so that any branch event that is inserted after the common newline 
+             * will be considered part of the next line instead of the current line. So, the first element of every array will either
+             * be the dummy node at the beginning of the file or a duplicate newline from the previous line.
+             * 
+             * An extra line is added at the end so that a file always ends with an unaffected line. This makes identifying conflicts 
+             * easier when the last line does not have a newline character at the end of it.
+             */
+            function breakFileIntoLines(node) {
+
+                //a two dimensional collection of nodes broken up by line
+                //create an array for the first line 
+                var lines = [ [] ];
+
+                //while there are more lines
+                while(node) {
+
+                    //add the node to the latest line 
+                    lines[lines.length - 1].push(node);
+
+                    //if we have come to the end of a line
+                    if(node.event && node.event.character === "\n") {
+
+                        //create a new line array with the last node in it (we consider each newline at the beginning and end of each line)
+                        var nextLine = [node];
+
+                        //add the new line 
+                        lines.push(nextLine);
+                    }
+
+                    //move to the next node
+                    node = node.next;
+                }
+
+                //add an empty, unaffected line at the end of the file to make handling the last line easier
+                lines.push([]);
+
+                return lines;
+            }
+
+            /*
+             * Checks a line to see if either branch has affected it. The function returns "neither" if neither branch affects
+             * the line. It returns "both" if both branches affect a line. It returns either "branch 1" or "branch 2" if only 
+             * one branch affects a line.
+             *
+             * The last element is not checked to see if it has an insert affect because the first node in each line is either 
+             * a dummy node or a duplicate of the previous line's newline. The last node in the line is not checked for an insert 
+             * affect because we want those to count for the next line. This is why the newlines are duplicated on the each new 
+             * line.
+             */
+            function checkLine(lineOfNodes) {
+
+                //assume that neither branch affected this line
+                var retVal = "neither";
+
+                //if there are any nodes in the line (we added an extra empty line at the end of the file)
+                if(lineOfNodes.length > 0) {
+
+                    //used to determine whether a line has a conflict
+                    var affectOnABranch = {
+                        branch1Affected: false,
+                        branch2Affected: false
+                    };
+
+                    //we check the first node for its insert affect only (the first node of each line is either the 
+                    //dummy node or a duplicate of the previous line's newline we handle those deletes at the end of
+                    //the previous line)
+                    getInsertAffectOnLine(lineOfNodes[0], affectOnABranch);
+
+                    //go through the second to the second to last element
+                    for(var i = 1;i < lineOfNodes.length - 1;i++) {
+
+                        //we check all of the interior nodes for both insert and delete
+                        getInsertAffectOnLine(lineOfNodes[i], affectOnABranch);
+                        getDeleteAffectOnLine(lineOfNodes[i], affectOnABranch);
+                    }
+
+                    //if this is the last node in a file
+                    if(lineOfNodes[lineOfNodes.length - 1].next === null) {
+                        
+                        //we check the last node in the file for an insert affect only
+                        getInsertAffectOnLine(lineOfNodes[lineOfNodes.length - 1], affectOnABranch);                    
+                    
+                    } //else- not the last node in the last line in the file, we don't check these for insert affect
+
+                    //we check the last node for delete only
+                    getDeleteAffectOnLine(lineOfNodes[lineOfNodes.length - 1], affectOnABranch);
+                    
+                    //now evaluate based on what happened in the line
+                    if(affectOnABranch.branch1Affected && affectOnABranch.branch2Affected) {
+                        retVal = "both";
+                    } else if(affectOnABranch.branch1Affected) {
+                        retVal = "branch 1";
+                    } else if(affectOnABranch.branch2Affected) {
+                        retVal = "branch 2";
+                    } //else- default of "neither"
+                }
+
                 return retVal;
             }
 
             /*
-             * Identifies conflicts in each file's conflict array 
+             * Checks whether a branch event was inserted after a common event
              */
-            function identifyConflicts(conflictArraysByFile, insertConflictsByFile, deleteConflictsByFile) {
+            function getInsertAffectOnLine(node, affectOnABranch) {
+                
+                //if branch 1 affected this common node with an insert
+                if(node.branch1Insert) {
+                    
+                    //mark the node
+                    affectOnABranch.branch1Affected = true;
+                }
 
-                //go through each file's conflict array
-                for (var fileId in conflictArraysByFile) {
-                    if (conflictArraysByFile.hasOwnProperty(fileId)) {
+                //if branch 2 affected this common node with an insert
+                if(node.branch2Insert) {
+                    
+                    //mark the node
+                    affectOnABranch.branch2Affected = true;
+                }
+            }
 
-                        //get the conflict array for a file
-                        var conflictArray = conflictArraysByFile[fileId];
+            /*
+             * Checks whether a branch event deleted a common event
+             */
+            function getDeleteAffectOnLine(node, affectOnABranch) {
+                
+                //if branch 1 affected this common node with a delete
+                if(node.branch1Delete) {
+                    
+                    //mark the node
+                    affectOnABranch.branch1Affected = true;
+                }
 
-                        //go through all the events in the conflict array
-                        for(var i = 0;i < conflictArray.length;i++) {
-                            
-                            //get the conflict event
-                            var conflictEvent = conflictArray[i];
+                //if branch 2 affected this common node with a delete
+                if(node.branch2Delete) {
+                    
+                    //mark the node
+                    affectOnABranch.branch2Affected = true;
+                }
+            }
 
-                            //conflicts only happen at common events, so check on each one
-                            if(conflictEvent.type === "common") {
+            /*
+             * Copis the events from the nodes in a line skipping the first node since it is either a dummy node or a duplicate
+             * of the previous line's newline.
+             */
+            function addConflictEventsFromLine(lineOfNodes, commonConflictEvents) {
+
+                //the first element on each line is a duplicate of the last node on the previous line (or a dummy node if its 
+                //the first line) so always ignore the first element and collect the events from the rest of the line
+                for(var i = 1;i < lineOfNodes.length;i++) {
+
+                    //add the event from the node
+                    commonConflictEvents.push(lineOfNodes[i].event);
+                }
+            }
+
+            /*
+             * This generates new events to be added to a playback. The events mark where the conflict lines begin and end and also
+             * are copies of the common code so that the second branch events can work from a known starting state.
+             *
+             * There are two important points for each conflict:
+             * - the start of the line where there is a conflict 
+             * - the end of the line where there is a conflict 
+             * A conflict marker will be added before the start of the conflict line to identify where branch 1's state begins.
+             * A conflict marker will be added after the conflict line to mark where branch 1's version ends and branch 2 begins.
+             * Copies of the common events will be added after the second conflict marker which holds copies of the common events.
+             * A final conflict marker will come after the copies of the events to mark where branch 2's state ends.
+             * The events from branch 2 will be altered so that if they refer to one of the events that was copied they will now
+             * refer to those copies instead of the original common events. This will make the second branch work from the copies
+             * and the user can see how the second branch affected the common code.
+             * 
+             * Afterwards the user will see branch 1's final state along with branch 2's final state. The user can then resolve
+             * the conflicts manually.
+             *
+             * An array of all of the conflict events is passed in. The final state of branch 1 is also passed in so that the markers
+             * can be added to the correct positions of the code that will be on the screen at that point. A map of copied events is
+             * passed in so that they can be updated in branch 2 later.
+             */
+            function getConflictMarkerEvents(allConflicts, branch1EventsAtEnd, copiedEventIdMap) {
+
+                //create a new branch for these conflict marker events
+                var newBranchId = createRandomNumberBase62(5);
+
+                //sequence number
+                var uniqueId = 0;
+
+                //get the timestamp of the merge- all conflict marker events will have the same timestamp
+                var timestamp = new Date().getTime();
+
+                //holds all of the new resolution events 
+                var allConflictMarkerEvents = [];
+
+                //go through all of the conflicts by file
+                for (var fileId in allConflicts) {
+                    if (allConflicts.hasOwnProperty(fileId)) {
+
+                        //get the conflict data for a file
+                        var setOfConflictsByFile = allConflicts[fileId];
+
+                        //if there are any conflicts for this file (there may be some branch 1 created files in this object that will not have any conflicts)
+                        if(setOfConflictsByFile) {
+
+                            //go through all of the individual conflicts in this file
+                            for(var i = 0;i < setOfConflictsByFile.length;i++) {
+
+                                //text to insert to identify where the two branches start and stop
+                                var branch1BeginIdentifyingtext = "<=~b1~=>\r\n";//"<== Branch 1 begins ==>\r\n";
+                                var branch2BeginIdentifyingtext = "<=~b2~=>\r\n";//"<== Branch 1 ends, Branch 2 begins ==>\r\n";
+                                var branch2EndIdentifyingtext = "<=~~=>";//"<== Branch changes end ==>";
+
+                                //get a conflict object
+                                var conflict = setOfConflictsByFile[i];
+
+                                //holds the nodes in branch 1 where the conflicts will go
+                                var startOfConflictNodeFromBranch1;
+                                var endOfConflictNodeFromBranch1;
+
+                                //get the start and end events for this conflict (the event objects are from the common collection not branch 1)
+                                var firstConflictEvent = conflict.events[0];
+                                var lastConflictEvent = conflict.events[conflict.events.length - 1];
                                 
-                                //if this common event has a new insert that backs up to it
-                                if(conflictEvent.branch1InsertBacksUpToThis === true) {
+                                //search for the beginning of the line in branch 1 (the conflict events are from the common code- there may be
+                                //some branch 1 events that have been added. We want to get to the beginning of the line)
+                                var searchNode = branch1EventsAtEnd[fileId].nodeMap[firstConflictEvent.id];
+
+                                //while we haven't reached the beginning of the file
+                                while(searchNode) {
+
+                                    //record the latest node relative to the start of the conflict
+                                    startOfConflictNodeFromBranch1 = searchNode;
+
+                                    //if we have reached the beginning of the file OR the last common newline that has not been deleted
+                                    if(searchNode.previous === null || (searchNode.event.character === "\n" && searchNode.createdByBranch === "common" && !searchNode.deletedBy)) {
+                                        
+                                        //stop looking
+                                        break;
+                                    }
+
+                                    //move to the previous node
+                                    searchNode = searchNode.previous;
+                                }                                
+                                
+                                //search for the end of the line in branch 1 (the conflict events are from the common code- there may be
+                                //some branch 1 events that have been added. We want to get to the end of the line)
+                                searchNode = branch1EventsAtEnd[fileId].nodeMap[lastConflictEvent.id];
+
+                                //while we haven't reached the end of the file
+                                while(searchNode) {
+
+                                    //record the latest node relative to the end of the conflict
+                                    endOfConflictNodeFromBranch1 = searchNode;
+
+                                    //if we have reached the end of the file OR the last common newline that has not been deleted
+                                    if(searchNode.next === null || (searchNode.event.character === "\n" && searchNode.createdByBranch === "common" && !searchNode.deletedBy)) {
+                                        break;
+                                    }
+
+                                    //move to the next node
+                                    searchNode = searchNode.next;
+                                }
+                                                                                                
+                                //add some events that id where the conflict starts in branch 1
+                                //go through the each character and create an event for it
+                                for(var j = 0;j < branch1BeginIdentifyingtext.length;j++) {
                                     
-                                    //if the common event was also deleted by the other branch
-                                    if(conflictEvent.deletedbyBranch2 === true) {
+                                    //get a character to display
+                                    var eventCharacter = branch1BeginIdentifyingtext[j];
 
-                                        //delete conflict
-                                        getDeleteConflict(conflictArray, i);
+                                    //create a code event
+                                    var newEvent = {
+                                        id: "ev_" + newBranchId + "_" + uniqueId++, //generate a unique id
+                                        timestamp: timestamp, //use the same timestamp
+                                        type: "Insert", //inserting new text
+                                        character: eventCharacter, //the character from the string above
+                                        previousNeighborId: null, //set below based on the node
+                                        createdByDevGroupId: playbackData.currentDevGroupId, //dev group
+                                        lineNumber: -1, //we don't know the exact line number/column where this event will land yet- use defaults
+                                        column: -1,
+                                        fileId: fileId, 
+                                        pastedEventId: null //this is not a copy of an existing event
+                                    };
 
-                                    } else if(conflictEvent.nextCommon.deletedbyBranch2 === true) { //the common event after this one was deleted by the other branch
+                                    //if this is the first character in the string
+                                    if(j === 0) {
 
-                                        //delete conflict
-                                        getDeleteConflictNeighbor();
+                                        //if the node in branch 1 has an event (the dummy node at the head of every list does not have one)
+                                        if(startOfConflictNodeFromBranch1.event) {
+
+                                            //use the previous node's event id for the previous neighbor
+                                            newEvent.previousNeighborId = startOfConflictNodeFromBranch1.event.id;
+
+                                        } else { //the node does not have an event (first character in a file)
+
+                                            //the first character in a file always has a previous neighbor of 'none'
+                                            newEvent.previousNeighborId = "none";
+                                        }
+
+                                    } else { //this is beyond the first character in the string
+
+                                        //make the prev neighbor the last new event that we created
+                                        newEvent.previousNeighborId = allConflictMarkerEvents[allConflictMarkerEvents.length - 1].id;
                                     }
 
-                                } else if (conflictEvent.branch2InsertBacksUpToThis === true) { //if this common event has a new insert that backs up to it
+                                    //add the new resolution event into the collection of branch1 events so that future conflicts can refer to these new events 
+                                    insertEventInLinkedListMap(newEvent, branch1EventsAtEnd, "merge algo", false);
 
-                                    //if the common event was also deleted by the other branch                                    
-                                    if(conflictEvent.deletedbyBranch1 === true) {
-
-                                        //delete conflict
-                                        getDeleteConflict();
-
-                                    } else if(conflictEvent.nextCommon.deletedbyBranch1 === true) { //the common event after this one was deleted by the other branch
-
-                                        //delete conflict
-                                        getDeleteConflictNeighbor();
-                                    }
-                                } 
-                                
-                                //there are inserts from both branches backing up to a single common event
-                                if(conflictEvent.branch1InsertBacksUpToThis === true && conflictEvent.branch2InsertBacksUpToThis === true) { 
-                                
-                                    //if there isn't an array of insert conflicts for this file yet
-                                    if(!insertConflictsByFile[fileId]) {
-
-                                        //create an empty one
-                                        insertConflictsByFile[fileId] = [];
-                                    }
-
-                                    //get the array of insert conflicts for the file 
-                                    var insertConflicts = insertConflictsByFile[fileId];
-
-                                    //create and insert conflict
-                                    var insertConflict = getInsertConflict(conflictArray, i);
-
-                                    //add it to the collection
-                                    insertConflicts.push(insertConflict);
+                                    //add the new event
+                                    allConflictMarkerEvents.push(newEvent);
                                 }
 
-                                //there are deletes from both branches backing up to a single common event
-                                if(conflictEvent.deletedbyBranch1 === true && conflictEvent.deletedbyBranch2 === true) { 
+
+                                //add some events that id where the conflict ends in branch 1 and starts in branch 2
+
+                                //if the last character is not a newline (happens when a change happens on the last line of a file without a newline)
+                                if(endOfConflictNodeFromBranch1.event.character !== "\n") {
+
+                                    //add a newline to the beginning of the text
+                                    branch2BeginIdentifyingtext = "\r\n" + branch2BeginIdentifyingtext;
+                                }
                                 
-                                    //delete conflict
-                                    //getConflictInsert();
+                                //go through the each character and create an event for it
+                                for(var j = 0;j < branch2BeginIdentifyingtext.length;j++) {
+
+                                    //get a character to display
+                                    var eventCharacter = branch2BeginIdentifyingtext[j];
+
+                                    //create a code event
+                                    var newEvent = {
+                                        id: "ev_" + newBranchId + "_" + uniqueId++, //generate a unique id
+                                        timestamp: timestamp, //use the same timestamp
+                                        type: "Insert", //inserting new text
+                                        character: eventCharacter, //the character from the string above
+                                        previousNeighborId: null, //set below
+                                        createdByDevGroupId: playbackData.currentDevGroupId, //dev group
+                                        lineNumber: -1, //we don't know the exact line number/column where this event will land yet- use defaults
+                                        column: -1,
+                                        fileId: fileId,
+                                        pastedEventId: null //this is not a copy of an existing event
+                                    };
+
+                                    //if this is the first character in the string
+                                    if(j === 0) {
+
+                                        //make the prev neighbor the end of the conflict event from branch 1
+                                        newEvent.previousNeighborId = endOfConflictNodeFromBranch1.event.id;
+                                    
+                                    } else { //not the first character in the string
+
+                                        //make the prev neighbor the last new event that we created
+                                        newEvent.previousNeighborId = allConflictMarkerEvents[allConflictMarkerEvents.length - 1].id;
+                                    }
+
+                                    //add the new resolution event into the collection of branch1 events so that future conflicts can refer to these new events 
+                                    insertEventInLinkedListMap(newEvent, branch1EventsAtEnd, "merge algo", false);
+
+                                    //add the new event
+                                    allConflictMarkerEvents.push(newEvent);
                                 }
 
-                            } //else- not a common event, no conflicts can happen in non-common events
+
+                                //now make copies of the common events so that the second branch can work from a consistent starting state when the branch occurred
+                                for(var j = 0;j < conflict.events.length;j++) {
+
+                                    //copy the common event
+                                    var copyOfEvent = Object.assign({}, conflict.events[j]); 
+                                    
+                                    //update the copied event
+                                    copyOfEvent.id = "ev_" + newBranchId + "_" + uniqueId++; //generate a unique id
+                                    copyOfEvent.timestamp = timestamp; //use the same timestamp
+                                    copyOfEvent.previousNeighborId = allConflictMarkerEvents[allConflictMarkerEvents.length - 1].id; //make the prev neighbor the last new event that we created
+                                    copyOfEvent.lineNumber = -1; //we don't know the exact line number/column where this event will land yet- use defaults
+                                    copyOfEvent.column = -1;
+                                    copyOfEvent.pastedEventId = conflict.events[j].id; //mark this new event as a copy of another (the common event)
+
+                                    //add the new resolution event into the collection of branch1 events so that future conflicts can refer to these new events 
+                                    insertEventInLinkedListMap(copyOfEvent, branch1EventsAtEnd, "merge algo", false);
+
+                                    //add the new event
+                                    allConflictMarkerEvents.push(copyOfEvent);
+
+                                    //store the id of the original event and the new copy's new id (these will be changed in all of the branch 2 
+                                    //events so that they refer to the copies not the originals)  
+                                    copiedEventIdMap[conflict.events[j].id] = copyOfEvent.id;                                    
+                                }
+                                
+
+                                //add some events that id where the conflicts end
+
+                                //if the last character is not a newline (happens when a change happens on the last line of a file)
+                                if(allConflictMarkerEvents[allConflictMarkerEvents.length - 1].character !== "\n") {
+
+                                    //add a newline to the beginning of the text
+                                    branch2EndIdentifyingtext = "\r\n" + branch2EndIdentifyingtext;
+
+                                } else {
+
+                                    //add a newline to the end of the text
+                                    branch2EndIdentifyingtext = branch2EndIdentifyingtext + "\r\n";
+                                    
+                                }
+
+                                //go through the each character and create an event for it
+                                for(var j = 0;j < branch2EndIdentifyingtext.length;j++) {
+
+                                    //get a character to display
+                                    var eventCharacter = branch2EndIdentifyingtext[j];
+
+                                    //create a code event
+                                    var newEvent = {
+                                        id: "ev_" + newBranchId + "_" + uniqueId++, //generate a unique id
+                                        timestamp: timestamp, //use the same timestamp
+                                        type: "Insert", //inserting new text
+                                        character: eventCharacter, //the character from the string above
+                                        previousNeighborId: allConflictMarkerEvents[allConflictMarkerEvents.length - 1].id, //make the prev neighbor the last new event that we created
+                                        createdByDevGroupId: playbackData.currentDevGroupId, //dev group
+                                        lineNumber: -1, //we don't know the exact line number/column where this event will land yet- use defaults
+                                        column: -1,
+                                        fileId: fileId,
+                                        pastedEventId: null //this is not a copy of an existing event
+                                    };
+
+                                    //add the new resolution event into the collection of branch1 events so that future conflicts can refer to these new events 
+                                    insertEventInLinkedListMap(newEvent, branch1EventsAtEnd, "merge algo", false);
+
+                                    //add the new event
+                                    allConflictMarkerEvents.push(newEvent);
+                                }
+                            }                            
+                        }
+                    }
+                }
+
+                return allConflictMarkerEvents;
+            }
+
+            /*
+             * This function updates the events in branch 2 to refer to the new conflict marker copied events.
+             * This includes insert and delete events from branch 2 that have a previous neighbor that was copied
+             * and pasted event ids.
+             */
+            function updateBranchEventsToReferToCopies(copiedEventIdMap, branch2Events) {
+
+                //go through all of the branch events
+                for(var i = 0;i <branch2Events.length;i++) {
+
+                    //get the branch event 
+                    var branchEvent = branch2Events[i];
+                    
+                    //if the branch event is an insert or a delete
+                    if(branchEvent.type === "Insert" || branchEvent.type === "Delete") {
+
+                        //we can't guarantee that the line/column numbers are correct with all of the new code that was added 
+                        //in the resoultion, clear them (with the special value -1)
+                        branchEvent.lineNumber = -1;
+                        branchEvent.column = -1;
+                        
+                        //if the branch event backs up to one of the copied common events
+                        if(copiedEventIdMap[branchEvent.previousNeighborId]) {
+
+                            //change the branch event's previous neighbor to the id of the copied event
+                            branchEvent.previousNeighborId = copiedEventIdMap[branchEvent.previousNeighborId];
+                        }
+
+                        //if a branch event was pasted from one of the original events
+                        if(branchEvent.pastedEventId && copiedEventIdMap[branchEvent.pastedEventId]) {
+
+                            //update the paste parent id
+                            branchEvent.pastedEventId = copiedEventIdMap[branchEvent.pastedEventId];
                         }
                     }
                 }
             }
 
             /*
-             *
+             * Combine all devs, dev groups, files, dirs, comments and ensure there are no conflicts between their ids
              */
-            function getDeleteConflict(conflictArray, posOfConflict) {
-                
-                console.log("delete conflict- common event added to in one branch and deleted in the other");
+            function combineNonEventPlaybackData(branch1CodeEvents, playbackDataBranch1, playbackDataBranch2) {
 
-                var deleteBranchName = conflictArray[posOfConflict].deletedbyBranch1 ? "branch1" : "branch2";
+                //we may not be using all of the branch 1 events, get only the playback data through the used ones
+                var combinedPlaybackData = getPlaybackDataThroughEvents(branch1CodeEvents, playbackDataBranch1);
 
-                var lookBackPos = posOfConflict - 1;
+                //combine branch 1 and branch 2 non-event playback data                
+                //go through all of branch 2's developer groups 
+                for(var devGroupId in playbackDataBranch2.allDeveloperGroups) {
+                    if(playbackDataBranch2.allDeveloperGroups.hasOwnProperty(devGroupId)) {
 
-                while(lookBackPos >= 0 && conflictArray[lookBackPos].type === "common") {
+                        //if the combined object does not have the data from branch 2
+                        if(!combinedPlaybackData.allDeveloperGroups[devGroupId]) {
 
-                    //if()
-
+                            //add the dev group from branch 2
+                            combinedPlaybackData.allDeveloperGroups[devGroupId] = playbackDataBranch2.allDeveloperGroups[devGroupId];
+                        }
+                    }
                 }
 
+                //go through all of branch 2's developers 
+                for(var devId in playbackDataBranch2.allDevelopers) {
+                    if(playbackDataBranch2.allDevelopers.hasOwnProperty(devId)) {
+
+                        //if the combined object does not have the data from branch 2
+                        if(!combinedPlaybackData.allDevelopers[devId]) {
+
+                            //add the developer from branch 2
+                            combinedPlaybackData.allDevelopers[devId] = playbackDataBranch2.allDevelopers[devId];
+                        }
+                    }
+                }
+
+                //go through all of branch 2's files
+                for(var fileId in playbackDataBranch2.allFiles) {
+                    if(playbackDataBranch2.allFiles.hasOwnProperty(fileId)) {
+
+                        //if the combined object does not have the data from branch 2
+                        if(!combinedPlaybackData.allFiles[fileId]) {
+
+                            //add the file from branch 2
+                            combinedPlaybackData.allFiles[fileId] = playbackDataBranch2.allFiles[fileId];
+                        }
+                    }
+                }
+
+                //go through all of branch 2's directories
+                for(var dirId in playbackDataBranch2.allDirs) {
+                    if(playbackDataBranch2.allDirs.hasOwnProperty(dirId)) {
+
+                        //if the combined object does not have the data from branch 2
+                        if(!combinedPlaybackData.allDirs[dirId]) {
+
+                            //add the directory from branch 2
+                            combinedPlaybackData.allDirs[dirId] = playbackDataBranch2.allDirs[dirId];
+                        }
+                    }
+                }
+
+                //go through all of branch 2's comments
+                for(var eventId in playbackDataBranch2.comments) {
+                    if(playbackDataBranch2.comments.hasOwnProperty(eventId)) {
+
+                        //if the combined object does not have the data from branch 2
+                        if(!combinedPlaybackData.comments[eventId]) {
+
+                            //add the directory from branch 2
+                            combinedPlaybackData.comments[eventId] = playbackDataBranch2.comments[eventId];
+                        }
+                    }
+                }
+
+                return combinedPlaybackData;
             }
 
             /*
-             *
+             * Collects the developers, developer groups, files/directories, and comments for a group of events. 
              */
-            function getDeleteConflictNeighbor(conflictArray, posOfConflict) {
-                
-                console.log("delete conflict");
+            function getPlaybackDataThroughEvents(events, originalPlaybackData) {
 
-            }
-            
-            /*
-             *
-             */
-            function getInsertConflict(conflictArray, posOfConflict) {
-
-                console.log("Insert conflict");
-
-                //holds the positions where the first branch's conflict begins and ends 
-                var firstBranchStartPos = posOfConflict + 1;
-                var firstBranchEndPos;
-                //get the name of the first branch (could be 'branch1' or 'branch2')
-                var firstBranchName = conflictArray[firstBranchStartPos].type;
-
-                //move through all of the branch events in the same branch
-                var i = posOfConflict + 1;
-
-                //while we are within the bounds of the array AND the names are the same, we are in the same branch
-                while(i < conflictArray.length && conflictArray[i].type === firstBranchName) {
-                    i++;
-                }
-
-                //when we get here we will have moved from one branch to the next
-
-                //get the index of the last event in the branch
-                firstBranchEndPos = i - 1;
-
-                //holds the positions where the second branch's conflict begins and ends 
-                var secondBranchStartPos = i;
-                var secondBranchEndPos;
-                //get the name of the second branch (could be 'branch1' or 'branch2')
-                var secondBranchName = conflictArray[i].type;
-
-                //move through all of the branch events in the same branch
-                //while we are within the bounds of the array AND the names are the same, we are in the same branch
-                while(i < conflictArray.length && conflictArray[i].type === secondBranchName) {
-                    i++;
-                }
-
-                //get the index of the last event in the branch
-                secondBranchEndPos = i - 1;
-
-                //create an insert conflict
-                var insertConflict = {
-                    firstBranchStartPos: firstBranchStartPos,
-                    firstBranchEndPos: firstBranchEndPos,
-                    firstBranchName: firstBranchName,
-                    secondBranchStartPos: secondBranchStartPos,
-                    secondBranchEndPos: secondBranchEndPos,
-                    secondBranchName: secondBranchName
+                //the playback data that is used in this playback 
+                var newPlaybackData = {
+                    allDevelopers: {},
+                    allDeveloperGroups: {},
+                    allFiles: {},
+                    allDirs: {},
+                    comments: {}
                 };
 
-                return insertConflict;
+                //go through all of the events 
+                for(var i = 0;i < events.length;i++) {
+
+                    //get an event
+                    var event = events[i];
+
+                    //if we haven't already stored this dev group
+                    if(!newPlaybackData.allDeveloperGroups[event.createdByDevGroupId]) {
+                        
+                        //copy the dev group from the original
+                        newPlaybackData.allDeveloperGroups[event.createdByDevGroupId] = originalPlaybackData.allDeveloperGroups[event.createdByDevGroupId];
+                    }
+                    
+                    //now handle files and directories
+                    //if this is a create file
+                    if(event.type === "Create File") {
+
+                        //create a new file object
+                        var newFile = {
+                            id: event.fileId,
+                            parentId: event.parentDirectoryId,
+                            currentName: event.initialName,
+                            isDeleted: false
+                        };
+
+                        //add the file to the object of all files
+                        newPlaybackData.allFiles[event.fileId] = newFile;
+
+                    } else if(event.type === "Delete File") {
+
+                        //update the file in the collection of all files
+                        newPlaybackData.allFiles[event.fileId].isDeleted = true;
+                        
+                    } else if(event.type === "Rename File") {
+                                
+                        //update the current name of the file in the collection of all files
+                        newPlaybackData.allFiles[event.fileId].currentName = event.newFileName;
+
+                    } else if(event.type === "Move File") {
+
+                        //update the new parent of the file in the collection of all files
+                        newPlaybackData.allFiles[event.fileId].parentId = event.newParentDirectoryId;
+                        
+                    } else if(event.type === "Create Directory") {
+                        
+                        //create a new directory object
+                        var newDirectory = {
+                            id: event.directoryId,
+                            parentId: event.parentDirectoryId,
+                            currentName: event.initialName,
+                            isDeleted: false
+                        };
+
+                        //add the directory to the object of all directories
+                        newPlaybackData.allDirs[event.directoryId] = newDirectory;
+
+                    } else if(event.type === "Delete Directory") {
+
+                        //recursively delete all sub-dir and files
+                        deleteDirectoryInAllDirs(event.directoryId, newPlaybackData);
+                        
+                    } else if(event.type === "Rename Directory") {
+                        
+                        //update the current name of the dir in the collection of all dirs
+                        newPlaybackData.allDirs[event.directoryId].currentName = event.newDirectoryName;
+
+                    } else if(event.type === "Move Directory") {
+
+                        //update the new parent of the dir in the collection of all dirs
+                        newPlaybackData.allDirs[event.directoryId].parentId = event.newParentDirectoryId;
+                    } 
+
+                    //handle comments
+                    //if this event was a comment point in the original playback data
+                    if(originalPlaybackData.comments[event.id]) {
+
+                        //add the comment to the playback data
+                        newPlaybackData.comments[event.id] = originalPlaybackData.comments[event.id];
+                    }
+                }
+
+                //go through all of the dev groups in the branch 
+                for(var devGroupId in newPlaybackData.allDeveloperGroups) {
+                    if(newPlaybackData.allDeveloperGroups.hasOwnProperty(devGroupId)) {
+
+                        //get the dev group
+                        var devGroup = newPlaybackData.allDeveloperGroups[devGroupId];
+
+                        //go through the member ids for this group
+                        for(var i = 0;i < devGroup.memberIds.length;i++) {
+
+                            //get the member id
+                            var memberId = devGroup.memberIds[i];
+
+                            //if we have not added the developer yet
+                            if(!newPlaybackData.allDevelopers[memberId]) {
+                                
+                                //add the developer to the branch data
+                                newPlaybackData.allDevelopers[memberId] = originalPlaybackData.allDevelopers[memberId];
+                            }
+                        }
+                    }
+                }
+
+                return newPlaybackData;
             }
-//*********************************************** experimental merging code *****************************************
+
+            /*
+             * Helper to recursively delete files and directories when a directory is deleted.
+             */
+            function deleteDirectoryInAllDirs(deletedDirId, newPlaybackData) {
+                
+                //go through all of the dirs 
+                for(var dirId in newPlaybackData.allDirs) {
+                    if(newPlaybackData.allDirs.hasOwnProperty(dirId)) {
+
+                        //if a dir has the deleted dir as a parent AND
+                        //it has not already been deleted
+                        if(newPlaybackData.allDirs[dirId].parentId === deletedDirId &&
+                           newPlaybackData.allDirs[dirId].isDeleted === false) {
+                            
+                            //delete the sub-dir in the deleted directory
+                            deleteDirectoryInAllDirs(dirId, newPlaybackData);
+                        }
+                    }
+                }
+
+                //go through all of the files 
+                for(var fileId in newPlaybackData.allFiles) {
+                    if(newPlaybackData.allFiles.hasOwnProperty(fileId)) {
+                        
+                        //if a file has the deleted dir as a parent AND
+                        //it has not already been deleted
+                        if(newPlaybackData.allFiles[fileId].parentId === deletedDirId &&
+                           newPlaybackData.allFiles[fileId].isDeleted === false) {
+                            
+                            //update the file in the collection of all files
+                            newPlaybackData.allFiles[fileId].isDeleted = true;
+                        }
+                    }
+                }
+
+                //update the dir in the collection of all files
+                newPlaybackData.allDirs[deletedDirId].isDeleted = true;
+            }
+
 
             //*****************************************************************************
             //                    Line number/highlighting related code
@@ -7690,34 +8626,38 @@
                             //a selected code span
                             var nextSelectedElement = range.startContainer.parentNode;
 
-                            //mark it as the first selected text in a group
-                            nextSelectedElement.classList.add("beginSelectedCode-" + selectedCodeNumber);
-                            
-                            //while there are more selected code spans
-                            while(nextSelectedElement) {
+                            //if the element has the codeChar class then it is selectable
+                            if(nextSelectedElement && nextSelectedElement.classList.contains("codeChar")) {
+
+                                //mark it as the first selected text in a group
+                                nextSelectedElement.classList.add("beginSelectedCode-" + selectedCodeNumber);
                                 
-                                //if this is a currently visible code span
-                                if(nextSelectedElement.classList && 
-                                   nextSelectedElement.classList.contains("codeChar") && 
-                                   nextSelectedElement.classList.contains("codeNotVisible") === false) {
+                                //while there are more selected code spans
+                                while(nextSelectedElement) {
+                                    
+                                    //if this is a currently visible code span
+                                    if(nextSelectedElement.classList && 
+                                    nextSelectedElement.classList.contains("codeChar") && 
+                                    nextSelectedElement.classList.contains("codeNotVisible") === false) {
 
-                                    //mark it as selected text
-                                    nextSelectedElement.classList.add("selectedCode");
+                                        //mark it as selected text
+                                        nextSelectedElement.classList.add("selectedCode");
+                                    }
+
+                                    //if this is the last selected code span
+                                    if(nextSelectedElement === range.endContainer.parentNode) {
+
+                                        //stop moving through the siblings
+                                        break;
+                                    }
+
+                                    //move to the next neighbor
+                                    nextSelectedElement = nextSelectedElement.nextSibling;
                                 }
 
-                                //if this is the last selected code span
-                                if(nextSelectedElement === range.endContainer.parentNode) {
-
-                                    //stop moving through the siblings
-                                    break;
-                                }
-
-                                //move to the next neighbor
-                                nextSelectedElement = nextSelectedElement.nextSibling;
+                                //mark it as the last selected text in a group
+                                nextSelectedElement.classList.add("endSelectedCode-" + selectedCodeNumber);
                             }
-
-                            //mark it as the last selected text in a group
-                            nextSelectedElement.classList.add("endSelectedCode-" + selectedCodeNumber);
                         }
                     }
 

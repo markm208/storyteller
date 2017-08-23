@@ -136,7 +136,7 @@ function saveAllStorytellerState(fullRootPath) {
 
 //event compression can be used or not (it is useful to NOT use compression 
 //while debugging), this flag indicates whether to use it or not
-var useCompressionForEvents = true;
+var useCompressionForEvents = false;
 
 /*
 * This function minimizes the footprint of insert and delete events. This is done because the event info eventually
@@ -153,172 +153,196 @@ var useCompressionForEvents = true;
 */
 function compressEvents(events) {
 
-    //create an object to hold all of the values that may be used for future events
-    var latestEventValues = {
-        type: null,
-        timestamp: 0,
-        createdByDevGroupId: null,  
-        previousNeighborId: null,
-        lineNumber: null,
-        column: null,
-        fileId: null,
-        anticipatedNextEventId: null,
-        relevant: null
-    };
-
     //holds the compressed events
     var compressedEvents = [];
 
-    //loop through all the events and compress them
-    for(var i = 0;i < events.length;i++) {
+    //if we are supposed to compress events
+    if(useCompressionForEvents) {
 
-        //get the uncompressed event            
-        var event = events[i];
+        //create an object to hold all of the values that may be used for future events
+        var latestEventValues = {
+            type: null,
+            timestamp: 0,
+            createdByDevGroupId: null,  
+            previousNeighborId: null,
+            lineNumber: null,
+            column: null,
+            fileId: null,
+            anticipatedNextEventId: null,
+            relevant: null,
+            branchId: null
+        };
 
-        //default to the uncompressed event (this will hold a new object if there is any compression to do)
-        var compressedEvent = event;
+        //loop through all the events and compress them
+        for(var i = 0;i < events.length;i++) {
 
-        //if we are compressing events AND the event is not already compressed (compressed events don't have an 'id') AND this is an insert or a delete
-        if(useCompressionForEvents && event.id && (event.type === "Insert" || event.type === "Delete")) {
-            
-            //get the numeric part of the event's id (without the 'ev_') and turn it into a number
-            var numericPartOfEventId = parseInt(event.id.substr("ev_".length), 10);
+            //get the uncompressed event            
+            var event = events[i];
 
-            //every compressed insert/delete event has an id and a character in it
-            compressedEvent = {
-                c: event.character,
-                i: numericPartOfEventId.toString(36) //shorten the id num associated with the event
-            };
-            
-            //if the event type is different than the last one
-            if(event.type !== latestEventValues.type) {
+            //default to the uncompressed event (this will hold a new object if there is any compression to do)
+            var compressedEvent = event;
 
-                //add the type (abbreviated to 'ty' to make the json file smaller) to the compressed event
-                compressedEvent.ty = event.type;
-
-                //store the latest type
-                latestEventValues.type = event.type;
-
-            } //else- same as the last event, leave this attribute out to make it a smaller event object
-
-            //if there is a difference between this event's timestamp and the last event's time stamp
-            if(event.timestamp - latestEventValues.timestamp !== 0) {
-
-                //add the difference between the two timestamps (in base 36 to shorten the string)
-                compressedEvent.t = (event.timestamp - latestEventValues.timestamp).toString(36);
-
-                //store the latest timestamp
-                latestEventValues.timestamp = event.timestamp;
-
-            } //else- same as the last event, leave this attribute out to make it a smaller event object
-
-            //if the dev group is different than the last one
-            if(event.createdByDevGroupId !== latestEventValues.createdByDevGroupId) {
-
-                //add the dev group (abbreviated to 'd' to make the json file smaller) to the compressed event
-                compressedEvent.d = event.createdByDevGroupId;
-
-                //store the latest dev group
-                latestEventValues.createdByDevGroupId = event.createdByDevGroupId;
-            
-            } //else- same as the last event, leave this attribute out to make it a smaller event object
-            
-            //if the file id is different than the last one
-            if(event.fileId !== latestEventValues.fileId) {
-
-                //add the file id (abbreviated to 'f' to make the json file smaller) to the compressed event
-                compressedEvent.f = event.fileId;
-
-                //store the latest file id
-                latestEventValues.fileId = event.fileId;
-
-            } //else- same as the last event, leave this attribute out to make it a smaller event object
-
-            //if the previous neighbor id is different than the last event added/removed
-            if(event.previousNeighborId !== latestEventValues.anticipatedNextEventId) {
-
-                //add the previous neighbor (abbreviated to 'p' to make the json file smaller) to the compressed event
-                compressedEvent.p = event.previousNeighborId;
-
-                //the latestEventValues's anticipatedNextEventId will get set below
-
-            } //else- same as the last event, leave this attribute out to make it a smaller event object
-
-            //if the line number is different than the last one
-            if(event.lineNumber !== latestEventValues.lineNumber) {
-
-                //add the line number (abbreviated to 'l' to make the json file smaller) to the compressed event
-                compressedEvent.l = event.lineNumber;
-
-                //store the latest line number
-                latestEventValues.lineNumber = event.lineNumber;
-
-            } //else- same as the last event, leave this attribute out to make it a smaller event object
-            
-            //if there is a 'relevant' member in the event 
-            //the 'relevant' member gets added only after filtering is done in a playback, this only happens when saving a filtered 
-            //playback to a json file (in most cases will be absent). If one event has it, all will have it
-            if(event.relevant !== undefined) {
+            //if the event is not already compressed (compressed events don't have an 'id') AND this is an insert or a delete
+            if(event.id && (event.type === "Insert" || event.type === "Delete")) {
                 
-                //if the relevancy is different from the last one
-                if(event.relevant !== latestEventValues.relevant) {
+                //get the numeric part of the event's id (without the 'ev_' and 5 digit branch id) and turn it into a number
+                var numericPartOfEventId = parseInt(event.id.substr("ev_XXXXX_".length), 10);
 
-                    //add the relevancy (abbreviated to 'r' to make the json file smaller) to the compressed event
-                    compressedEvent.r = event.relevant;
+                //every compressed insert/delete event has an id and a character in it
+                compressedEvent = {
+                    c: event.character,
+                    i: numericPartOfEventId.toString(36) //shorten the id num associated with the event
+                };
 
-                    //store the last relevancy value
-                    latestEventValues.relevant = event.relevant;
-                }
-
-            } //else- no relevant member, do nothing
-
-            //if this is an insert
-            if(event.type === "Insert") {
-
-                //if the column is different than one more than the last one
-                if(event.column !== (latestEventValues.column + 1)) {
-
-                    //add the column (abbreviated to 'co' to make the json file smaller) to the compressed event
-                    compressedEvent.co = event.column;
-
-                    //store the latest column
-                    latestEventValues.column = event.column;
-
-                } else { //same as the last event, leave this attribute out to make it a smaller event object
+                //get the 5 digit branch id
+                var branchId = event.id.substr("ev_".length, 5);
+                
+                //if the branch id is different from the last one
+                if(branchId !== latestEventValues.branchId) {
                     
-                    //add one to get ready for the next event
-                    latestEventValues.column = latestEventValues.column + 1;                
-                }
+                    //add the type (abbreviated to 'ty' to make the json file smaller) to the compressed event
+                    compressedEvent.bi = branchId;
 
-                //store the id of the current event in anticipation of the next one also being an 
-                //insert event that will back to this one
-                latestEventValues.anticipatedNextEventId = event.id;
+                    //store the latest branch id
+                    latestEventValues.branchId = branchId;
 
-            } else if(event.type === "Delete") { //this is a delete
+                } //else- same as last event, leave this attribute out to make it a smaller event object
 
-                //if the column is different than one more than the last one
-                if(event.column !== latestEventValues.column) {
+                //if the event type is different than the last one
+                if(event.type !== latestEventValues.type) {
 
-                    //add the column (abbreviated to 'co' to make the json file smaller) to the compressed event
-                    compressedEvent.co = event.column;
+                    //add the type (abbreviated to 'ty' to make the json file smaller) to the compressed event
+                    compressedEvent.ty = event.type;
 
-                    //store the latest column
-                    latestEventValues.column = event.column;
+                    //store the latest type
+                    latestEventValues.type = event.type;
+
+                } //else- same as the last event, leave this attribute out to make it a smaller event object
+
+                //if there is a difference between this event's timestamp and the last event's time stamp
+                if(event.timestamp - latestEventValues.timestamp !== 0) {
+
+                    //add the difference between the two timestamps (in base 36 to shorten the string)
+                    compressedEvent.t = (event.timestamp - latestEventValues.timestamp).toString(36);
+
+                    //store the latest timestamp
+                    latestEventValues.timestamp = event.timestamp;
+
+                } //else- same as the last event, leave this attribute out to make it a smaller event object
+
+                //if the dev group is different than the last one
+                if(event.createdByDevGroupId !== latestEventValues.createdByDevGroupId) {
+
+                    //add the dev group (abbreviated to 'd' to make the json file smaller) to the compressed event
+                    compressedEvent.d = event.createdByDevGroupId;
+
+                    //store the latest dev group
+                    latestEventValues.createdByDevGroupId = event.createdByDevGroupId;
+                
+                } //else- same as the last event, leave this attribute out to make it a smaller event object
+                
+                //if the file id is different than the last one
+                if(event.fileId !== latestEventValues.fileId) {
+
+                    //add the file id (abbreviated to 'f' to make the json file smaller) to the compressed event
+                    compressedEvent.f = event.fileId;
+
+                    //store the latest file id
+                    latestEventValues.fileId = event.fileId;
+
+                } //else- same as the last event, leave this attribute out to make it a smaller event object
+
+                //if the previous neighbor id is different than the last event added/removed
+                if(event.previousNeighborId !== latestEventValues.anticipatedNextEventId) {
+
+                    //add the previous neighbor (abbreviated to 'p' to make the json file smaller) to the compressed event
+                    compressedEvent.p = event.previousNeighborId;
+
+                    //the latestEventValues's anticipatedNextEventId will get set below
+
+                } //else- same as the last event, leave this attribute out to make it a smaller event object
+
+                //if the line number is different than the last one
+                if(event.lineNumber !== latestEventValues.lineNumber) {
+
+                    //add the line number (abbreviated to 'l' to make the json file smaller) to the compressed event
+                    compressedEvent.l = event.lineNumber;
+
+                    //store the latest line number
+                    latestEventValues.lineNumber = event.lineNumber;
 
                 } //else- same as the last event, leave this attribute out to make it a smaller event object
                 
-                //get the numeric value associated with the delete event's previous neighbor and increment it
-                var nextEventIdNumber = parseInt(event.previousNeighborId.substr("ev_".length), 10) + 1;
+                //if there is a 'relevant' member in the event 
+                //the 'relevant' member gets added only after filtering is done in a playback, this only happens when saving a filtered 
+                //playback to a json file (in most cases will be absent). If one event has it, all will have it
+                if(event.relevant !== undefined) {
+                    
+                    //if the relevancy is different from the last one
+                    if(event.relevant !== latestEventValues.relevant) {
 
-                //deletes usually happen in blocks (as do inserts) so anticipate that the next event deleted 
-                //will have an id that it one more than the current event being deleted 
-                latestEventValues.anticipatedNextEventId = "ev_" + nextEventIdNumber;            
-            }
+                        //add the relevancy (abbreviated to 'r' to make the json file smaller) to the compressed event
+                        compressedEvent.r = event.relevant;
 
-        } //else- no compression for non-inserts/deletes
+                        //store the last relevancy value
+                        latestEventValues.relevant = event.relevant;
+                    }
 
-        //add the compressed event to the collection of all compressed events
-        compressedEvents.push(compressedEvent);
+                } //else- no relevant member, do nothing
+
+                //if this is an insert
+                if(event.type === "Insert") {
+
+                    //if the column is different than one more than the last one
+                    if(event.column !== (latestEventValues.column + 1)) {
+
+                        //add the column (abbreviated to 'co' to make the json file smaller) to the compressed event
+                        compressedEvent.co = event.column;
+
+                        //store the latest column
+                        latestEventValues.column = event.column;
+
+                    } else { //same as the last event, leave this attribute out to make it a smaller event object
+                        
+                        //add one to get ready for the next event
+                        latestEventValues.column = latestEventValues.column + 1;                
+                    }
+
+                    //store the id of the current event in anticipation of the next one also being an 
+                    //insert event that will back to this one
+                    latestEventValues.anticipatedNextEventId = event.id;
+
+                } else if(event.type === "Delete") { //this is a delete
+
+                    //if the column is different than one more than the last one
+                    if(event.column !== latestEventValues.column) {
+
+                        //add the column (abbreviated to 'co' to make the json file smaller) to the compressed event
+                        compressedEvent.co = event.column;
+
+                        //store the latest column
+                        latestEventValues.column = event.column;
+
+                    } //else- same as the last event, leave this attribute out to make it a smaller event object
+                    
+                    //get the numeric value associated with the delete event's previous neighbor and increment it
+                    var nextEventIdNumber = parseInt(event.previousNeighborId.substr("ev_XXXXX_".length), 10) + 1;
+
+                    //deletes usually happen in blocks (as do inserts) so anticipate that the next event deleted 
+                    //will have an id that it one more than the current event being deleted 
+                    latestEventValues.anticipatedNextEventId = "ev_" + branchId + nextEventIdNumber;            
+                }
+
+            } //else- no compression for non-inserts/deletes
+
+            //add the compressed event to the collection of all compressed events
+            compressedEvents.push(compressedEvent);
+        }
+
+    } else { //no compression
+
+        //return the original uncompressed events
+        compressedEvents = events;
     }
 
     return compressedEvents;
@@ -337,222 +361,250 @@ function compressEvents(events) {
 * The file/dir related events happen infrequently enough (and they don't share much in common with other events)
 * that there is no attemp to compress them. 
 */
-function decompressEvents(compressedEvents) {
-
-    //create an object to hold all of the values that may be used for future events
-    var latestEventValues = {
-        type: null,
-        timestamp: 0,
-        createdByDevGroupId: null,  
-        previousNeighborId: null,
-        lineNumber: null,
-        column: null,
-        fileId: null,
-        anticipatedNextEventId: null,
-        relevant: null
-    };
+function decompressEvents(events) {
 
     //holds the decompressed events
     var decompressedEvents = [];
 
-    //loop through all the compressed events and decompress them
-    for(var i = 0;i < compressedEvents.length;i++) {
-    
-        //get the latest event
-        var event = compressedEvents[i];
+    //if we are supposed to compress events
+    if(useCompressionForEvents) {
 
-        //decompressed event- start with an empty object
-        var decompressedEvent = {};
+        //create an object to hold all of the values that may be used for future events
+        var latestEventValues = {
+            type: null,
+            timestamp: 0,
+            createdByDevGroupId: null,  
+            previousNeighborId: null,
+            lineNumber: null,
+            column: null,
+            fileId: null,
+            anticipatedNextEventId: null,
+            relevant: null,
+            branchId: null
+        };
 
-        //if the object has a full 'id' property then it is NOT a compressed event 
-        if(event.id) {
-
-            //use the passed in event (likely a file/dir event)
-            decompressedEvent = event;
-
-        } else { //this is a compressed event
-
-            //get the numeric part of the id and turn it back into a base 10 number
-            decompressedEvent.id = "ev_" + parseInt(event.i, 36);
-
-            //every compressed event has the original event's character, no need to do anything with these
-            decompressedEvent.character = event.c;
-
-            //'ty' === 'type'
-            //if the event has a type 
-            if(event.ty) {
-                
-                //change it into a type
-                decompressedEvent.type = event.ty;
-
-                //store the last event type
-                latestEventValues.type = event.ty;
-                
-            } else { //there is not a 'ty' property, use the same as the latest event
-                
-                //add the last event's type to the decompressed event
-                decompressedEvent.type = latestEventValues.type;
-            }
-            
-            //'t' === 'timestamp'
-            //if the event has a timestamp (really it's a difference between the last two timestamps)
-            if(event.t) {
-                
-                //change it into a timestamp- add the last timestamp value to the difference received in the event (converted from a base 36 to a base 10)
-                decompressedEvent.timestamp = latestEventValues.timestamp + parseInt(event.t, 36);
-
-                //store the last event type
-                latestEventValues.timestamp = decompressedEvent.timestamp; 
-                
-            } else { //there is not a 't' property, use the same as the latest event
-                
-                //add the last event's type to the decompressed event
-                decompressedEvent.timestamp = latestEventValues.timestamp;
-            }
-
-            //'d' === 'createdByDevGroupId'
-            //if the event has a dev group                     
-            if(event.d) {
-
-                //use the shortened property 
-                decompressedEvent.createdByDevGroupId = event.d;
-
-                //use this as the last dev group
-                latestEventValues.createdByDevGroupId = event.d; 
-
-            } else { //there is not a 'd' property, use the same as the latest event
-
-                //use the last event's dev group id 
-                decompressedEvent.createdByDevGroupId = latestEventValues.createdByDevGroupId;                            
-            }
-            
-            //'f' === 'fileId'
-            //if the event has a file id                     
-            if(event.f) {
-
-                //use the shortened property 
-                decompressedEvent.fileId = event.f;
-
-                //use this as the last file id
-                latestEventValues.fileId = event.f;
-                
-            } else { //there is no 'f' property, use the same as the latest event
-
-                //use the last event's file id
-                decompressedEvent.fileId = latestEventValues.fileId;
-            }
-            
-            //'p' === 'previousNeighborId'
-            //if the event has a prev neighbor id                     
-            if(event.p) {
-
-                //use the shortened property 
-                decompressedEvent.previousNeighborId = event.p; 
-                
-                //the latestEventValues's anticipatedNextEventId will get set below
-
-            } else { //there is no 'p' property, use the same as the latest event
-
-                //use the last event as a prev neighbor id
-                decompressedEvent.previousNeighborId = latestEventValues.anticipatedNextEventId;
-            }
-            
-            //'l' === 'lineNumber'
-            //if the event has a line number 
-            if(event.l) {
-
-                //use the shortened property 
-                decompressedEvent.lineNumber = event.l;
-
-                //use this as the last line number 
-                latestEventValues.lineNumber = event.l;                         
-
-            } else { //there is no 'l' property, use the same as the latest event 
-
-                //use the last event's line number 
-                decompressedEvent.lineNumber = latestEventValues.lineNumber;
-            }
+        //loop through all the compressed events and decompress them
+        for(var i = 0;i < events.length;i++) {
         
-            //'r' === 'relevant'
-            //if the event has a relevant field from a playback  
-            if(event.r !== undefined) {
+            //get the latest event
+            var event = events[i];
 
-                //use the shortened property 
-                decompressedEvent.relevant = event.r;
+            //decompressed event- start with an empty object
+            var decompressedEvent = {};
 
-                //use this as the relevant value 
-                latestEventValues.relevant = event.r;                         
+            //if the object has a full 'id' property then it is NOT a compressed event 
+            if(event.id) {
 
-            } else { //there is no 'r' property 
+                //use the passed in event (likely a file/dir event)
+                decompressedEvent = event;
 
-                //if the 'relevant' field has been set before
-                if(latestEventValues.relevant !== null) {
+            } else { //this is a compressed event
 
-                    //use the last event's relevant value
-                    decompressedEvent.relevant = latestEventValues.relevant; 
+                var branchId;
 
-                } //else- none of the events so far have had a relevant value, the event does need this property
-            }
+                //'bi' === 'branch id'
+                //if the event has a branch id
+                if(event.bi) {
+                    
+                    //change it into a branch id
+                    branchId = event.bi;
 
-            //if this is an insert
-            if(decompressedEvent.type === "Insert") {
+                    //store the last branch id
+                    latestEventValues.branchId = event.bi;
 
-                //'co' === 'column'
-                //if the event has a column
-                if(event.co) {
+                } else { //there is not a 'bi' property, use the same as the latest event
 
-                    //use the shortened property 
-                    decompressedEvent.column = event.co;                        
-
-                    //use this as the last column
-                    latestEventValues.column = event.co; 
-
-                } else { //there is no 'co' property, use the same as the latest event 
-
-                    //move the column forward one position
-                    latestEventValues.column = latestEventValues.column + 1;
-
-                    //use the last event's column plus one 
-                    decompressedEvent.column = latestEventValues.column;
+                    //use the latest branch id
+                    branchId = latestEventValues.branchId;
                 }
 
-                //store the id of the current event in anticipation of the next one also being an 
-                //insert event that will back to this one
+                //get the numeric part of the id and turn it back into a base 10 number
+                decompressedEvent.id = "ev_" + branchId + "_" + parseInt(event.i, 36);
 
-                //store the id of the event so the next call knows what came before
-                latestEventValues.anticipatedNextEventId = decompressedEvent.id;
+                //every compressed event has the original event's character, no need to do anything with these
+                decompressedEvent.character = event.c;
 
-            } else if(decompressedEvent.type === "Delete") { //this is a delete
+                //'ty' === 'type'
+                //if the event has a type 
+                if(event.ty) {
+                    
+                    //change it into a type
+                    decompressedEvent.type = event.ty;
+
+                    //store the last event type
+                    latestEventValues.type = event.ty;
+                    
+                } else { //there is not a 'ty' property, use the same as the latest event
+                    
+                    //add the last event's type to the decompressed event
+                    decompressedEvent.type = latestEventValues.type;
+                }
                 
-                //'co' === 'column'
-                //if the event has a column
-                if(event.co) {
+                //'t' === 'timestamp'
+                //if the event has a timestamp (really it's a difference between the last two timestamps)
+                if(event.t) {
+                    
+                    //change it into a timestamp- add the last timestamp value to the difference received in the event (converted from a base 36 to a base 10)
+                    decompressedEvent.timestamp = latestEventValues.timestamp + parseInt(event.t, 36);
 
-                    //use the shortened property 
-                    decompressedEvent.column = event.co;                        
-
-                    //use this as the last column
-                    latestEventValues.column = event.co; 
-
-                } else { //there is no 'co' property, use the same as the latest event 
-
-                    //deletes do not move the column forward like inserts do
-
-                    //use the last event's column plus one 
-                    decompressedEvent.column = latestEventValues.column;
+                    //store the last event type
+                    latestEventValues.timestamp = decompressedEvent.timestamp; 
+                    
+                } else { //there is not a 't' property, use the same as the latest event
+                    
+                    //add the last event's type to the decompressed event
+                    decompressedEvent.timestamp = latestEventValues.timestamp;
                 }
 
-                //get the numeric value associated with the delete event's previous neighbor and increment it
-                var nextEventIdNumber = parseInt(decompressedEvent.previousNeighborId.substr("ev_".length), 10) + 1;
+                //'d' === 'createdByDevGroupId'
+                //if the event has a dev group                     
+                if(event.d) {
 
-                //deletes usually happen in blocks (as do inserts) so anticipate that the next event deleted 
-                //will have an id that it one more than the current event being deleted 
-                latestEventValues.anticipatedNextEventId = "ev_" + nextEventIdNumber;            
+                    //use the shortened property 
+                    decompressedEvent.createdByDevGroupId = event.d;
+
+                    //use this as the last dev group
+                    latestEventValues.createdByDevGroupId = event.d; 
+
+                } else { //there is not a 'd' property, use the same as the latest event
+
+                    //use the last event's dev group id 
+                    decompressedEvent.createdByDevGroupId = latestEventValues.createdByDevGroupId;                            
+                }
+                
+                //'f' === 'fileId'
+                //if the event has a file id                     
+                if(event.f) {
+
+                    //use the shortened property 
+                    decompressedEvent.fileId = event.f;
+
+                    //use this as the last file id
+                    latestEventValues.fileId = event.f;
+                    
+                } else { //there is no 'f' property, use the same as the latest event
+
+                    //use the last event's file id
+                    decompressedEvent.fileId = latestEventValues.fileId;
+                }
+                
+                //'p' === 'previousNeighborId'
+                //if the event has a prev neighbor id                     
+                if(event.p) {
+
+                    //use the shortened property 
+                    decompressedEvent.previousNeighborId = event.p; 
+                    
+                    //the latestEventValues's anticipatedNextEventId will get set below
+
+                } else { //there is no 'p' property, use the same as the latest event
+
+                    //use the last event as a prev neighbor id
+                    decompressedEvent.previousNeighborId = latestEventValues.anticipatedNextEventId;
+                }
+                
+                //'l' === 'lineNumber'
+                //if the event has a line number 
+                if(event.l) {
+
+                    //use the shortened property 
+                    decompressedEvent.lineNumber = event.l;
+
+                    //use this as the last line number 
+                    latestEventValues.lineNumber = event.l;                         
+
+                } else { //there is no 'l' property, use the same as the latest event 
+
+                    //use the last event's line number 
+                    decompressedEvent.lineNumber = latestEventValues.lineNumber;
+                }
+            
+                //'r' === 'relevant'
+                //if the event has a relevant field from a playback  
+                if(event.r !== undefined) {
+
+                    //use the shortened property 
+                    decompressedEvent.relevant = event.r;
+
+                    //use this as the relevant value 
+                    latestEventValues.relevant = event.r;                         
+
+                } else { //there is no 'r' property 
+
+                    //if the 'relevant' field has been set before
+                    if(latestEventValues.relevant !== null) {
+
+                        //use the last event's relevant value
+                        decompressedEvent.relevant = latestEventValues.relevant; 
+
+                    } //else- none of the events so far have had a relevant value, the event does need this property
+                }
+
+                //if this is an insert
+                if(decompressedEvent.type === "Insert") {
+
+                    //'co' === 'column'
+                    //if the event has a column
+                    if(event.co) {
+
+                        //use the shortened property 
+                        decompressedEvent.column = event.co;                        
+
+                        //use this as the last column
+                        latestEventValues.column = event.co; 
+
+                    } else { //there is no 'co' property, use the same as the latest event 
+
+                        //move the column forward one position
+                        latestEventValues.column = latestEventValues.column + 1;
+
+                        //use the last event's column plus one 
+                        decompressedEvent.column = latestEventValues.column;
+                    }
+
+                    //store the id of the current event in anticipation of the next one also being an 
+                    //insert event that will back to this one
+
+                    //store the id of the event so the next call knows what came before
+                    latestEventValues.anticipatedNextEventId = decompressedEvent.id;
+
+                } else if(decompressedEvent.type === "Delete") { //this is a delete
+                    
+                    //'co' === 'column'
+                    //if the event has a column
+                    if(event.co) {
+
+                        //use the shortened property 
+                        decompressedEvent.column = event.co;                        
+
+                        //use this as the last column
+                        latestEventValues.column = event.co; 
+
+                    } else { //there is no 'co' property, use the same as the latest event 
+
+                        //deletes do not move the column forward like inserts do
+
+                        //use the last event's column plus one 
+                        decompressedEvent.column = latestEventValues.column;
+                    }
+
+                    //get the numeric value associated with the delete event's previous neighbor and increment it
+                    var nextEventIdNumber = parseInt(decompressedEvent.previousNeighborId.substr("ev_".length), 10) + 1;
+
+                    //deletes usually happen in blocks (as do inserts) so anticipate that the next event deleted 
+                    //will have an id that it one more than the current event being deleted 
+                    latestEventValues.anticipatedNextEventId = "ev_" + nextEventIdNumber;            
+                }
             }
+
+            //add the decompressed event to the collection
+            decompressedEvents.push(decompressedEvent);
         }
 
-        //add the decompressed event to the collection
-        decompressedEvents.push(decompressedEvent);
+    } else { //we are not supposed to decompress events
+
+        //return the events as they were received
+        decompressedEvents = events;
     }
 
     return decompressedEvents;

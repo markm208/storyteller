@@ -175,12 +175,6 @@ function activate(context) {
     //         context.subscriptions.push(clipboardPasteDisposable);
     //     }); 
     // }
-    //debug
-    vscode.commands.getCommands(false).then(function(commands){
-        commands.sort();
-
-        console.log(commands);
-    });
 
     //register a handler to capture changes to files in the editor
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(handleTextEditorChange));
@@ -306,6 +300,12 @@ function initStoryteller() {
 
             //get the relative path of the project dir
             var strippedPathToRootDir = stripFullPathToProjectPath(projectRootPath);
+
+            //create an initial branch id for this repo's first branch
+            eventCollector.createRandomBranchId();
+
+            //create an anonymous developer
+            eventCollector.createAnonymousDeveloper();
 
             //make the first create directory event for the root of the project
             //init the storyteller plugin by creating the root directory (null for a parent path since the root dir has no parent)        
