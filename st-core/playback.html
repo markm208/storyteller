@@ -766,7 +766,7 @@
                                 <div class="row">
                                     <div class="col-sm-4">
                                         <label for="cutPasteInBlocksCheckbox">
-                                            <input type="checkbox" id="cutPasteInBlocksCheckbox" checked="true">
+                                            <input type="checkbox" id="cutPasteInBlocksCheckbox">
                                             Show all cuts and pastes in blocks
                                         </label>
                                     </div>
@@ -916,36 +916,7 @@
                             <div class="panel-heading">
                                 <div class="radio">
                                     <label>
-                                        <input type="radio" name="saveStateRadios" id="saveStateRadioX" value="full" checked>
-                                        <span class="panel-title">Full History with Future Events Undone</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="panel-body">
-                                <p>
-                                    With this type of save, <em>all</em> of the history of the playback is recorded in the download, 
-                                    even after the point where the playback was paused. However, all events after the pause point are 
-                                    undone by adding the inverse of those events. 
-                                </p>
-                                <p>
-                                    For example, if there is a create file followed by three inserts after the point in the playback
-                                    where the user paused, then three deletes and a delete file will be added to the list of events 
-                                    to roll back the starting state of the new download to the pause point. 
-                                </p>
-                                <p>
-                                    All comments and history are available to see in playbacks from that project but the starting point 
-                                    for future development is the pause point in the playback. This is the best option if you want a deep 
-                                    history of all the changes in your code.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <div class="radio">
-                                    <label>
-                                        <input type="radio" name="saveStateRadios" id="saveStateRadioX" value="upToPausePoint">
+                                        <input type="radio" name="saveStateRadios" id="saveStateRadioX" value="upToPausePoint" checked>
                                         <span class="panel-title">No History Beyond Pause Point</span>
                                     </label>
                                 </div>
@@ -984,8 +955,37 @@
                                 </p>
                             </div>
                         </div>
-                    </div>
 
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="radio">
+                                    <label>
+                                        <input type="radio" name="saveStateRadios" id="saveStateRadioX" value="full">
+                                        <span class="panel-title">Full History with Future Events Undone</span>
+                                    </label>
+                                </div>
+                            </div>
+    
+                            <div class="panel-body">
+                                <p>
+                                    With this type of save, <em>all</em> of the history of the playback is recorded in the download, 
+                                    even after the point where the playback was paused. However, all events after the pause point are 
+                                    undone by adding the inverse of those events. 
+                                </p>
+                                <p>
+                                    For example, if there is a create file followed by three inserts after the point in the playback
+                                    where the user paused, then three deletes and a delete file will be added to the list of events 
+                                    to roll back the starting state of the new download to the pause point. 
+                                </p>
+                                <p>
+                                    All comments and history are available to see in playbacks from that project but the starting point 
+                                    for future development is the pause point in the playback. This is the best option if you want a deep 
+                                    history of all the changes in your code.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="modal-footer">
                         <div class="form-group">
                             
@@ -1324,7 +1324,7 @@
                 allDirs: null,              		//an object with info about all of the directories ever created in the system 
                 delay: 100,							//delay in between playback events in ms
                 highlightDelay: 300,    			//amount of time a new element will be highlighted on insert/delete
-                showPastesInABlock: true,			//show any pasted code as a single big block of text
+                showPastesInABlock: false,			//show any pasted code as a single big block of text
                 showRecentsChanges: true,           //highlight recent changes in between play/pause cycles
                 comments: {},						//an object that will hold event ids as a key and groups of comments to display at the event
                 userWantsPauseOnComments: true,     //indicates whether playback should be paused if there is a comment
