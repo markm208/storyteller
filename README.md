@@ -35,7 +35,13 @@ Currently there is a [Visual Studio Code](https://code.visualstudio.com/) Storyt
 
 To install the plugin first make sure you have [VS Code](https://code.visualstudio.com/Download) installed and get familiar with it.
 
-Next, download the Storyteller plugin file, [storyteller-0.0.1.vsix](storyteller-0.0.1.vsix). To install the plugin, open the .vsix file using VS Code. Then restart VS Code.
+Next, download the Storyteller plugin file, [storyteller-0.0.1.vsix](storyteller-0.0.1.vsix). To install the plugin, 
+1. go to the 'Extensions' tab. 
+2. select the '...' at the top
+3. choose 'install from VSIX'
+4. restart VS Code
+
+![Alt](images/install.PNG "Install Storyteller")
 
 To completely remove the extension, delete the storyteller extension folder located here:
 
