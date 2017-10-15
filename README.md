@@ -1,7 +1,7 @@
 # Storyteller
 While writing code we generate many creative ideas. We visualize our systems from different perspectives and weigh different options. Eventually, we make decisions about how our systems will evolve. Sometimes we make mistakes or learn more about what we are building and have to go back and revise our code.
 
-Often, there is not a good place to write down our thoughts and ideas about the development process. It can be difficult to learn from experienced developers because we don't get to see them make their decisions and hear the reasons why they made them. A less experienced developer can learn a great deal from a more experienced one if they can get inside the head of the more experienced developer and be walked through the 'why'.
+Often, there is not a good place to write down our thoughts and ideas about the development process. It can be difficult to learn from experienced developers because we don't get to see them make their decisions or hear the reasons why they made them. A less experienced developer can learn a great deal from a more experienced one if they can get inside the head of the more experienced developer and be walked through the 'why'.
 
 Storyteller records all of the changes made during programming sessions and allows them to be played back and annotated. This allows developers to reflect on what they have done, write down their thoughts, and draw pictures to tell the story of how their code has evolved.
 
@@ -26,19 +26,9 @@ In addition to moving the code comments out of the code, Storyteller was designe
 - It is possible to create comments using a richer media than plain text so that developers can better describe their ideas and thought processes. Storyteller allows you to draw pictures in your comments, store screenshots that can be marked up, and record audio.
 
 ### Examples
-Here are some full examples from an intro programming course that I teach (this tool is not solely for educational purposes- it is for anyone who wants to show others how they thought about a problem while coding it):
-- This is a program that [finds primes](http://personal.carthage.edu/mmahoney/playbacks/isPrime.html)
-- This is a program that [finds day numbers in a year](http://personal.carthage.edu/mmahoney/playbacks/dayOfYear.html)
-- This is a program that [finds square roots and nth roots](http://personal.carthage.edu/mmahoney/playbacks/roots.html)
-- This is a program that [prints a calendar year](http://personal.carthage.edu/mmahoney/playbacks/calendar.html)
-- This is a program that [finds the area under a curve](http://personal.carthage.edu/mmahoney/playbacks/areaUnderCurve.html)
-- Another [area under the curve program in java](http://personal.carthage.edu/mmahoney/playbacks/oopPlaybacks/07IntegralCalculator.html)
+Here are some [full examples from an intro programming course that I teach](http://personal.carthage.edu/mmahoney/cppbook/) (this tool is not solely for educational purposes- it is for anyone who wants to show others how they thought about a problem while coding it).
 
-Some notes about playback. To speed things up use `shift-up arrow` (`shift-down arrow` slows things down too). You can skip the animation of code altogether and just see the code and comments by speeding things up to the maximum speed (about six `shift-up arrow`'s). 
-
-You can use the pause/play button (`space bar`) to stop/restart a playback. You can control the speed entirely by using `right arrow` and `left arrow`. Each one of these key presses moves an event at a time. 
-
-Finally, you can control the font-size by going to the options menu in the bottom right of the screen and changing the setting there.
+Some notes about playback. You can use the pause/play button (`space bar`) to stop/restart a playback. To speed things up use `shift-up arrow` (`shift-down arrow` slows things down too). You can skip the animation of code altogether and just focus on the code and comments by selecting the forward button `>>` (`shift-right arrow` will accomplish this as well). 
 
 ## Install
 Currently there is a [Visual Studio Code](https://code.visualstudio.com/) Storyteller editor plugin (this is not the full MS Visual Studio IDE- it is a newer, lightweight editor similar to notepad++, sublime, and atom).
