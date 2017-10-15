@@ -164,6 +164,11 @@ While viewing a playback a comment can be added by pausing the playback and addi
 
 - The viewer can choose to skip the animation of the code and only show the state of the code and the comments at comment points.
 
+### Version control
+Storyteller supports basic version control functionality. One can create a new branch of development and merge another branch into an existing one. To create a branch the user chooses the option to 'Download the files at this point'. A zip file with the state of the files and its history will be saved to your machine. Open it up with Storyteller to make changes from that point.
+
+To merge in the changes from another branch the user chooses the 'Merge' option. If there are conflicts on the same line the both sets of changes will be added to the code. The changes are added to the in-memory version of the code. Simply download the files again and the merged code will be in the new repository. 
+
 ### Sharing
 - There are three ways to share playbacks with others.
   - Download and save the web page that is displaying the playback using the browser (`ctrl-s` in most browsers). The page is self contained and can be viewed offline, sent in an email, or added to a web server.
