@@ -1,7 +1,7 @@
 {
   "name": "storyteller",
   "displayName": "storyteller",
-  "description": "Plugin that allows devs to show and tell  others how their code has evolved.",
+  "description": "Plugin that allows devs to show and tell others how their code has evolved.",
   "version": "0.0.1",
   "publisher": "markm208",
   "repository": {
