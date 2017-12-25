@@ -226,6 +226,29 @@
                 overflow-x:hidden;
             }
 
+            #commentsReadProgress {
+                text-align: right;
+            }
+
+            #commentsReadProgress.someUnreadComments {
+                font-weight: normal;
+                font-style: italic;
+            }
+
+            .someUnreadComments::before {
+                content: "*";
+            }
+            
+            .commentNumberUnread {
+                font-style: italic;
+                color: gray;
+            }
+            
+            .commentNumberRead {
+                font-style: normal;
+                color: black;
+            }
+
             .activeComment {
                 border-color: green;
             }
@@ -516,8 +539,10 @@
 
                                 <!-- tab to display comments from a playback -->
 								<div role="tabpanel" class="tab-pane fade" id="playbackCommentsTab">
-									<div id="codeCommentContainer">
-										--
+                                    <div id="commentsReadProgress" class="someUnreadComments">
+                                    </div>
+                                    <div id="codeCommentContainer">
+                                    --
 									</div>
 								</div>
 							</div>
@@ -9125,9 +9150,19 @@
                 //revoke any previous audio comments before adding new ones
                 revokeActualAudioComments();                 
 
-                //get the container of code comments and clear out all of the old comment info
+                //get the div that holds the number of comments read
+                var commentsReadProgress = document.querySelector("#commentsReadProgress");
+                
+                //add a class saying that there are some comments that have not been clicked and read
+                commentsReadProgress.classList.add("someUnreadComments");
+
+                //update the text to show that another comment has been read
+                commentsReadProgress.innerHTML = "Comments read 0/" + commentsForAnEvent.length;
+
+                //get the container of code comments and clear out all of the old comment info and scroll to the top
                 var codeCommentContainer = document.querySelector("#codeCommentContainer");
                 codeCommentContainer.innerHTML = "";
+                codeCommentContainer.scrollTop = 0;
 
                 //make sure the playback comments tab is active to display the comment
                 makePlaybackCommentTabActive();
@@ -9139,7 +9174,7 @@
                     var comment = commentsForAnEvent[i];
 
                     //build up the ui for the comment
-                    buildCommentUI(comment, codeCommentContainer, (i + 1), commentsForAnEvent.length);
+                    buildCommentUI(comment, codeCommentContainer, commentsReadProgress, (i + 1), commentsForAnEvent.length);
                 }
 
                 //if there are any highlighted code characters make sure the playback tab is visible and the highlighted code is visible
@@ -9235,7 +9270,7 @@
             /*
              * Build a UI for the comment.
              */
-            function buildCommentUI(comment, codeCommentContainer, currentCommentIndex, totalComments) {
+            function buildCommentUI(comment, codeCommentContainer, commentsReadProgress, currentCommentIndex, totalComments) {
 
                 //grab the relevant info from the comment
                 var text = comment.commentText;
@@ -9246,6 +9281,7 @@
                 var outerDiv = document.createElement("div");
                 outerDiv.classList.add("well");
                 outerDiv.classList.add("well-lg");
+                outerDiv.classList.add("readableComment");
 
                 //when someone clicks the comment
                 outerDiv.addEventListener("click", function(e){
@@ -9262,6 +9298,32 @@
 
                     //make the clicked comment active
                     outerDiv.classList.add("activeComment");
+
+                    //if this comment has NOT been clicked and read before 
+                    if(!outerDiv.classList.contains("commentClickedAndRead")) {
+
+                        //mark it as read
+                        outerDiv.classList.add("commentClickedAndRead");
+
+                        //get the number of comments read and the total number of readable comments at this pause point
+                        var numberOfCommentsActuallyRead = codeCommentContainer.querySelectorAll(".commentClickedAndRead").length;
+                        var numberOfReadableComments = codeCommentContainer.querySelectorAll(".readableComment").length;
+            
+                        //if there are no more unread comments
+                        if(numberOfCommentsActuallyRead === numberOfReadableComments) {
+
+                            //remove the class for unread comments
+                            commentsReadProgress.classList.remove("someUnreadComments");
+                        }
+                        
+                        //update the text to show that another comment has been read
+                        commentsReadProgress.innerHTML = "Comments read " + numberOfCommentsActuallyRead + "/" + numberOfReadableComments;
+
+                        //get the comment number in this comment, remove a class, and add a class indicating it has been read
+                        var commentNumber = outerDiv.querySelector(".commentNumberUnread");
+                        commentNumber.classList.remove("commentNumberUnread");
+                        commentNumber.classList.add("commentNumberRead");
+                    }
 
                     //if there are any highlighted code characters make sure the playback tab is visible and the highlighted code is visible
                     focusOnHighlightedCommentCode(comment);
@@ -9428,6 +9490,7 @@
                 outerDiv.appendChild(editCommentDiv);
 
                 var commentNumberSpan = document.createElement("div");
+                commentNumberSpan.classList.add("commentNumberUnread");
                 commentNumberSpan.classList.add("small");
                 commentNumberSpan.classList.add("pull-right");
                 commentNumberSpan.innerHTML = currentCommentIndex + "/" + totalComments;
