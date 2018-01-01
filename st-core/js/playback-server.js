@@ -167,7 +167,66 @@ var server = http.createServer(function(req, res) {
                 res.end("Problem processing a comment" + err);
             }
         });
+    } else if(req.url === "/commentPosition" && req.method === "PUT") { //updating a comment position from a playback   
         
+        //body of http request
+        var body = [];
+
+        req.on('error', function(err) {
+            console.error(err);
+
+            //send an error message
+            res.writeHead(404, {"Content-Type": "text/plain"});
+            res.end("Problem processing a comment" + err);
+
+        }).on('data', function(chunk) {
+
+            //add a new chunk of data to the body
+            body.push(chunk);
+
+        }).on('end', function() {
+            
+            //turn the body into a string
+            body = Buffer.concat(body).toString();
+
+            //turn the string into an object
+            var updatedCommentPosition = JSON.parse(body);
+
+            //add a comment to the events before writing them all back to the file system
+            //get the latest playback data from the editor
+            var playbackData = editorNode.getPlaybackData();
+
+            //if the list of comments exists for the specified event 
+            if(playbackData.comments[updatedCommentPosition.eventId]) {
+
+                //get the array of events at the event id
+                var arrayOfCommentsAtThisEvent = playbackData.comments[updatedCommentPosition.eventId];                
+
+                //move the comment into its new position
+                //get the element to move
+                var element = arrayOfCommentsAtThisEvent[updatedCommentPosition.oldCommentPosition];
+
+                //remove it from the array
+                arrayOfCommentsAtThisEvent.splice(updatedCommentPosition.oldCommentPosition, 1);
+
+                //add it back in the new postion
+                arrayOfCommentsAtThisEvent.splice(updatedCommentPosition.newCommentPosition, 0, element);
+
+                //copy the new state of the playback data into the other module
+                editorNode.setPlaybackData(playbackData);
+                
+                //send a success response back
+                res.writeHead(200, {"Content-Type": "application/json"});
+                res.end(JSON.stringify({"result": "success"}));
+
+            } else {
+
+                //send an error message
+                res.writeHead(404, {"Content-Type": "text/plain"});
+                res.end("Problem processing a comment" + err);
+            }
+        });
+
     } else if(req.url === "/comment" && req.method === "DELETE") { //removing a comment
                 
         //body of http request

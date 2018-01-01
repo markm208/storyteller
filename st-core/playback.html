@@ -33,10 +33,6 @@
                 font-size: 140%;
             }
 
-            .selectedCode {
-                background-color: yellowgreen;            
-            }
-
             #textCommentTextArea {
                 height: auto;
                 min-height: 150px;
@@ -219,7 +215,11 @@
                 top: 0px;  
             }
 
-            #codeCommentContainer {
+            .hiddenUntilEditable {
+                display: none;
+            }
+
+            #allCodeCommentsContainer {
                 /*width: 50px;*/
                 height: 600px;
                 overflow-y: scroll;
@@ -258,9 +258,12 @@
                 background-color: greenyellow;
             }
 
-            /* for comment images */
-            .commentImage {
+            .selectedCode {
+                background-color: yellowgreen;            
+            }
 
+            .commentRelevant.selectedCode {
+                background-color: darkseagreen;            
             }
 
             /* for code comment display (not in the code but off to the side) */
@@ -541,7 +544,7 @@
 								<div role="tabpanel" class="tab-pane fade" id="playbackCommentsTab">
                                     <div id="commentsReadProgress" class="someUnreadComments">
                                     </div>
-                                    <div id="codeCommentContainer">
+                                    <div id="allCodeCommentsContainer">
                                     --
 									</div>
 								</div>
@@ -3596,11 +3599,8 @@
                                 //if there are any comments for this event
                                 if(playbackData.comments[currentEvent.id]) {
 
-                                    //get the group of all comments for this event (there can be more than one)
-                                    var commentsForAnEvent = playbackData.comments[currentEvent.id];
-
                                     //display the next comment
-                                    displayComments(commentsForAnEvent);
+                                    displayComments(currentEvent.id);
                                     
                                     //if we are supposed to pause for comments
                                     if(pauseForComments && playbackData.userWantsPauseOnComments) {
@@ -3645,11 +3645,8 @@
                                     //if there are any comments for the previous event 
                                     if(playbackData.comments[previousEvent.id]) {
 
-                                        //get the group of all comments for this event (there can be more than one)
-                                        var commentsForAnEvent = playbackData.comments[previousEvent.id];
-
                                         //display the next comment
-                                        displayComments(commentsForAnEvent);
+                                        displayComments(previousEvent.id);
 
                                         //if we are supposed to pause for comments
                                         if(pauseForComments && playbackData.userWantsPauseOnComments) {
@@ -9127,10 +9124,10 @@
             function clearPreviousComment() {
 
                 //get the container of code comments
-                var codeCommentContainer = document.querySelector("#codeCommentContainer");
+                var allCodeCommentsContainer = document.querySelector("#allCodeCommentsContainer");
 
                 //empty out the old comment info
-                codeCommentContainer.innerHTML = "--";
+                allCodeCommentsContainer.innerHTML = "--";
                 
                 //remove any previously highlighted code
                 removeCommentCodeHighlights();
@@ -9140,9 +9137,12 @@
             }
 
             /*
-             * Display one or more comments for the passed in event.
+             * Display one or more comments for the passed in event id.
              */
-            function displayComments(commentsForAnEvent) {
+            function displayComments(eventId) {
+
+                //get the group of all comments for this event (there can be more than one)
+                var commentsForAnEvent = playbackData.comments[eventId];
 
                 //clear the previous comment
                 clearPreviousComment();
@@ -9160,9 +9160,9 @@
                 commentsReadProgress.innerHTML = "Comments read 0/" + commentsForAnEvent.length;
 
                 //get the container of code comments and clear out all of the old comment info and scroll to the top
-                var codeCommentContainer = document.querySelector("#codeCommentContainer");
-                codeCommentContainer.innerHTML = "";
-                codeCommentContainer.scrollTop = 0;
+                var allCodeCommentsContainer = document.querySelector("#allCodeCommentsContainer");
+                allCodeCommentsContainer.innerHTML = "";
+                allCodeCommentsContainer.scrollTop = 0;
 
                 //make sure the playback comments tab is active to display the comment
                 makePlaybackCommentTabActive();
@@ -9174,7 +9174,7 @@
                     var comment = commentsForAnEvent[i];
 
                     //build up the ui for the comment
-                    buildCommentUI(comment, codeCommentContainer, commentsReadProgress, (i + 1), commentsForAnEvent.length);
+                    buildCommentUI(comment, allCodeCommentsContainer, commentsReadProgress, (i + 1), commentsForAnEvent.length);
                 }
 
                 //if there are any highlighted code characters make sure the playback tab is visible and the highlighted code is visible
@@ -9244,6 +9244,28 @@
             }
 
             /*
+             * Converts any highlighted code into selected code
+             */
+            function convertHighlightedCodeToSelectedCode() {
+
+                //turn all of the highlighted code from the comment into potential new highlighted 
+                var allHighlightedCodeInCurrentComment = document.querySelectorAll(".commentRelevant");
+
+                //go through each of the highlighted code characters
+                for(var i = 0;i < allHighlightedCodeInCurrentComment.length;i++) {
+                    
+                    //get a character
+                    var highlightedCode = allHighlightedCodeInCurrentComment[i];
+
+                    //remove the current highlight 
+                    highlightedCode.classList.remove("commentRelevant");
+
+                    //add the new potential highlight
+                    highlightedCode.classList.add("selectedCode");
+                } 
+            }
+
+            /*
              * Make the tab that displays comments active.
              */
             function makePlaybackCommentTabActive() {
@@ -9268,9 +9290,89 @@
             }
 
             /*
+             * Makes a comment active (if there is a previously active comment it will be made inactive)
+             */
+            function makeCommentActive(comment, newActiveCommentContainer, previouslyActiveCommentContainer) {
+                
+                //make the clicked comment active
+                newActiveCommentContainer.classList.add("activeComment");
+                
+                //if there was a previously active comment container
+                if(previouslyActiveCommentContainer) {
+
+                    //remove the active style from the previously active container
+                    previouslyActiveCommentContainer.classList.remove("activeComment");
+
+                    //get the previous comment's position drop down list
+                    var previousCommentPositionDropDownContainer = previouslyActiveCommentContainer.querySelector(".commentPositionDropDownContainer");
+
+                    //get the previous comment's text area
+                    var previousCodeCommentText = previouslyActiveCommentContainer.querySelector(".codeCommentText");
+
+                    //get the previously active comment's edit buttons
+                    var previousEditCommentButton = previouslyActiveCommentContainer.querySelector(".editCommentButton");
+                    var previousEditCommentToggleButton = previouslyActiveCommentContainer.querySelector(".editCommentToggleButton")
+
+                    //make the previously active comment button uneditable
+                    previousEditCommentButton.setAttribute("disabled", "true");
+                    previousEditCommentButton.classList.remove("btn-primary");
+                    previousEditCommentButton.innerHTML = "Edit Comment";                                             
+                    previousEditCommentToggleButton.setAttribute("disabled", "true");   
+
+                    //hide the comment position drop down list in this normal mode
+                    previousCommentPositionDropDownContainer.classList.add("hiddenUntilEditable");    
+
+                    //make the previous comment's text area uneditable
+                    previousCodeCommentText.setAttribute("contenteditable", "false");
+
+                    //remove any selected code 
+                    clearSelectedCode();
+                
+                } //else- no previous active comment, this happens on a pause before any clicks of comments
+
+                //get the newly active comment's edit buttons
+                var newEditCommentButton = newActiveCommentContainer.querySelector(".editCommentButton");
+                var newEditCommentToggleButton = newActiveCommentContainer.querySelector(".editCommentToggleButton")
+
+                //make the selected comment editable
+                newEditCommentButton.removeAttribute("disabled");
+                newEditCommentToggleButton.removeAttribute("disabled");
+
+                //if there are any highlighted code characters make sure the playback tab is visible and the highlighted code is visible
+                focusOnHighlightedCommentCode(comment);
+            }
+            
+            /*
+             * Marks a comment as read.
+             */
+            function markCommentAsRead(activeCommentContainer, commentsReadProgress, numberOfCommentsActuallyRead, numberOfReadableComments) {
+                
+                //mark it as read
+                activeCommentContainer.classList.add("commentClickedAndRead");
+
+                //increase the total number of read comments by 1
+                numberOfCommentsActuallyRead++;
+
+                //if there are no more unread comments
+                if(numberOfCommentsActuallyRead === numberOfReadableComments) {
+
+                    //remove the class for unread comments
+                    commentsReadProgress.classList.remove("someUnreadComments");
+                }
+                
+                //update the text to show that another comment has been read
+                commentsReadProgress.innerHTML = "Comments read " + numberOfCommentsActuallyRead + "/" + numberOfReadableComments;
+
+                //get the comment number in this comment, remove a class, and add a class indicating it has been read
+                var commentNumber = activeCommentContainer.querySelector(".commentNumberUnread");
+                commentNumber.classList.remove("commentNumberUnread");
+                commentNumber.classList.add("commentNumberRead");
+            }
+
+            /*
              * Build a UI for the comment.
              */
-            function buildCommentUI(comment, codeCommentContainer, commentsReadProgress, currentCommentIndex, totalComments) {
+            function buildCommentUI(comment, allCodeCommentsContainer, commentsReadProgress, currentCommentIndex, totalComments) {
 
                 //grab the relevant info from the comment
                 var text = comment.commentText;
@@ -9278,56 +9380,37 @@
                 var timestamp = formatDateShortWithDayOfWeek(new Date(comment.timestamp));
 
                 //create the div to hold the comment info and make it clickable
-                var outerDiv = document.createElement("div");
-                outerDiv.classList.add("well");
-                outerDiv.classList.add("well-lg");
-                outerDiv.classList.add("readableComment");
+                var commentContainer = document.createElement("div");
+                commentContainer.classList.add("well");
+                commentContainer.classList.add("well-lg");
+                commentContainer.classList.add("readableComment");
 
                 //when someone clicks the comment
-                outerDiv.addEventListener("click", function(e){
+                commentContainer.addEventListener("click", function(e){
+                //commentContainer.addEventListener("mouseenter", function(e){ //for mouse over instead of a click
 
-                    //get the active comment
+                    //get the active comment (might be null if this is there has been no comments clicked yet)
                     activeCommentContainer = document.querySelector(".activeComment");
 
-                    //if there is an active comment that is different than the one clicked
-                    if(activeCommentContainer && activeCommentContainer !== outerDiv) {
+                    //if the active comment is different than the one clicked
+                    if(activeCommentContainer !== commentContainer) {
 
-                        //remove the active style
-                        activeCommentContainer.classList.remove("activeComment");
-                    }
+                        //make the previous comment inactive (if there is one) and the new comment active
+                        makeCommentActive(comment, commentContainer, activeCommentContainer);
 
-                    //make the clicked comment active
-                    outerDiv.classList.add("activeComment");
-
+                    } //else- the comment clicked is already the active comment, do nothing
+                
                     //if this comment has NOT been clicked and read before 
-                    if(!outerDiv.classList.contains("commentClickedAndRead")) {
-
-                        //mark it as read
-                        outerDiv.classList.add("commentClickedAndRead");
+                    if(!commentContainer.classList.contains("commentClickedAndRead")) {
 
                         //get the number of comments read and the total number of readable comments at this pause point
-                        var numberOfCommentsActuallyRead = codeCommentContainer.querySelectorAll(".commentClickedAndRead").length;
-                        var numberOfReadableComments = codeCommentContainer.querySelectorAll(".readableComment").length;
-            
-                        //if there are no more unread comments
-                        if(numberOfCommentsActuallyRead === numberOfReadableComments) {
+                        var numberOfCommentsActuallyRead = allCodeCommentsContainer.querySelectorAll(".commentClickedAndRead").length;
+                        var numberOfReadableComments = allCodeCommentsContainer.querySelectorAll(".readableComment").length;
 
-                            //remove the class for unread comments
-                            commentsReadProgress.classList.remove("someUnreadComments");
-                        }
-                        
-                        //update the text to show that another comment has been read
-                        commentsReadProgress.innerHTML = "Comments read " + numberOfCommentsActuallyRead + "/" + numberOfReadableComments;
-
-                        //get the comment number in this comment, remove a class, and add a class indicating it has been read
-                        var commentNumber = outerDiv.querySelector(".commentNumberUnread");
-                        commentNumber.classList.remove("commentNumberUnread");
-                        commentNumber.classList.add("commentNumberRead");
-                    }
-
-                    //if there are any highlighted code characters make sure the playback tab is visible and the highlighted code is visible
-                    focusOnHighlightedCommentCode(comment);
-
+                        //mark the new comment as having been read
+                        markCommentAsRead(commentContainer, commentsReadProgress, numberOfCommentsActuallyRead, numberOfReadableComments);
+                    
+                    } //else- this comment has been read and clicked before, there is no need to mark it as read again
                 });
 
                 //for each of the comment images
@@ -9355,7 +9438,7 @@
                         commentTextInLargeDisplay.innerHTML = comment.commentText;
                     });
 
-                    outerDiv.appendChild(smallImageLink);
+                    commentContainer.appendChild(smallImageLink);
                 }
 
                 //for each of the audio comments
@@ -9384,7 +9467,7 @@
                     var audioURL = window.URL.createObjectURL(blob);
                     audio.setAttribute("src", audioURL);
 
-                    outerDiv.appendChild(audio);
+                    commentContainer.appendChild(audio);
                 }
 
                 var divPanel = document.createElement("div");
@@ -9421,33 +9504,119 @@
 
                 divPanel.appendChild(commentTextDiv);
                 divPanel.appendChild(commentInfoDiv);
-                outerDiv.appendChild(divPanel);
+                commentContainer.appendChild(divPanel);
 
                 //add a button group for edit and delete
                 var editCommentButtonGroup = document.createElement("div");
                 editCommentButtonGroup.classList.add("btn-group"); 
 
+                //drop down list to change the order of comments in edit mode
+                var commentPositionDropDown = document.createElement("select");
+                commentPositionDropDown.classList.add("commentPositionDropDown");
+
+                //create the options for the drop down
+                for(var i = 1;i <= totalComments;i++) {
+
+                    //create an option for the drop down list
+                    var commentPositionOption = document.createElement("option");
+                    
+                    //if this is position of the current comment
+                    if(i === currentCommentIndex) {
+                        
+                        //make this the selected option
+                        commentPositionOption.setAttribute("selected", "true");
+
+                        //store the original position of the comment in the drop down list
+                        commentPositionDropDown.setAttribute("originalCommentPosition", (i - 1).toString());                        
+                    }
+
+                    //store the comment number in the option 
+                    commentPositionOption.innerHTML = i;
+
+                    //add the option to the drop down list
+                    commentPositionDropDown.appendChild(commentPositionOption);
+                }
+
+                //label text for the drop down
+                var newCommentPosLabel = document.createElement("span");
+                newCommentPosLabel.innerHTML = " Update the comment position: ";
+
+                var updateCommentPositionDiv = document.createElement("div");
+                updateCommentPositionDiv.classList.add("text-right");
+                updateCommentPositionDiv.classList.add("hiddenUntilEditable");
+                updateCommentPositionDiv.classList.add("commentPositionDropDownContainer");                
+
+                updateCommentPositionDiv.appendChild(newCommentPosLabel);
+                updateCommentPositionDiv.appendChild(commentPositionDropDown);
+
+                var commentNumberDiv = document.createElement("div");
+                commentNumberDiv.classList.add("text-right");
+                var commentNumberSpan = document.createElement("span");
+                commentNumberSpan.classList.add("commentNumberUnread");
+                commentNumberSpan.innerHTML = "&nbsp" + currentCommentIndex + "/" + totalComments;
+                commentNumberDiv.appendChild(commentNumberSpan);
+
                 //edit button
                 var editCommentButton = document.createElement("button");
                 editCommentButton.classList.add("btn");
                 editCommentButton.classList.add("btn-xs");
+                editCommentButton.classList.add("editCommentButton");
+                editCommentButton.setAttribute("disabled", "true");
                 editCommentButton.innerHTML = "Edit Comment";
                 editCommentButton.addEventListener("click", function(e) {
                     
                     //if the user has selected to edit a comment
                     if(editCommentButton.innerHTML === "Edit Comment") {
 
+                        //turn all of the highlighted code from the comment into potential new highlighted 
+                        convertHighlightedCodeToSelectedCode();
+
+                        //show the comment position drop down list in this edit mode
+                        updateCommentPositionDiv.classList.remove("hiddenUntilEditable");                
+
                         //make the comment editable
                         commentTextDiv.setAttribute("contenteditable", "true");
                         commentTextDiv.focus();
+
+                        //update the edit button
+                        editCommentButton.classList.add("btn-primary");
                         editCommentButton.innerHTML = "Save changes";
 
                     } else { //the user chose to save after an edit
 
+                        //hide the comment position drop down list in this normal mode
+                        updateCommentPositionDiv.classList.add("hiddenUntilEditable");                
+
+                        //make the comment text are uneditable
                         commentTextDiv.setAttribute("contenteditable", "false");
-                        updateCommentInBrowserOnly(comment, commentTextDiv);
-                        updateCommentInEditorsDB(comment);
+
+                        //update the save button
+                        editCommentButton.classList.remove("btn-primary");
                         editCommentButton.innerHTML = "Edit Comment";
+
+                        //get the selected index position of the comment (0 based)
+                        var commentPositionDropDown = commentContainer.querySelector(".commentPositionDropDown");
+                        
+                        //update the comment in the browser and on the server
+                        updateCommentInBrowserOnly(comment, commentContainer);
+                        updateCommentInEditorsDB(comment);
+
+                        //get the original position of the comment
+                        var originalCommentPosition = parseInt(commentPositionDropDown.getAttribute("originalCommentPosition"));
+
+                        //if the selected comment position is NOT the same as its original position
+                        if(originalCommentPosition !== commentPositionDropDown.selectedIndex) {
+
+                            //get the new comment position
+                            var newCommentPosition = parseInt(commentPositionDropDown.options[commentPositionDropDown.selectedIndex].value) - 1;
+
+                            //update comment position
+                            updateCommentPositionInBrowserOnly(comment, originalCommentPosition, newCommentPosition);
+                            updateCommentPositionInEditorsDB(comment, originalCommentPosition, newCommentPosition);
+
+                            //re-display all of the comments in their new order
+                            displayComments(comment.displayCommentEvent.id);
+                        }
                     }
                 });
 
@@ -9456,7 +9625,10 @@
                 editCommentButtonToggle.classList.add("btn");
                 editCommentButtonToggle.classList.add("btn-xs");
                 editCommentButtonToggle.classList.add("dropdown-toggle");
+                editCommentButtonToggle.classList.add("editCommentToggleButton");
                 editCommentButtonToggle.setAttribute("data-toggle", "dropdown");
+                editCommentButtonToggle.setAttribute("disabled", "true");
+
                 var toggleButtonSpan = document.createElement("span");
                 toggleButtonSpan.classList.add("caret");
                 editCommentButtonToggle.appendChild(toggleButtonSpan);
@@ -9473,7 +9645,7 @@
                 deleteCommentAnchor.addEventListener("click", function(e) {
                     
                     //delete in the browser and in the db
-                    deleteCommentInBrowserOnly(comment, outerDiv);
+                    deleteCommentInBrowserOnly(comment, commentContainer);
                     deleteCommentInEditorsDB(comment);
                 });
                 deleteCommentListItem.appendChild(deleteCommentAnchor);
@@ -9487,16 +9659,12 @@
                 var editCommentDiv = document.createElement("div");
                 editCommentDiv.appendChild(editCommentButton);
                 editCommentDiv.appendChild(editCommentButtonGroup);
-                outerDiv.appendChild(editCommentDiv);
+                commentContainer.appendChild(editCommentDiv);
 
-                var commentNumberSpan = document.createElement("div");
-                commentNumberSpan.classList.add("commentNumberUnread");
-                commentNumberSpan.classList.add("small");
-                commentNumberSpan.classList.add("pull-right");
-                commentNumberSpan.innerHTML = currentCommentIndex + "/" + totalComments;
-                outerDiv.appendChild(commentNumberSpan);
-
-                codeCommentContainer.appendChild(outerDiv);
+                commentContainer.appendChild(commentNumberDiv);
+                commentContainer.appendChild(updateCommentPositionDiv);
+                
+                allCodeCommentsContainer.appendChild(commentContainer);
             }
             
             /*
@@ -9525,18 +9693,29 @@
             /*
              * updates a comment in the browser only
              */
-            function updateCommentInBrowserOnly(comment, codeCommentText) {
+            function updateCommentInBrowserOnly(comment, commentContainer) {
+                
+                //get the comment text area from the comment container
+                var codeCommentText = commentContainer.querySelector(".codeCommentText");
+
+                //get all of the new commented code
+                var selectedCodeIds = getSelectedCodeIds();
                 
                 //get the array of events at the event id
-                var arrayOfCommentsAtThisEvent = playbackData.comments[comment.displayCommentEvent.id];
+                var arrayOfCommentsAtThisEvent = playbackData.comments[comment.displayCommentEvent.id];                                
+                //get the index of the passed in comment
                 var indexOfComment = arrayOfCommentsAtThisEvent.indexOf(comment);
 
-                //if the comment was found
-                if(indexOfComment >= 0) {
-                    
-                    //update the comment text for this event
-                    arrayOfCommentsAtThisEvent[indexOfComment].commentText = codeCommentText.innerHTML;
-                }
+                //get the comment to update
+                var updatedComment = arrayOfCommentsAtThisEvent[indexOfComment];
+                
+                //update the comment text for this event
+                updatedComment.commentText = codeCommentText.innerHTML;
+                updatedComment.selectedCodeIds = selectedCodeIds;
+
+                //clear the selected code and highlight the new code
+                clearSelectedCode();
+                focusOnHighlightedCommentCode(comment);                    
             }
 
             /*
@@ -9565,9 +9744,59 @@
             }
 
             /*
+             * Update the position of the comment in the browser by rearranging the array in playbackData
+             */
+            function updateCommentPositionInBrowserOnly(comment, oldCommentPosition, newCommentPosition) {
+
+                //get the array of events at the event id
+                var arrayOfCommentsAtThisEvent = playbackData.comments[comment.displayCommentEvent.id];                
+
+                //move the comment into its new position
+                //get the element to move
+                var element = arrayOfCommentsAtThisEvent[oldCommentPosition];
+
+                //remove it from the array
+                arrayOfCommentsAtThisEvent.splice(oldCommentPosition, 1);
+
+                //add it back in the new postion
+                arrayOfCommentsAtThisEvent.splice(newCommentPosition, 0, element);
+            }
+
+            /*
+             * Send a request to rearrange the comment position on the server
+             */
+            function updateCommentPositionInEditorsDB(comment, oldCommentPosition, newCommentPosition) {
+
+                //update the comment on the server
+                var xmlhttp = new XMLHttpRequest();   
+                xmlhttp.addEventListener("load", function(){
+
+                    //TODO add something to the UI
+                    console.log("successfully updated a comment position and receieved a response");
+                });
+
+                xmlhttp.addEventListener("error", function(){
+                    
+                    //notify the user that there was a problem
+                    makeAnAlert("We were unable to update your comment position", "alert-danger", "commentAlertArea");
+                });
+
+                //create an object that tells the server what to move and where to move it
+                var updatedCommentPosition = {
+                    eventId: comment.displayCommentEvent.id, 
+                    oldCommentPosition: oldCommentPosition, 
+                    newCommentPosition: newCommentPosition
+                };
+
+                xmlhttp.open("PUT", "/commentPosition");
+                xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                xmlhttp.send(JSON.stringify(updatedCommentPosition));            
+            }
+
+            /*
              * Deletes a comment in the browser only
              */
-            function deleteCommentInBrowserOnly(comment, outerDiv) {
+            function deleteCommentInBrowserOnly(comment, commentContainer) {
                 
                 //get the array of events at the event id
                 var arrayOfCommentsAtThisEvent = playbackData.comments[comment.displayCommentEvent.id];
@@ -9577,7 +9806,7 @@
                 if(indexOfComment >= 0) {
 
                     //remove the comment container
-                    outerDiv.parentNode.removeChild(outerDiv);
+                    commentContainer.parentNode.removeChild(commentContainer);
 
                     //remove the comment
                     arrayOfCommentsAtThisEvent.splice(indexOfComment, 1);
