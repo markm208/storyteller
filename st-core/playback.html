@@ -9254,9 +9254,13 @@
                     //if there are any highlighted code characters make sure the playback tab is visible and the highlighted code is visible
                     focusOnHighlightedCommentCode(commentsForAnEvent[0]);
 
+                    //if the comments should start at the top of the container
                     if(isScrollToTop) {
+
                         allCodeCommentsContainer.scrollTop = 0;
-                    } else {
+
+                    } else { //no need to scroll to the top
+                        
                         allCodeCommentsContainer.scrollTop = allCodeCommentsContainer.scrollHeight;
                     }
                 }
