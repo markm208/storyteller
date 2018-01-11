@@ -288,11 +288,30 @@
             .table {
                 margin-bottom: 0px;
             }
-            
-            .audio-button-recording {
-                color: red;
+
+            @keyframes recording-flashing {
+                from {color: black;}
+                to {color: red;}
+            }
+
+            .videoButtonRecording {
+                animation-name: recording-flashing;
+                animation-duration: 1.5s;
+                animation-iteration-count: infinite;
+            }
+
+            .videoWindow {
+                width: 100%;
+                height: 100%;
             }
             
+            .potentialVideoClip {
+                padding-bottom: 2px;
+                padding-top: 20px;
+                padding-left: 20px;
+                padding-right: 20px;
+            } 
+
             /* to hide the last span element yet give it some space on the screen */
             .lastSpan {
                 visibility: hidden;
@@ -514,23 +533,27 @@
                                     
 
                                     <fieldset>
-                                        <legend>Audio for the Comment</legend>
-                                        <!-- control to whether to allow audio comments or not -->
+                                        <legend>Video for the Comment</legend>
+                                        <!-- control to whether to allow video comments or not -->
                                         <div class="form-group">
                                             <div class="checkbox">
                                                 <label>
-                                                    <input type="checkbox" id="enableAudioCommentsCheckbox" name="enableAudio" value="0">
-                                                    <span>Enable audio comments</span>
+                                                    <input type="checkbox" id="enableVideoCommentsCheckbox" name="enableVideo" value="0">
+                                                    <span>Enable video comments</span>
                                                 </label>
                                             </div>
                                         </div>
+                                        <div id="previewVideoControls" class="form-group hiddenUntilEditable">
+                                            <!-- video preview window -->
+                                            <video id="previewVideoWindow" class="videoWindow" autoplay muted></video>
 
-                                        <button id="addNewAudioComment" type="button" audioRecording="false" class="btn btn-default" disabled="true">
-                                            Start Recording
-                                            <span id="audioRecordingStateIcon">O</span>
-                                        </button>
-                                        
-                                        <div id="audioCommentClips"></div>
+                                            <button id="addNewVideoComment" type="button" class="btn btn-default">
+                                                Start Recording
+                                            </button>
+                                            <span id="videoRecordingStateIcon" class="">Not Recording</span>
+                                        </div>
+
+                                        <div id="videoCommentClips"></div>
                                     </fieldset>
 
                                     <!-- submit comment controls -->
@@ -1383,12 +1406,15 @@
             };
 
             /*
-             * For audio recording comments
+             * For video recording comments
              */
-            var audioComments = [];
+            //a collection of all video comments
+            var globalVideoComments = [];
 
-            //timer for UI blinking when recording
-            var audioRecordBlinkTimer;
+            //a source of video from the user's web cam
+            var mediaStream = null;
+            //an video recorder to record comments 
+            var mediaRecorder = null;
 
             //flag that says whether the ctrl or command button is pressed
             var ctrlCmdPressed = false;
@@ -2247,9 +2273,9 @@
                             commentImages.push(images[imgId]);
                         }
                         
-                        //if there was some text for a comment, some selected text, at least one image, or one audio comment
+                        //if there was some text for a comment, some selected text, at least one image, or one video comment
                         if(commentText.length > 0 || selectedCodeIds.length > 0 || 
-                           commentImages.length > 0 || audioComments.length > 0) {
+                           commentImages.length > 0 || globalVideoComments.length > 0) {
 
                             //clear out the text area
                             textCommentTextArea.innerHTML = "";
@@ -2257,12 +2283,12 @@
                             //clear the previously selected code
                             clearSelectedCode();
 
-                            //get each potential clip audio control and revoke the object url
-                            revokePotentialAudioComments()
+                            //get each potential video clip control and revoke the object url
+                            revokePotentialVideoComments()
 
-                            //clear out the actual audio control elements
-                            audioCommentClips = document.querySelector("#audioCommentClips");
-                            audioCommentClips.innerHTML = "";
+                            //clear out the actual video control elements
+                            videoCommentClips = document.querySelector("#videoCommentClips");
+                            videoCommentClips.innerHTML = "";
 
                             //playbackData.codeEventsIndex starts at -1 and is incremented every step forward
                             //this ? is to account for comments before any events are played back
@@ -2284,11 +2310,11 @@
                                 commentText: commentText,
                                 selectedCodeIds: selectedCodeIds,
                                 images: commentImages,
-                                audioComments: audioComments
+                                videoComments: globalVideoComments
                             };
 
-                            //clear out the reference to the audio clips to get ready for the next comment
-                            audioComments = [];
+                            //clear out the reference to the video clips to get ready for the next comment
+                            globalVideoComments = [];
 
                             //if there is not an array to hold comments on this event
                             if(!playbackData.comments[commentEvent.id]) {
@@ -2310,32 +2336,78 @@
 
                             //add a comment marker for the new comment in the progress bar
                             setCommentMarker(eventIndex, playbackData.codeEvents.length, commentEvent.id);
+
+                            //display all the comments (do not scroll to the top)
+                            displayComments(commentEvent.id, false);
+
+                            //higlight any code that was highlighted for the comment
+                            focusOnHighlightedCommentCode(comment);
                         }
                         //else- no text or selected code, we can't make a comment
                     }
                     //else- playback is playing, can't comment while the playback is moving
                 });
 
-                document.querySelector("#enableAudioCommentsCheckbox").addEventListener("click", function(e) { 
-                    
-                    //get the audio button
-                    var addNewAudioComment = document.querySelector("#addNewAudioComment");
+                document.querySelector("#enableVideoCommentsCheckbox").addEventListener("click", function(e) { 
 
-                    //if audio comments are enabled
+                    //get the div that holds the video controls                    
+                    var previewVideoControls = document.querySelector("#previewVideoControls");
+
+                    //if video comments are being enabled
                     if(e.target.checked) {
 
-                        //if the user chooses to enable audio comments, set up the media recorder
-                        setUpAudioRecordingOfComments();
+                        //if the user chooses to enable video comments, set up the media recorder
+                        setUpVideoRecordingOfComments();
 
-                        addNewAudioComment.disabled = false
-                        e.target.disabled = true;
+                        //make the video controls visible
+                        previewVideoControls.classList.remove("hiddenUntilEditable");
 
-                    } else {
+                    } else { //video is being disbaled
 
-                        addNewAudioComment.disabled = true;
+                        //turn off the web cam
+                        tearDownVideoRecordingOfComments();
+
+                        //hide the video controls
+                        previewVideoControls.classList.add("hiddenUntilEditable");
                     }
                 });
-                
+
+                //add a click handler to control recording
+                document.querySelector("#addNewVideoComment").addEventListener("click", function(e) {
+
+                    //get the button that was pressed                
+                    var videoRecordButton = e.target;
+
+                    //get the recording icon next to the text
+                    var recordingIcon = document.querySelector("#videoRecordingStateIcon");
+
+                    //if the media recorder is in the recording state
+                    if(mediaRecorder.state === "recording") {
+
+                        //set the text of the button from 'Stop Recording' to 'Start Recording' (keep the span next to the text in the button) 
+                        videoRecordButton.innerHTML = "Start Recording";
+
+                        //make the notification stop blinking with this class
+                        recordingIcon.classList.remove("videoButtonRecording");
+                        recordingIcon.innerHTML = "Not Recording";
+
+                        //stop recording
+                        mediaRecorder.stop();
+
+                    } else { //we are in the idle state
+
+                        //set the text of the button from 'Start Recording' to 'Stop Recording' (keep the span next to the text in the button) 
+                        videoRecordButton.innerHTML = "Stop Recording";                        
+
+                        //make the notification blink with this class
+                        recordingIcon.classList.add("videoButtonRecording");
+                        recordingIcon.innerHTML = "Recording";
+
+                        //start the recording process
+                        mediaRecorder.start();
+                    }                    
+                });
+
                 //save a playback
                 document.querySelector("#savePlaybackButton").addEventListener("click", function(e) {
 
@@ -3601,7 +3673,7 @@
                                 if(playbackData.comments[currentEvent.id]) {
 
                                     //display the next comment
-                                    displayComments(currentEvent.id);
+                                    displayComments(currentEvent.id, true);
                                     
                                     //if we are supposed to pause for comments
                                     if(pauseForComments && playbackData.userWantsPauseOnComments) {
@@ -3647,7 +3719,7 @@
                                     if(playbackData.comments[previousEvent.id]) {
 
                                         //display the next comment
-                                        displayComments(previousEvent.id);
+                                        displayComments(previousEvent.id, true);
 
                                         //if we are supposed to pause for comments
                                         if(pauseForComments && playbackData.userWantsPauseOnComments) {
@@ -9133,53 +9205,61 @@
                 //remove any previously highlighted code
                 removeCommentCodeHighlights();
 
-                //revoke any audio comments
-                revokeActualAudioComments(); 
+                //revoke any video comments
+                revokeActualVideoComments(); 
             }
 
             /*
              * Display one or more comments for the passed in event id.
              */
-            function displayComments(eventId) {
+            function displayComments(eventId, isScrollToTop) {
 
                 //get the group of all comments for this event (there can be more than one)
                 var commentsForAnEvent = playbackData.comments[eventId];
 
-                //clear the previous comment
-                clearPreviousComment();
+                if(commentsForAnEvent && commentsForAnEvent.length > 0) {
 
-                //revoke any previous audio comments before adding new ones
-                revokeActualAudioComments();                 
+                    //clear the previous comment
+                    clearPreviousComment();
 
-                //get the div that holds the number of comments read
-                var commentsReadProgress = document.querySelector("#commentsReadProgress");
-                
-                //add a class saying that there are some comments that have not been clicked and read
-                commentsReadProgress.classList.add("someUnreadComments");
+                    //revoke any previous video comments before adding new ones
+                    revokeActualVideoComments();                 
 
-                //update the text to show that another comment has been read
-                commentsReadProgress.innerHTML = "Comments read 0/" + commentsForAnEvent.length;
+                    //get the div that holds the number of comments read
+                    var commentsReadProgress = document.querySelector("#commentsReadProgress");
+                    
+                    //add a class saying that there are some comments that have not been clicked and read
+                    commentsReadProgress.classList.add("someUnreadComments");
 
-                //get the container of code comments and clear out all of the old comment info and scroll to the top
-                var allCodeCommentsContainer = document.querySelector("#allCodeCommentsContainer");
-                allCodeCommentsContainer.innerHTML = "";
-                allCodeCommentsContainer.scrollTop = 0;
+                    //update the text to show that another comment has been read
+                    commentsReadProgress.innerHTML = "Comments read 0/" + commentsForAnEvent.length;
 
-                //make sure the playback comments tab is active to display the comment
-                makePlaybackCommentTabActive();
+                    //get the container of code comments and clear out all of the old comment info and scroll to the top
+                    var allCodeCommentsContainer = document.querySelector("#allCodeCommentsContainer");
+                    allCodeCommentsContainer.innerHTML = "";
 
-                //go through each comment
-                for(var i = 0;i < commentsForAnEvent.length;i++) {
+                    //make sure the playback comments tab is active to display the comment
+                    makePlaybackCommentTabActive();
 
-                    //get the current comment
-                    var comment = commentsForAnEvent[i];
+                    //go through each comment
+                    for(var i = 0;i < commentsForAnEvent.length;i++) {
 
-                    //build up the ui for the comment
-                    buildCommentUI(comment, allCodeCommentsContainer, commentsReadProgress, (i + 1), commentsForAnEvent.length);
+                        //get the current comment
+                        var comment = commentsForAnEvent[i];
+
+                        //build up the ui for the comment
+                        buildCommentUI(comment, (i + 1), commentsForAnEvent.length);
+                    }
+
+                    //if there are any highlighted code characters make sure the playback tab is visible and the highlighted code is visible
+                    focusOnHighlightedCommentCode(commentsForAnEvent[0]);
+
+                    if(isScrollToTop) {
+                        allCodeCommentsContainer.scrollTop = 0;
+                    } else {
+                        allCodeCommentsContainer.scrollTop = allCodeCommentsContainer.scrollHeight;
+                    }
                 }
-
-                //if there are any highlighted code characters make sure the playback tab is visible and the highlighted code is visible
-                focusOnHighlightedCommentCode(commentsForAnEvent[0]);
             }
 
             /*
@@ -9293,7 +9373,10 @@
             /*
              * Makes a comment active (if there is a previously active comment it will be made inactive)
              */
-            function makeCommentActive(comment, newActiveCommentContainer, previouslyActiveCommentContainer) {
+            function makeCommentActive(comment, newActiveCommentContainer) {
+
+                //get the active comment (might be null if this is there has been no comments clicked yet)
+                previouslyActiveCommentContainer = document.querySelector(".activeComment");
                 
                 //make the clicked comment active
                 newActiveCommentContainer.classList.add("activeComment");
@@ -9346,7 +9429,14 @@
             /*
              * Marks a comment as read.
              */
-            function markCommentAsRead(activeCommentContainer, commentsReadProgress, numberOfCommentsActuallyRead, numberOfReadableComments) {
+            function markCommentAsRead(activeCommentContainer) {
+
+                //get the div that holds the number of comments read
+                var commentsReadProgress = document.querySelector("#commentsReadProgress");
+
+                //get the number of comments read and the total number of readable comments at this pause point
+                var numberOfCommentsActuallyRead = document.querySelectorAll(".commentClickedAndRead").length;
+                var numberOfReadableComments = document.querySelectorAll(".readableComment").length;
                 
                 //mark it as read
                 activeCommentContainer.classList.add("commentClickedAndRead");
@@ -9373,7 +9463,7 @@
             /*
              * Build a UI for the comment.
              */
-            function buildCommentUI(comment, allCodeCommentsContainer, commentsReadProgress, currentCommentIndex, totalComments) {
+            function buildCommentUI(comment, currentCommentIndex, totalComments) {
 
                 //grab the relevant info from the comment
                 var text = comment.commentText;
@@ -9397,19 +9487,15 @@
                     if(activeCommentContainer !== commentContainer) {
 
                         //make the previous comment inactive (if there is one) and the new comment active
-                        makeCommentActive(comment, commentContainer, activeCommentContainer);
+                        makeCommentActive(comment, commentContainer);
 
                     } //else- the comment clicked is already the active comment, do nothing
                 
                     //if this comment has NOT been clicked and read before 
                     if(!commentContainer.classList.contains("commentClickedAndRead")) {
 
-                        //get the number of comments read and the total number of readable comments at this pause point
-                        var numberOfCommentsActuallyRead = allCodeCommentsContainer.querySelectorAll(".commentClickedAndRead").length;
-                        var numberOfReadableComments = allCodeCommentsContainer.querySelectorAll(".readableComment").length;
-
                         //mark the new comment as having been read
-                        markCommentAsRead(commentContainer, commentsReadProgress, numberOfCommentsActuallyRead, numberOfReadableComments);
+                        markCommentAsRead(commentContainer);
                     
                     } //else- this comment has been read and clicked before, there is no need to mark it as read again
                 });
@@ -9442,33 +9528,39 @@
                     commentContainer.appendChild(smallImageLink);
                 }
 
-                //for each of the audio comments
-                for(var i = 0;i < comment.audioComments.length;i++) {
+                //for each of the video comments
+                for(var i = 0;i < comment.videoComments.length;i++) {
 
-                    //create an audio control element
-                    var audio = document.createElement("audio");
-                    audio.setAttribute("controls", "");
-                    audio.classList.add("actualAudioClip");
+                    //create a video control element
+                    var videoElement = document.createElement("video");
+                    //mark it as a video window for css
+                    videoElement.classList.add("videoWindow");
+                    
+                    //add video playback controls
+                    videoElement.setAttribute("controls", "");
+                    //this is a stored video clip not one that is in preview that may be added to a comment
+                    videoElement.classList.add("actualVideoClip");
 
-                    //get the data url that contains the audio and convert it back to a blob (http://stackoverflow.com/questions/12168909/blob-from-dataurl)
-                    var audioCommentDataURL = comment.audioComments[i];
+                    //get the data url that contains the video and convert it back to a blob (http://stackoverflow.com/questions/12168909/blob-from-dataurl)
+                    var videoCommentDataURL = comment.videoComments[i];
 
                     //get the base64 encoded data portion of the data url and decode it back to raw data 
-                    var rawAudioData = atob(audioCommentDataURL.split(",")[1]);
+                    var rawVideoData = atob(videoCommentDataURL.split(",")[1]);
                     //buffer the data 
-                    var arrBuff = new ArrayBuffer(rawAudioData.length);
+                    var arrBuff = new ArrayBuffer(rawVideoData.length);
                     var uintArr = new Uint8Array(arrBuff);
-                    for (var j = 0; j < rawAudioData.length; j++) {
-                        uintArr[j] = rawAudioData.charCodeAt(j);
+                    for (var j = 0; j < rawVideoData.length; j++) {
+                        uintArr[j] = rawVideoData.charCodeAt(j);
                     }
-                    //turn the buffer into an audio blob
-                    var blob = new Blob([arrBuff], {"type": "audio/ogg; codecs=opus"});
+                    //turn the buffer into an video blob
+                    var blob = new Blob([arrBuff], {type: "video/webm"});
 
-                    //create a data url and load the audio control with it
-                    var audioURL = window.URL.createObjectURL(blob);
-                    audio.setAttribute("src", audioURL);
+                    //create a data url and load the video control with it
+                    var videoURL = window.URL.createObjectURL(blob);
+                    videoElement.setAttribute("src", videoURL);
 
-                    commentContainer.appendChild(audio);
+                    //add the video to the comment container
+                    commentContainer.appendChild(videoElement);
                 }
 
                 var divPanel = document.createElement("div");
@@ -9496,12 +9588,6 @@
                     //add the dev group who made the comment
                     commentInfoDiv.appendChild(getDevElement(devs[j], 30));
                 }
-
-                //add the comment timestamp
-                var commentTimestamp = document.createElement("span");
-                commentTimestamp.classList.add("codeCommentTimestamp");
-                commentTimestamp.appendChild(document.createTextNode(timestamp));
-                commentInfoDiv.appendChild(commentTimestamp);
 
                 divPanel.appendChild(commentTextDiv);
                 divPanel.appendChild(commentInfoDiv);
@@ -9616,7 +9702,7 @@
                             updateCommentPositionInEditorsDB(comment, originalCommentPosition, newCommentPosition);
 
                             //re-display all of the comments in their new order
-                            displayComments(comment.displayCommentEvent.id);
+                            displayComments(comment.displayCommentEvent.id, true);
                         }
                     }
                 });
@@ -9648,6 +9734,9 @@
                     //delete in the browser and in the db
                     deleteCommentInBrowserOnly(comment, commentContainer);
                     deleteCommentInEditorsDB(comment);
+
+                    //re-display all of the comments in their new order
+                    displayComments(comment.displayCommentEvent.id, true);
                 });
                 deleteCommentListItem.appendChild(deleteCommentAnchor);
 
@@ -9665,9 +9754,11 @@
                 commentContainer.appendChild(commentNumberDiv);
                 commentContainer.appendChild(updateCommentPositionDiv);
                 
+                //get the comments container and add the new comment to it
+                var allCodeCommentsContainer = document.querySelector("#allCodeCommentsContainer");
                 allCodeCommentsContainer.appendChild(commentContainer);
             }
-            
+
             /*
              * adds a new comment to the storyteller server
              */
@@ -10435,9 +10526,9 @@
             }
 
             /*
-             * Sets up the page for recording audio comments
+             * Sets up the page for recording video comments
              */
-            function setUpAudioRecordingOfComments() {
+            function setUpVideoRecordingOfComments() {
                 
                 //get the user media or an alternative if it doesn't exist
                 navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
@@ -10445,32 +10536,43 @@
                 //if there is media support
                 if (navigator.getUserMedia && window.MediaRecorder) {
 
-                    //record audio only
+                    //record audio and video 
                     var constraints = { 
-                        audio: true
+                        audio: true,
+                        video: true
                     };
 
-                    //holds the raw audio data
-                    var chunks = [];
+                    //holds the raw video data
+                    var chunksOfVideoData = [];
 
+                    //set up the handlers for the call to navigator.getUserMedia
                     //if the media object can be configured
                     var onSuccess = function(stream) {
 
-                        //use the stream to make a media recorder
-                        var mediaRecorder = new MediaRecorder(stream);
+                        //store the media stream in a global so that it can be used to turn the web cam off later
+                        mediaStream = stream;
 
-                        //the function that will be called once the audio data is ready to be stored                        
+                        //tie the media stream to the video preview window
+                        document.querySelector("#previewVideoWindow").srcObject = stream;
+
+                        //use the stream to make a media recorder and store it in the global variable
+                        mediaRecorder = new MediaRecorder(stream);
+
+                        //the function that will be called once the video data is ready to be stored                        
                         mediaRecorder.onstop = function(e) {
 
-                            //holds every audio clip
-                            var audioClipDiv = document.createElement("div");
+                            //holds every video clip
+                            var videoClipDiv = document.createElement("div");
                             
-                            var audio = document.createElement("audio");
-                            audio.setAttribute("controls", "");
-                            audio.classList.add("potentialAudioClip");
+                            //create a preview clip for the new recording
+                            var videoElement = document.createElement("video");
+                            videoElement.classList.add("videoWindow");
+                            videoElement.setAttribute("controls", "");
+                            //this has not been added to a comment yet
+                            videoElement.classList.add("potentialVideoClip");
 
-                            //create a blob of the audio data
-                            var blob = new Blob(chunks, {"type": "audio/ogg; codecs=opus"});
+                            //create a blob of the video data
+                            var blob = new Blob(chunksOfVideoData, {type: "video/webm"});
                             
                             //use a reader to read the blob to turn it into a data url that can be stored in the json file
                             var reader = new FileReader();
@@ -10478,20 +10580,20 @@
                             //function to be called after reading as a data url
                             reader.addEventListener("load", function () {
                                     
-                                //add the data url to the collection of audio comments
-                                audioComments.push(reader.result);
+                                //add the data url to the collection of video comments
+                                globalVideoComments.push(reader.result);
 
                             }, false);
 
                             //begin the read process
                             reader.readAsDataURL(blob);
 
-                            //empty out the chunks, they aren't needed anymore for this bit of audio
-                            chunks = [];
+                            //empty out the chunksOfVideoData, they aren't needed anymore for this bit of video
+                            chunksOfVideoData = [];
                             
-                            //create a data url and set the audio control to point to it
-                            var audioURL = window.URL.createObjectURL(blob);
-                            audio.setAttribute("src", audioURL);
+                            //create a data url and set the video control to point to it
+                            var videoURL = window.URL.createObjectURL(blob);
+                            videoElement.setAttribute("src", videoURL);
                             
                             var deleteButton = document.createElement("button");
                             deleteButton.textContent = "Delete";
@@ -10500,92 +10602,35 @@
                             deleteButton.classList.add("btn-xs");
                             
                             deleteButton.addEventListener("click", function(e) {
-                                
-                                //remove the whole audio clip div
+
                                 evtTgt = e.target;
+                                
+                                //clean up the url object for the deleted video
+                                window.URL.revokeObjectURL(evtTgt.parentNode.children[0].getAttribute("src"));
+                                
+                                //remove the video element
                                 evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode);
+
+                                //clean up the video resources
+                                revokePotentialVideoComments();
+
+                                //empty out the collection of videos to add to the next comment
+                                globalVideoComments = [];
                             });
 
                             //add the elements to a div
-                            audioClipDiv.appendChild(audio);
-                            audioClipDiv.appendChild(deleteButton);
+                            videoClipDiv.appendChild(videoElement);
+                            videoClipDiv.appendChild(deleteButton);
 
-                            audioCommentClips = document.querySelector("#audioCommentClips");
-                            audioCommentClips.appendChild(audioClipDiv);
+                            videoCommentClips = document.querySelector("#videoCommentClips");
+                            videoCommentClips.appendChild(videoClipDiv);
                         }
 
                         mediaRecorder.ondataavailable = function(e) {
                             
-                            //add a new chunk of raw audio data 
-                            chunks.push(e.data);
-
-                            //console.log("Added chunk: data:" + e.data);
+                            //add a new chunk of raw video data 
+                            chunksOfVideoData.push(e.data);
                         }
-
-                        //add a click handler to control recording
-                        document.querySelector("#addNewAudioComment").addEventListener("click", function(e) {
-
-                            //get the button that was pressed                
-                            var audioRecordButton = e.target;
-
-                            //get the state of recording from an attribute in the button itself
-                            var recordingState = audioRecordButton.getAttribute("audioRecording") === "true" ? "recording" : "idle";
-
-                            //if we are in the recording state
-                            if(recordingState === "recording") {
-
-                                //change to idle in the button attribute
-                                audioRecordButton.setAttribute("audioRecording", "false");
-
-                                //set the text of the button from 'Stop Recording' to 'Start Recording' (keep the span next to the text in the button) 
-                                audioRecordButton.innerHTML = audioRecordButton.innerHTML.replace("Stop Recording", "Start Recording");
-
-                                //get the recording icon next to the text
-                                var recordingIcon = document.querySelector("#audioRecordingStateIcon");
-                                
-                                //update the UI
-                                recordingIcon.classList.remove("audio-button-recording");
-
-                                //stop the timer that makes the recording icon blink
-                                window.clearInterval(audioRecordBlinkTimer);
-
-                                //stop recording
-                                mediaRecorder.stop();
-
-                            } else { //we are in the idle state
-                                
-                                //change to the recording state in the button attribute
-                                audioRecordButton.setAttribute("audioRecording", "true");
-
-                                //set the text of the button from 'Start Recording' to 'Stop Recording' (keep the span next to the text in the button) 
-                                audioRecordButton.innerHTML = audioRecordButton.innerHTML.replace("Start Recording", "Stop Recording")
-                                
-                                //get the recording icon next to the text
-                                var recordingIcon = document.querySelector("#audioRecordingStateIcon");
-                                
-                                //update the UI
-                                recordingIcon.classList.add("audio-button-recording");
-                                //remove the class in a short time for the first blink
-                                window.setTimeout(function() {
-                                    recordingIcon.classList.remove("audio-button-recording");
-                                }, 1000);
-
-                                //set a timed interval to turn on the blink
-                                audioRecordBlinkTimer = window.setInterval(function() {
-
-                                    //add a blink class
-                                    recordingIcon.classList.add("audio-button-recording");
-                                    
-                                    //in the future, turn off the blink
-                                    window.setTimeout(function() {
-                                        recordingIcon.classList.remove("audio-button-recording");
-                                    }, 1000);
-                                }, 1500);
-
-                                //start the recording process
-                                mediaRecorder.start();
-                            }                    
-                        });
                     }
 
                     //if the media object cannot be configured
@@ -10597,48 +10642,65 @@
                     //configure the user media object
                     navigator.getUserMedia(constraints, onSuccess, onError);
 
-                } else { //audio recording is not supported in this browser
+                } else { //video recording is not supported in this browser
 
-                    //get the button that adds an audio comment
-                    var addNewAudioCommentButton = document.querySelector("#addNewAudioComment");
-
-                    //disable the button
-                    addNewAudioCommentButton.disabled = true;    
+                    //let the user know we can't access the camera
+                    makeAnAlert("We were unable to capture video in your browser", "alert-danger", "commentAlertArea");
                 }
             }
             
             /*
-             * Revokes any actual audio comments
+             * Clean up the media controls for capturing video
              */
-            function revokeActualAudioComments() {
+            function tearDownVideoRecordingOfComments() {
                 
-                //get all of the previous actual audio comment controls to revoke the object url
-                var actualAudioClips = document.querySelectorAll("actualAudioClip");
+                //get all the 'tracks' from the media stream
+                var allMediaStreamTracks = mediaStream.getTracks();
+                
+                //go through each track and stop it
+                for(var i = 0;i < allMediaStreamTracks.length;i++) {
+                    allMediaStreamTracks[i].stop();
+                }
+
+                //reset the global media stream
+                mediaStream = null;
+
+                //reset the global media recorder
+                mediaRecorder = null;
+            }
+
+            /*
+             * Revokes any actual video comments
+             */
+            function revokeActualVideoComments() {
+                
+                //get all of the previous actual video comment controls to revoke the object url
+                var actualVideoClips = document.querySelectorAll("actualVideoClip");
                 
                 //go through each one and revoke the object url for it
-                for(var i = 0;i < actualAudioClips.length;i++) {
+                for(var i = 0;i < actualVideoClips.length;i++) {
 
-                    var actualAudioClip = actualAudioClips[i];
+                    var actualVideoClip = actualVideoClips[i];
 
-                    //the browser is holding onto the audio object, free it up
-                    window.URL.revokeObjectURL(actualAudioClip.getAttribute("src"));
+                    //the browser is holding onto the video object, free it up
+                    window.URL.revokeObjectURL(actualVideoClip.getAttribute("src"));
                 }
             }
 
             /*
-             * Revokes any potential audio comments
+             * Revokes any potential video comments
              */
-            function revokePotentialAudioComments() {
-                //get each potential clip audio control and revoke the object url
-                var potentialAudioClips = document.querySelectorAll("potentialAudioClip");
+            function revokePotentialVideoComments() {
+                //get each potential clip video control and revoke the object url
+                var potentialVideoClips = document.querySelectorAll("potentialVideoClip");
                 
                 //go through each one and revoke the object url for it
-                for(var i = 0;i < potentialAudioClips.length;i++) {
+                for(var i = 0;i < potentialVideoClips.length;i++) {
 
-                    var potentialAudioClip = potentialAudioClips[i];
+                    var potentialVideoClip = potentialVideoClips[i];
                     
-                    //the browser is holding onto the audio object, free it up
-                    window.URL.revokeObjectURL(potentialAudioClip.getAttribute("src"));
+                    //the browser is holding onto the video object, free it up
+                    window.URL.revokeObjectURL(potentialVideoClip.getAttribute("src"));
                 }
             }
 
