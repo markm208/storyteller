@@ -26,7 +26,11 @@ In addition to moving the code comments out of the code, Storyteller was designe
 - It is possible to create comments using a richer media than plain text so that developers can better describe their ideas and thought processes. Storyteller allows you to draw pictures in your comments, store screenshots that can be marked up, and record audio.
 
 ### Examples
-Here are some [full examples from an intro programming course that I teach](http://personal.carthage.edu/mmahoney/cppbook/) (this tool is not solely for educational purposes- it is for anyone who wants to show others how they thought about a problem while coding it).
+Here are some examples in C++ and Clojure:
+* [An Animated Introduction to Programming in C++](https://personal.carthage.edu/mmahoney/cppbook/)
+* [An Animated Introduction to Clojure](https://personal.carthage.edu/mmahoney/cljbook/)
+
+(this tool is not solely for educational purposes- it is for anyone who wants to show others how they thought about a problem while coding it).
 
 Some notes about playback. You can use the pause/play button (`space bar`) to stop/restart a playback. To speed things up use `shift-up arrow` (`shift-down arrow` slows things down too). You can skip the animation of code altogether and just focus on the code and comments by selecting the forward button `>>` (`shift-right arrow` will accomplish this as well). 
 
