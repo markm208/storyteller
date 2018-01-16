@@ -1861,7 +1861,10 @@
                                     
                                     //simulate clicking the redo button
                                     document.querySelector("#redoDraw").click();
-                                } 
+                                }
+
+                                //prevent the screen from scrolling on play/pause
+                                e.preventDefault();  
                             }
                         }
                     }
@@ -2467,7 +2470,7 @@
 
                             dt.items.remove(i);
                         }
-                        
+
                     } else { //using DataTransfer
                         
                         //remove the drag data
