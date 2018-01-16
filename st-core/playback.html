@@ -784,7 +784,6 @@
                                         <div class="btn-group" role="group">
                                             <button type="button" id="playbackSpeedIncreaseButton" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Make the playback move faster">Faster</button>
                                             <button type="button" id="playbackSpeedDecreaseButton" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Make the playback move slower">Slower</button>
-                                            <button type="button" id="skipAnimationPlaybackSpeedIncreaseButton" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="When you choose to 'skip the animation of code' there is no delay in between events. If there are no Storyteller comments, then you will be brought to the final state of the code. However, if the 'Pause playback for all comments' option is selected the playback will pause on all comments. When viewing a playback with comments it is often desirable to see the code only at comment points.">Skip animation</button>
                                         </div>
                                         <p>
                                             Current speed: <span id="currentPlaybackSpeed"><strong>100 ms</strong> in between events</span>
@@ -1646,15 +1645,6 @@
                     //decrease the delay in between playing back events (function takes a delta)
                     changeSpeed(25);
                 });
-
-                //playback speed decrease button
-                document.querySelector("#skipAnimationPlaybackSpeedIncreaseButton").addEventListener("click", function(e) {
-
-                    //set the delay in between playing back events to a negative number (function takes a delta)
-                    //negate the current value and subtract 1 to make it negative
-                    changeSpeed(-playbackData.delay - 1);
-                });
-
 
                 //font increase button
                 document.querySelector("#fontIncreaseButton").addEventListener("click", function(e) {
@@ -4602,45 +4592,16 @@
                 //amount to increase/decrease the delay between events
                 playbackData.delay += delta;
 
-                //if we ever get a less than zero ms delay
-                if(playbackData.delay < 0) {
+                //if we ever get a less than a 25 ms delay
+                if(playbackData.delay < 25) {
 
-                    //make sure we are at an even 0
-                    playbackData.delay = 0;
+                    //make sure there is a playback speed of at least 25 ms
+                    playbackData.delay = 25;
                 }
 
-                //get the speed controls
+                //get the speed controls and update the speed indicator
                 var playbackSpeedDisplay = document.querySelector("#currentPlaybackSpeed");
-                //var speedControlPlaybackProgressBar = document.querySelector("#speedControlPlaybackProgressBar");
-
-                //if we are at the speed where there is no animation at all
-                if(playbackData.delay <= 0) {
-
-                    //set the speed control progress bar to be at the end
-                    //speedControlPlaybackProgressBar.setAttribute("style", "width:100%");
-
-                    //change the text to indicate no animation
-                    playbackSpeedDisplay.innerHTML = "<strong>0 ms</strong> in between events";
-
-                } else if(playbackData.delay < 175) { //new speed is fast
-
-                    //get an increment of 5% to move the slider
-                    //var width = 75 + (5 * (5 - (playbackData.delay / 25)));
-
-                    //set the width to the approximate speed
-                    //speedControlPlaybackProgressBar.setAttribute("style", "width:" + width + "%");
-
-                    //change the text to indicate a fast playback speed
-                    playbackSpeedDisplay.innerHTML = "<strong>" + playbackData.delay + " ms</strong> in between events";
-
-                } else { //new speed is slow
-
-                    //move the slider to a low position (the same for all slow speeds)
-                    //speedControlPlaybackProgressBar.setAttribute("style", "width:25%");
-
-                    //change the text to indicate a slow playback speed
-                    playbackSpeedDisplay.innerHTML = "<strong>" + playbackData.delay + " ms</strong> in between events";
-                }
+                playbackSpeedDisplay.innerHTML = "<strong>" + playbackData.delay + " ms</strong> in between events";
             }
 
             //*****************************************************************************
