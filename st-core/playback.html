@@ -1236,7 +1236,7 @@
                         <h3 class="modal-title">Add an image</h3>
                     </div>
 
-                    <div class="modal-body">
+                    <div class="modal-body" id="commentDrawingModal">
                         <!-- the drawing canvas -->
                         <canvas id="commentCanvas" class="img-thumbnail" height="675" width="860">                            
                         </canvas>
@@ -2404,6 +2404,77 @@
                     }                    
                 });
 
+                document.querySelector("#commentDrawingModal").addEventListener("paste", function(e) {
+
+                    //get the clipboard data from the paste event
+                    var clipboard = e.clipboardData;
+
+                    //if there is at least one item and it is a file
+                    if(clipboard.items.length > 0 && clipboard.items[0].kind === "file") {
+                        
+                        //attempt to load the image on the canvas
+                        importImageIntoCanvas(clipboard.files[0]);
+                    }
+                });
+
+                document.querySelector("#commentDrawingModal").addEventListener("drop", function(e) {
+                    
+                    //get the data 
+                    var dt = e.dataTransfer;
+                    
+                    //if the browser supports DataTransferItemList
+                    if (dt.items) {
+
+                        //we only support dropping a single file (make sure there is at least one)
+                        if (dt.items.length > 0 && dt.items[0].kind == "file") {
+
+                            //get the first file
+                            var imageFile = dt.items[0].getAsFile();
+
+                            //load the image on the canvas
+                            importImageIntoCanvas(imageFile);
+                        }
+
+                    } else { //the broswer supports DataTransfer
+                        
+                        //if there is at least one file
+                        if (dt.files.length > 0) {
+
+                            //load the image on the canvas
+                            importImageIntoCanvas(dt.files[0]);
+                        }  
+                    }              
+
+                    e.preventDefault();
+                });
+
+                document.querySelector("#commentDrawingModal").addEventListener("dragover", function(e) {
+                    
+                    //prevent default browser behavior
+                    e.preventDefault();
+                });
+                
+                document.querySelector("#commentDrawingModal").addEventListener("dragend", function(e) {
+
+                    //get the data transfer                     
+                    var dt = e.dataTransfer;
+
+                    //using DataTransferItemList
+                    if (dt.items) {  
+                        
+                        //remove the drag items
+                        for (var i = 0; i < dt.items.length; i++) {
+
+                            dt.items.remove(i);
+                        }
+                        
+                    } else { //using DataTransfer
+                        
+                        //remove the drag data
+                        ev.dataTransfer.clearData();
+                    }                    
+                });
+                
                 //save a playback
                 document.querySelector("#savePlaybackButton").addEventListener("click", function(e) {
 
@@ -10161,6 +10232,11 @@
                     //draw the selected image on the canvas
                     setImageOnDrawingCanvas(data.target.result);
                 };
+
+                //handler for a file that can't be displayed on the canvas
+                fileReader.onerror = function(data) {
+                    console.log("Error reading file to add to the comment image canvas");
+                }
 
                 //begin the read operation to read the selected image file
                 fileReader.readAsDataURL(imageFile);
