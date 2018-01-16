@@ -261,6 +261,12 @@
             .selectedCode {
                 background-color: yellowgreen;            
             }
+            ::selection {
+                background: yellowgreen;
+            }
+            ::-moz-selection {
+                background: yellowgreen;
+            }
 
             .commentRelevant.selectedCode {
                 background-color: darkseagreen;            
@@ -8770,9 +8776,6 @@
                             }
                         }
                     }
-
-                    //deselect the browser's selection
-                    selection.removeAllRanges();
                 }
             }
             
