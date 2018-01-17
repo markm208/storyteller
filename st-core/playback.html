@@ -1229,14 +1229,14 @@
         <!-- playback comment picture modal -->
         <div id="editCommentPictureModal" class="modal fade" tabindex="-1">
             <div class="modal-dialog modal-lg">
-                <div class="modal-content">
+                <div id="commentDrawingModal" class="modal-content">
 
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h3 class="modal-title">Add an image</h3>
                     </div>
 
-                    <div class="modal-body" id="commentDrawingModal">
+                    <div class="modal-body">
                         <!-- the drawing canvas -->
                         <canvas id="commentCanvas" class="img-thumbnail" height="675" width="860">                            
                         </canvas>
@@ -1857,14 +1857,17 @@
                                     //simulate clicking the undo button
                                     document.querySelector("#undoDraw").click();
 
+                                    //prevent the screen from scrolling on play/pause
+                                    e.preventDefault();  
+
                                 } else if(e.keyCode === 89 && e.ctrlKey) { //ctrl/cmd + y, redo
                                     
                                     //simulate clicking the redo button
                                     document.querySelector("#redoDraw").click();
-                                }
 
-                                //prevent the screen from scrolling on play/pause
-                                e.preventDefault();  
+                                    //prevent the screen from scrolling on play/pause
+                                    e.preventDefault();  
+                                }
                             }
                         }
                     }
