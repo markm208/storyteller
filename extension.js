@@ -190,13 +190,13 @@ function activate(context) {
     if(vscode.workspace.rootPath) {
         
         //get an OS independent project root path
-        var projectRootPath = getWorkspaceRootPath();
+        var workspaceRootPath = getWorkspaceRootPath();
         
         //start using storyteller in workspaces only
-        console.log(`Storyteller is active in the workspace: ${projectRootPath}`);
+        console.log(`Storyteller is active in the workspace: ${workspaceRootPath}`);
         
         //check to see if this is an existing storyteller project (with a hidden .storyteller dir) 
-        var existingProject = sessionState.isStorytellerDataPresent(projectRootPath);
+        var existingProject = sessionState.isStorytellerDataPresent(workspaceRootPath);
 
         //if there is a hidden storyteller dir or required files, then this is an existing project
         if(existingProject) {
@@ -269,10 +269,10 @@ function deactivate() {
     if(isStorytellerCurrentlyActive) {
         
         //get an OS independent project root path
-        var projectRootPath = getWorkspaceRootPath();
+        var workspaceRootPath = getWorkspaceRootPath();
                 
         //save the state of the storyteller data in the hidden folder for this project
-        sessionState.saveAllStorytellerState(projectRootPath);
+        sessionState.saveAllStorytellerState(workspaceRootPath);
     }
 
     //we should not be tracking anymore
@@ -348,10 +348,10 @@ function startTrackingProject() {
         isStorytellerCurrentlyActive = true;
 
         //get an OS independent project root path
-        var projectRootPath = getWorkspaceRootPath();
+        var workspaceRootPath = getWorkspaceRootPath();
         
         //get the name of the root dir
-        var workspaceDirName = path.parse(projectRootPath).base;        
+        var workspaceDirName = path.parse(workspaceRootPath).base;        
 
         //get the relative path of the project dir (the relative root path "/")
         var strippedPathToRootDir = "/";
@@ -414,13 +414,13 @@ function startTrackingProject() {
 function startReconcile(initTimestamp, existingProject) {
 
     //get an OS independent project root path
-    var projectRootPath = getWorkspaceRootPath();
+    var workspaceRootPath = getWorkspaceRootPath();
         
     //holds any info/error messages from the fs to storyteller reconciliation process
     var messages = [];
     
     //handle any files/dirs that have been added to the file system but are not tracked in storyteller
-    sessionState.reconcileFileSystemToStoryteller(projectRootPath, initTimestamp, messages);
+    sessionState.reconcileFileSystemToStoryteller(workspaceRootPath, initTimestamp, messages);
     
     //if there are any messages, let the user know about the reconciliation
     for(var i = 0;i < messages.length;i++) {
@@ -429,7 +429,7 @@ function startReconcile(initTimestamp, existingProject) {
     }
 
     //handle and files/dirs that are in the storyteller db but are not in the file system
-    if(sessionState.reconcileStorytellerToFileSystem(projectRootPath, initTimestamp)) {
+    if(sessionState.reconcileStorytellerToFileSystem(workspaceRootPath, initTimestamp)) {
         
         //prompt to see if the user would like to reconcile the file system
         vscode.window.showQuickPick(["Yes", "No"], {placeHolder: `Some files/dirs have been deleted outside of Storyteller. Would you like to add them back?`})
@@ -442,7 +442,7 @@ function startReconcile(initTimestamp, existingProject) {
                 messages = [];
 
                 //restore the files/dirs to the file system
-                sessionState.restoreFilesDirsToFileSystem(projectRootPath, initTimestamp, newFilesDirsToIgnoreDueToReconciliation, messages);
+                sessionState.restoreFilesDirsToFileSystem(workspaceRootPath, initTimestamp, newFilesDirsToIgnoreDueToReconciliation, messages);
 
                 //if there are any messages, let the user know about the reconciliation
                 for(var i = 0;i < messages.length;i++) {
@@ -890,24 +890,24 @@ function addRecentCreate(createEvent) {
     if(isStorytellerCurrentlyActive) {
 
         //get an OS independent project root path
-        var projectRootPath = getWorkspaceRootPath();
+        var workspaceRootPath = getWorkspaceRootPath();
         
         console.log(`\n\nCreate file/dir: ${createEvent}`);
         eventCollector.printAllPathToIdMappings();
 
         //get the OS independent path of the recently created file/dir
-        var newPath = createEvent.fsPath.split("\\").join("/");
+        var newFullPath = createEvent.fsPath.split("\\").join("/");
 
         //path to storyteller hidden dir
-        var storytellerPath = path.join(projectRootPath, ".storyteller").split("\\").join("/");
+        var storytellerPath = path.join(workspaceRootPath, ".storyteller").split("\\").join("/");
 
         //if the path of the new file/dir is not in the hidden .storyteller dir (we don't track changes in this folder)
-        if(newPath.startsWith(storytellerPath) === false) {
+        if(newFullPath.startsWith(storytellerPath) === false) {
             
             //check the array of file/dir paths that were added because they were stored in the storyteller db but
             //were not in the file system (this check happens on startup to reconcile differences between the db
             //and the file system)  
-            var indexOfReconciledPath = newFilesDirsToIgnoreDueToReconciliation.indexOf(newPath);
+            var indexOfReconciledPath = newFilesDirsToIgnoreDueToReconciliation.indexOf(newFullPath);
             
             //if this is a new file added because of reconciliation between the storyteller database and the file system on startup
             if(indexOfReconciledPath >= 0) {
@@ -917,12 +917,12 @@ function addRecentCreate(createEvent) {
                 //we've handled this case by ignoring the file/dir, remove the path of the new file to ignore
                 newFilesDirsToIgnoreDueToReconciliation.splice(indexOfReconciledPath, 1);
                 
-                //console.log(`Ignoring ${newPath} since it is not really new`);
+                //console.log(`Ignoring ${newFullPath} since it is not really new`);
                 
             } else { //check if this is a new file/dir (not due to reconciliation) or a move/rename 
 
                 //add the path to an array where it might be removed if this event is followed by a delete 
-                recentlyCreatedFileOrDir.push(newPath);
+                recentlyCreatedFileOrDir.push(newFullPath);
                 
                 //give some time for the addRecentDelete() function to remove this new path if this happens
                 //to be a rename or a move. Currently, giving 5ms for the delete handler to run.
@@ -932,34 +932,38 @@ function addRecentCreate(createEvent) {
                 setTimeout(function () {            
                         
                     //look for the entry with the new path
-                    var index = recentlyCreatedFileOrDir.indexOf(newPath);
+                    var index = recentlyCreatedFileOrDir.indexOf(newFullPath);
                     
                     //if the path is still in the array of recently added items then this is a true create
                     //new file/dir event not a move or rename
                     if(index >= 0) {
                         
                         //used to determine if the new path is to a file or directory
-                        var stats = fs.statSync(newPath);
+                        var stats = fs.statSync(newFullPath);
                         
                         //breaks up the path of the file/dir
-                        var parsedPath = path.parse(newPath);        
+                        var parsedPath = path.parse(newFullPath);        
                         var newPathFileName = parsedPath.base.split("\\").join("/");
                         var newPathParentPath = parsedPath.dir.split("\\").join("/");
+                        //get the relative path to the file or directory
+                        var relativePathToFileOrDir = sessionState.stripWorkspaceRootPath(workspaceRootPath, newFullPath);
+                        //get the relative path to the parent directory
+                        var relativePathToParent = sessionState.stripWorkspaceRootPath(workspaceRootPath, newPathParentPath);
 
-                        //if newPath is a file
+                        //if newFullPath is a file
                         if(stats.isFile()) {
                             
-                            console.log(`Creating a file: ${newPath}`);
+                            console.log(`Creating a file: ${newFullPath}`);
 
                             //make a create file event 
-                            eventCollector.createFile(sessionState.stripWorkspaceRootPath(projectRootPath, newPath), newPathFileName, sessionState.stripWorkspaceRootPath(projectRootPath, newPathParentPath));
+                            eventCollector.createFile(relativePathToFileOrDir, newPathFileName, relativePathToParent);
                             
-                        } else if(stats.isDirectory()) { //newPath is a dir 
+                        } else if(stats.isDirectory()) { //newFullPath is a dir 
                             
-                            console.log(`Creating a dir: ${newPath}`);
+                            console.log(`Creating a dir: ${newFullPath}`);
 
                             //make a create directory event 
-                            eventCollector.createDirectory(sessionState.stripWorkspaceRootPath(projectRootPath, newPath), newPathFileName, sessionState.stripWorkspaceRootPath(projectRootPath, newPathParentPath));                        
+                            eventCollector.createDirectory(relativePathToFileOrDir, newPathFileName, relativePathToParent);                        
                         }
                                     
                         //remove the path since we have handled it
@@ -967,7 +971,7 @@ function addRecentCreate(createEvent) {
                                 
                     } else { 
                         
-                        console.log(`The file: ${newPath} is not present in recentlyCreatedFileOrDir- it was moved/renamed`);
+                        console.log(`The file: ${newFullPath} is not present in recentlyCreatedFileOrDir- it was moved/renamed`);
 
                         //if the path is gone it is because the create event was followed by a delete 
                         //event (a move or rename) that was handled in the delete function
@@ -1007,10 +1011,10 @@ function addRecentDelete(deleteEvent) {
         console.log(`\n\nDelete file/dir: ${deleteEvent}`);
 
         //path of the deleted file/dir
-        var deletePath = deleteEvent.fsPath.split("\\").join("/");
+        var deleteFullPath = deleteEvent.fsPath.split("\\").join("/");
         
         //get an OS independent project root path
-        var projectRootPath = getWorkspaceRootPath();
+        var workspaceRootPath = getWorkspaceRootPath();
 
         //if there are any elements on this array we are going to assume this delete is part of a move or rename
         if(recentlyCreatedFileOrDir.length > 0) {
@@ -1018,63 +1022,70 @@ function addRecentDelete(deleteEvent) {
             //get the first entry- this is the path that has changed. I am assuming that with a move the create 
             //and delete events are queued right next to each other and will be handled in sequence by calling
             //addRecentCreate() immediately followed by addRecentDelete()
-            var newPath = recentlyCreatedFileOrDir.shift();
+            var newFullPath = recentlyCreatedFileOrDir.shift();
                     
             //parse the path of the old and new file path
-            var parsedNewPath = path.parse(newPath);
-            var parsedOldPath = path.parse(deletePath);
+            var parsedNewPath = path.parse(newFullPath);
+            var parsedOldPath = path.parse(deleteFullPath);
             
             //get the name of the file/dir
             var newName = parsedNewPath.base.split("\\").join("/");
             //get the path up to but not including the name
-            var pathUpToNewName = parsedNewPath.dir.split("\\").join("/");
+            var fullPathUpToNewName = parsedNewPath.dir.split("\\").join("/");
             
             //get the name of the file/dir
             var oldName = parsedOldPath.base.split("\\").join("/");
             //get the path up to but not including the name
-            var pathUpToOldName = parsedOldPath.dir.split("\\").join("/");
+            var fullPathUpToOldName = parsedOldPath.dir.split("\\").join("/");
+
+            //get the relative path to the file or directory
+            var relativePathToNewFileOrDir = sessionState.stripWorkspaceRootPath(workspaceRootPath, newFullPath);
+            var relativePathToDeleteFileOrDir = sessionState.stripWorkspaceRootPath(workspaceRootPath, deleteFullPath);
+            //get the relative path to the parent directory
+            var relativePathToNewParent = sessionState.stripWorkspaceRootPath(workspaceRootPath, fullPathUpToNewName);
+            var relativePathToDeleteParent = sessionState.stripWorkspaceRootPath(workspaceRootPath, fullPathUpToOldName);
             
             //used to determine if the path is to a file or directory
-            var stats = fs.statSync(newPath);
+            var stats = fs.statSync(newFullPath);
 
-            //if newPath is a file
+            //if newFullPath is a file
             if(stats.isFile()) {
                 
                 //if the file ends up in the same parent dir AND the name is different, then this is a rename
-                if(pathUpToNewName === pathUpToOldName && newName !== oldName) {
+                if(fullPathUpToNewName === fullPathUpToOldName && newName !== oldName) {
                     
-                    console.log("Rename file- old path: " + deletePath + " new path: " + newPath);  
+                    console.log("Rename file- old path: " + deleteFullPath + " new path: " + newFullPath);  
 
                     //make a rename file event                 
-                    eventCollector.renameFile(sessionState.stripWorkspaceRootPath(projectRootPath, newPath), newName, sessionState.stripWorkspaceRootPath(projectRootPath, deletePath));              
+                    eventCollector.renameFile(relativePathToNewFileOrDir, newName, relativePathToNewFileOrDir);              
                 
                 } else { //file has moved from one parent dir to another
                     
-                    console.log("Move file- old path: " + deletePath + " new path: " + newPath);
+                    console.log("Move file- old path: " + deleteFullPath + " new path: " + newFullPath);
 
                     //make a move file event                 
-                    eventCollector.moveFile(sessionState.stripWorkspaceRootPath(projectRootPath, newPath), sessionState.stripWorkspaceRootPath(projectRootPath, pathUpToNewName), sessionState.stripWorkspaceRootPath(projectRootPath, deletePath), sessionState.stripWorkspaceRootPath(projectRootPath, pathUpToOldName));
+                    eventCollector.moveFile(relativePathToNewFileOrDir, relativePathToNewParent, relativePathToNewFileOrDir, relativePathToDeleteParent);
                 }
 
-            } else if(stats.isDirectory()) { //newPath is a dir 
+            } else if(stats.isDirectory()) { //newFullPath is a dir 
 
                 //if the dir ends up in the same parent dir AND the name is different, then this is a rename
-                if(pathUpToNewName === pathUpToOldName && newName !== oldName) {
+                if(fullPathUpToNewName === fullPathUpToOldName && newName !== oldName) {
 
-                    console.log("Rename dir- old path: " + deletePath + " new path: " + newPath);
+                    console.log("Rename dir- old path: " + deleteFullPath + " new path: " + newFullPath);
 
                     //make a rename dir event                 
-                    eventCollector.renameDir(sessionState.stripWorkspaceRootPath(projectRootPath, newPath), newName, sessionState.stripWorkspaceRootPath(projectRootPath, deletePath));      
+                    eventCollector.renameDir(relativePathToNewFileOrDir, newName, relativePathToNewFileOrDir);      
                         
                 } else { //dir has moved from one parent dir to another
                     
-                    console.log("Move dir- old path: " + deletePath + " new path: " + newPath);
+                    console.log("Move dir- old path: " + deleteFullPath + " new path: " + newFullPath);
 
                     //make a move dir event                 
-                    eventCollector.moveDir(sessionState.stripWorkspaceRootPath(projectRootPath, newPath), sessionState.stripWorkspaceRootPath(projectRootPath, pathUpToNewName), sessionState.stripWorkspaceRootPath(projectRootPath, deletePath), sessionState.stripWorkspaceRootPath(projectRootPath, pathUpToOldName));
+                    eventCollector.moveDir(relativePathToNewFileOrDir, relativePathToNewParent, relativePathToNewFileOrDir, relativePathToDeleteParent);
                 }
 
-            } else { //newPath is not a file or dir- something is wrong
+            } else { //newFullPath is not a file or dir- something is wrong
 
                 //console.log("Rename or move: Not a file or a dir????");
                 //console.log(stats);
@@ -1085,9 +1096,9 @@ function addRecentDelete(deleteEvent) {
             //since the deleted file/dir is gone we can't check to see if it is a file or dir so
             //we will let storyteller check the type based on the path and call the correct delete
             //function         
-            eventCollector.deleteFileOrDirectory(sessionState.stripWorkspaceRootPath(projectRootPath, deletePath));
+            eventCollector.deleteFileOrDirectory(relativePathToNewFileOrDir);
                 
-            console.log("Delete File or Directory- path: " + deletePath);
+            console.log("Delete File or Directory- path: " + deleteFullPath);
         }
         
         eventCollector.printAllPathToIdMappings();
@@ -1105,7 +1116,7 @@ function handleTextEditorChange(event) {
     if(isStorytellerCurrentlyActive) {
 
         //get an OS independent project root path
-        var projectRootPath = getWorkspaceRootPath();
+        var workspaceRootPath = getWorkspaceRootPath();
 
         //go through each of the changes in this change event (there can be more than one if there are multiple cursors)
         for(var i = 0;i < event.contentChanges.length;i++) {
@@ -1115,7 +1126,7 @@ function handleTextEditorChange(event) {
             //console.log("Change to the file: " + filePath);
 
             //the path relative to the workspace
-            var strippedFilePath = sessionState.stripWorkspaceRootPath(projectRootPath, filePath);
+            var relativeFilePath = sessionState.stripWorkspaceRootPath(workspaceRootPath, filePath);
 
             //get the change object
             var change = event.contentChanges[i];
@@ -1131,7 +1142,7 @@ function handleTextEditorChange(event) {
                 //console.log("Deleting text (" + numCharactersDeleted + " characters) from: (line: " + deleteTextStartLine + " col: " + deleteTextStartColumn + " )");            
                 
                 //delete the text
-                eventCollector.deleteText(sessionState.stripWorkspaceRootPath(projectRootPath, filePath), deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
+                eventCollector.deleteText(relativeFilePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
                 
             } else { //new text has been added in this change, this is an insert
                 
@@ -1146,7 +1157,7 @@ function handleTextEditorChange(event) {
                     //console.log("Replacing text: " + change.rangeLength + " characters starting at (line: " + change.range.start.line + " col: " + change.range.start.character + ")");
                     
                     //first delete the selected code (insert of new text to follow)                
-                    eventCollector.deleteText(sessionState.stripWorkspaceRootPath(projectRootPath, filePath), deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
+                    eventCollector.deleteText(relativeFilePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
                 } 
                 
                 //get some data about the insert
@@ -1182,7 +1193,7 @@ function handleTextEditorChange(event) {
                 }
                 //console.log("at (line: " + newTextStartLine + " col: " + newTextStartColumn + ")");      
                 //insert the new text  
-                eventCollector.insertText(sessionState.stripWorkspaceRootPath(projectRootPath, filePath), newText, newTextStartLine, newTextStartColumn, isPaste, pastedInsertEventIds);        
+                eventCollector.insertText(relativeFilePath, newText, newTextStartLine, newTextStartColumn, isPaste, pastedInsertEventIds);        
             }
         }
     }
@@ -1199,7 +1210,7 @@ function handleFileSave(event) {
     if(isStorytellerCurrentlyActive) {
 
         //get an OS independent project root path
-        var projectRootPath = getWorkspaceRootPath();
+        var workspaceRootPath = getWorkspaceRootPath();
         
         console.log("saved file");
 
@@ -1207,7 +1218,7 @@ function handleFileSave(event) {
         if(isStorytellerCurrentlyActive) {
                 
             //save the state of the storyteller data in the hidden folder for this project
-            sessionState.saveAllStorytellerState(projectRootPath);
+            sessionState.saveAllStorytellerState(workspaceRootPath);
         }
     }
 }
@@ -1391,10 +1402,10 @@ function getCurrentSelectionEvents(actionIfSelectedText) {
             if(!selection.start.isEqual(selection.end)) {
                 
                 //get an OS independent project root path
-                var projectRootPath = getWorkspaceRootPath();
+                var workspaceRootPath = getWorkspaceRootPath();
 
                 //name of the file where the copy occured and strip the leading part of the path 
-                var filePath = sessionState.stripWorkspaceRootPath(projectRootPath, editor.document.fileName.split("\\").join("/"));
+                var filePath = sessionState.stripWorkspaceRootPath(workspaceRootPath, editor.document.fileName.split("\\").join("/"));
                 
                 //get the storyteller events associated with the selected text
                 var selectedEvents = eventCollector.getInsertEventsByPos(filePath, selection.start.line, selection.start.character, selection.end.line, selection.end.character);        

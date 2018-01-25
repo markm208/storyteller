@@ -703,6 +703,10 @@ function createEventsForDirsAndFiles(dirPath, workspaceRootPath, timestamp, mess
             
             //get the full path to the file or directory
             var fullPathToFileOrDir = path.join(dirPath, allFilesAndDirs[i]).split("\\").join("/");
+            //get the relative path to the file or directory
+            var relativePathToFileOrDir = stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir);
+            //get the relative path to the parent directory
+            var relativePathToParent = stripWorkspaceRootPath(workspaceRootPath, dirPath);
             
             //we ignore hidden files and dirs
             if(!isHiddenFileOrDirInPath(fullPathToFileOrDir)) {
@@ -720,10 +724,10 @@ function createEventsForDirsAndFiles(dirPath, workspaceRootPath, timestamp, mess
                     if(dirName.includes(".storyteller") === false) {
                         
                         //if the directory is in the file system but NOT being tracked by storyteller                    
-                        if(editorNode.isFileOrDirPresent(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir)) === false) {
+                        if(editorNode.isFileOrDirPresent(relativePathToFileOrDir) === false) {
                             
                             //create a dir event                        
-                            editorNode.createDirectory(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir), dirName, stripWorkspaceRootPath(workspaceRootPath, dirPath), timestamp);
+                            editorNode.createDirectory(relativePathToFileOrDir, dirName, relativePathToParent, timestamp);
 
                             //let the user know about the reconciliation
                             messages.push(`The file system has a directory that is not being tracked ${fullPathToFileOrDir}. It will now be tracked by Storyteller.`);                            
@@ -743,10 +747,10 @@ function createEventsForDirsAndFiles(dirPath, workspaceRootPath, timestamp, mess
                     var fileName = allFilesAndDirs[i];
 
                     //if the file is in the file system is being tracked by storyteller                
-                    if(editorNode.isFileOrDirPresent(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir)) === true) {
+                    if(editorNode.isFileOrDirPresent(relativePathToFileOrDir) === true) {
 
                         //get the text that the editor contains                    
-                        var editorText = editorNode.getText(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir));
+                        var editorText = editorNode.getText(relativePathToFileOrDir);
                         
                         //if the two are not the same, make the storyteller db the same as the file system by diffing
                         if(fileText !== editorText) {
@@ -758,7 +762,7 @@ function createEventsForDirsAndFiles(dirPath, workspaceRootPath, timestamp, mess
 
                             //get the differences between what storyteller is storing and what is on the file system and
                             //make storyteller change to reflect                          
-                            diffAndUpdateFile(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir), fileText, editorText, timestamp);                                                
+                            diffAndUpdateFile(relativePathToFileOrDir, fileText, editorText, timestamp);                                                
                         } 
                         
                     } else { //the file is NOT being tracked by storyteller, start tracking it
@@ -767,10 +771,10 @@ function createEventsForDirsAndFiles(dirPath, workspaceRootPath, timestamp, mess
                         messages.push(`The file system has a file that is not being tracked ${fullPathToFileOrDir}. It will now be tracked by Storyteller.`);
                                             
                         //create file event                    
-                        editorNode.createFile(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir), fileName, stripWorkspaceRootPath(workspaceRootPath, dirPath), timestamp);                                        
+                        editorNode.createFile(relativePathToFileOrDir, fileName, relativePathToParent, timestamp);                                        
                         
                         //add an insert event for each character in the file                    
-                        editorNode.insertText(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir), fileText, 0, 0, false, [], timestamp);
+                        editorNode.insertText(relativePathToFileOrDir, fileText, 0, 0, false, [], timestamp);
                     }
                 } else {
                 
