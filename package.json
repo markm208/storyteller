@@ -48,6 +48,10 @@
         "title": "Storyteller: Comment"
       },
       {
+        "command": "storyteller.startTrackingProject",
+        "title": "Storyteller: Start Tracking This Project"
+      },      
+      {
         "command": "storyteller.st-copy",
         "title": "Storyteller: Copy"
       },

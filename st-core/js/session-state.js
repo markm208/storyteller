@@ -13,12 +13,12 @@ var diffTool = require('diff');
 /*
  * Check to see if there is a hidden .storyteller directory to hold information about the events and editor.
  */
-function isStorytellerDataPresent(fullRootPath) {
+function isStorytellerDataPresent(workspaceRootPath) {
     
     //path to the file that holds the playback data (if it is present)
-    var pathToStorytellerDir = path.join(fullRootPath, ".storyteller");
-    var pathToStorytellerData = path.join(fullRootPath, ".storyteller", "playbackData.json");
-    var pathToEditorState = path.join(fullRootPath, ".storyteller", "editorState.json");
+    var pathToStorytellerDir = path.join(workspaceRootPath, ".storyteller");
+    var pathToStorytellerData = path.join(workspaceRootPath, ".storyteller", "playbackData.json");
+    var pathToEditorState = path.join(workspaceRootPath, ".storyteller", "editorState.json");
 
     //holds whether there is a storyteller dir to hold events and editor state
     var storytellerDataPresent;
@@ -50,11 +50,11 @@ function isStorytellerDataPresent(fullRootPath) {
 /*
  * Read the state data from the files.
  */
-function readAllStorytellerState(fullRootPath) {
+function readAllStorytellerState(workspaceRootPath) {
 
     //path to the files that hold the playback and editor data
-    var pathToStorytellerData = path.join(fullRootPath, ".storyteller", "playbackData.json");
-    var pathToEditorState = path.join(fullRootPath, ".storyteller", "editorState.json");
+    var pathToStorytellerData = path.join(workspaceRootPath, ".storyteller", "playbackData.json");
+    var pathToEditorState = path.join(workspaceRootPath, ".storyteller", "editorState.json");
 
     //read the files with the events and the last state of the editor
     var playbackDataString = fs.readFileSync(pathToStorytellerData, "utf8");
@@ -82,14 +82,14 @@ function readAllStorytellerState(fullRootPath) {
  * Save the state of the editor and playback data to the .storyteller directory. playbackData.json will hold event, developer,
  * and file information. editorState.json will hold information about the state of the editor.
  */
-function saveAllStorytellerState(fullRootPath) {
+function saveAllStorytellerState(workspaceRootPath) {
 
     console.log("Saving all the storyteller state data to the file system.");
     
     //write current editor session information to the disk
-    var pathToStorytellerDir = path.join(fullRootPath, ".storyteller");
-    var pathToStorytellerData = path.join(fullRootPath, ".storyteller", "playbackData.json");
-    var pathToEditorState = path.join(fullRootPath, ".storyteller", "editorState.json");
+    var pathToStorytellerDir = path.join(workspaceRootPath, ".storyteller");
+    var pathToStorytellerData = path.join(workspaceRootPath, ".storyteller", "playbackData.json");
+    var pathToEditorState = path.join(workspaceRootPath, ".storyteller", "editorState.json");
             
     //get a copy of all of the playback data 
     var playbackData = editorNode.getPlaybackData();
@@ -619,36 +619,30 @@ function decompressEvents(events) {
  *   Project path c:\Users\mmahoney\Desktop\testDir\dir1 stripped path \dir1
  *   Project path c:\Users\mmahoney\Desktop\testDir\dir1\test1.txt stripped path \dir1\test1.txt
  */
-function getStripPathFunction(fullRootPath) {
-
-    //return a function that can strip a full path down to a relative path
-    return function(fullPath) {
+function stripWorkspaceRootPath(workspaceRootPath, fullPath) {
     
-        var retVal = null;
+    var retVal = null;
+    
+    //trim any whitespace that might be present
+    fullPath = fullPath.trim();
+    workspaceRootPath = workspaceRootPath.trim();
+    
+    //if the full path starts with the project dir path
+    if(fullPath.indexOf(workspaceRootPath) === 0) {
         
-        //trim any whitespace that might be present
-        fullPath = fullPath.trim();
-        
-        //get the project dir path
-        var projectDirPath = fullRootPath;
-        
-        //if the full path starts with the project dir path
-        if(fullPath.indexOf(projectDirPath) === 0) {
-            
-            //extract out everything after the project dir path
-            retVal = fullPath.substr(projectDirPath.length);
-        }
-        
-        //if this is the root of the project dir
-        if(retVal.length === 0) {
-            
-            //add a root char /
-            //retVal = path.sep;
-            retVal = "/";
-        }
-
-        return retVal;
+        //extract out everything after the project dir path
+        retVal = fullPath.substr(workspaceRootPath.length);
     }
+    
+    //if this is the root of the project dir
+    if(retVal.length === 0) {
+        
+        //add a root char /
+        //retVal = path.sep;
+        retVal = "/";
+    }
+
+    return retVal;
 }
 
 /*
@@ -660,7 +654,7 @@ function getStripPathFunction(fullRootPath) {
  *   Partial path \dir1 full path c:\Users\mmahoney\Desktop\testDir\dir1
  *   Partial path \dir1\test1.txt full path c:\Users\mmahoney\Desktop\testDir\dir1\test1.txt
  */
-function createFullPathFromProjectPath(fullRootPath, partialPath) {
+function createFullPathFromProjectPath(workspaceRootPath, partialPath) {
         
     //take a path that is relative to the project dir and convert it to a full path to a file in
     //the project dir. 
@@ -670,7 +664,7 @@ function createFullPathFromProjectPath(fullRootPath, partialPath) {
     partialPath = partialPath.trim();
 
     //add the partial path to the path of the project
-    retVal = fullRootPath + partialPath;
+    retVal = workspaceRootPath + partialPath;
     
     //console.log(`Partial path ${partialPath} full path ${retVal}`);
 
@@ -681,16 +675,13 @@ function createFullPathFromProjectPath(fullRootPath, partialPath) {
  * Finds any files/dirs that have been added to the project folder outside of storyteller and adds create/insert 
  * events for them in the storyteller database.
  */
-function reconcileFileSystemToStoryteller(fullRootPath, timestamp, messages) { 
+function reconcileFileSystemToStoryteller(workspaceRootPath, timestamp, messages) { 
     
     //OS independent full path (in case it hasn't already been normalized)
-    fullRootPath = fullRootPath.split("\\").join("/");
+    workspaceRootPath = workspaceRootPath.split("\\").join("/");
     
-    //get a function that can strip a full path down to a relative project path
-    var stripFullPathToProjectPath = getStripPathFunction(fullRootPath);
-
     //for any files that are in the root of the workspace that are not being tracked by storyteller
-    createEventsForDirsAndFiles(fullRootPath, timestamp, messages, stripFullPathToProjectPath);
+    createEventsForDirsAndFiles(workspaceRootPath, workspaceRootPath, timestamp, messages);
 }
 
 /* 
@@ -699,7 +690,7 @@ function reconcileFileSystemToStoryteller(fullRootPath, timestamp, messages) {
  * If they are not identical a diff takes place and any differences from the file system are added as events in the
  * database.
  */
-function createEventsForDirsAndFiles(dirPath, timestamp, messages, stripFullPathToProjectPath) {
+function createEventsForDirsAndFiles(dirPath, workspaceRootPath, timestamp, messages) {
         
     //get all of the files and dirs in the passed in path
     var allFilesAndDirs = fs.readdirSync(dirPath);
@@ -729,17 +720,17 @@ function createEventsForDirsAndFiles(dirPath, timestamp, messages, stripFullPath
                     if(dirName.includes(".storyteller") === false) {
                         
                         //if the directory is in the file system but NOT being tracked by storyteller                    
-                        if(editorNode.isFileOrDirPresent(stripFullPathToProjectPath(fullPathToFileOrDir)) === false) {
+                        if(editorNode.isFileOrDirPresent(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir)) === false) {
                             
                             //create a dir event                        
-                            editorNode.createDirectory(stripFullPathToProjectPath(fullPathToFileOrDir), dirName, stripFullPathToProjectPath(dirPath), timestamp);
+                            editorNode.createDirectory(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir), dirName, stripWorkspaceRootPath(workspaceRootPath, dirPath), timestamp);
 
                             //let the user know about the reconciliation
                             messages.push(`The file system has a directory that is not being tracked ${fullPathToFileOrDir}. It will now be tracked by Storyteller.`);                            
                         }
                         
                         //recurse in the subdirectories
-                        createEventsForDirsAndFiles(fullPathToFileOrDir, timestamp, messages, stripFullPathToProjectPath);
+                        createEventsForDirsAndFiles(fullPathToFileOrDir, workspaceRootPath, timestamp, messages);
                     
                     } //else- this is the .storyteller dir and should be ignored
                     
@@ -752,10 +743,10 @@ function createEventsForDirsAndFiles(dirPath, timestamp, messages, stripFullPath
                     var fileName = allFilesAndDirs[i];
 
                     //if the file is in the file system is being tracked by storyteller                
-                    if(editorNode.isFileOrDirPresent(stripFullPathToProjectPath(fullPathToFileOrDir)) === true) {
+                    if(editorNode.isFileOrDirPresent(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir)) === true) {
 
                         //get the text that the editor contains                    
-                        var editorText = editorNode.getText(stripFullPathToProjectPath(fullPathToFileOrDir));
+                        var editorText = editorNode.getText(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir));
                         
                         //if the two are not the same, make the storyteller db the same as the file system by diffing
                         if(fileText !== editorText) {
@@ -767,7 +758,7 @@ function createEventsForDirsAndFiles(dirPath, timestamp, messages, stripFullPath
 
                             //get the differences between what storyteller is storing and what is on the file system and
                             //make storyteller change to reflect                          
-                            diffAndUpdateFile(stripFullPathToProjectPath(fullPathToFileOrDir), fileText, editorText, timestamp);                                                
+                            diffAndUpdateFile(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir), fileText, editorText, timestamp);                                                
                         } 
                         
                     } else { //the file is NOT being tracked by storyteller, start tracking it
@@ -776,10 +767,10 @@ function createEventsForDirsAndFiles(dirPath, timestamp, messages, stripFullPath
                         messages.push(`The file system has a file that is not being tracked ${fullPathToFileOrDir}. It will now be tracked by Storyteller.`);
                                             
                         //create file event                    
-                        editorNode.createFile(stripFullPathToProjectPath(fullPathToFileOrDir), fileName, stripFullPathToProjectPath(dirPath), timestamp);                                        
+                        editorNode.createFile(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir), fileName, stripWorkspaceRootPath(workspaceRootPath, dirPath), timestamp);                                        
                         
                         //add an insert event for each character in the file                    
-                        editorNode.insertText(stripFullPathToProjectPath(fullPathToFileOrDir), fileText, 0, 0, false, [], timestamp);
+                        editorNode.insertText(stripWorkspaceRootPath(workspaceRootPath, fullPathToFileOrDir), fileText, 0, 0, false, [], timestamp);
                     }
                 } else {
                 
@@ -886,13 +877,10 @@ function diffAndUpdateFile(filePath, fileText, editorText, timestamp) {
  * should be added back to the file system. The user is prompted for permission before any files/dirs are added back to
  * the file system.
  */
-function reconcileStorytellerToFileSystem(fullRootPath, timestamp, messages) {
+function reconcileStorytellerToFileSystem(workspaceRootPath, timestamp, messages) {
 
     //indicate that no reconciliation needs to be attempted
     var needsReconciliation = false;
-
-    //OS independent full path (in case it hasn't already been normalized)
-    fullRootPath = fullRootPath.split("\\").join("/");
 
     //get the paths to all of the directories that storyteller is tracking
     var allDirPaths = editorNode.getAllDirPaths();
@@ -901,7 +889,7 @@ function reconcileStorytellerToFileSystem(fullRootPath, timestamp, messages) {
     for(var i = 0;i < allDirPaths.length;i++) {
         
         //get the full path of the dir as it will be in this project folder
-        var fullDirPath = createFullPathFromProjectPath(fullRootPath, allDirPaths[i]);
+        var fullDirPath = createFullPathFromProjectPath(workspaceRootPath, allDirPaths[i]);
         
         try {
                         
@@ -930,7 +918,7 @@ function reconcileStorytellerToFileSystem(fullRootPath, timestamp, messages) {
         for(var i = 0;i < allFilePaths.length;i++) {
             
             //get the full path of the file as it will be in this project folder
-            var fullFilePath = createFullPathFromProjectPath(fullRootPath, allFilePaths[i]);
+            var fullFilePath = createFullPathFromProjectPath(workspaceRootPath, allFilePaths[i]);
 
             try {
                         
@@ -957,10 +945,10 @@ function reconcileStorytellerToFileSystem(fullRootPath, timestamp, messages) {
 /*
  * Restores any files/dirs in the storyteller database that are missing from the file system.
  */
-function restoreFilesDirsToFileSystem(fullRootPath, timestamp, newFilesDirsToIgnoreDueToReconciliation, messages) {
+function restoreFilesDirsToFileSystem(workspaceRootPath, timestamp, newFilesDirsToIgnoreDueToReconciliation, messages) {
     
     //OS independent full path (in case it hasn't already been normalized)
-    fullRootPath = fullRootPath.split("\\").join("/");
+    workspaceRootPath = workspaceRootPath.split("\\").join("/");
 
     //get the paths to all of the directories that storyteller is tracking
     var allDirPaths = editorNode.getAllDirPaths();
@@ -969,7 +957,7 @@ function restoreFilesDirsToFileSystem(fullRootPath, timestamp, newFilesDirsToIgn
     for(var i = 0;i < allDirPaths.length;i++) {
         
         //get the full path of the dir as it will be in this project folder
-        var fullDirPath = createFullPathFromProjectPath(fullRootPath, allDirPaths[i]);
+        var fullDirPath = createFullPathFromProjectPath(workspaceRootPath, allDirPaths[i]);
         
         try {
                         
@@ -999,7 +987,7 @@ function restoreFilesDirsToFileSystem(fullRootPath, timestamp, newFilesDirsToIgn
     for(var i = 0;i < allFilePaths.length;i++) {
         
         //get the full path of the file as it will be in this project folder
-        var fullFilePath = createFullPathFromProjectPath(fullRootPath, allFilePaths[i]);
+        var fullFilePath = createFullPathFromProjectPath(workspaceRootPath, allFilePaths[i]);
 
         try {
                     
@@ -1053,5 +1041,5 @@ module.exports = {
     reconcileFileSystemToStoryteller: reconcileFileSystemToStoryteller,
     reconcileStorytellerToFileSystem: reconcileStorytellerToFileSystem,
     restoreFilesDirsToFileSystem: restoreFilesDirsToFileSystem,
-    getStripPathFunction: getStripPathFunction
+    stripWorkspaceRootPath: stripWorkspaceRootPath
 }
