@@ -2337,7 +2337,8 @@
                             commentImagesInComment.innerHTML = "";
 
                             //add a comment marker for the new comment in the progress bar
-                            setCommentMarker(eventIndex, playbackData.codeEvents.length, commentEvent.id);
+                            //setCommentMarker(eventIndex, playbackData.codeEvents.length, commentEvent.id);
+                            setCommentMarker(playbackData.relevantEventIndex - 1, playbackData.numberOfRelevantEvents, commentEvent.id);
 
                             //display all the comments (do not scroll to the top)
                             displayComments(commentEvent.id, false);
