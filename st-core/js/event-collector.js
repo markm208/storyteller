@@ -159,7 +159,7 @@ function createRandomNumberBase62(numDigits) {
 /*
  * Creates a new file in the file system and an event to represent it.
  */
-function createFile(newFilePath, newFileName, newFileParentPath, timestamp = new Date().getTime(), markAsNotRelevant = false) {
+function createFile(newFilePath, newFileName, newFileParentPath, timestamp = new Date().getTime(), markAsPermanentlyNotRelevant = false) {
 
     //we ignore changes to hidden file/dirs 
     if(!isHiddenFileOrDirInPath(newFilePath)) {
@@ -200,10 +200,10 @@ function createFile(newFilePath, newFileName, newFileParentPath, timestamp = new
 
         //if the user wants to mark this file as NOT relevant (because it is an existing file
         //that is being reconciled in a new project)
-        if(markAsNotRelevant === true) {
+        if(markAsPermanentlyNotRelevant === true) {
 
-            //pre-mark the event as NOT relevant
-            createFileEvent.relevant = false;
+            //pre-mark the event as not even possible to become relevant
+            createFileEvent.permanentRelevance = "never relevant";
         }
                 
         //increase the id so the next event has a unique id
@@ -217,7 +217,7 @@ function createFile(newFilePath, newFileName, newFileParentPath, timestamp = new
 /*
  * Creates a new directory in the file system and an event to represent it.
  */
-function createDirectory(newDirPath, newDirName, newDirParentPath, timestamp = new Date().getTime(), markAsNotRelevant = false) {
+function createDirectory(newDirPath, newDirName, newDirParentPath, timestamp = new Date().getTime(), markAsPermanentlyNotRelevant = false) {
 
     //we ignore changes to hidden file/dirs 
     if(!isHiddenFileOrDirInPath(newDirPath)) {
@@ -255,10 +255,10 @@ function createDirectory(newDirPath, newDirName, newDirParentPath, timestamp = n
 
         //if the user wants to mark this directory as NOT relevant (because it is an existing directory
         //that is being reconciled in a new project)
-        if(markAsNotRelevant === true) {
+        if(markAsPermanentlyNotRelevant === true) {
 
-            //pre-mark the event as NOT relevant
-            createDirectoryEvent.relevant = false;
+            //pre-mark the event as not even possible to become relevant
+            createDirectoryEvent.permanentRelevance = "never relevant";
         }
                      
         //increase the id so the next event has a unique id
@@ -798,7 +798,7 @@ function getPathFromId(id) {
  * Handles new text in the editor. An insert event is created and added to the list of all events.
  * The shadow data structure that mimicks the state of the editor is also updated. 
  */
-function insertText(filePath, insertedText, startRow, startCol, isPaste, pastedInsertEventIds, timestamp = new Date().getTime(), markAsNotRelevant = false) {
+function insertText(filePath, insertedText, startRow, startCol, isPaste, pastedInsertEventIds, timestamp = new Date().getTime(), markAsPermanentlyNotRelevant = false) {
     
     //we ignore changes to hidden file/dirs 
     if(!isHiddenFileOrDirInPath(filePath)) {
@@ -851,10 +851,10 @@ function insertText(filePath, insertedText, startRow, startCol, isPaste, pastedI
 
             //if the user wants to mark this insert as NOT relevant (because it is text from an existing file
             //that is being reconciled in a new project)
-            if(markAsNotRelevant === true) {
+            if(markAsPermanentlyNotRelevant === true) {
 
-                //pre-mark the event as NOT relevant
-                newInsertTextEvent.relevant = false;
+                //pre-mark the event as not even possible to become relevant
+                newInsertTextEvent.permanentRelevance = "never relevant";
             }
 
             //increase for the next id
@@ -1158,8 +1158,8 @@ function getInsertEventsByPos(filePath, startRow, startCol, endRow, endCol) {
 function getPlaybackData() {
 		
     var playbackData = {};
-	
-    //add the data members
+    
+    //add the data members    
     playbackData.codeEvents = codeEvents;
     playbackData.allFiles = allFiles;
     playbackData.allDirs = allDirs;
