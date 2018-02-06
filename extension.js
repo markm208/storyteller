@@ -75,6 +75,8 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('storyteller.addDevelopersToActiveGroup', addDevelopersToActiveGroup));
     context.subscriptions.push(vscode.commands.registerCommand('storyteller.removeDevelopersFromActiveGroup', removeDevelopersFromActiveGroup));
     context.subscriptions.push(vscode.commands.registerCommand('storyteller.startTrackingProject', startTrackingProject));
+    context.subscriptions.push(vscode.commands.registerCommand('storyteller.stopTrackingProject', stopTrackingProject));
+    
     //for copy and paste (users must map keyboard shortcuts to these commands)
     context.subscriptions.push(vscode.commands.registerCommand('storyteller.st-copy', storytellerCopy));
     context.subscriptions.push(vscode.commands.registerCommand('storyteller.st-cut', storytellerCut));
@@ -85,90 +87,14 @@ function activate(context) {
     //override the editor.action.clipboardCopyAction with our own
     // var clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction); 
     // context.subscriptions.push(clipboardCopyDisposable);
-    // /*
-    //  * Function that overrides the default copy behavior. We get the selection and use it, dispose of this registered
-    //  * command (returning to the default editor.action.clipboardCopyAction), invoke
-    //  */
-    // function overriddenClipboardCopyAction(textEditor, edit, params) {
-        
-    //     //debug
-    //     console.log("---COPY TEST---");
-        
-    //     //use the selected text that is being copied here
-    //     getCurrentSelectionEvents();
-
-    //     //dispose of the overridden editor.action.clipboardCopyAction- back to default copy behavior
-    //     clipboardCopyDisposable.dispose();
-
-    //     //execute the default editor.action.clipboardCopyAction to copy
-    //     vscode.commands.executeCommand("editor.action.clipboardCopyAction").then(function(){
-            
-    //         console.log("After Copy");
-
-    //         //add the overridden editor.action.clipboardCopyAction back
-    //         clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction);
-    //         context.subscriptions.push(clipboardCopyDisposable);
-    //     }); 
-    // }
 
     // //override the editor.action.clipboardCutAction with our own
     // var clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction); 
     // context.subscriptions.push(clipboardCutDisposable);
-    // /*
-    //  * Function that overrides the default cut behavior. We get the selection and use it, dispose of this registered
-    //  * command (returning to the default editor.action.clipboardCutAction), invoke
-    //  */
-    // function overriddenClipboardCutAction(textEditor, edit, params) {
-        
-    //     //debug
-    //     console.log("---CUT TEST---");
-        
-    //     //use the selected text that is being cut here
-    //     getCurrentSelectionEvents();
-
-    //     //dispose of the overridden editor.action.clipboardCutAction- back to default cut behavior
-    //     clipboardCutDisposable.dispose();
-
-    //     //execute the default editor.action.clipboardCutAction to cut
-    //     vscode.commands.executeCommand("editor.action.clipboardCutAction").then(function(){
-            
-    //         console.log("After Cut");
-
-    //         //add the overridden editor.action.clipboardCutAction back
-    //         clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction);
-    //         context.subscriptions.push(clipboardCutDisposable);
-    //     }); 
-    // }
 
     // //override the editor.action.clipboardPasteAction with our own
     // var clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction); 
     // context.subscriptions.push(clipboardPasteDisposable);
-    // /*
-    //  * Function that overrides the default paste behavior. We get the selection and use it, dispose of this registered
-    //  * command (returning to the default editor.action.clipboardPasteAction), invoke
-    //  */
-    // function overriddenClipboardPasteAction(textEditor, edit, params) {
-        
-    //     //debug
-    //     console.log("---PASTE TEST---");
-        
-    //     //use the selected text that is being copied here
-    //     //indicate that there was a paste operation
-    //     clipboardData.activePaste = true;
-
-    //     //dispose of the overridden editor.action.clipboardPasteAction- back to default paste behavior
-    //     clipboardPasteDisposable.dispose();
-
-    //     //execute the default editor.action.clipboardPasteAction to paste
-    //     vscode.commands.executeCommand("editor.action.clipboardPasteAction").then(function(){
-            
-    //         console.log("After Paste");
-
-    //         //add the overridden editor.action.clipboardPasteAction back
-    //         clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction);
-    //         context.subscriptions.push(clipboardPasteDisposable);
-    //     }); 
-    // }
 
     //register a handler to capture changes to files in the editor
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(handleTextEditorChange));
@@ -281,6 +207,7 @@ function deactivate() {
     //stop the server
     playbackServer.stopPlaybackServer();
 }
+
 /*
  * Returns an OS independent workspace root path with /'s as the separator. On windows the path may contain \ as a separator. 
  * However, in order to make a single Storyteller project editable on multiple platform/OS's the path separators have to be the 
@@ -305,6 +232,7 @@ function getWorkspaceRootPath() {
 
     return workspaceRootpath;
 }
+
 /* 
  * Open an existing Storyteller workspace. If there is a storyteller directory then we will read in the data from the two files, 
  * playbackData.json and editorState.json, and pass it on to the editor. 
@@ -336,6 +264,7 @@ function openExistingStorytellerProject() {
     //start the playback server 
     playbackServer.startPlaybackServer();
 }
+
 /*
  * Creates a new Storyteller project in an open workspace
  */
@@ -343,48 +272,88 @@ function startTrackingProject() {
 
     //if there is an open workspace
     if(vscode.workspace.rootPath) {
-
-        //storyteller will track the state of this directory
-        isStorytellerCurrentlyActive = true;
-
+        
         //get an OS independent project root path
         var workspaceRootPath = getWorkspaceRootPath();
+
+        //check to see if this is an existing storyteller project (with a hidden .storyteller dir) 
+        var existingProject = sessionState.isStorytellerDataPresent(workspaceRootPath);
+
+        //if there is a hidden storyteller dir or required files, then this is an existing project
+        if(existingProject) {
+
+            //open up existing project in the correct state
+            openExistingStorytellerProject();
         
-        //get the name of the root dir
-        var workspaceDirName = path.parse(workspaceRootPath).base;        
+        } else { //there is no existing project in this open workspace
 
-        //get the relative path of the project dir (the relative root path "/")
-        var strippedPathToRootDir = "/";
+            //storyteller will track the state of this directory
+            isStorytellerCurrentlyActive = true;
+            
+            //get the name of the root dir
+            var workspaceDirName = path.parse(workspaceRootPath).base;        
 
-        //create an initial branch id for this repo's first branch
-        eventCollector.createRandomBranchId();
+            //get the relative path of the project dir (the relative root path "/")
+            var strippedPathToRootDir = "/";
 
-        //create an anonymous developer
-        eventCollector.createAnonymousDeveloper();
+            //create an initial branch id for this repo's first branch
+            eventCollector.createRandomBranchId();
 
-        //timestamp for new project creation and any reconciliation events that are generated
-        var initTimestamp = new Date().getTime();
+            //create an anonymous developer
+            eventCollector.createAnonymousDeveloper();
 
-        //make the first create directory event for the root of the project
-        //init the storyteller plugin by creating the root directory (null for a parent path since the root dir has no parent)        
-        eventCollector.createDirectory(strippedPathToRootDir, workspaceDirName, null, initTimestamp);             
+            //timestamp for new project creation and any reconciliation events that are generated
+            var initTimestamp = new Date().getTime();
 
-        //start the reconciliation process (handle changes to the file system that happened when storyteller wasn't active)
-        startReconcile(initTimestamp, false);
+            //make the first create directory event for the root of the project
+            //init the storyteller plugin by creating the root directory (null for a parent path since the root dir has no parent)        
+            eventCollector.createDirectory(strippedPathToRootDir, workspaceDirName, null, initTimestamp);             
 
-        //start the playback server 
-        playbackServer.startPlaybackServer();    
+            //start the reconciliation process (handle changes to the file system that happened when storyteller wasn't active)
+            startReconcile(initTimestamp, false);
 
-        //update the status bar
-        updateStorytellerStatusBar("Storyteller", "Get the status", "storyteller.storytellerState");
+            //start the playback server 
+            playbackServer.startPlaybackServer();    
 
-        //can't pause the initialization to prompt, so we will prompt for the default developer after the system settles down
-        setTimeout(function() {
+            //update the status bar
+            updateStorytellerStatusBar("Storyteller", "Get the status", "storyteller.storytellerState");
 
-            //prompt for the first developer in the system
-            createFirstDeveloper();
+            //can't pause the initialization to prompt, so we will prompt for the default developer after the system settles down
+            setTimeout(function() {
 
-        }, 1); //prompt for the dev's info 1 ms after init is complete      
+                //prompt for the first developer in the system
+                createFirstDeveloper();
+
+            }, 1); //prompt for the dev's info 1 ms after init is complete
+        }
+    } else { //there is no open workspace
+
+        //tell the user they need to open a workspace in order to use Storyteller
+        promptInformingAboutUsingStoryteller(true);
+    }
+}
+
+/*
+ * A command used to stop tracking a project
+ */
+function stopTrackingProject() {
+    
+    //if there is an open workspace
+    if(vscode.workspace.rootPath) {
+
+        //if storyteller is active
+        if(isStorytellerCurrentlyActive) {
+
+            //dectivate the plugin
+            deactivate();
+            
+            //update the status bar
+            updateStorytellerStatusBar("Start Storyteller", "Start using Storyteller in this workspace", "storyteller.startTrackingProject");   
+
+        } 
+
+        //tell the user they need to open a workspace in order to use Storyteller
+        promptInformingAboutUsingStoryteller(false);
     
     } else { //there is no open workspace
 
@@ -392,6 +361,7 @@ function startTrackingProject() {
         promptInformingAboutUsingStoryteller(true);
     }
 }
+
 /*
  * Reconcile the file system and the storyteller database. There are three types of reconciliation that might occur:
  * - a new file/dir was added to the file system when storyteller was not active (reconcileFileSystemToStoryteller)
@@ -1450,6 +1420,85 @@ function getCurrentSelectionEvents(actionIfSelectedText) {
         }
     }
 }
+
+// /*
+//  * Function that overrides the default copy behavior. We get the selection and use it, dispose of this registered
+//  * command (returning to the default editor.action.clipboardCopyAction), invoke
+//  */
+// function overriddenClipboardCopyAction(textEditor, edit, params) {
+    
+//     //debug
+//     console.log("---COPY TEST---");
+    
+//     //use the selected text that is being copied here
+//     getCurrentSelectionEvents();
+
+//     //dispose of the overridden editor.action.clipboardCopyAction- back to default copy behavior
+//     clipboardCopyDisposable.dispose();
+
+//     //execute the default editor.action.clipboardCopyAction to copy
+//     vscode.commands.executeCommand("editor.action.clipboardCopyAction").then(function(){
+        
+//         console.log("After Copy");
+
+//         //add the overridden editor.action.clipboardCopyAction back
+//         clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction);
+//         context.subscriptions.push(clipboardCopyDisposable);
+//     }); 
+// }
+
+// /*
+//  * Function that overrides the default cut behavior. We get the selection and use it, dispose of this registered
+//  * command (returning to the default editor.action.clipboardCutAction), invoke
+//  */
+// function overriddenClipboardCutAction(textEditor, edit, params) {
+    
+//     //debug
+//     console.log("---CUT TEST---");
+    
+//     //use the selected text that is being cut here
+//     getCurrentSelectionEvents();
+
+//     //dispose of the overridden editor.action.clipboardCutAction- back to default cut behavior
+//     clipboardCutDisposable.dispose();
+
+//     //execute the default editor.action.clipboardCutAction to cut
+//     vscode.commands.executeCommand("editor.action.clipboardCutAction").then(function(){
+        
+//         console.log("After Cut");
+
+//         //add the overridden editor.action.clipboardCutAction back
+//         clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction);
+//         context.subscriptions.push(clipboardCutDisposable);
+//     }); 
+// }
+
+// /*
+//  * Function that overrides the default paste behavior. We get the selection and use it, dispose of this registered
+//  * command (returning to the default editor.action.clipboardPasteAction), invoke
+//  */
+// function overriddenClipboardPasteAction(textEditor, edit, params) {
+    
+//     //debug
+//     console.log("---PASTE TEST---");
+    
+//     //use the selected text that is being copied here
+//     //indicate that there was a paste operation
+//     clipboardData.activePaste = true;
+
+//     //dispose of the overridden editor.action.clipboardPasteAction- back to default paste behavior
+//     clipboardPasteDisposable.dispose();
+
+//     //execute the default editor.action.clipboardPasteAction to paste
+//     vscode.commands.executeCommand("editor.action.clipboardPasteAction").then(function(){
+        
+//         console.log("After Paste");
+
+//         //add the overridden editor.action.clipboardPasteAction back
+//         clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction);
+//         context.subscriptions.push(clipboardPasteDisposable);
+//     }); 
+// }
 
 exports.activate = activate;
 exports.deactivate = deactivate;

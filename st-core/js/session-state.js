@@ -357,7 +357,7 @@ function diffAndUpdateFile(filePath, fileText, editorText, timestamp) {
             //console.log("Adding " + changeText.length + " characters at row: " + currRow + " col: " + currCol);                                                      
             
             //tell the editor to insert some text            
-            editorNode.insertText(filePath, changeText, currRow, currCol, false, [], timestamp);
+            editorNode.insertText(filePath, changeText, currRow, currCol, false, [], timestamp, true);
             
             //update the current row and column 
             for(var k = 0;k < changeText.length;k++) {

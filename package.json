@@ -52,6 +52,10 @@
         "title": "Storyteller: Start Tracking This Project"
       },      
       {
+        "command": "storyteller.stopTrackingProject",
+        "title": "Storyteller: Stop Tracking This Project"
+      },      
+      {
         "command": "storyteller.st-copy",
         "title": "Storyteller: Copy"
       },
