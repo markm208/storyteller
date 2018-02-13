@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+        <style type="text/css">
+
+            body {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .jumbotron {
+                background-color: #C9DBA3;
+            }
+            .jumbotron > hr {
+                border-top-color: darkgreen;
+            }
+
+            a {
+                color: darkgreen;
+            }
+            
+            .strong-link {
+                color: darkgreen;
+                font-weight: bold;
+            }
+
+            .extra-info-div {
+                position: relative;
+            }
+
+            .extra-info {
+                position: absolute;
+                bottom: 0;                
+            }
+
+            .right {
+                text-align: right; 
+            }
+        </style>
+
+        <title>Storyteller: Docs</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <h1 class="display-4"><em><strong>Storyteller:</strong> Docs</em></h1>
+                <hr>
+            </div>
+            
+            <hr/>
+
+            <h4>Version Control</h4>
+            <p>
+                A version control system allows multiple developers to work on the same set of files at the same time without interfering 
+                with each other. Each developer downloads a copy of a 'repository' (a directory with files that are tracked) so that 
+                they can work in isolation from everyone else on the team. The version control system keeps track of different versions of 
+                a team's code in its different states (for example, it is important to store the code right after Alice completes and tests 
+                a new feature). 
+            </p>
+
+            <p>
+                With most version control systems the developer must choose a time to commit their code to it. This is like taking a snapshot 
+                of the code at a particular point in time. It records all of these snapshots at the commit points. It can also be used to 
+                merge two or more developer's code together and revert to a previous snapshot, for example to fix a bug, with relative ease.
+            </p>
+
+            <p>
+                Version control systems are an important tool for working on a team. Version control systems like Git have a reputation 
+                for being hard to understand and use. Storyteller was created at least in part to make it easier to do simple version 
+                control.
+            </p>
+
+            <p>
+                Storyteller does not require a developer to choose a point in time to 'commit' their code. Since it is always recording
+                the state of the files the entire history is stored. If Git stores snapshots then Storyteller stores moving pictures. 
+            </p>
+
+            <br/>
+            <h4>Branching</h4>
+            <p>
+                The fundamental operations in a version control system are <em>branching</em> and <em>merging</em>. Branching is the act 
+                of making a copy of a repository that can be edited by a developer that won't affect any other developer's copy. When 
+                someone <a href="download.html" class="strong-link">downloads a playback in Storyteller</a> they are creating a branch. 
+                There are different options to perform a download:
+            </p>
+
+            <p>
+                <img src="images/downloadTypes.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+
+            <p>                            
+                Each one of these options makes a copy of a Storyteller repository but each does it differently. The downloaded zip file
+                includes a directory called <code>.storyteller</code> that holds the data necessary to playback the history of the system.
+                There are different options to store different amounts of history from the playback:
+                <ul>
+                    <li><em>No History Beyond Pause Point</em></li>
+                    <p>
+                        The download will hold all of the history up to the pause point but nothing beyond it.
+                    </p>
+
+                    <li><em>Minimal History</em></li>
+                    <p>
+                        The download will hold only the events that are needed to recreate what is on the screen at the pause point
+                        and nothing more. For example, any code that was added and then deleted before the pause point will not be 
+                        a part of the downloaded repository because it is not on the screen at that time.
+                        
+                    </p>
+                    
+                    <li><em>Full History with Future Events Undone</em></li>
+                    <p>
+                        The download will hold all of the history regardless of the pause point but will also include events to 'undo'
+                        the code to get it back to the state of the pause point.
+                    </p>
+                </ul>
+            </p>
+
+            <p>
+                After the playback has been downloaded and unzipped a developer can use Storyteller in their editor to make changes to the
+                code. These changes will become part of a new branch. This provides a way to build off of a playback that will not interfere 
+                with anyone else's branch.
+            </p>
+
+            <br/>
+            <h4>Merging</h4>
+            <p>
+                Merging is the act of bringing two branches together into a combined new one. Sometimes there is a 'main' branch which holds the 
+                latest and greatest version of a team's code. A typical flow for a developer is to create a branch from the 'main' branch,
+                make changes to add a feature or fix a bug, and then merge those changes back in to the 'main' branch. This process is
+                then repeated by all of the developers, often concurrently.
+            </p>
+
+            <p>
+                The only problem with this approach is that if there are two or more developers working on branches at the same time they
+                might each be making changes to the same parts of the same files. When two branches include changes to the same line 
+                in a file this is called a conflict. For example, Bob might rename a variable on line 20 of main.cpp in his branch and 
+                Alice may set a different initial value for that variable on the same line in her branch. If this is the case then 
+                there is a conflict that needs to be resolved by the two developers who created it. There is no way that the 
+                version control system can figure out what the combined code should look like automatically.   
+            </p>
+
+            <p>
+                Version control systems can identify which changes are in conflict and which are not. For the changes that are not in 
+                conflict with each other (like when Bob changes line 100 and Alice changes line 200) the version control system will 
+                simply add both of them to the new branch. If there is a conflict, most version control systems add the changes from 
+                both branches and identify which branches they came from. The developers then have to work together to resolve which 
+                code should stay and which should go. In Bob and Alice's case this may be an easy discussion. Other times it is not 
+                so easy but this is where having good communication on a team helps.
+            </p>
+                
+            <p>                
+                It turns out that this is a relatively rare occurrence. Most of the time when two developers are working concurrently 
+                there are no conflicts. However, since it occassionally happens a version control system needs to be able to help the 
+                developers resolve their conflicts.
+            </p>
+                
+            <br/>
+            <h4>Merging in Storyteller</h4>
+            <p>
+                <img src="images/merge.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+            
+            <p>
+                After a branch is made from downloading a playback a developer can use their Storyteller enabled editor to open the 
+                project. Next, they can make changes to the code. Afterwards, if they want to merge in another branch (perhaps the 
+                latest and greatest version of the 'main' branch with Bob and Alice's most recent changes in it) all the developer 
+                has to do is create a playback in the browser with their version and then hit the 'merge' button (which is next to 
+                the download button) and choose a playbackData.json file from another Storyteller repsotiory to merge into the playback. 
+            </p>
+
+            <p>
+                The directory <code>.storyteller</code> that is in every downloaded playback contains a file called 
+                <code>playbackData.json</code>. This file holds all of the historical events and comments in the playback. The events
+                in this file are merged into the events in the playback.  
+            </p>
+    
+            <p>
+                All of the non-conflicting events are added to a new playback. The conflicting events from both branches are added to 
+                the playback and are surrounded with code that identifies which branch they came from. The playback can be replayed
+                to see how they merged together. If the developer likes the merge they can download the playback and then work from it.
+                If there were conflicts the developers will need to resolve them in this new Storyteller repository.                
+            </p>
+
+            <br/>
+            <h4>Branch and Merge Example</h4>
+            <p>
+                Here is an example that has branching and merging in it. These are the steps that happened in this example:
+                <ol>
+                    <li>
+                        A developer, Alan T., created a Storyteller repository, added a file, and 
+                        put some well known quotes in the file. Here is a <a href="playbacks/mergeExampleAT.html" 
+                        class="strong-link" target="_blank">playback</a> of Alan's work.
+                    </li>
+                    <li>
+                        Another developer, Mark Mahoney, watched a playback of Alan's code and downloaded it. 
+                        He then unzipped the downloaded file and opened up the Storyteller repository in his editor 
+                        to fix some of Alan's misspellings. Here is a <a href="playbacks/mergeExampleMM1.html" class="strong-link" 
+                        target="_blank">playback</a> of Mark Mahoney's work.
+                    </li>
+                    <li>
+                        Another developer, Mark M. (there are a lot of Marks around here), watched a playback of Alan's code 
+                        and downloaded it. He then unzipped the downloaded file opened up the Storyteller repository in his 
+                        editor to add some embellishments to Alan's quotes. Here is a <a href="playbacks/mergeExampleMM2.html" 
+                        class="strong-link" target="_blank"> playback</a> of Mark M.'s work.
+                    </li>
+                    <li>
+                        Mark M. then decided to merge his changes with Mark Mahoney's. Mark M. hit the merge button 
+                        and then selected Mark Mahoney's playbackData.json file. Storyteller then merged the two
+                        Marks' changes together. The merge produced one conflict in the file that has to be resolved
+                        by a human. There were some other changes that were not in conflict and they were added to the
+                        playback.
+                    </li>
+                    <li>
+                        Mark M. downloaded the merged playback with both Marks' changes and sent it to Alan.
+                    </li>
+                    <li>
+                        Alan then unzipped the downloaded playback and opened up the Storyteller repository in his
+                        editor. Alan worked with the two Marks to come up with a final version that involved all three
+                        developers' changes.
+                    </li>
+                    <li>
+                        Finally, Alan built off of the merged text and added another quote. His version now has the 
+                        latest and greatest changes from the team. Here is a <a href="playbacks/mergeExample.html" 
+                        class="strong-link" target="_blank">playback</a> with all of the work together. Anyone can 
+                        download this playback and get the history of the system.
+                    </li>                    
+                </ol>
+            </p>
+            <hr/>
+            <div class="small container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <a href="https://github.com/markm208/storyteller">Storyteller on GitHub</a>                    
+                    </div>
+                    <div class="col-sm-6 right">
+                        Questions? Comments? Corrections? <a href="mailto:markm208@gmail.com">Contact the BDFL</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+        
+    </body>
+</html>

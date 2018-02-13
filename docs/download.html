@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+        <style type="text/css">
+
+            body {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .jumbotron {
+                background-color: #C9DBA3;
+            }
+            .jumbotron > hr {
+                border-top-color: darkgreen;
+            }
+
+            a {
+                color: darkgreen;
+            }
+            
+            .strong-link {
+                color: darkgreen;
+                font-weight: bold;
+            }
+
+            .extra-info-div {
+                position: relative;
+            }
+
+            .extra-info {
+                position: absolute;
+                bottom: 0;                
+            }
+
+            .right {
+                text-align: right; 
+            }
+        </style>
+
+        <title>Storyteller: Docs</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <h1 class="display-4"><em><strong>Storyteller:</strong> Docs</em></h1>
+                <hr>
+            </div>
+            
+            <hr/>
+
+            <h4>Downloading Code</h4>
+            <p>
+                <img src="images/fileSystem.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+    
+            <p>
+                Whenever a playback is paused the viewer can download the code to their machine in the paused state. Storyteller is 
+                programming language independent so as long as the viewer can compile or otherwise run the code they can experiment 
+                with it. They can input different values into the running program, examine the output, and step through it in the same
+                state as the code in the browser.
+            </p>
+            <p>
+                
+            </p>
+            <p>
+                After a viewer chooses to download the code, a zip file will be created on their machine with all of the files in 
+                the exact same state as the code in the playback window. All the user needs to do is unzip the file that was 
+                downloaded. The user can then alter those files in any way that they wish. They can also move the playback a 
+                little further and download them all again in a new state.
+            </p>
+
+            <p>                
+                <span class="badge badge-secondary">Tip:</span> The zip file will have the same name as the root project 
+                directory with a timestamp added to it. For example, with a root project directory named <code>code</code> the zip file 
+                will have a name like this: <code>code-2018-02-08T19_33_01.655Z.zip</code>. 
+            </p>
+
+            <br/>
+            <h4>Types of Download</h4>
+            <p>
+                <img src="images/downloadTypes.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+
+            <p>
+                There are three types of download that a viewer can use. The reason that there are different types of downloads is 
+                because Storyteller is also a version control system and the three download types are related to how a <em>branch</em> 
+                is made.                  
+            </p>
+            
+            <p>
+                If the viewer is <em>not</em> using Storyteller in their editor for version control and they just want to download the 
+                code then it doesn't matter which option they choose. More information about using Storyteller as a version control 
+                system can be found <a href="versionControl.html" class="strong-link">here</a>.
+            </p>
+
+            <p>
+                <span class="badge badge-secondary">Tip:</span> There will be an additional directory called <code>.storyteller</code> 
+                in the unzipped directory that can be ignored. 
+            </p>
+            <hr/>
+            <div class="small container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <a href="https://github.com/markm208/storyteller">Storyteller on GitHub</a>                    
+                    </div>
+                    <div class="col-sm-6 right">
+                        Questions? Comments? Corrections? <a href="mailto:markm208@gmail.com">Contact the BDFL</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+        
+    </body>
+</html>

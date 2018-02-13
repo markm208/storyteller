@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+        <style type="text/css">
+
+            body {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .jumbotron {
+                background-color: #C9DBA3;
+            }
+            .jumbotron > hr {
+                border-top-color: darkgreen;
+            }
+
+            a {
+                color: darkgreen;
+            }
+            
+            .strong-link {
+                color: darkgreen;
+                font-weight: bold;
+            }
+
+            .extra-info-div {
+                position: relative;
+            }
+
+            .extra-info {
+                position: absolute;
+                bottom: 0;                
+            }
+
+            .right {
+                text-align: right; 
+            }
+        </style>
+
+        <title>Storyteller: Docs</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <h1 class="display-4"><em><strong>Storyteller:</strong> Docs</em></h1>
+                <hr>
+            </div>
+            
+            <hr/>
+
+            <p>
+                Follow along with this document by <a href="playbacks/threads.html" target="_blank" class="strong-link">interacting with the example playback</a> in your browser. 
+            </p>
+
+            <br/>
+            <h4>Title and Description</h4>
+            
+            <p>
+                <img src="images/titleDescription.png" class="img-thumbnail border-success" alt="Playback title and description">
+            </p>
+
+            <p>
+                Every playback has a title and a description. This sets the context for the code that a viewer is about to see animated. 
+            </p>
+            
+            <p>
+                The author might provide some background on the problem that is being solved or give some hint about the techniques that will be shown in the playback.
+            </p>
+                 
+            <p>
+                <span class="badge badge-secondary">Tip:</span> The description can be hidden by clicking on the name of the playback at the top of the screen with a dropdown arrow next to it.
+            </p>
+
+            <br/>
+            <h4>Playback Window</h4>
+            <p>
+                <img src="images/playbackWindow.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+
+            <p>
+                This is the playback window. It has a tab for each file to be animated, some controls, and other information. A playback shows
+                the evolution of some code with some comments about how and why the code is changing over time. A developer can create a playback
+                with a series of comments that tells the story of how their code evolved.
+            </p>
+
+            <br/>
+            <h6>Playback Control</h6>
+            <p>
+                <img src="images/playbackControls.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+
+            <p>
+                To get a playback to start or stop there is a button to toggle between <code>Play</code> and <code>Pause</code>. 
+                Playback 'events' are animated one at a time. There are different kinds of playback events. There are events for the insertion
+                and deletion of individual text characters along with events to record file/directory operations (create, delete, move, rename). 
+            </p>
+            <p>
+                There are buttons to move one event at a time (<code>&lt;</code> for backward and <code>&gt;</code> for forward) or to 
+                move one comment at a time (<code>&lt;&lt;</code> to move to the previous comment and <code>&gt;&gt;</code> to move forward 
+                to the next comment).
+            </p>
+            
+            <p>
+                There are keyboard shortcuts to move through a playback as well. The <code>space bar</code> toggles between play and pause.
+                <code>left arrow</code> and <code>right arrow</code> move the playback one event at a time. <code>shift + left arrow</code> 
+                and <code>shift + right arrow</code> move the playback to the next comments.
+            </p>
+
+            <p>
+                Filters limit what part of a development session gets played back. More information about filtering can be found <a href="filter.html" class="strong-link">here</a>.
+            </p>
+
+            <p>
+                <span class="badge badge-secondary">Tip:</span> Although Storyteller is capable of animating the insertion and deletion of every single character in a programming session some 
+                viewers prefer to skip the animation and focus on the state of the code at comments points only. Often, this allows a viewer to get through the playback faster. These controls 
+                enable the flexibility to view the playback with animation or simply at the comment points.
+
+            </p>
+
+            <br/>
+            <h6>Current Event Information</h6>
+            <p>
+                As the playback progresses events are handled in the playback window. The most current event has some information recorded about it.
+                This information is described in the section labelled 'Event Info' in the user interface. It displays the event number, the event type, 
+                the location of the event, and a timestamp of when the event was recorded.  
+            </p>
+
+            <br/>
+            <h6>Developer Information</h6>
+            <p>
+                <img src="images/developer1.png" width="40%" class="img-thumbnail border-success" alt="Playback window">
+                <img src="images/developer2.png" width="40%" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+            <p>
+                This part of the interface shows which developer was active when the event was recorded. Storyteller supports multiple
+                developers programming together in groups. Each active developer will be shown here. More information about managing
+                developers can be found <a href="devs.html" class="strong-link">here</a>.
+            </p>
+            
+            <p>
+                Storyteller uses the <a href="https://en.gravatar.com/" class="strong-link" target="_blank">Gravatar</a> service for developer images.
+            </p>
+
+            <p>
+                <span class="badge badge-secondary">Tip:</span> Mousing over the developer image shows more information about the developer.
+            </p>
+
+            <br/>
+            <h4>Viewing Comments</h4>
+            <p>
+                <img src="images/playbackProgress.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+            <p>
+                The green playback progress bar shows roughly how many relevant events have been played and how many are left. The dark green vertical 
+                bars are points in the playback where comments have been added. By default, a playback will pause when an event with a comment is encountered.
+            </p>
+
+            <p>
+                <span class="badge badge-secondary">Tip:</span> The playback progress bar can also be used to jump to different points in the playback. Click anywhere in the bar and the
+                viewer will be taken to that point.
+            </p>
+
+            <p>
+                <img src="images/displayComment.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+
+            <p>
+                One the left hand side of the screen is the comment area. When making a playback authors can pause it at any point and add a comment. When the 
+                playback is replayed the comment will show at the pause point. 
+            </p>
+
+            <p>
+                When making the comment the author can choose to highlight some code and it will be associated with the comment. It shows up with a highlight 
+                in the playback window and is used to direct a comment to a one or more portions of the code. The picture above shows a playback paused on a 
+                comment. There is some highlighted code, <code>(new Thread ... )</code>, that the author is describing in the comment. More information about 
+                making comments can be found <a href="playback.html" class="strong-link">here</a>.
+            </p>
+
+            <p>
+                When moving from comment to comment new code will show up in blue. Previously displayed code will be changed to the color green. If there was some 
+                deleted text a red bar will show up where the delete occurred. This makes it easy to see what has changed since the last comment. In addition, 
+                for each file that has been updated since the last comment will get a marker * next to the name in the file tabs. 
+            </p>
+
+            <p>
+                The author can create comments that include text, hand drawn pictures, screenshots, or video to help them describe what is happening in their code.  
+            </p>
+
+            <p>
+                <span class="badge badge-secondary">Tip:</span> Clicking on an image or a video will make it larger.
+            </p>
+            
+            <p>
+                A single pause point can include more than one comment. Multiple comments are stacked on top of each other and some may not be visible 
+                on the screen until the viewer scrolls down. To make it easier to notice that there are multiple comments there is a comment counter. 
+                Each time a viewer clicks on a comment a running sum of 'read' comments will be increased. The viewer can use this to help them know 
+                if they are ready to move on to the next comment.
+            </p>
+
+            <br/>
+            <h4>State of the File System</h4>
+            <p>
+                <img src="images/fileSystem.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+
+            <p>
+                As a playback progresses the viewer can see the state of the file system when each event was recorded. This is shown on the bottom left of the screen.
+                Each time a file was added, removed, renamed, or moved in the author's programming session this view will be updated.
+            </p>
+
+            <p>
+                A viewer can download the code at any point during a playback and experiment with it in the same state it is in the playback window. More information 
+                about downloading code can be found <a href="download.html" class="strong-link">here</a>.  
+            </p>
+
+            <p>
+                Storyteller is also a distributed version control system that supports simple branching and merging. More information about this feature can be found 
+                <a href="versionControl.html" class="strong-link">here</a>.
+            </p>
+            <hr/>
+            <div class="small container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <a href="https://github.com/markm208/storyteller">Storyteller on GitHub</a>                    
+                    </div>
+                    <div class="col-sm-6 right">
+                        Questions? Comments? Corrections? <a href="mailto:markm208@gmail.com">Contact the BDFL</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+        
+    </body>
+</html>

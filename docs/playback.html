@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+        <style type="text/css">
+
+            body {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .jumbotron {
+                background-color: #C9DBA3;
+            }
+            .jumbotron > hr {
+                border-top-color: darkgreen;
+            }
+
+            a {
+                color: darkgreen;
+            }
+            
+            .strong-link {
+                color: darkgreen;
+                font-weight: bold;
+            }
+
+            .extra-info-div {
+                position: relative;
+            }
+
+            .extra-info {
+                position: absolute;
+                bottom: 0;                
+            }
+
+            .right {
+                text-align: right; 
+            }
+        </style>
+
+        <title>Storyteller: Docs</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <h1 class="display-4"><em><strong>Storyteller:</strong> Docs</em></h1>
+                <hr>
+            </div>
+            
+            <hr/>
+
+            <h4>Making a Comment</h4>
+            <p>
+                While viewing a playback, a comment can be added by pausing and adding text, an image, or a video recording. 
+                The comment will be stored at the pause point. Future playbacks will pause on the comment and it will be displayed.
+            </p>
+
+            <br/>
+            <h4>Starting a Playback</h4>
+            <p>
+                <img src="images/startPlayback.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+            <h6>Starting at the beginning</h6>
+            <p>
+                To start a playback from VS Code open the command pallette <code>(ctrl/cmd + shift + p)</code> and type in "Storyteller: Start Playback". 
+                A browser window will open with a playback at the beginning of the project's history. 
+            </p>
+            <p>
+                A developer can review the project's history and add comments to it. The comments will be stored permanently and will be displayed in 
+                future playbacks. 
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> A playback can also be started from the browser when VS Code is open by navigating to 
+                <code>http://localhost:3000/playback</code> directly in the address bar. Alternatively, if a playback is already open in the browser 
+                a simple refresh will reload the playback.
+            </p>
+
+            <br/>
+            <h6>Starting at the end</h6>
+            <p>
+                <img src="images/startPlaybackForComment.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+            <p> 
+                To make it easier to add a comment about the latest changes a playback can be started at the end of the project's history by opening 
+                the command pallette and typing in "Storyteller: Comment". The code in the playback starts in the same state as it is in the editor so the 
+                developer does not have to move the playback to the end in order to comment on the latest changes.  
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> Sometimes it makes sense to wait until a feature is complete before commenting on it.  
+                However, many times it is best to comment while the code is being written. This option gives the developer flexibilty to quickly add 
+                comments as they are writing code.
+            </p>
+            
+            <br/>
+            <h4>Adding text</h4>
+            <p>
+                <img src="images/basicComments.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>            
+            <p>
+                A text description of the code can be added at a pause point in the text area in the "Text for the Comment" section.  
+            </p>
+            <p>
+                Clicking the "Add Comment" button adds a comment at the pause point.
+            </p>
+
+
+            <br/>
+            <h4>Highlighting code</h4>
+            <p>
+                The author of the playback can highlight one or more sections of code in the playback window to go 
+                along with the comment. This makes it easy to direct the viewer to the code that is being described. 
+                The selected code will be highlighted when the comment is displayed. 
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> More than one block of code from the playback
+                window can be selected as long as the author hits the <code>ctrl</code> button while selecting 
+                multiple sections.
+            </p>
+
+            <br/>
+            <h4>Drawing pictures</h4>
+            <p>
+                <img src="images/addImage.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>            
+            <p>
+                Clicking the "Add a picture" button will bring up the picture modal. The playback author can draw
+                a picture or add a saved picture like a screenshot. The picture will be displayed as part of the 
+                comment in the playback. 
+            </p>
+            <p>
+                After drawing a picture or adding a screenshot the playback author must hit the "Use this image" 
+                button to add the picture to the comment. A preview of the comment pictures will be displayed in 
+                the user interface. Multiple pictures can be added for a single comment. 
+            </p>
+            <p>
+                All previous comment pictures can be used as the starting point for a new drawing. They are available 
+                to select at the bottom of the modal. This makes it easy to build a picture over time along with the 
+                code that is being built.
+            </p>
+            <p>
+                There is a basic drawing pallette for hand drawing images.
+            </p>
+
+            <br/>
+            <h4>Saving screenshots</h4>
+            <p>
+                A stored picture can be added in one of three ways. If the picure is stored on the file system a file 
+                chooser dialog is activated with the "Browse for an image" button. The user can select the 
+                picture and it will be added to the drawing window.
+            </p>
+            <p>
+                An image can be dragged from a file explorer into the drawing window.
+            </p>
+            <p>
+                If there is an image on the clipboard a paste operation will add it to the drawing window. This is 
+                useful because many screen snipping tools add an image to the clipboard.
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> A playback author can draw on a screenshot to highlight
+                something or to add more information to it. 
+            </p>
+
+            <br/>
+            <h4>Making a video</h4>
+            <p>
+                A computer with a web cam can be used to add video comments. By default, capturing video is not 
+                enabled. It has to be explicitly enabled in the user interface by clicking the "Enable video comments"
+                checkbox. The browser may ask for permission to begin using the camera.
+            </p>
+            <p>
+                Once video recording has been enabled a preview window will show what the camera is capturing. The 
+                playback author can hit the "Start Recording" button to begin recording. Once the author is done 
+                recording the "Stop Recording" button will end the recording. 
+            </p>
+            <p>
+                After a video has been made a preview of the video is shown. The author can replay the video before
+                saving it. If the author wishes, they can delete the video and try again. More than one video can be 
+                added to a comment. 
+            </p>
+            <hr/>
+            <div class="small container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <a href="https://github.com/markm208/storyteller">Storyteller on GitHub</a>                    
+                    </div>
+                    <div class="col-sm-6 right">
+                        Questions? Comments? Corrections? <a href="mailto:markm208@gmail.com">Contact the BDFL</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+        
+    </body>
+</html>

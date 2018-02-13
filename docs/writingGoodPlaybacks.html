@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+        <style type="text/css">
+
+            body {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .jumbotron {
+                background-color: #C9DBA3;
+            }
+            .jumbotron > hr {
+                border-top-color: darkgreen;
+            }
+
+            a {
+                color: darkgreen;
+            }
+            
+            .strong-link {
+                color: darkgreen;
+                font-weight: bold;
+            }
+
+            .extra-info-div {
+                position: relative;
+            }
+
+            .extra-info {
+                position: absolute;
+                bottom: 0;                
+            }
+
+            .right {
+                text-align: right; 
+            }
+        </style>
+
+        <title>Storyteller: Docs</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <h1 class="display-4"><em><strong>Storyteller:</strong> Docs</em></h1>
+                <hr>
+            </div>
+            
+            <hr/>
+
+            <h4>Writing Good Playbacks</h4>
+            <p>
+                The following is some advice about how to write <em>good, meaningful</em> playbacks that comes from the project creator, 
+                <a href="mailto:markm208@gmail.com" class="strong-link">Mark Mahoney</a>. Please feel free to contact
+                Mark if you would like to add your own suggestions or have comments about these.
+            </p>
+            <p>
+                The number one piece of advice when creating playbacks is to remember to put yourself in the role of 
+                the curious outsider in addition to the code author. As you review your code being animated ask yourself 
+                why you developed the code the way you did. Imagine that you are an interviewer who is trying to find 
+                the essence of the code in the playback from the author. Then be a generous interviewee who explains 
+                themselves fully. Use 
+                <a href="https://cft.vanderbilt.edu/guides-sub-pages/metacognition/" class="strong-link" target="_blank">metacognition</a>
+                to explain to yourself why your code looks like it does. 
+            </p>
+
+            <br/>
+            <h4>Think About Who Your Audience Is</h4>
+            <p>                
+                <ul>
+                    <li>
+                        Who do you want to reach with the playback?
+                        <ul>
+                            <li>
+                                Are they expert programmers or novices?
+                            </li>
+                            <li>
+                                Do they know the programming language well or are they inexperienced with the language?
+                            </li>
+                            <li>
+                                Are they new to the system being developed or do they have experience with it already?
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Create a playback for a single audience:
+                        <ul>
+                            <li>
+                                Put yourself in the mindset of who the target audience is and think about what you would 
+                                like them to know if you were viewing the playback.
+                            </li>
+                            <li>
+                                If there is more than one audience create a separate playback for each one.    
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Think about the things that you want the viewer know about the code. Are you showing:
+                        <ul>
+                            <li>a new feature's development?</li>
+                            <li>something about the programming language itself?</li>
+                            <li>a new algorithm?</li>
+                            <li>a refactor?</li>
+                            <li>a bug fix?</li>
+                        </ul>
+                    </li>
+                </ul>
+                Attempting to put too much in a playback can lead to complexity that is hard for a viewer to understand. 
+            </p>                    
+
+            <br/>
+            <h4>Playback Title and Description</h4>
+            <p>
+                <img src="images/titleDescription.png" class="img-thumbnail border-success" alt="Playback title and description">
+            </p>
+            <p>
+                Choose a title that gives the reader an idea about what they are about to learn from watching the playback.
+            </p>
+            <p>
+                Provide some context in the description of the playback:
+                <ul>
+                    <li>
+                        Describe what the reader will learn from watching this playback
+                    </li>
+                    <li>
+                        Describe what the reader needs to know about the problem before they see its implementation
+                        <ul>
+                            <li>
+                                Provide context
+                            </li>
+                            <li>
+                                Provide background information
+                            </li>                            
+                        </ul>
+                    </li>
+                    <li>
+                        Don't try and refer to any code directly in the introduction. Use comments to do that.
+                    </li>
+                    <li>
+                        Wrap up the introduction with a brief description of the program that the viewer will see in the playback
+                    </li>
+                </ul>
+            </p>                    
+                    
+            <br/>
+            <h4>Making Comments</h4>
+            <ul>
+                <li>
+                    Look for interesting things in your code:
+                    <ul>
+                        <li>
+                            Not everything that we do is interesting or novel. If it is not interesting don't feel the 
+                            need to describe it with a comment. 
+                        </li>
+                        <li>
+                            Don't forget who your audience is. Expert programmers, for example, probably don't need as much
+                            basic information as a beginner does.
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Try to minimize the number of pause points. 
+                    <ul>
+                        <li>
+                            Batch up groups of related changes and then describe them together with a series of comments 
+                            at a single pause point rather than describing each change individually at different pause points. 
+                        </li>
+                        <li>
+                            This provides more visible context that the viewer can refer to without having to move forward 
+                            or backward.
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Don't put too much text in a comment. The code in the playback window is the star of the show. 
+                    <ul>
+                        <li>Use tweet sized comments if possible. </li>
+                        <li>If not possible, separate the text into tweet sized paragraphs.</li>
+                    </ul>
+                </li>
+                <li>
+                    Don't forget to highlight the relevant parts of the code.
+                    <ul>
+                        <li>
+                            The reader will focus on the highlighted code and the comment together.
+                        </li>
+                        <li>
+                            A playback author can select more than one group of code at a time.
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    A picture is worth 1000 words.
+                    <ul>
+                        <li>
+                            One of the most valuable features of Storyteller is the ability to link pictures to code- use it!
+                        </li>
+                        <li>
+                            The tool lets you create a new picture from a previous comment picture. One can build up pictures 
+                            over time.
+                        </li>
+                        <li>
+                            Show screenshots of a program's output after describing an interesting bit of code.
+                                <ul>
+                                    <li>
+                                        Draw on the output of running code to highlight what is important and why it is important.
+                                    </li>
+                                </ul>
+                        </li>
+                        <li>
+                            Prefer multiple pics to long text comments.
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Record video comments for complex or subtle points or stories that might benefit from having vocal inflection.
+                </li>
+                <li>                    
+                    Use foreshadowing to prepare the viewer for what comes next.
+                    <ul>
+                        <li>
+                            For example, after a function header is written add a comment that explains what will happen in the function next.
+                            <ul>
+                                <li>
+                                    This is a transition and a good place to let the user know what's coming.
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            Before a big jump to a different section of code in the playback provide an indication that it is about to happen.
+                            <ul>
+                                <li>
+                                    For example, after a method of the Foo class has been played back add a comment that says, 
+                                    "Now I will begin working on a new method in the Bar class that ...".
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Go through the playback repeatedly.
+                    <ul>
+                        <li>
+                            Your first pass through code will yield some good comments.
+                        </li>
+                        <li>
+                            By going through a second and third time you will have even more to say about the code.
+                        </li>
+                        <li>
+                            As you go through the playback a second time, edit the existing comments for clarity.
+                        </li>
+                        <li>
+                            Sometimes it takes 4 or 5 times through a playback before there is nothing more to add or edit.
+                        </li>
+                        <li>
+                            Take a break between going through the playback as some time away from it often yields better edits/additions.
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    The most valuable comments tend to be at compile/run points.
+                    <ul>
+                        <li>
+                            Write code until you get something to work, then reflect and write about what happened.
+                        </li>
+                        <li>
+                            It is safer to comment only after you know for sure your latest work compiles and runs correctly.
+                        </li>
+                    </ul>
+                </li>
+            </ul>                    
+                        
+
+            <br/>
+            <h4>Writing code</h4>
+            <ul>
+                <li>
+                    It's ok to write some code first without recording it to get your thoughts and ideas together. Practice makes perfect.
+                    <ul>
+                        <li>
+                            Showing the order that you did things is more important than showing the viewer that you make 
+                            typos too.
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Don't include code comments in the code.
+                    <ul>
+                        <li>
+                            Normally, I am a big proponent of including comments in my code but I find them unnecessary when 
+                            I am creating a playback.
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Write storyteller comments as you are writing code.
+                    <ul>
+                        <li>
+                            Don't save all of the commenting until the program is complete. It is too easy to forget interesting
+                            context information after a long period of time.
+                        </li>
+                        <li>
+                            Write them as you go when the ideas are fresh in your mind.
+                        </li>
+                    </ul>
+                </li>                
+            </ul>                
+            
+            <br/>
+            <h4>Viewing Playbacks</h4>
+            <p>
+                <ul>
+                    <li>
+                        Make sure your audience knows that they can skip the character-by-character animation. 
+
+                        <ul>
+                            <li>
+                                Some viewers prefer to see the code animated but many only want to see the code at the comment points.
+                            </li>
+                            <li>
+                                The playback highlights what has changed since the last comment so the viewer will be able to see what is new.
+                            </li>
+                        </ul>
+                    </li> 
+                </ul>
+            </p>
+
+            <hr/>
+            <div class="small container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <a href="https://github.com/markm208/storyteller">Storyteller on GitHub</a>                    
+                    </div>
+                    <div class="col-sm-6 right">
+                        Questions? Comments? Corrections? <a href="mailto:markm208@gmail.com">Contact the BDFL</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+        
+    </body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+        <style type="text/css">
+
+            body {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .jumbotron {
+                background-color: #C9DBA3;
+            }
+            .jumbotron > hr {
+                border-top-color: darkgreen;
+            }
+
+            a {
+                color: darkgreen;
+            }
+            
+            .strong-link {
+                color: darkgreen;
+                font-weight: bold;
+            }
+
+            .extra-info-div {
+                position: relative;
+            }
+
+            .extra-info {
+                position: absolute;
+                bottom: 0;                
+            }
+
+            .right {
+                text-align: right; 
+            }
+        </style>
+
+        <title>Storyteller: Docs</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <h1 class="display-4"><em><strong>Storyteller:</strong> Docs</em></h1>
+                <hr>
+            </div>
+            
+            <hr/>
+
+            <h4>Options</h4>
+            <p>
+                <img src="images/options0.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+            <p>
+                There are some options that can be set by opening the Options modal with the link in the bottom right hand 
+                corner of the playback window. These options and features control playback and saving and restoring playbacks.
+
+            </p>
+
+            <br/>
+            <h4>Playback Control</h4>
+            <p>
+                <img src="images/options1.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+            <h6>Playback Speed</h6>
+            <p>
+                The animation speed of the playback can be set in 25 ms increments to make experiencing playbacks comfortable for the viewer. 
+            </p>
+            <h6>Pause for Comments</h6>
+            <p>
+                By default, an animated playback will pause on every comment. If the viewer would like view a playback without comments
+                this option can be can be unchecked. 
+            </p>
+            <h6>Show All Cuts and Pastes in Blocks</h6>
+            <p>
+                If text was removed or inserted in a programming session with cut or paste it is possible to view those operations in a 
+                single step. By default, this option is not selected and all cut and pastes will animate one character at a time.
+            </p>
+            <h6>Highlight Recent Changes</h6>
+            <p>
+                All new changes to a playback are displayed in blue (for inserts) and red (for deletes). It is possible to disable this option. 
+                It is also possible to clear the recent changes when paused in a playback.
+            </p>
+
+
+            <br/>
+            <h4>Saving and Replaying Playbacks</h4>
+            <p>
+                <img src="images/options2.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+            <h6>Download a Playback</h6>
+            <p>
+                The documentation in <a href="download.html" class="strong-link">Downloading the code in a playback</a> 
+                describes how to download the code associated with a playback. The zip file that holds this code also has a directory 
+                called <code>.storyteller</code> that contains the data required to playback the history of that code.
+            </p>
+            <p>
+                If a viewer would just like to store the raw playback data (and not the code that goes with it) they can download a 
+                single file called <code>playbackData.json</code> from any playback. This holds all of the information required to 
+                generate a playback (which can then be used to download the source code). This file can be downloaded on this part 
+                of the Options modal.
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> When sharing code and playbacks this is a convenient format to send to
+                others.
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> Saving <code>playbackData.json</code> in this way preserves the                 
+                <a href="filter.html" class="strong-link">filters</a> that have been applied to the playback.   
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> An alternate way of saving a playback is to save the html file that 
+                gets generated by Storyteller using the browser's 'Save' option. This is a very fast and convenient way of saving and 
+                sharing a playback. One drawback is that if the playback is filtered the filters will not be present in the saved web page.
+            </p>
+            <h6>Upload a Playback</h6>
+            <p>
+                A <code>playbackData.json</code> file can be uploaded to play a stored playback. This will wipe out the current playback
+                in the browser. 
+
+            </p>
+
+            <br/>
+            <h4>Other</h4>
+            <p>
+                <img src="images/options3.png" class="img-thumbnail border-success" alt="Playback window">
+            </p>
+            <h6>Font size</h6>
+            <p>
+                The size of the text can be increased or decreased using the size option.
+            </p>
+
+            <p>
+                <span class="badge badge-secondary">Tip:</span> There are convenient keyboard shortcuts for most of these options
+                to make it easier to quickly navigate a playback.
+            </p>
+    
+            <hr/>
+            <div class="small container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <a href="https://github.com/markm208/storyteller">Storyteller on GitHub</a>                    
+                    </div>
+                    <div class="col-sm-6 right">
+                        Questions? Comments? Corrections? <a href="mailto:markm208@gmail.com">Contact the BDFL</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+        
+    </body>
+</html>
