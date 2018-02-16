@@ -862,9 +862,6 @@ function addRecentCreate(createEvent) {
         //get an OS independent project root path
         var workspaceRootPath = getWorkspaceRootPath();
         
-        console.log(`\n\nCreate file/dir: ${createEvent}`);
-        eventCollector.printAllPathToIdMappings();
-
         //get the OS independent path of the recently created file/dir
         var newFullPath = createEvent.fsPath.split("\\").join("/");
 
@@ -923,14 +920,14 @@ function addRecentCreate(createEvent) {
                         //if newFullPath is a file
                         if(stats.isFile()) {
                             
-                            console.log(`Creating a file: ${newFullPath}`);
+                            //console.log(`Creating a file: ${newFullPath}`);
 
                             //make a create file event 
                             eventCollector.createFile(relativePathToFileOrDir, newPathFileName, relativePathToParent);
                             
                         } else if(stats.isDirectory()) { //newFullPath is a dir 
                             
-                            console.log(`Creating a dir: ${newFullPath}`);
+                            //console.log(`Creating a dir: ${newFullPath}`);
 
                             //make a create directory event 
                             eventCollector.createDirectory(relativePathToFileOrDir, newPathFileName, relativePathToParent);                        
@@ -941,7 +938,7 @@ function addRecentCreate(createEvent) {
                                 
                     } else { 
                         
-                        console.log(`The file: ${newFullPath} is not present in recentlyCreatedFileOrDir- it was moved/renamed`);
+                        //console.log(`The file: ${newFullPath} is not present in recentlyCreatedFileOrDir- it was moved/renamed`);
 
                         //if the path is gone it is because the create event was followed by a delete 
                         //event (a move or rename) that was handled in the delete function
@@ -949,7 +946,7 @@ function addRecentCreate(createEvent) {
                         //console.log("File is not present in recentlyCreatedFileOrDir[]");                        
                     }
 
-                    eventCollector.printAllPathToIdMappings();
+                    //eventCollector.printAllPathToIdMappings();
                     
                 }, waitForDeleteEventTimeout);
             }    
@@ -978,7 +975,7 @@ function addRecentDelete(deleteEvent) {
     
     if(isStorytellerCurrentlyActive) {
 
-        console.log(`\n\nDelete file/dir: ${deleteEvent}`);
+        //console.log(`\n\nDelete file/dir: ${deleteEvent}`);
 
         //path of the deleted file/dir
         var deleteFullPath = deleteEvent.fsPath.split("\\").join("/");
@@ -1024,14 +1021,14 @@ function addRecentDelete(deleteEvent) {
                 //if the file ends up in the same parent dir AND the name is different, then this is a rename
                 if(fullPathUpToNewName === fullPathUpToOldName && newName !== oldName) {
                     
-                    console.log("Rename file- old path: " + deleteFullPath + " new path: " + newFullPath);  
+                    //console.log("Rename file- old path: " + deleteFullPath + " new path: " + newFullPath);  
 
                     //make a rename file event                 
                     eventCollector.renameFile(relativePathToNewFileOrDir, newName, relativePathToNewFileOrDir);              
                 
                 } else { //file has moved from one parent dir to another
                     
-                    console.log("Move file- old path: " + deleteFullPath + " new path: " + newFullPath);
+                    //console.log("Move file- old path: " + deleteFullPath + " new path: " + newFullPath);
 
                     //make a move file event                 
                     eventCollector.moveFile(relativePathToNewFileOrDir, relativePathToNewParent, relativePathToNewFileOrDir, relativePathToDeleteParent);
@@ -1042,14 +1039,14 @@ function addRecentDelete(deleteEvent) {
                 //if the dir ends up in the same parent dir AND the name is different, then this is a rename
                 if(fullPathUpToNewName === fullPathUpToOldName && newName !== oldName) {
 
-                    console.log("Rename dir- old path: " + deleteFullPath + " new path: " + newFullPath);
+                    //console.log("Rename dir- old path: " + deleteFullPath + " new path: " + newFullPath);
 
                     //make a rename dir event                 
                     eventCollector.renameDir(relativePathToNewFileOrDir, newName, relativePathToNewFileOrDir);      
                         
                 } else { //dir has moved from one parent dir to another
                     
-                    console.log("Move dir- old path: " + deleteFullPath + " new path: " + newFullPath);
+                    //console.log("Move dir- old path: " + deleteFullPath + " new path: " + newFullPath);
 
                     //make a move dir event                 
                     eventCollector.moveDir(relativePathToNewFileOrDir, relativePathToNewParent, relativePathToNewFileOrDir, relativePathToDeleteParent);
@@ -1068,10 +1065,10 @@ function addRecentDelete(deleteEvent) {
             //function         
             eventCollector.deleteFileOrDirectory(relativePathToNewFileOrDir);
                 
-            console.log("Delete File or Directory- path: " + deleteFullPath);
+            //console.log("Delete File or Directory- path: " + deleteFullPath);
         }
         
-        eventCollector.printAllPathToIdMappings();
+        //eventCollector.printAllPathToIdMappings();
     }
 }
 
@@ -1182,7 +1179,7 @@ function handleFileSave(event) {
         //get an OS independent project root path
         var workspaceRootPath = getWorkspaceRootPath();
         
-        console.log("saved file");
+        //console.log("saved file");
 
         //if we are tracking changes
         if(isStorytellerCurrentlyActive) {
@@ -1315,7 +1312,7 @@ function getDevInfo(devInfoString, devInfoObject) {
  */
 function storytellerCopy() {
     
-    console.log("Storyteller Copy");
+    //console.log("Storyteller Copy");
 
     //get the events that were copied and then execute vs code's copy command
     //we override the default behavior of copying a whole line when no text is selected
@@ -1329,7 +1326,7 @@ function storytellerCopy() {
  */
 function storytellerCut() {
     
-    console.log("Storyteller Cut");
+    //console.log("Storyteller Cut");
 
     //get the events that were cut and then execute vs code's cut command
     //we override the default behavior of cutting a whole line when no text is selected
@@ -1342,7 +1339,7 @@ function storytellerCut() {
  */
 function storytellerPaste() {
     
-    console.log("Storyteller Paste");
+    //console.log("Storyteller Paste");
     
     //indicate that there was a paste operation
     clipboardData.activePaste = true;

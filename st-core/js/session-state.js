@@ -79,7 +79,7 @@ function readAllStorytellerState(workspaceRootPath) {
  */
 function saveAllStorytellerState(workspaceRootPath) {
 
-    console.log("Saving all the storyteller state data to the file system.");
+    //console.log("Saving all the storyteller state data to the file system.");
     
     //write current editor session information to the disk
     var pathToStorytellerDir = path.join(workspaceRootPath, ".storyteller");
@@ -277,11 +277,11 @@ function createEventsForDirsAndFiles(dirPath, workspaceRootPath, timestamp, mess
                         //add an insert event for each character in the file                    
                         editorNode.insertText(relativePathToFileOrDir, fileText, 0, 0, false, [], timestamp, true);
 
-                        console.log("Adding text from a new file: " + fileName + " contents:\n" + fileText + "\n\n");
+                        //console.log("Adding text from a new file: " + fileName + " contents:\n" + fileText + "\n\n");
                     }
                 } else {
                 
-                    console.log("Not a file nor a dir!!!");
+                    //console.log("Not a file nor a dir!!!");
                 }                
             }//else- hidden file/dir             
         }
@@ -535,7 +535,7 @@ function isHiddenFileOrDirInPath(pathToFileOrDir) {
     if(retVal) {
 
         //debug
-        console.log(`Hidden file/dir: ${pathToFileOrDir}`);
+        //console.log(`Hidden file/dir: ${pathToFileOrDir}`);
     }
 
     return retVal;

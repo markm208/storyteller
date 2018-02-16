@@ -598,7 +598,7 @@ function isHiddenFileOrDirInPath(pathToFileOrDir) {
     if(retVal) {
 
         //debug
-        console.log(`Hidden file/dir: ${pathToFileOrDir}`);
+        //console.log(`Hidden file/dir: ${pathToFileOrDir}`);
     }
 
     return retVal;
@@ -1297,7 +1297,7 @@ function getText(pathToFile) {
 
     } else { //there path to the file is incorrect
 
-        console.log("The file: " + pathToFile + " is not present");
+        //console.log("The file: " + pathToFile + " is not present");
     }
     
     return text;
