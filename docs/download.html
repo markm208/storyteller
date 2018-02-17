@@ -74,25 +74,28 @@
             <p>
                 Whenever a playback is paused the viewer can download the code to their machine in the paused state. Storyteller is 
                 programming language independent so as long as the viewer can compile or otherwise run the code they can experiment 
-                with it. They can input different values into the running program, examine the output, and step through it in the same
-                state as the code in the browser.
+                with it. Anyone who downloads the code can input different values into the running program, examine the output, and 
+                step through it in the same state as the code in the browser. The user can then alter those files in any way that 
+                they wish. They can also move the playback a little further and download them all again in a new state.
+
             </p>
-            <p>
-                
-            </p>
+
             <p>
                 After a viewer chooses to download the code, a zip file will be created on their machine with all of the files in 
-                the exact same state as the code in the playback window. All the user needs to do is unzip the file that was 
-                downloaded. The user can then alter those files in any way that they wish. They can also move the playback a 
-                little further and download them all again in a new state.
-            </p>
-
-            <p>                
-                <span class="badge badge-secondary">Tip:</span> The zip file will have the same name as the root project 
+                the exact same state as the code in the playback window. The zip file will have the same name as the root project 
                 directory with a timestamp added to it. For example, with a root project directory named <code>code</code> the zip file 
-                will have a name like this: <code>code-2018-02-08T19_33_01.655Z.zip</code>. 
+                will have a name like this: <code>code-2018-02-08T19_33_01.655Z.zip</code>. The timestamp is when the download took
+                place to distinguish different downloads of the code in different states.
             </p>
 
+            <p>    
+                <span class="badge badge-secondary">Tip:</span> To continue using Storyteller to track changes after a code download use 
+                VS Code to open the root project directory with the code in it. In this example, it would mean using VS Code to 'Open a 
+                Folder' select the directory called <code>code</code> since it is the root project directory. The root project directory
+                for the code you downloaded will likely have a different name. To make sure the correct directory is opened look for a 
+                subdirectory called <code>.storyteller</code> in it. 
+            </p>
+            
             <br/>
             <h4>Types of Download</h4>
             <p>
@@ -107,8 +110,8 @@
             
             <p>
                 If the viewer is <em>not</em> using Storyteller in their editor for version control and they just want to download the 
-                code then it doesn't matter which option they choose. More information about using Storyteller as a version control 
-                system can be found <a href="versionControl.html" class="strong-link">here</a>.
+                code then it doesn't matter which option they choose (the default option is the most appropriate one). More information 
+                about using Storyteller as a version control system can be found <a href="versionControl.html" class="strong-link">here</a>.
             </p>
 
             <p>
