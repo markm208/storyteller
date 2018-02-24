@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+        <style type="text/css">
+
+            body {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .jumbotron {
+                background-color: #C9DBA3;
+            }
+            .jumbotron > hr {
+                border-top-color: darkgreen;
+            }
+
+            a {
+                color: darkgreen;
+            }
+            
+            .strong-link {
+                color: darkgreen;
+                font-weight: bold;
+            }
+
+            .extra-info-div {
+                position: relative;
+            }
+
+            .extra-info {
+                position: absolute;
+                bottom: 0;                
+            }
+
+            .right {
+                text-align: right; 
+            }
+
+            .logo {
+                text-decoration: none;
+                color: black;
+            }
+
+            .logo:hover {
+                text-decoration: none;
+                color: black;                
+            }
+
+        </style>
+
+        <title>Storyteller: Docs- Sharing a Playback</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <h1 class="display-4"><a href="index.html" class="logo"><em><strong>Storyteller:</strong> Docs</em></a></h1>
+                <hr>
+            </div>
+            
+            <hr/>
+            <h4>Sharing a Playback</h4>
+            <p>
+                It is easy to share your playbacks with others. Every playback in a browser is a complete, self-contained                
+                html file that can be distributed to others. Use the browser's 'Save As' feature (<code>ctrl/cmd + s</code>) 
+                to save the html file to a computer's hard drive. The playback can be viewed by opening up the html file 
+                using the browser (<code>ctrl/cmd + o</code>). A web server is not required to view a playback. The VS Code 
+                plugin is not required simply to view playbacks either. All a viewer needs in order to watch a playback is 
+                a web browser and the single html file.
+            </p>
+
+            <p>
+                Once an html playback file has been saved it can be distributed to others by storing it on
+                a personal web server, sending it as an email attachment, adding it to a course learning management system, 
+                etc.
+            </p>
+
+            <h4>Downloading Code</h4>
+            <p>
+                If a viewer has access to a playback html file then they can download the code at any point in the playback.
+                VS Code is not required in order for a viewer to download the code. All a viewer needs to do is click 
+                the "Download Files at this Point" button and save the zip file that gets created. After the zip file is
+                expanded all of the code in the playback will be in the unzipped directory in the same state as when 
+                it was downloaded.  
+            </p>
+            <p>
+                More information about downloading code can be found here <a href="download.html" class="strong-link">here</a>.                
+            </p>
+
+            <h4>Making Changes to Code in a Playback</h4>
+            <p>
+                If a viewer <em>does</em> have VS Code and the Storyteller plugin installed then they can build off of 
+                the code in any playback. The viewer will move the playback to the point where they want to build from 
+                and download the code by clicking the "Download Files at this Point" button. Next, they will unzip the 
+                file that is downloaded. Using VS Code they can open the project directory (this is the directory 
+                that has a sub-directory called <code>.storyteller</code> in it). VS Code will notice that this is a 
+                Storyteller project and begin tracking any new changes that are made.
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> There is a registered developer that is associated with
+                every downloaded Storyteller project. Remember to create and register a new developer before making any
+                new changes. Find out more about managing developers <a href="devs.html" class="strong-link">here</a>.  
+            </p>
+
+            <hr/>
+            <div class="small container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <a href="https://github.com/markm208/storyteller">Storyteller on GitHub</a>                    
+                    </div>
+                    <div class="col-sm-6 right">
+                        Questions? Comments? Corrections? <a href="mailto:markm208@gmail.com">Contact the BDFL</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+        
+    </body>
+</html>
