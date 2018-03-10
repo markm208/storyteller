@@ -962,10 +962,9 @@
 
                     <div class="modal-body">
                         <p>
-                            Saving the state of a playback will cause a zip file to be downloaded. You can unzip and open it with a 
-                            Storyteller supported editor. This has the contents of the code where the playback was paused so that 
-                            you can build from that point in the playback. The file also has some history (code and comments from 
-                            the current playback) that will be displayed in future playbacks. 
+                            Saving the state of a playback will cause a zip file to be downloaded to your machine. You can unzip 
+                            the file and then open the project inside of it with a Storyteller supported editor. This has the 
+                            contents of the code where the playback was paused so that you can build from that point in the playback.                              
                         </p>
                         <p>
                             There are three options when saving the state of a playback:
@@ -1042,6 +1041,10 @@
                                     history of all the changes in your code.
                                 </p>
                             </div>
+                        </div>
+                        <div class="text-right form-group">
+                            <input type="checkbox" name="removeCommentsCheckbox" id="removeCommentsCheckbox">
+                            <label for="removeCommentsCheckbox">Remove all comments from the downloaded playback data </label>
                         </div>
                     </div>
                     
@@ -2210,10 +2213,13 @@
                         //get the type of playback
                         var typeOfSave = document.querySelector("input[name='saveStateRadios']:checked").value;
 
+                        //indicates whether the comments should be saved in the downloaded playback or removed
+                        var saveComments = !document.querySelector("#removeCommentsCheckbox").checked;
+
                         //the playback is paused at a single event. Save the state of the files/dirs, the playbackData.json, 
                         //and editorState.json files at this point in a zip file. A user can unzip and open the root dir
                         //and begin from the pause point. There are three different types of saved files 
-                        saveStateOfPlaybackAtPausePoint(typeOfSave);
+                        saveStateOfPlaybackAtPausePoint(typeOfSave, saveComments);
 
                     } else {
 
@@ -4917,14 +4923,14 @@
              *     added to the playbackData.json file. However, the events after the pause point are 'undone' using 
              *     the inverse of each event after the pause point. 
              */
-            function saveStateOfPlaybackAtPausePoint(typeOfSave) {
+            function saveStateOfPlaybackAtPausePoint(typeOfSave, saveComments) {
                 
                 //every saved playback is considered a new branch of the same repo
                 //create a 5 digit branch id for the new repo
                 var newBranchId = createRandomNumberBase62(5);
 
                 //get all of the playback data (map of insert events on screen, allFiles, allDirs, allDevGroups, etc)
-                var playbackDataOnScreenAtPausePoint = getAllPlaybackDataOnScreenAtPausePoint();
+                var playbackDataOnScreenAtPausePoint = getAllPlaybackDataOnScreenAtPausePoint(saveComments);
 
                 //get the current view of the file system (all files and dirs on the screen at the pause point)
                 var rootfileSystemViewAtPausePoint = getCurrentStateOfFileSystem(playbackDataOnScreenAtPausePoint.allInsertEvents);
@@ -4992,7 +4998,7 @@
              * - allCreateFileEvents: holds all of the create file events up to the pause point
              * - allCreateDirEvents: holds all of the create dir events up to the pause point
              */
-            function getAllPlaybackDataOnScreenAtPausePoint() {
+            function getAllPlaybackDataOnScreenAtPausePoint(saveComments) {
 
                 //object with the playback data up to the pause point
                 var playedEventInfo = {
@@ -5004,7 +5010,7 @@
                     allDeveloperGroups: {},         //holds the dev groups in the played back portion of the playback
                     allDevelopers: {},              //holds the devs in the played back portion of the playback
                     comments: {},                   //holds the comments in the played back portion of the playback
-                    allInsertAndCreateComments: {}  //holds the comments associated with insert events in the played back portion of the playback
+                    allInsertAndCreateComments: {}  //holds the comments associated with insert events in the played back portion of the playback (this is for minimal events playbacks so we don't store comments for events that are not there)
                 }
 
                 //depending on the type of playback we are storing the current dev group might not have made any contributions yet. We want to make sure the 
@@ -5029,7 +5035,7 @@
 
                     //every event may also have a comment
                     //if there is a comment for this event 
-                    if(playbackData.comments[currentEvent.id]) {
+                    if(saveComments && playbackData.comments[currentEvent.id]) {
 
                         //store the array of comments to the collection that will go in the zipped playback data
                         playedEventInfo.comments[currentEvent.id] = playbackData.comments[currentEvent.id];
@@ -5062,7 +5068,7 @@
                             playedEventInfo.allInsertEvents[minimalInsertEvent.id] = minimalInsertEvent;
 
                             //if there is a comment for this insert event 
-                            if(playbackData.comments[minimalInsertEvent.id]) {
+                            if(saveComments && playbackData.comments[minimalInsertEvent.id]) {
 
                                 //store the array of comments to the collection that will go in the zipped playback data
                                 playedEventInfo.allInsertAndCreateComments[minimalInsertEvent.id] = playbackData.comments[minimalInsertEvent.id];
@@ -5101,7 +5107,7 @@
                         playedEventInfo.allCreateFileEvents[minimalCreateFileEvent.fileId] = minimalCreateFileEvent;
 
                         //if there is a comment for this create file event 
-                        if(playbackData.comments[minimalCreateFileEvent.id]) {
+                        if(saveComments && playbackData.comments[minimalCreateFileEvent.id]) {
 
                             //store the array of comments to the collection that will go in the zipped playback data
                             playedEventInfo.allInsertAndCreateComments[minimalCreateFileEvent.id] = playbackData.comments[minimalCreateFileEvent.id];
@@ -5139,7 +5145,7 @@
                         playedEventInfo.allCreateDirEvents[minimalCreateDirEvent.directoryId] = minimalCreateDirEvent;          
 
                         //if there is a comment for this create dir event 
-                        if(playbackData.comments[minimalCreateDirEvent.id]) {
+                        if(saveComments && playbackData.comments[minimalCreateDirEvent.id]) {
 
                             //store the array of comments to the collection that will go in the zipped playback data
                             playedEventInfo.allInsertAndCreateComments[minimalCreateDirEvent.id] = playbackData.comments[minimalCreateDirEvent.id];
