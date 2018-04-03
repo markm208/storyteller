@@ -72,7 +72,34 @@ function readAllStorytellerState(workspaceRootPath) {
 
     return retVal;
 }
+/*
+ * Attempts to read the file st-ignore.json from the project directory. If it is there
+ * an object with the file contents is returned. If the file is not there then an object
+ * is returned with no ignored files/dirs.
+ */
+function readStorytellerIgnoreFile(workspaceRootPath) {
 
+    //create a default object with no ignored files
+    var retVal = {ignoredFileExtensions: [], ignoredFiles: [], ignoredDirectories: []};
+    
+    //path to the file that holds the st-ignore.json data if it is present
+    var pathToStorytellerIgnoreFile = path.join(workspaceRootPath, "st-ignore.json");
+    
+    try {        
+        //attempt to access the st-ignore file (will throw an exception if not present)
+        fs.accessSync(pathToStorytellerIgnoreFile, fs.F_OK);
+
+        //read the file and parse the data inside it
+        var stIgnoreString = fs.readFileSync(pathToStorytellerIgnoreFile, "utf8");
+        retVal = JSON.parse(stIgnoreString);
+
+    } catch (e) { 
+        //do nothing, there is no st-ignore.json in the directory or it is not well-formed json
+        //console.log("Error: " + e);
+    }
+    
+    return retVal;
+}
 /*
  * Save the state of the editor and playback data to the .storyteller directory. playbackData.json will hold event, developer,
  * and file information. editorState.json will hold information about the state of the editor.
@@ -209,8 +236,8 @@ function createEventsForDirsAndFiles(dirPath, workspaceRootPath, timestamp, mess
             //get the relative path to the parent directory
             var relativePathToParent = stripWorkspaceRootPath(workspaceRootPath, dirPath);
             
-            //we ignore hidden files and dirs
-            if(!isHiddenFileOrDirInPath(fullPathToFileOrDir)) {
+            //if this should be ignored due to the st-ignore.json file
+            if(!editorNode.ignoreThisFileOrDir(relativePathToFileOrDir)) {
 
                 //get some stats about the file/dir
                 var stats = fs.statSync(fullPathToFileOrDir);
@@ -521,29 +548,10 @@ function restoreFilesDirsToFileSystem(workspaceRootPath, timestamp, newFilesDirs
     }        
 }
 
-/*
- * Checks to see if there is hidden file/dir somewhere in the path.
- */
-function isHiddenFileOrDirInPath(pathToFileOrDir) {
-
-    //all segments of a path start with a '/'
-    //all hidden files or directories start with a '.'
-    //if there is a '/.' somewhere in the path then there is a hidden file/dir that we should ignore
-    var retVal = pathToFileOrDir.indexOf("/.") !== -1;
-
-    //if there is a hidden file/dir on the path
-    if(retVal) {
-
-        //debug
-        //console.log(`Hidden file/dir: ${pathToFileOrDir}`);
-    }
-
-    return retVal;
-}
-
 module.exports = {   
     isStorytellerDataPresent: isStorytellerDataPresent,
     readAllStorytellerState: readAllStorytellerState,
+    readStorytellerIgnoreFile: readStorytellerIgnoreFile,
     saveAllStorytellerState: saveAllStorytellerState, 
     reconcileFileSystemToStoryteller: reconcileFileSystemToStoryteller,
     reconcileStorytellerToFileSystem: reconcileStorytellerToFileSystem,

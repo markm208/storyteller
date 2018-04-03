@@ -255,6 +255,9 @@ function openExistingStorytellerProject() {
     eventCollector.setPlaybackData(state.playbackData);
     eventCollector.setEditorState(state.editorState);   
     
+    //load the st-ignore file (if there is one)
+    eventCollector.loadStorytellerIgnoreFile(sessionState.readStorytellerIgnoreFile(workspaceRootPath));
+
     //timestamp for new project creation and any reconciliation events that are generated
     var initTimestamp = new Date().getTime();
 
@@ -292,6 +295,9 @@ function startTrackingProject() {
             
             //get the name of the root dir
             var workspaceDirName = path.parse(workspaceRootPath).base;        
+
+            //load the st-ignore file (if there is one)
+            eventCollector.loadStorytellerIgnoreFile(sessionState.readStorytellerIgnoreFile(workspaceRootPath));
 
             //get the relative path of the project dir (the relative root path "/")
             var strippedPathToRootDir = "/";
