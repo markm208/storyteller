@@ -929,7 +929,7 @@ function addRecentCreate(createEvent) {
                             //console.log(`Creating a file: ${newFullPath}`);
 
                             //make a create file event 
-                            eventCollector.createFile(relativePathToFileOrDir, newPathFileName, relativePathToParent);
+                            eventCollector.createFile(newFullPath, relativePathToFileOrDir, newPathFileName, relativePathToParent);
                             
                         } else if(stats.isDirectory()) { //newFullPath is a dir 
                             

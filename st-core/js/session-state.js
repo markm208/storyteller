@@ -298,12 +298,9 @@ function createEventsForDirsAndFiles(dirPath, workspaceRootPath, timestamp, mess
                         //let the user know about the reconciliation
                         messages.push(`The file system has a file that is not being tracked ${fullPathToFileOrDir}. It will now be tracked by Storyteller.`);
                                             
-                        //create file event                    
-                        editorNode.createFile(relativePathToFileOrDir, fileName, relativePathToParent, timestamp, true);                                        
+                        //create file event (if there is text in the file it will be added in this function)                 
+                        editorNode.createFile(fullPathToFileOrDir, relativePathToFileOrDir, fileName, relativePathToParent, timestamp, true);                                        
                         
-                        //add an insert event for each character in the file                    
-                        editorNode.insertText(relativePathToFileOrDir, fileText, 0, 0, false, [], timestamp, true);
-
                         //console.log("Adding text from a new file: " + fileName + " contents:\n" + fileText + "\n\n");
                     }
                 } else {

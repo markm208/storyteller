@@ -1,3 +1,6 @@
+//used for all file system manipulation
+var fs = require('fs'); 
+
 //used for file path manipulation 
 var path = require('path'); 
 
@@ -167,7 +170,7 @@ function createRandomNumberBase62(numDigits) {
 /*
  * Creates a new file in the file system and an event to represent it.
  */
-function createFile(newFilePath, newFileName, newFileParentPath, timestamp = new Date().getTime(), markAsPermanentlyNotRelevant = false) {
+function createFile(fullPathToFile, newFilePath, newFileName, newFileParentPath, timestamp = new Date().getTime(), markAsPermanentlyNotRelevant = false) {
 
     //if this should be ignored due to the st-ignore.json file
     if(!ignoreThisFileOrDir(newFilePath)) {
@@ -219,6 +222,19 @@ function createFile(newFilePath, newFileName, newFileParentPath, timestamp = new
 
         //add the event to the collection of all events
         codeEvents.push(createFileEvent);
+
+        //occassionally a new file has something in it, for example, if a tool has generated the file
+        //if the file has anything in it, take the contents and make them events in the system
+
+        //open the file and read the text
+        var fileText = fs.readFileSync(fullPathToFile, "utf8");
+        
+        //if there is anything in the new file
+        if(fileText !== "") {
+
+            //add the text into 
+            insertText(newFilePath, fileText, 0, 0, false, []);
+        }
     }	    
 }
 
