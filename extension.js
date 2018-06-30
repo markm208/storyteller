@@ -313,7 +313,7 @@ function startTrackingProject() {
 
             //make the first create directory event for the root of the project
             //init the storyteller plugin by creating the root directory (null for a parent path since the root dir has no parent)        
-            eventCollector.createDirectory(strippedPathToRootDir, workspaceDirName, null, initTimestamp);             
+            eventCollector.createDirectory(strippedPathToRootDir, workspaceDirName, null, initTimestamp, false);             
 
             //start the reconciliation process (handle changes to the file system that happened when storyteller wasn't active)
             startReconcile(initTimestamp, false);
@@ -536,7 +536,7 @@ function startPlaybackToMakeAComment() {
 function promptInformingAboutUsingStoryteller(warnAboutOpeningAProject) {
 
     //notify the user that they can use storyteller
-    var message = "You can use Storyteller by selecting 'Storyteller: Start Tracking This Project' from the command pallette or clicking the 'Start Storyteller' button below. ";
+    var message = "You can use Storyteller by selecting 'Storyteller: Start Tracking This Project' from the command palette or clicking the 'Start Storyteller' button below. ";
 
     if(warnAboutOpeningAProject) {
         message = "You must open a folder to use Storyteller. " + message;
@@ -929,14 +929,14 @@ function addRecentCreate(createEvent) {
                             //console.log(`Creating a file: ${newFullPath}`);
 
                             //make a create file event 
-                            eventCollector.createFile(newFullPath, relativePathToFileOrDir, newPathFileName, relativePathToParent);
+                            eventCollector.createFile(newFullPath, relativePathToFileOrDir, newPathFileName, relativePathToParent, new Date().getTime(), false);
                             
                         } else if(stats.isDirectory()) { //newFullPath is a dir 
                             
                             //console.log(`Creating a dir: ${newFullPath}`);
 
                             //make a create directory event 
-                            eventCollector.createDirectory(relativePathToFileOrDir, newPathFileName, relativePathToParent);                        
+                            eventCollector.createDirectory(relativePathToFileOrDir, newPathFileName, relativePathToParent, new Date().getTime(), false);                        
                         }
                                     
                         //remove the path since we have handled it
@@ -1030,14 +1030,14 @@ function addRecentDelete(deleteEvent) {
                     //console.log("Rename file- old path: " + deleteFullPath + " new path: " + newFullPath);  
 
                     //make a rename file event                 
-                    eventCollector.renameFile(relativePathToNewFileOrDir, newName, relativePathToNewFileOrDir);              
+                    eventCollector.renameFile(relativePathToNewFileOrDir, newName, relativePathToDeleteFileOrDir, new Date().getTime());              
                 
                 } else { //file has moved from one parent dir to another
                     
                     //console.log("Move file- old path: " + deleteFullPath + " new path: " + newFullPath);
 
                     //make a move file event                 
-                    eventCollector.moveFile(relativePathToNewFileOrDir, relativePathToNewParent, relativePathToNewFileOrDir, relativePathToDeleteParent);
+                    eventCollector.moveFile(relativePathToNewFileOrDir, relativePathToNewParent, relativePathToDeleteFileOrDir, relativePathToDeleteParent, new Date().getTime());
                 }
 
             } else if(stats.isDirectory()) { //newFullPath is a dir 
@@ -1048,14 +1048,14 @@ function addRecentDelete(deleteEvent) {
                     //console.log("Rename dir- old path: " + deleteFullPath + " new path: " + newFullPath);
 
                     //make a rename dir event                 
-                    eventCollector.renameDir(relativePathToNewFileOrDir, newName, relativePathToNewFileOrDir);      
+                    eventCollector.renameDir(relativePathToNewFileOrDir, newName, relativePathToDeleteFileOrDir, new Date().getTime());      
                         
                 } else { //dir has moved from one parent dir to another
                     
                     //console.log("Move dir- old path: " + deleteFullPath + " new path: " + newFullPath);
 
                     //make a move dir event                 
-                    eventCollector.moveDir(relativePathToNewFileOrDir, relativePathToNewParent, relativePathToNewFileOrDir, relativePathToDeleteParent);
+                    eventCollector.moveDir(relativePathToNewFileOrDir, relativePathToNewParent, relativePathToDeleteFileOrDir, relativePathToDeleteParent, new Date().getTime());
                 }
 
             } else { //newFullPath is not a file or dir- something is wrong
@@ -1066,10 +1066,13 @@ function addRecentDelete(deleteEvent) {
             
         } else { //this is a true delete, there are no file paths in the recentlyCreatedFileOrDir array
             
+            //get the relative path to the file or dir being deleted
+            var relativePathToDeleteFileOrDir = sessionState.stripWorkspaceRootPath(workspaceRootPath, deleteFullPath);
+
             //since the deleted file/dir is gone we can't check to see if it is a file or dir so
             //we will let storyteller check the type based on the path and call the correct delete
             //function         
-            eventCollector.deleteFileOrDirectory(relativePathToNewFileOrDir);
+            eventCollector.deleteFileOrDirectory(relativePathToDeleteFileOrDir, new Date().getTime());
                 
             //console.log("Delete File or Directory- path: " + deleteFullPath);
         }
@@ -1088,85 +1091,89 @@ function handleTextEditorChange(event) {
     
     if(isStorytellerCurrentlyActive) {
 
+        //name of the file that is being edited
+        var filePath = event.document.fileName.split("\\").join("/");
+        //console.log("Change to the file: " + filePath);
+
         //get an OS independent project root path
         var workspaceRootPath = getWorkspaceRootPath();
+        
+        //the path relative to the workspace
+        var relativeFilePath = sessionState.stripWorkspaceRootPath(workspaceRootPath, filePath);
 
-        //go through each of the changes in this change event (there can be more than one if there are multiple cursors)
-        for(var i = 0;i < event.contentChanges.length;i++) {
-            
-            //name of the file that 
-            var filePath = event.document.fileName.split("\\").join("/");
-            //console.log("Change to the file: " + filePath);
+        //if the file is in this project
+        if(relativeFilePath !== null) {
 
-            //the path relative to the workspace
-            var relativeFilePath = sessionState.stripWorkspaceRootPath(workspaceRootPath, filePath);
-
-            //get the change object
-            var change = event.contentChanges[i];
-            
-            //if no text has been added, then this is a delete
-            if(change.text.length === 0) {
+            //go through each of the changes in this change event (there can be more than one if there are multiple cursors)
+            for(var i = 0;i < event.contentChanges.length;i++) {
                 
-                //get some data about the delete
-                var numCharactersDeleted = change.rangeLength;
-                var deleteTextStartLine = change.range.start.line;
-                var deleteTextStartColumn = change.range.start.character;
+                //get the change object
+                var change = event.contentChanges[i];
                 
-                //console.log("Deleting text (" + numCharactersDeleted + " characters) from: (line: " + deleteTextStartLine + " col: " + deleteTextStartColumn + " )");            
-                
-                //delete the text
-                eventCollector.deleteText(relativeFilePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
-                
-            } else { //new text has been added in this change, this is an insert
-                
-                //if there was some text that was selected and replaced (deleted and then added)
-                if(change.rangeLength > 0) {
-
+                //if no text has been added, then this is a delete
+                if(change.text.length === 0) {
+                    
                     //get some data about the delete
                     var numCharactersDeleted = change.rangeLength;
                     var deleteTextStartLine = change.range.start.line;
                     var deleteTextStartColumn = change.range.start.character;
                     
-                    //console.log("Replacing text: " + change.rangeLength + " characters starting at (line: " + change.range.start.line + " col: " + change.range.start.character + ")");
+                    //console.log("Deleting text (" + numCharactersDeleted + " characters) from: (line: " + deleteTextStartLine + " col: " + deleteTextStartColumn + " )");            
                     
-                    //first delete the selected code (insert of new text to follow)                
-                    eventCollector.deleteText(relativeFilePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
-                } 
-                
-                //get some data about the insert
-                var newText = change.text;
-                var newTextStartLine = change.range.start.line;
-                var newTextStartColumn = change.range.start.character;
-                
-                //a set of all the event ids from a copy/cut
-                var pastedInsertEventIds = [];
-                var isPaste = false;
-
-                //if this was a paste
-                if(clipboardData.activePaste) { 
+                    //delete the text
+                    eventCollector.deleteText(relativeFilePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted, new Date().getTime(), false);
                     
-                    //this is a paste
-                    isPaste = true;
+                } else { //new text has been added in this change, this is an insert
+                    
+                    //if there was some text that was selected and replaced (deleted and then added)
+                    if(change.rangeLength > 0) {
 
-                    //if the new text is exactly the same as what was on our clipboard
-                    if(newText === clipboardData.text) {
-        
-                        //store the pasted event ids
-                        pastedInsertEventIds = clipboardData.eventIds;
-
-                    } else { //this is a paste but it doesn't match the last storyteller copy/cut (pasted from another source)
+                        //get some data about the delete
+                        var numCharactersDeleted = change.rangeLength;
+                        var deleteTextStartLine = change.range.start.line;
+                        var deleteTextStartColumn = change.range.start.character;
                         
-                        //clear out any old data
-                        clipboardData.text = "";
-                        clipboardData.eventIds = [];
-                    }
+                        //console.log("Replacing text: " + change.rangeLength + " characters starting at (line: " + change.range.start.line + " col: " + change.range.start.character + ")");
+                        
+                        //first delete the selected code (insert of new text to follow)                
+                        eventCollector.deleteText(relativeFilePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted, new Date().getTime(), false);
+                    } 
+                    
+                    //get some data about the insert
+                    var newText = change.text;
+                    var newTextStartLine = change.range.start.line;
+                    var newTextStartColumn = change.range.start.character;
+                    
+                    //a set of all the event ids from a copy/cut
+                    var pastedInsertEventIds = [];
+                    var isPaste = false;
 
-                    //we handled the most current paste, set this back to false
-                    clipboardData.activePaste = false;
+                    //if this was a paste
+                    if(clipboardData.activePaste) { 
+                        
+                        //this is a paste
+                        isPaste = true;
+
+                        //if the new text is exactly the same as what was on our clipboard
+                        if(newText === clipboardData.text) {
+            
+                            //store the pasted event ids
+                            pastedInsertEventIds = clipboardData.eventIds;
+
+                        } else { //this is a paste but it doesn't match the last storyteller copy/cut (pasted from another source)
+                            
+                            //clear out any old data
+                            clipboardData.text = "";
+                            clipboardData.eventIds = [];
+                        }
+
+                        //we handled the most current paste, set this back to false
+                        clipboardData.activePaste = false;
+                    }
+                    //console.log("at (line: " + newTextStartLine + " col: " + newTextStartColumn + ")");      
+                    //insert the new text  
+                    eventCollector.insertText(relativeFilePath, newText, newTextStartLine, newTextStartColumn, isPaste, pastedInsertEventIds, new Date().getTime(), false);        
                 }
-                //console.log("at (line: " + newTextStartLine + " col: " + newTextStartColumn + ")");      
-                //insert the new text  
-                eventCollector.insertText(relativeFilePath, newText, newTextStartLine, newTextStartColumn, isPaste, pastedInsertEventIds);        
             }
         }
     }

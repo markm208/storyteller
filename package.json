@@ -2,7 +2,7 @@
   "name": "storyteller",
   "displayName": "storyteller",
   "description": "Plugin that allows devs to tell stories about how their code has evolved.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "markm208",
   "repository": {
     "type": "git",

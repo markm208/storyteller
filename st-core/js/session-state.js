@@ -160,16 +160,16 @@ function stripWorkspaceRootPath(workspaceRootPath, fullPath) {
         
         //extract out everything after the project dir path
         retVal = fullPath.substr(workspaceRootPath.length);
+
+        //if this is the root of the project dir
+        if(retVal.length === 0) {
+            
+            //add a root char /
+            //retVal = path.sep;
+            retVal = "/";
+        }
     }
     
-    //if this is the root of the project dir
-    if(retVal.length === 0) {
-        
-        //add a root char /
-        //retVal = path.sep;
-        retVal = "/";
-    }
-
     return retVal;
 }
 
@@ -353,7 +353,7 @@ function diffAndUpdateFile(filePath, fileText, editorText, timestamp) {
             //console.log("Delete " + changeText.length + " characters at row: " + currRow + " col: " + currCol);
             
             //tell the editor to delete some text            
-            editorNode.deleteText(filePath, currRow, currCol, changeText.length, timestamp);
+            editorNode.deleteText(filePath, currRow, currCol, changeText.length, timestamp, true);
                                             
         } else if(changeType === "no change") { //no change 
             

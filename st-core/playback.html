@@ -8793,7 +8793,7 @@
                 devAvatar.setAttribute("data-placement", "top");
                 devAvatar.setAttribute("data-html", "true");
                 devAvatar.setAttribute("data-trigger", "hover click focus");
-                devAvatar.setAttribute("data-title", dev.firstName + "'s Contact Info");
+                devAvatar.setAttribute("data-title", dev.firstName + " " + dev.lastName + "'s Contact Info");
                 devAvatar.setAttribute("data-content", "<strong>" + dev.firstName + " " + dev.lastName + "</strong><br><a href='mailto:" + dev.email + "'>" + dev.email + "</a>");
                 devAvatar.classList.add("devImage");
                 devAvatar.classList.add("img-thumbnail");
@@ -8927,7 +8927,7 @@
                     //get the code on the screen
                     var code = document.querySelector("#" + comment.selectedCodeIds[i]);
 
-                    //hihglight the code
+                    //highlight the code
                     code.classList.add("commentRelevant");
                 }
             }
