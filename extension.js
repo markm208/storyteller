@@ -322,7 +322,7 @@ function startTrackingProject() {
             playbackServer.startPlaybackServer();    
 
             //update the status bar
-            updateStorytellerStatusBar("Storyteller", "Get the status", "storyteller.storytellerState");
+            updateStorytellerStatusBar("Storyteller- Start Playback", "Start a Playback", "storyteller.startPlaybackNoComment");
 
             //can't pause the initialization to prompt, so we will prompt for the default developer after the system settles down
             setTimeout(function() {
@@ -435,7 +435,7 @@ function startReconcile(initTimestamp, existingProject) {
                 storytellerState();
 
                 //init is complete, let the user know
-                updateStorytellerStatusBar("Storyteller", "Get the status", "storyteller.storytellerState");   
+                updateStorytellerStatusBar("Storyteller- Start Playback", "Start a Playback", "storyteller.startPlaybackNoComment");   
 
             } //else- new project, wait until they have created the first user before displaying the info 
         });
@@ -450,7 +450,7 @@ function startReconcile(initTimestamp, existingProject) {
             storytellerState();
 
             //init is complete, let the user know
-            updateStorytellerStatusBar("Storyteller", "Get the status", "storyteller.storytellerState");   
+            updateStorytellerStatusBar("Storyteller- Start Playback", "Start a Playback", "storyteller.startPlaybackNoComment");   
             
         } //else- new project, wait until they have created the first user before displaying the info 
     }    
@@ -672,7 +672,7 @@ function createFirstDeveloper() {
             } //else- they want to remain anonymous
 
             //init is complete, let the user know
-            updateStorytellerStatusBar("Storyteller", "Get the status", "storyteller.storytellerState");   
+            updateStorytellerStatusBar("Storyteller- Start Playback", "Start a Playback", "storyteller.startPlaybackNoComment");   
             
             //notify the new user that storyteller is ready to be used
             storytellerState();
