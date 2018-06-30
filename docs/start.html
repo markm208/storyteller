@@ -72,16 +72,17 @@
                 <img src="images/startWarningPrompt.png" class="img-thumbnail border-success" alt="Startup warning">
             </p>
             <p>
-                When enabled, the Storyteller plugin will track the changes in a single open directory. Tracking changes can be turned on and off
+                Storyteller will track the changes in a single open directory. Tracking changes can be turned on and off
                 at any time as long as there is an open directory is VS Code. 
             </p>
             <p>
-                Whenever VS Code is started with the Storyteller plugin and a directory is <em>NOT</em> open a warning message like the one above
+                Whenever VS Code is started with the Storyteller plugin and a directory is <em>NOT open</em> a warning message like the one above
                 will be displayed. If the user is not interested in using Storyteller this warning can be dismissed and no changes will be tracked.
             </p>
             <p>
-                <span class="badge badge-secondary">Tip:</span> An open directory is required because Storyteller stores all of the changes it records in a special directory called <code>.storyteller</code>.
-                The open directory is where this new one will be stored.
+                <span class="badge badge-secondary">Tip:</span> An open directory is required because Storyteller stores all of the changes it 
+                records in a special directory called <code>.storyteller</code>. The open directory is where this special one will be stored. 
+                To open a directory in VS Code go to the <code>File</code> menu and select <code>Open a Folder...</code>
             </p>
 
             <br/>
@@ -89,7 +90,7 @@
             <p>
                 To start a brand new project: 
                 <ul>
-                    <li>Create a new directory on the file system.</li>
+                    <li>Create a new directory on the file system. This will become the Storyteller 'project' directory.</li>
                     <li>Using VS Code, open the new directory <code>(File -> Open Folder...)</code>.</li>
                     <li>
                         <p>Opening the directory alone does not begin tracking. A user must explicitly start the recording process.</p>
@@ -111,14 +112,17 @@
                     </li>
                     <li>
                         <p>
-                            With the user's permission to start tracking changes Storyteller will prompt for the first developer's information. 
-                            Enter in a name and email (or hit 'escape' to remain anonymous). All changes will be attributed to this 'active' developer.
+                            With the user's permission to start tracking changes Storyteller is now active and all changes inside the project directory will
+                            be tracked. Storyteller attributes all changes to one or more developers. Storyteller will prompt for the first developer's information. 
+                            Enter in a name and email (or hit 'escape' to remain anonymous). All changes will be attributed to this 'active' developer. More 
+                            developers can be added at any time. Look <a href="devs.html" class="strong-link">here</a> for more information.
                         </p>
                         <p><img src="images/newDev.png" class="img-thumbnail border-success" alt="New dev"></p>
 
                     </li>
                     <li>Begin writing code like you normally would. Storyteller is working in the background. A new directory, <code>.storyteller</code>, will be 
-                        created to hold the changes.</li>
+                        created in the Storyteller project directory to hold the changes. You should not edit anything in this special directory.
+                    </li>
                 </ul>   
             </p>
 
@@ -156,9 +160,9 @@
             <br/>
             <h4>File Reconciliation</h4>
             <p>
-                On start up Storyteller will reconcile any changes made to the file system outside of VS Code. If one or more files or directories are added 
+                On start up, Storyteller will reconcile any changes made to the file system outside of VS Code. If one or more files or directories are added 
                 outside of VS Code they will be added to the Storyteller data in one large block with a single timestamp. A diff is run against each existing 
-                file on start up to check for changes made outside of the VS Code. If any changes are found then they will be added to the Storyteller data 
+                file on start up to check for changes made outside of VS Code. If any changes are found then they will be added to the Storyteller data 
                 in a single block with a single timestamp.  
             </p>
             <p>

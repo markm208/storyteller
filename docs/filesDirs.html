@@ -55,7 +55,7 @@
 
         </style>
 
-        <title>Storyteller: Docs- Install Storyteller</title>
+        <title>Storyteller: Docs- Working with the file system</title>
     </head>
     <body>
         <div class="container">
@@ -66,33 +66,36 @@
             
             <hr/>
 
-            <h4>Installing Storyteller</h4>
+            <h4>Adding Files and Directories</h4>
             <p>
-                Storyteller currently works as a plugin to the 
-                <a href="https://code.visualstudio.com/" class="strong-link" target="_blank">Visual Studio Code</a> 
-                editor. This is not the full blown MS IDE, it is a lightweight editor. Make sure you have VS Code 
-                installed before going any further.  
+                Files and directories can be added anywhere in the Storyteller project directory. When Storyteller is active it records 
+                these file system events and then plays them back during a playback to indicate when they occurred. 
             </p>
 
             <p>
-                After VS Code is installed go 
-                <a href="https://marketplace.visualstudio.com/items?itemName=markm208.storyteller" class="strong-link" target="_blank">here</a>
-                to download the extension. 
-            </p>
-
+                    <img src="images/fileExplorerView.png" class="img-thumbnail border-success" alt="file explorer view">
+                </p>
+    
             <p>
-                Alternatively, from the VS Code Extensions Marketplace tab, type in <code>storyteller</code> in the search bar and the extension will show up.
-            </p>
-
-            <p>
-                <span class="badge badge-secondary">Tip:</span> Users will be notified when a new version of the plugin has been released. Upgrading to the 
-                new version is very simple as VS Code will handle all of the download and installation details.
-            </p>
-
-            <p>
-                <img src="images/install.png" class="img-thumbnail border-success" alt="Edit comment">
+                <span class="badge badge-secondary">Tip:</span> VS Code has a file explorer view of an open folder.
+                It is preferable to use this interface to create new files and directories than using the <code>File</code> menu. 
+                <br/>
+                A file created using <code>File -> New File</code> (or the equivalent <code>cmd/ctrl + N</code> command) is not automatically added 
+                to the Storyteller project directory and therefore isn't tracked until is is saved to the project directory. Once the new file is
+                saved in the Storyteller project directory (<code>ctrl/cmd + S</code>) then the file contents will be added and any new changes 
+                will be tracked.
             </p>
             
+            
+            <h4>Moving, Renaming, and Deleting Files and Directories</h4>
+            <p>
+                Storyteller also tracks the moving, renaming, and deleting of files and directories. It creates events for each of these file
+                operations that will be displayed in a playback.
+            </p>
+
+            <p>
+                <span class="badge badge-secondary">Tip:</span> The current view of the file system is always available during a playback.
+            </p>
             <hr/>
             <div class="small container">
                 <div class="row">

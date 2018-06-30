@@ -68,11 +68,14 @@
 
             <h4>Ignoring Files</h4>
             <p>
-                By default, Storyteller tracks all changes to the files and directories under the topmost open directory.
-                Sometimes, there are changes that one doesn't care to track. For example, the binaries that get generated from 
-                a compiler or a long log file. A file that is placed in the topmost open directory with the name 
-                <code>st-ignore.json</code> will be used to tell Storyteller which changes to ignore. It can specify 
-                files with a particular extension, files with a particular name, and directories with a particular path to ignore.
+                By default, Storyteller tracks all changes to the files and directories under the topmost open directory,
+                called the Storyteller project directory. Sometimes, there are changes that one doesn't care to track. 
+                For example, the binaries that get generated from a compiler or a long log file. 
+            </p>
+            <p>                
+                A file that is placed in the Storyteller project directory with the name <code>st-ignore.json</code> will be 
+                used to tell Storyteller which files and directories to ignore. It can specify files with a particular extension, files with a 
+                particular name, and directories with a particular path to ignore.
             </p>
             <h5>st-ignore.json</h5>
             <p>
@@ -89,6 +92,11 @@
                 </code> 
             </p>
 
+            <p>
+                <span class="badge badge-secondary">Tip:</span> Include all three of these properties in the object even if you are not using them.
+                Make sure to include an empty JSON array <code>[]</code> for any property that you are not using.
+            </p>
+    
             <h5>ignoredFileExtensions</h5>
             <p>
                 The property <code>ignoredFileExtensions</code> specifies an array of file extensions that will be ignored. 
@@ -103,14 +111,15 @@
                 anywhere in the project directory will be ignored by Storyteller.
             </p>
             <p>
-                <span class="badge badge-secondary">Tip:</span> The file <code>st-ignore.json</code> is always ignored.
+                <span class="badge badge-secondary">Tip:</span> The file <code>st-ignore.json</code> is always ignored
+                so there is no need to include it.
             </p>
 
             <h5>ignoredDirectories</h5>
             <p>
                 The property <code>ignoredDirectories</code> specifies an array of paths to directories that will 
                 be ignored. All changes to files and subdirectories with any one of these paths will be ignored by 
-                Storyteller. The entries must be relative paths from the root of the project directory. The
+                Storyteller. The entries must be relative paths from the Storyteller project directory. The
                 strings in the array must start with a leading <code>/</code>. 
             </p>
             <p>                

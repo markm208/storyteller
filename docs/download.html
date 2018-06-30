@@ -76,24 +76,35 @@
                 programming language independent so as long as the viewer can compile or otherwise run the code they can experiment 
                 with it. Anyone who downloads the code can input different values into the running program, examine the output, and 
                 step through it in the same state as the code in the browser. The user can then alter those files in any way that 
-                they wish. They can also move the playback a little further and download them all again in a new state.
-
+                they wish. They can also move the playback a little further and download them all again in a new state. 
+            </p>
+            
+            <p>    
+                <span class="badge badge-secondary">Tip:</span> If the user performing the download does not wish to continue tracking 
+                changes to the code then VS Code and the Storyteller plugin are not even required. To download and examing code all one 
+                needs is a web browser.
             </p>
 
             <p>
                 After a viewer chooses to download the code, a zip file will be created on their machine with all of the files in 
                 the exact same state as the code in the playback window. The zip file will have the same name as the root project 
                 directory with a timestamp added to it. For example, with a root project directory named <code>code</code> the zip file 
-                will have a name like this: <code>code-2018-02-08T19_33_01.655Z.zip</code>. The timestamp is when the download took
-                place to distinguish different downloads of the code in different states.
+                will have a name like this: <code>code-2018-02-08T19_33_01.655Z.zip</code> (the timestamp is when the download took
+                place to distinguish it from different downloads of the same code in different states). The project directory, <code>code</code>, 
+                will be directly inside the outer unzipped directory <code>code-2018-02-08T19_33_01.655Z</code>. 
             </p>
 
             <p>    
-                <span class="badge badge-secondary">Tip:</span> To continue using Storyteller to track changes after a code download use 
-                VS Code to open the root project directory with the code in it. In this example, it would mean using VS Code to 'Open a 
-                Folder' select the directory called <code>code</code> since it is the root project directory. The root project directory
-                for the code you downloaded will likely have a different name. To make sure the correct directory is opened look for a 
-                subdirectory called <code>.storyteller</code> in it. 
+                <span class="badge badge-secondary">Tip:</span> You can continue to have Storyteller track code changes after a download
+                and those changes will be separate from the Storyteller project where the download occurred. This is equivalent to making 
+                a branch in a traditional version control system. More about Storyteller version control can be found here 
+                <a href="versionControl.html" class="strong-link">here</a>.
+                <br/> 
+                In order to keep tracking changes in the downloaded project use VS Code with the Storyteller plugin to open the 
+                root project directory with the code in it. In this example, it would mean using VS Code to 'Open a Folder' and then selecting the 
+                directory called <code>code</code> from the unzipped download (to make sure the correct directory is opened look for a 
+                subdirectory called <code>.storyteller</code> in it). Next, you can begin to edit the code and all of the changes will be 
+                tracked in this new project. 
             </p>
             
             <br/>
@@ -116,7 +127,8 @@
 
             <p>
                 <span class="badge badge-secondary">Tip:</span> There will be an additional directory called <code>.storyteller</code> 
-                in the unzipped directory that can be ignored. 
+                in the unzipped project directory that is only used for tracking changes. If you are not tracking changes this can be
+                ignored. 
             </p>
             <hr/>
             <div class="small container">
