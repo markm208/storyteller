@@ -329,13 +329,13 @@
 
             /* the main playback container. It holds a playback window and a line number gutter */
             #playbackWindows {
-
-                overflow: auto; /* for scrolling */
-                height:700px;
+                min-height: 500px;
+                overflow-y: scroll; /* for scrolling */
+                height:500px;
                 white-space: nowrap; /* for horizontal scrolling to prevent wrap */
                 font-size: 18px;
                 background-color: #C9DBA3;
-                font-family: 'Courier New';
+                font-family: 'Courier New', Courier, monospace;
                 resize: vertical;
             }
 
@@ -453,6 +453,22 @@
                 float:right;
             }
 
+            #descriptionFormatControls {
+                width: 25%;
+            }
+
+            .clickedForInsertBefore {
+                background-color: white;
+                border-left-color: darkgreen;
+                border-left-style: solid;
+                border-left-width: 3px;
+            }
+            .clickedForInsertAfter {
+                background-color: white;
+                border-right-color: darkgreen;
+                border-right-style: solid;
+                border-right-width: 3px;
+            }
         </style>
 
 		<title>Storyteller- Playback</title>
@@ -488,6 +504,15 @@
                                         
                                     </div>
                                     <hr/>
+                                    <div id="descriptionFormatControls" class="hiddenUntilEditable descriptionFormatControls">
+                                        <div class="collapse" id="descriptionFormatToolbar">
+                                            
+                                        </div>
+                                        <a class="small" data-toggle="collapse" href="#descriptionFormatToolbar">
+                                            Description Formatting Options
+                                        </a>
+                                    </div>
+    
                                     <div class="pull-right">
                                         <a id="editPlaybackTitleDescriptionButton" class="btn btn-default btn-xs" href="#">Edit title/description</a>
                                     </div>
@@ -515,11 +540,19 @@
                                         <legend>Text for the Comment</legend>                                        
                                         <!-- a place to add comment text -->
                                         <div class="form-group">
-                                            <div id="textCommentTextArea" contenteditable="true" class="form-control storytellerEditable" data-text="Add a comment at this point in the playback. Highlight some code if you'd like to link the comment to it."></div>
-                                            <!--<textarea id="textCommentTextArea" class="form-control" rows="10" placeholder="Select some text and add a comment at this point in the playback."></textarea>-->
-                                       </div>
-                                    </fieldset>
-
+                                            <div id="textCommentTextArea" contenteditable="true" class="form-control storytellerEditable" data-text="Add a comment at this point in the playback. Highlight some code if you'd like to link the comment to it.">
+    
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="collapse" id="commentFormatToolbar">
+                                            </div>
+                                            <a class="small" data-toggle="collapse" href="#commentFormatToolbar">
+                                                Comment Formatting Options
+                                            </a>
+                                        </div>
+                                        </fieldset>
+                                
                                     
                                     <filedset>
                                         <legend>Images for the Comment</legend>
@@ -591,18 +624,12 @@
                                 <button id="saveStateModalButton" data-toggle="modal" data-target="#saveStateModal" class="btn btn-primary">
                                     Download Files at this Point 
                                 </button>
-
-                                <!-- merge in a different history to this playback -->
-                                <label class="btn btn-default btn-file">
-                                    Merge <input id="mergeButton" type="file" style="display: none;">
-                                </label>
                             </div>
                             
                             <!-- display of the files system at the current point in the playback -->
                             <ul id="playbackViewOfFileSystem" class="playbackViewFileOrDirList">
 							</ul>
-
-						</fieldset>
+                        </fieldset>
 					</div>                    
                     <!-- playback window 75% of screen -->                   
 					<div class="col-md-9">
@@ -619,22 +646,17 @@
                         <!-- next the tabs -->
 						<div id="playbackWindows" class="tab-content">
 
-							<!-- All playback window tab ids will look like this "playbackWindowTab-fileId" -->
-							<!--
-							<div id="playbackWindowTab-fileId" class="playbackWindowTab tab-pane fade in">
-
-								<!-- gutter for line numbers -- >
+							<!-- All playback window tab ids will look like this "playbackWindowTab-fileId" 
 								<div id="lineNumberGutter-fileId" class="lineNumberGutter">
 									<div class='lineNum'></div>
 								</div>
 
-								<!-- this is a playback window where code will go -- >
 								<div id="playbackWindow-fileId" class="playbackWindow">
 									<span id="firstSpan-fileId" class="firstSpan"></span>
 									<span id="lastSpan-fileId" class="lastSpan">X</span>
 								</div>
-							</div>
-							-->
+                            </div>	
+                            -->						
 						</div>
 
 						<!-- this holds the controls for a code playback -->
@@ -671,7 +693,7 @@
                                                     &lt;&lt;
                                                 </button>
 
-                                                <button id="stepBackwardButton" class="btn btn-default"
+                                                <button id="stepBackwardButton" class="btn btn-default  btn-sm"
                                                         data-toggle="tooltip" data-placement="bottom" title="Step backward one step (left arrow)">
                                                     &lt;
                                                 </button>
@@ -683,7 +705,7 @@
                                                 </button>
 
                                                 <!-- step forward button -->
-                                                <button id="stepForwardButton" class="btn btn-default"
+                                                <button id="stepForwardButton" class="btn btn-default btn-sm"
                                                         data-toggle="tooltip" data-placement="bottom" title="Step forward one step (right arrow)">
                                                     &gt;
                                                 </button>
@@ -717,21 +739,122 @@
 									</tr>                                    
 								</table>
 
-
-                                <!-- options link at bottom of page -->
-								<div class="text-right">
-									<a href="#" data-toggle="modal" data-target="#playbackOptionsModal">Options 
-                                    </a>
-								</div>
-							</div>
-						</div>									
+                                <div class="clearfix">
+                                    <!-- options link at bottom of page -->
+                                    <div class="pull-left">
+                                        <a href="#editPlaybackCollapsable" data-toggle="collapse">Edit a Playback<span class="caret"></span></a>
+                                    </div>
+                                    <div class="pull-right">
+                                        <a href="#" data-toggle="modal" data-target="#playbackOptionsModal">Options</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="collapse" id="editPlaybackCollapsable">
+                                <fieldset>
+                                    <legend>
+                                        Editing a Playback in the Browser
+                                    </legend>
+                                    <p>
+                                        Information about using Storyteller as a version control system can be found <a href="https://markm208.github.io/storyteller/versionControl.html" target="_blank">here</a>.
+                                    </p>
+                                    <p>
+                                        Like with video, it is sometimes useful to edit a playback after the code has been written. You might have forgotten
+                                        to add a semi-colon while writing the code and did not realize it until you saw a playback. Some light rewriting of 
+                                        history is possible in a Storyteller playback. 
+                                        Information about replacing, deleting, and editing code in the browser can be found <a href="https://markm208.github.io/storyteller/editPlayback.html" target="_blank">here</a>.
+                                    </p>
+                                    <ul class="nav nav-tabs" role="tablist">
+                                        <li id="mergeEditListItem" class="active"><a href="#mergeEditTab" data-toggle="tab">Merge</a></li>
+                                        <li id="replaceEditListItem"><a href="#replaceEditTab" data-toggle="tab">Replace Text</a></li>
+                                        <li id="deleteEditListItem"><a href="#deleteEditTab" data-toggle="tab">Delete Text</a></li>
+                                        <li id="insertEditListItem"><a href="#insertEditTab" data-toggle="tab">Insert Text</a></li>
+                                    </ul>
+        
+                                    <!-- actual comment tabs -->
+                                    <div class="tab-content">
+                                        <div role="tabpanel" class="tab-pane fade in active" id="mergeEditTab">
+                                            <ol>
+                                                <li>
+                                                    Create a new branch. Download a playback, unzip the contents of the file, and edit the code using Storyteller.
+                                                </li>
+                                                <li>
+                                                    Download the playback.json file of the new branch. This will have the original state of the playback plus any edits you made in the editor. 
+                                                </li>
+                                                <li>
+                                                    Continue editing the original code using Storyteller. You will now have two versions of the code that each shares some history. 
+                                                </li>
+                                                <li>
+                                                    Upload the branch's playback.json file into this playback. The current playback will be updated with the data from both. 
+                                                    Conflicts will be identified in the code and it is up to the a developer to download the playback and resolve those conflicts.
+                                                    <br/>   
+                                                    <!-- merge in a different history to this playback -->
+                                                    <label class="btn btn-default btn-file">
+                                                        Merge another branch's playback.data<input id="mergeButton" type="file" style="display: none;">
+                                                    </label>                                                
+                                                </li>
+                                            </ol>
+                                            <hr/>
+                                        </div>    
+                                        <div role="tabpanel" class="tab-pane fade in" id="replaceEditTab">
+                                            <ol>
+                                                <li>Select the code that you want to replace on the screen</li>
+                                                <li>
+                                                    Write the code that you want to replace the selected code with: <br/>
+                                                    Text to insert:<br/>
+                                                    <textarea id="replaceNewHistoryText" rows="7" cols="50" class="storytellerEditable"></textarea><br/>                                
+                                                </li>
+                                                <li>
+                                                    Click the button below to replace it:<br/>
+                                                    <button id="replaceOldHistoryButton" class="btn btn-default" onclick="replaceHistory()">Replace selected code</button><br/>
+                                                </li>
+                                            </ol>
+                                            <hr/>
+                                        </div>    
+                                        <div role="tabpanel" class="tab-pane fade in" id="deleteEditTab">
+                                            <ol>
+                                                <li>Select the code that you want to delete on the screen</li>
+                                                <li>
+                                                    Click the button below to delete it:<br/>
+                                                    <button id="deleteOldHistoryButton" class="btn btn-default" onclick="deleteHistory()">Delete selected code</button><br/>
+                                                </li>
+                                            </ol> 
+                                            <hr/>
+                                        </div>    
+                                        <div role="tabpanel" class="tab-pane fade in" id="insertEditTab">
+                                            <ol>
+                                                <li>Make the code in the playback windows selectable by clicking the button below:<br/>
+                                                    <button id="makeCodeSelectableButton" class="btn btn-default" onclick="makeIndividualCodeCharsSelectable()">Make the code selectable</button><br/>
+                                                    (when selected, a character will be highlighted)
+                                                </li>
+                                                <li>
+                                                    Choose whether the insert will go before the selected character or after it.
+                                                    This is necessary when adding before the first character in a line or after the last one: <br/>
+                                                    <input id="newHistoryBeforeElement" name="newHistoryBeforeAfterElement" type="radio" value="Insert before the selected element" checked> <label for="newHistoryBeforeElement">Insert before selected element</label><br/>
+                                                    <input id="newHistoryAfterElement" name="newHistoryBeforeAfterElement" type="radio" value="Insert after the selected element"> <label for="newHistoryAfterElement">Insert after selected element</label><br/>
+                                                    (a solid cursor will be added to one of the sides of the selected character)
+                                                </li>
+                                                <li>
+                                                    Write the code that you want to insert at the selected location: <br/>
+                                                    Text to insert:<br/>
+                                                    <textarea id="insertNewHistoryText" rows="7" cols="50" class="storytellerEditable"></textarea><br/>
+                                                </li>
+                                                <li>
+                                                    Click the button below to insert the text:<br>
+                                                    <button id="insertNewHistoryButton" class="btn btn-default" onclick="insertHistory()">Insert new code</button><br/>
+                                                </li>
+                                            </ol>                    
+                                            <hr/>                
+                                        </div>    
+                                    </div>
+                                </fieldset>                    
+                            </div>
+                        </div>	
 					</div>
 
 					<!-- end of nested tabs for the playback windows -->
 				</div>
 			</div>
 		</div>
-
 
 		<!-- playback modals -->
 		<!-- playback options modal -->
@@ -1479,6 +1602,8 @@
                 alertElement.classList.add("alert");
                 alertElement.classList.add(alertType);
                 alertElement.classList.add("alert-dismissible");
+                alertElement.classList.add("fade");
+                alertElement.classList.add("in");
                 
                 //add a button 
                 var dismissButton = document.createElement("button");
@@ -1495,6 +1620,78 @@
                 
                 //go to the specified element and add the alert
                 document.querySelector("#" + idOfAlertArea).appendChild(alertElement);                
+            }
+
+            function makeATextEditToolbar() {
+
+                // <div class="btn-group" role="group">
+                //     <button type="button" class="btn btn-default"><strong>B</strong></button>
+                //     <button type="button" class="btn btn-default"><em>I</em></button>
+                //     <div class="input-group input-group-sm">
+                //         <input type="text" class="form-control" placeholder="Link URL">                                            
+                //         <span class="input-group-btn">
+                //             <button class="btn btn-default" type="button">Create Link</button>
+                //         </span>
+                //     </div>
+                // </div>            
+
+
+                var textEditToolbar = document.createElement("div");
+                textEditToolbar.classList.add("btn-group");
+                textEditToolbar.classList.add("btn-group-sm");
+
+                var boldButton = document.createElement("button");
+                boldButton.classList.add("btn");
+                boldButton.classList.add("btn-default");
+                var boldButtonText = document.createElement("span");
+                boldButtonText.innerHTML = "<strong>B</strong>";
+                boldButton.addEventListener("click", function(){
+                    document.execCommand("bold");
+                });
+                boldButton.appendChild(boldButtonText);
+
+                var italicsButton = document.createElement("button");
+                italicsButton.classList.add("btn");
+                italicsButton.classList.add("btn-default");
+                var italicsButtonText = document.createElement("span");
+                italicsButtonText.innerHTML = "<em>I</em>";
+                italicsButton.addEventListener("click", function(){
+                    document.execCommand("italic");
+                });
+                italicsButton.appendChild(italicsButtonText);
+
+                var linkInputGroup = document.createElement("div");
+                linkInputGroup.classList.add("input-group");
+                linkInputGroup.classList.add("input-group-sm");
+
+                var linkTextBox = document.createElement("input");
+                linkTextBox.setAttribute("type", "text");
+                linkTextBox.classList.add("form-control")
+                linkTextBox.setAttribute("placeholder", "Link URL");
+
+                var linkInputGroupButton = document.createElement("span");
+                linkInputGroupButton.classList.add("input-group-btn")
+
+                var linkButton = document.createElement("button");
+                linkButton.classList.add("btn");
+                linkButton.classList.add("btn-default");
+                var linkButtonText = document.createElement("span");
+                linkButtonText.innerHTML = "Create Link";
+                linkButton.appendChild(linkButtonText);
+                linkButton.addEventListener("click", function(){
+                    var uri = linkTextBox.value;
+                    document.execCommand("createLink", false, uri);
+                });
+                linkInputGroupButton.appendChild(linkButton);
+
+                linkInputGroup.appendChild(linkTextBox);
+                linkInputGroup.appendChild(linkInputGroupButton);
+
+                textEditToolbar.appendChild(boldButton);
+                textEditToolbar.appendChild(italicsButton);
+                textEditToolbar.appendChild(linkInputGroup);
+                
+                return textEditToolbar;
             }
 
             /*
@@ -1953,12 +2150,22 @@
                         //set the title of the playback
                         document.querySelector("#playbackTitle").innerHTML = title;
 
+                        //get the formatting controls
+                        var descriptionFormatControls = document.querySelector("#descriptionFormatControls");
+                        //make them invisible while the title/description are not editable
+                        descriptionFormatControls.classList.add("hiddenUntilEditable");
+
                     } else { //this is an edit operation
 
                         //change the text on the button to make enable saving any changes
                         button.innerHTML = "Save changes";
                         button.classList.remove("btn-default");
                         button.classList.add("btn-primary");
+
+                        //get the formatting controls
+                        var descriptionFormatControls = document.querySelector("#descriptionFormatControls");
+                        //make them visible while the title/description are not editable
+                        descriptionFormatControls.classList.remove("hiddenUntilEditable");
 
                         //make both divs editable
                         playbackTitleEditable.setAttribute("contentEditable", true);
@@ -2268,7 +2475,7 @@
                         }
 
                         //get any selected text ids if there are any
-                        var selectedCodeIds = getSelectedCodeIds(false);
+                        var selectedCodeIds = getSelectedCodeIds();
 
                         //an array of images to go along with this comment
                         var commentImages = [];
@@ -2442,7 +2649,7 @@
                     if (dt.items) {
 
                         //we only support dropping a single file (make sure there is at least one)
-                        if (dt.items.length > 0 && dt.items[0].kind == "file") {
+                        if (dt.items.length > 0 && dt.items[0].kind === "file") {
 
                             //get the first file
                             var imageFile = dt.items[0].getAsFile();
@@ -2733,7 +2940,7 @@
                 playbackData.activeFileId = null;
                 playbackData.activeLineNumber = null;
                 playbackData.latestPlaybackEventDevGroupId = null;
-
+                
                 //set the slider back to the beginning and empty the timestamp
                 var playbackProgressBar = document.querySelector("#playbackProgressBar");
                 playbackProgressBar.setAttribute("style", "width:0%");
@@ -2808,6 +3015,25 @@
                 //if we want to completely reinitialize a playback
                 if(shouldInitialize === true) {
 
+                    //init some playback data
+                    playbackData.delay = 100;
+                    playbackData.highlightDelay = 300;
+                    playbackData.showPastesInABlock = false;
+                    playbackData.showRecentsChanges = true;
+                    playbackData.userWantsPauseOnComments = true;
+
+                    //add the formatting toolbar for all new comments
+                    var commentFormatToolbar = document.querySelector("#commentFormatToolbar");
+                    //get rid of any old toolbar
+                    commentFormatToolbar.innerHTML = "";
+                    commentFormatToolbar.appendChild(makeATextEditToolbar());
+
+                    //add the formatting toolbar for the description
+                    var descriptionFormatToolbar = document.querySelector("#descriptionFormatToolbar");
+                    //get rid of any old toolbar
+                    descriptionFormatToolbar.innerHTML = "";
+                    descriptionFormatToolbar.appendChild(makeATextEditToolbar());
+                    
                     //empty out any old playback windows
                     document.querySelector("#playbackWindowTabLinks").innerHTML = "";
                     document.querySelector("#playbackWindows").innerHTML = "";
@@ -3030,8 +3256,15 @@
                     newElement = document.createElement("span");
                     newElement.setAttribute("id", code.id);
 
-                    //if its a tab
-                    if(code.character === "\t") {
+                    //if the code character is part of a windows CRLF
+                    if(code.character === "\r") {
+
+                        //mark it as \r
+                        newElement.classList.add("slash-r");
+                        //make the span empty so it is not selectable anymore
+                        newElement.innerHTML = "";
+                        
+                    } else if(code.character === "\t") { //if its a tab
 
                         //add a tab class
                         newElement.classList.add("tab");
@@ -3080,7 +3313,7 @@
 
                 //debug- if there is no previous element
                 if(!previousElement) {
-                    console.log("There is nor previous element at all!!!");
+                    console.log("There is not previous element at all!!!");
                 }
 
                 //add the new element right after the previous element (there is no insertAfter)
@@ -4051,7 +4284,7 @@
                             if(!codeElement.classList.contains("codeNotVisible") && !codeElement.classList.contains("firstSpan")) {
                                 
                                 //if we encounter a BR that is visible, this is where the previous line ends
-                                if(codeElement.tagName === "BR") {
+                                if(codeElement.tagName.toLowerCase() === "br") {
                                     
                                     //get all of the visible brs in this playback window
                                     var visibleBRs = codeElement.parentElement.querySelectorAll("br:not(.codeNotVisible)");
@@ -7663,7 +7896,7 @@
             function addLineNumberIfNecessary(codeElement, fileId) {
 
                 //if we are displaying a new newline character, add a new line number
-                if(codeElement.tagName === "BR") {
+                if(codeElement.tagName.toLowerCase() === "br") {
 
                     //get the gutter
                     var lineNumberGutter = document.querySelector("#lineNumberGutter-" + fileId);
@@ -7684,7 +7917,7 @@
             function removeLineNumberIfNecessary(codeElement, fileId) {
 
                 //if we are hiding a newline, remove a new line number
-                if(codeElement.tagName === "BR") {
+                if(codeElement.tagName.toLowerCase() === "br") {
 
                     //get the line number gutter and remove a line number
                     //(any one if fine, removing last is probably quickest)
@@ -7740,7 +7973,7 @@
             function handleScroll(codeElement) {
 
                 //if the element is not a BR
-                if(codeElement.tagName !== "BR") {
+                if(codeElement.tagName.toLowerCase() !== "br") {
                 
                     //get the playback container (the parent of the playback windows, playback tabs and the owner of the scroll bars)
                     var scrollablePlaybackContainer = document.querySelector("#playbackWindows");
@@ -8369,9 +8602,8 @@
                                 while(nextSelectedElement) {
                                     
                                     //if this is a currently visible code span
-                                    if(nextSelectedElement.classList && 
-                                    nextSelectedElement.classList.contains("codeChar") && 
-                                    nextSelectedElement.classList.contains("codeNotVisible") === false) {
+                                    if(nextSelectedElement.classList.contains("codeChar") && 
+                                       nextSelectedElement.classList.contains("codeNotVisible") === false) {
 
                                         //mark it as selected text
                                         nextSelectedElement.classList.add("selectedCode");
@@ -8381,6 +8613,13 @@
                                     if(nextSelectedElement === range.endContainer.parentNode) {
 
                                         //stop moving through the siblings
+                                        break;
+                                    }
+
+                                    //if there are no more siblings beyond this one
+                                    if(nextSelectedElement.nextSibling === null) {
+
+                                        //get out of the loop with nextSelectedElement still refering to a valid element 
                                         break;
                                     }
 
@@ -8414,8 +8653,16 @@
                 //go through all the beginning selected code elements
                 for(var i = 0;i < allBeginningSelectedCode.length;i++) {
 
-                    //remove the class that makes this selected code
-                    allBeginningSelectedCode[i].classList.remove("beginSelectedCode-" + (i + 1));
+                    //go through all of the classes for this element
+                    for(var j = 0;j < allBeginningSelectedCode[i].classList.length;j++) {
+                        
+                        //when we find one that starts with beginSelectedCode-
+                        if(allBeginningSelectedCode[i].classList.item(j).startsWith("beginSelectedCode-")) {
+                            
+                            //remove this class regardles of which number comes after beginSelectedCode-
+                            allBeginningSelectedCode[i].classList.remove(allBeginningSelectedCode[i].classList.item(j));
+                        }
+                    }
                 }
 
                 //get all of the ending elements of selected code
@@ -8424,8 +8671,16 @@
                 //go through all the ending selected code elements
                 for(var i = 0;i < allEndingSelectedCode.length;i++) {
 
-                    //remove the class that makes this selected code
-                    allEndingSelectedCode[i].classList.remove("endSelectedCode-" + (i + 1));
+                    //go through all of the classes for this element
+                    for(var j = 0;j < allEndingSelectedCode[i].classList.length;j++) {
+                        
+                        //when we find one that starts with endSelectedCode-
+                        if(allEndingSelectedCode[i].classList.item(j).startsWith("endSelectedCode-")) {
+                            
+                            //remove this class regardles of which number comes after endSelectedCode-
+                            allEndingSelectedCode[i].classList.remove(allEndingSelectedCode[i].classList.item(j));
+                        }
+                    }
                 }
             }
 
@@ -8808,6 +9063,718 @@
             }
 
             //*****************************************************************************
+            //               Editing a playback in the browser related code                
+            //               ----------------------------------------------                
+            //*****************************************************************************
+            //This function is used to identify a single code character where an insert will
+            //take place. There is a UI element where the user can choose to insert before or 
+            //after the selected character of code. A class will be added that adds a cursor-like
+            //element to the selected code on either the left or right side. This function is
+            //added as an event handler for all code on the screen at a pause point.
+            function codeClickedForInsert(clickEvent) {
+
+                //see if there is any previously clicked element (clickedForInsertBefore or clickedForInsertAfter)
+                var previouslyClickedForInsert = document.querySelector("[class*=clickedForInsert]");
+
+                //if there is a previously clicked element, clear it out
+                if(previouslyClickedForInsert) {
+
+                    //remove the the class that makes it clicked (it will be one of these two)
+                    previouslyClickedForInsert.classList.remove("clickedForInsertBefore");
+                    previouslyClickedForInsert.classList.remove("clickedForInsertAfter");
+                }
+
+                //this is the current clicked element
+                var clickedCode = clickEvent.srcElement;
+
+                //this is a radio button that says whether the new text should come before 
+                //or after the selected code element
+                var newHistoryBeforeElement = document.querySelector("#newHistoryBeforeElement");
+
+                //if the radio button is checked
+                if(newHistoryBeforeElement.checked) {
+
+                    //the new code will come before 
+                    clickedCode.classList.add("clickedForInsertBefore");                
+
+                } else { //the radio button is not checked so the other one must be checked
+                        
+                    //the new code will come after
+                    clickedCode.classList.add("clickedForInsertAfter");                
+                }
+            }
+
+            //This function adds an event handler for the code on screen at the pause point.
+            //The event handler, codeClickedForInsert, is used to identify where to insert 
+            //code at a pause point. 
+            function makeIndividualCodeCharsSelectable() {
+
+                //clear any past call to this function 
+                makeIndividualCodeCharsUnselectable();
+
+                //get all of the code elements that are visible on the screen in all the tabs
+                var allVisibleCodeElements = document.querySelectorAll(".codeChar:not(.codeNotVisible)");
+
+                //add an event handler to each code span to make them clickable
+                for(var i = 0;i < allVisibleCodeElements.length;i++) {
+
+                    //add a class so we can identify these later
+                    allVisibleCodeElements[i].classList.add("temporarilyClickable");
+                    
+                    //make them temporarily clickable with a handler that will identify an insert position
+                    allVisibleCodeElements[i].addEventListener("click", codeClickedForInsert);
+                }
+            }
+
+            //This function removes the handler for each clickable code element and removes the
+            //special class to identify selected elements.
+            function makeIndividualCodeCharsUnselectable() {
+
+                //get all of the clickable code spans                                    
+                var allClickableCodeElements = document.querySelectorAll(".temporarilyClickable");
+
+                //go through the clickable elements
+                for(var i = 0;i < allClickableCodeElements.length;i++) {
+                    
+                    //remove the class that identifies them
+                    allClickableCodeElements[i].classList.remove("temporarilyClickable");
+                    
+                    //remove the event handler
+                    allClickableCodeElements[i].removeEventListener("click", codeClickedForInsert);
+                }
+
+                //remove any previously clicked UI (if there are any)
+                var previouslyClickedForInsert = document.querySelector("[class*=clickedForInsert]");
+
+                if(previouslyClickedForInsert) {
+                    
+                    //it will be one of these two
+                    previouslyClickedForInsert.classList.remove("clickedForInsertBefore");
+                    previouslyClickedForInsert.classList.remove("clickedForInsertAfter");
+                }
+            }
+
+            //This function allows a developer to rewrite the history of a playback to insert
+            //some new code at a pause point. The pause point represents the point in time during
+            //the development process that the user wants to insert the new code.
+            //This function is called in response to a UI interaction to begin the insertion 
+            //process and rerun the playback to the pause point. The user will pause a playback, 
+            //select exactly where the code should go (either before or after a selected code 
+            //character), and write the text to be inserted. The playback events will be rewritten 
+            //to insert the new text at the pause point. A replay of the playback will show the new 
+            //code inserted at the pause point. The new events will have an accurate timestamp of 
+            //when they were created (most likely very different from the events around it) and the 
+            //event ids will be adjusted so that they are all sequential (as if the code was written 
+            //in the order it is now played back).   
+            function insertHistory() {
+
+                //get the text to insert into the playback
+                var newCode = document.querySelector("#insertNewHistoryText").value;
+
+                //the span that comes before where the new code will be inserted. It will be used
+                //as the previous neighbor for the new code block 
+                var insertAfterSpan;
+
+                //get the span where the insert will occur
+                var previouslyClickedForInsert = document.querySelector("[class*=clickedForInsert]");
+
+                //if there is some code to add and a previously clicked element
+                if(newCode.length > 0 && previouslyClickedForInsert) {
+
+                    //see if the insert comes before or after the clicked span
+                    if(previouslyClickedForInsert.classList.contains("clickedForInsertBefore")) {
+                        
+                        //this is a visible span where new code will back up
+                        insertAfterSpan = getPreviousVisibleSpan(previouslyClickedForInsert);
+
+                    } else { //the class is 'clickedForInsertAfter'
+
+                        //use the selected element as the previous neighbor
+                        insertAfterSpan = previouslyClickedForInsert;
+                    }
+
+                    //clear the event handlers 
+                    makeIndividualCodeCharsUnselectable();
+
+                    //insert the new code after the selected span
+                    var restartPlaybackAtIndex = editPlaybackHistoryInsert(newCode, insertAfterSpan);
+
+                    //renumber all of the event ids so that the new history looks like it was written in sequence
+                    renumberAllCodeEventIds(playbackData.branchId, new Set());
+
+                    //redisplay the playback from the beginning
+                    getPlaybackWindowsReadyForAnimation(true);
+
+                    //move to where the playback will be with the new code
+                    step("forward", restartPlaybackAtIndex + 1, false);                
+                }
+            }
+
+            //This function will take in a code span and find the first previous code span that is
+            //visible on the screen (or the default first span if there are no visible code spans).
+            function getPreviousVisibleSpan(startingSpan) {
+                
+                //used to move through the previous elements to find a visible code character 
+                var currentSpan = startingSpan.previousSibling;
+
+                //move through the invisible code spans in reverse until we find one that is visible 
+                //(or we get to the firstSpan which is not a codeChar)
+                while(currentSpan.classList.contains("codeChar") === true && 
+                      currentSpan.classList.contains("codeNotVisible") === true) {
+                    
+                    //get the previous element
+                    currentSpan = currentSpan.previousSibling;
+                }
+
+                //this is a visible span where new code will back up
+                return currentSpan;
+            }
+
+            //This function will alter the playback's code events to insert some new code. 
+            //It creates new events and puts them in the playbackData's codeEvents array
+            //after the codeEventIndex (the pause point of the playback). It then goes and looks 
+            //for any insert events after the pause point whose previous neighbor is the 'insert
+            //after' code span and updates their previous neighbor to be the last new event added. 
+            //This makes it appear as if the new code was inserted when the other code at the pause 
+            //point was inserted. The new events and events after the pause point have their line 
+            //number and column cleared out since adding new text will change them (a playback can handle
+            //this by calculating the correct values on the fly). The function returns a value 
+            //for what the codeEventIndex should be with the new text. This can be used to put 
+            //the playback in the same state after the insert. 
+            function editPlaybackHistoryInsert(newCode, insertAfterSpan) {
+
+                //this will hold all of the new events that are being inserted
+                var newCodeEvents = [];
+
+                //get the id of the event for a previous neighbor id
+                var idOfInsertAfterSpan = insertAfterSpan.getAttribute("id");
+
+                //set the initial value to the insert span's id (this will be updated when inserting
+                //new insert events below)
+                var previousNeighborIdOfInsertAfterSpan;
+
+                //if the insert span is the first in the file
+                if(idOfInsertAfterSpan.startsWith("firstSpan-")) {
+
+                    //use the "none" id for the previous neighbor id
+                    previousNeighborIdOfInsertAfterSpan = "none";
+
+                } else { //not the first span in the file
+
+                    //use the id of the insert span
+                    previousNeighborIdOfInsertAfterSpan = idOfInsertAfterSpan;
+                }
+
+                //used for temporary ids of the new code
+                var autoGeneratedEventId = 0;
+
+                //get the file id where this new code will go
+                var fileId = getFileIdFromCodeSpan(insertAfterSpan);
+
+                //all events will share the same timestamp
+                var timestamp = Date.now();
+
+                //create an event for each new character entered
+                for(var i = 0;i < newCode.length;i++) {
+
+                    //create a code event
+                    var newInsertTextEvent = {
+                        id: "ev_" + playbackData.branchId + "_TEMP-EDIT-PLAYBACK_" + autoGeneratedEventId,
+                        timestamp: timestamp,
+                        type: "Insert",
+                        character: newCode[i],
+                        previousNeighborId: previousNeighborIdOfInsertAfterSpan,
+                        createdByDevGroupId: playbackData.currentDevGroupId,
+                        lineNumber: -1,
+                        column: -1,
+                        fileId: fileId,
+                        pastedEventId: null
+                    };
+
+                    //increment for the next new event
+                    autoGeneratedEventId++;
+
+                    //add the new event to an array for use later
+                    newCodeEvents.push(newInsertTextEvent);
+
+                    //store the current event's id as the next previous neighbor
+                    previousNeighborIdOfInsertAfterSpan = newInsertTextEvent.id;
+                }
+
+                //go through the events after the pause point
+                for(var i = playbackData.codeEventsIndex + 1;i < playbackData.codeEvents.length;i++) {
+                    
+                    //get the event
+                    var currentEvent = playbackData.codeEvents[i];
+
+                    //adding new code may alter line numbers so set all to -1 after the pause point
+                    currentEvent.lineNumber = -1;
+                    currentEvent.column = -1;
+
+                    //if it is an insert that has a previous neighbor of the insert span
+                    if(currentEvent.type === "Insert" && 
+                       currentEvent.previousNeighborId === idOfInsertAfterSpan) {
+
+                        //adjust its previous neighbor to the the last new event created
+                        currentEvent.previousNeighborId = previousNeighborIdOfInsertAfterSpan;
+                    }
+                }
+
+                //add the new events back in playbackData's array of code events
+                //go backwards so we can use the same insert point playbackData.codeEventsIndex
+                for(var i = newCodeEvents.length - 1;i >= 0;i--) {
+
+                    //add the new events into the playback data at the pause point
+                    playbackData.codeEvents.splice(playbackData.codeEventsIndex + 1, 0, newCodeEvents[i])
+                }
+
+                //before resetting the playback, calculate where to replay to
+                //the pause point plus the length of the new code
+                var restartPlaybackAtIndex = playbackData.codeEventsIndex + newCodeEvents.length;
+
+                //return the event index to playback to 
+                return restartPlaybackAtIndex;
+            }
+
+            //This function coordinates the removal of some code from a playback. It looks for some selected text
+            //and gathers all of the history related to that selected text. It removes those events from the
+            //playbackData's codeEvents and then redisplays the playback.
+            function deleteHistory() {
+
+                //holds the ids of all of the files with some selected text to delete                                
+                var allFileIdsWithSelectedText = new Set();
+
+                //holds the element ids in between the beginning and ending of each of the selections (inclusive)
+                var allElementIdsToDelete = new Set();
+
+                //get all of the file ids and selected code to delete (this includes code that may not be
+                //present on the screen yet because of how we build the dom)
+                getSelectedTextToDelete(allFileIdsWithSelectedText, allElementIdsToDelete);
+
+                //perform the delete of the selected characters
+                var restartPlaybackAtIndex = editPlaybackHistoryDelete(allFileIdsWithSelectedText, allElementIdsToDelete);
+
+                //renumber all of the event ids so that the new history looks like it was written in sequence
+                renumberAllCodeEventIds(playbackData.branchId, allElementIdsToDelete);
+
+                //redisplay the playback from the beginning
+                getPlaybackWindowsReadyForAnimation(true);
+
+                //move forward for each event not deleted before the old pause point
+                step("forward", restartPlaybackAtIndex, false);
+            }
+
+            //This function will get all of the code elements in some selected text. This includes all inserts that ever
+            //touch any of the characters selected on the screen (when creating the dom we put every code element right in
+            //front of its previous neighbor- this is what we mean by a 'touch') 
+            function getSelectedTextToDelete(allFileIdsWithSelectedText, allElementIdsToDelete) {
+
+                //get the first and last elements in each selected range (there will be a 
+                //beginSelectedCode-X and endSelectedCode-X for each selected range where X is a number)
+                var allBeginSelectedCodeElements = document.querySelectorAll("[class*=beginSelectedCode-");
+                var allEndSelectedCodeElements = document.querySelectorAll("[class*=endSelectedCode-");
+
+                //go through the pairs of begins and ends
+                for(var i = 0;i < allBeginSelectedCodeElements.length;i++) {
+                    
+                    //get the first and last element of the same selected range
+                    var beginElement = allBeginSelectedCodeElements[i];
+                    var endElement = allEndSelectedCodeElements[i];
+
+                    //if there is both a beginning and ending element
+                    if(beginElement && endElement) {
+
+                        //get the file id where the selection is in
+                        allFileIdsWithSelectedText.add(getFileIdFromCodeSpan(beginElement));
+                        
+                        //start at the beginning of a range
+                        var currentElement = beginElement;
+
+                        //until we are beyond the end of the range
+                        while(currentElement !== endElement.nextSibling) {
+
+                            //grab the element's id and add it to the set
+                            allElementIdsToDelete.add(currentElement.getAttribute("id"));
+
+                            //move on to the neighbor element
+                            currentElement = currentElement.nextSibling;
+                        }
+                    }
+                }
+            }
+
+            //This function gets a file id from a code span. It is used to find the file id of a 
+            //selected bit of code.
+            function getFileIdFromCodeSpan(element) {
+
+                //get the playback window id from the code span's parent
+                var playbackWindowId = element.parentNode.getAttribute("id");
+
+                //strip off the beginning text that is added to make it a playback window id
+                var fileId = playbackWindowId.substring("playbackWindow-".length);
+
+                //return just the file id
+                return fileId;
+            }
+
+            //This function removes events from the playbackData's code events array. Since some 
+            //events that are not being removed may have previous neighbors that refer to the 
+            //events being removed we need to update them. Any non-deleted insert event that 
+            //has a previous neighbor that is being deleted will be adjusted to hold the last 
+            //visible insert event that was closest to the deleted one that was on the screen 
+            //when the insert was added. 
+            function editPlaybackHistoryDelete(allFileIdsWithSelectedText, allElementIdsToDelete) {
+
+                //if there is any selected text
+                if(allElementIdsToDelete.size > 0) {
+
+                    //this will hold the state of the files that we are deleting some history from while handling events
+                    //this is needed to adjust previous neighbors when deleting sections of history from the playback
+                    var allInsertEventsByFile = {};
+
+                    //a new version of playbackData's codeEvents that does not contain any of the 
+                    //selected text insert events being removed or any deletes of those insert events
+                    var newCodeEvents = [];
+
+                    //this is the index of the event to move back to after a delete
+                    var restartPlaybackAtIndex = 0;
+
+                    //go through all of the original code events in the playbackData
+                    for(var i = 0;i < playbackData.codeEvents.length;i++)
+                    {
+                        //get the current event
+                        var currentEvent = playbackData.codeEvents[i];                                            
+
+                        //if the current event comes from a file with some selected text
+                        if(allFileIdsWithSelectedText.has(currentEvent.fileId)) {
+
+                            //build up the state of the files with some selected text to be deleted
+                            //this is used to adjust some previous neighbors below
+                            insertEventInLinkedListMap(currentEvent, allInsertEventsByFile, "not used", true);
+
+                            //if the current event is an insert
+                            if(currentEvent.type === "Insert") {
+
+                                //since we are rewriting history in an edited file it is difficult to track 
+                                //line/column numbers for each event. Set them all to -1 and they will be 
+                                //calculated on the fly during playback
+                                currentEvent.lineNumber = -1;
+                                currentEvent.column = -1;
+                                
+                                //if the current insert event is NOT one of the events being deleted
+                                if(allElementIdsToDelete.has(currentEvent.id) === false) {
+
+                                    //if any event outside of the selected range backs up to one of the deleted events                                                        
+                                    //(because of the way the dom is built up this should only happen to insert events 
+                                    //that back up to the last element in a selected range. All other inserts that back 
+                                    //up to a selected event will be caught in the allElementIdsToDelete set)
+                                    if(allElementIdsToDelete.has(currentEvent.previousNeighborId)) {
+
+                                        //get the linked list of the current state of this file
+                                        var editorStateLinkedList = allInsertEventsByFile[currentEvent.fileId]
+                                        
+                                        //get the node that holds the previous neighbor event
+                                        var deletedPreviousNeighborNode = editorStateLinkedList.nodeMap[currentEvent.previousNeighborId];
+                                        //get the id of the previous neighbor or 'none' if it is the first character in a file
+                                        var deletedPreviousNeighborId = deletedPreviousNeighborNode.event ? deletedPreviousNeighborNode.event.id : "none";
+                                        
+                                        //while the node is in the set that is being deleted
+                                        while(allElementIdsToDelete.has(deletedPreviousNeighborId)) {
+
+                                            //move to the previous insert event in the file at the current state
+                                            //we are moving backwards from the previous neighbor looking for the first insert event 
+                                            //that is not in the set of deleted inserts. This is the best choice for a new previous neighbor
+                                            deletedPreviousNeighborNode = deletedPreviousNeighborNode.previous;
+                                            //update the previous neighbor id
+                                            deletedPreviousNeighborId = deletedPreviousNeighborNode.event ? deletedPreviousNeighborNode.event.id : "none";
+                                        }
+                                        
+                                        //make the current event's previous neighbor one that is on the screen
+                                        //this is guaranteed not to be in the deleted set and be on the screen
+                                        currentEvent.previousNeighborId = deletedPreviousNeighborId;
+                                    }
+
+                                    //if this is before the current event index
+                                    if(i <= playbackData.codeEventsIndex) {
+
+                                        //add so when the playback is refreshed it will be at the same point
+                                        restartPlaybackAtIndex++;
+                                    }
+
+                                    //add the event to the new list of events
+                                    newCodeEvents.push(currentEvent);
+
+                                } else { //else- it is one of the deleted events 
+                                
+                                    //don't store the event
+
+                                    //delete any comments associated with this event
+                                    deleteCommentsForADeletedEvent(currentEvent);
+                                }  
+
+                            } else if (currentEvent.type === "Delete") { //this is a delete
+
+                                //since we are rewriting history it is difficult to track line/column numbers
+                                //for each event. Set them all to -1 and they will be calculated on the fly
+                                //during playback
+                                currentEvent.lineNumber = -1;
+                                currentEvent.column = -1;
+                                
+                                //if the current delete event is NOT deleting one of the events that is being deleted
+                                if(allElementIdsToDelete.has(currentEvent.previousNeighborId) === false) {
+
+                                    //if this is before the current event index
+                                    if(i <= playbackData.codeEventsIndex) {
+
+                                        //add so when the playback is refreshed it will be at the same point
+                                        restartPlaybackAtIndex++;
+                                    }
+                                    
+                                    //add it to the new list of events
+                                    newCodeEvents.push(currentEvent);
+
+                                } else { //else- this is a delete event for something that is being removed
+                                
+                                    //don't store the event
+
+                                    //delete any comments associated with this event
+                                    deleteCommentsForADeletedEvent(currentEvent);
+                                }
+                                
+                            } else { //not an insert or delete, store all of these
+
+                                    //if this is before the current event index
+                                    if(i <= playbackData.codeEventsIndex) {
+
+                                        //add so when the playback is refreshed it will be at the same point
+                                        restartPlaybackAtIndex++;
+                                    }
+
+                                //add it to the new list of events
+                                newCodeEvents.push(currentEvent);
+                            }
+
+                        } else { //the current event does not come from a file with a selection to delete
+
+                            //if this is before the current event index
+                            if(i <= playbackData.codeEventsIndex) {
+
+                                //add so when the playback is refreshed it will be at the same point
+                                restartPlaybackAtIndex++;
+                            }
+
+                            //add it to the new list of events
+                            newCodeEvents.push(currentEvent);
+                        }
+                    }
+
+                    //update all future events that refer back to these
+                    playbackData.codeEvents = newCodeEvents;
+                
+                    //return the pause point after the delete
+                    return restartPlaybackAtIndex;
+
+                }//else- there are no elements to delete
+            }
+
+            //This function renumbers all of the event ids in the playbackData's codeEvents array. 
+            //This is used after the history of the playback is edited during playback so that all
+            //of the events have an ascending numeric id at the end of the id.
+            function renumberAllCodeEventIds(branchId, allElementIdsToDelete) {
+
+                //numeric part of an event if
+                var autoGeneratedEventId = 0;
+
+                //holds the mappinsgs from old ids to new ones. This is for getting previous
+                //neighbors correct
+                var oldIdToNewIdMap = new Map();
+
+                //every insert event that is at the beginning of a file file has "none" as its previous neighbor 
+                oldIdToNewIdMap.set("none", "none");
+
+                //go through all of the events
+                for(var i = 0;i < playbackData.codeEvents.length;i++) {
+
+                    //get an event
+                    var currentEvent = playbackData.codeEvents[i];
+
+                    //create a new event id with the numeric part of the id going in order
+                    var newEventId = "ev_" + branchId + "_" + autoGeneratedEventId;
+
+                    //store the old to new mapping of the id 
+                    oldIdToNewIdMap.set(currentEvent.id, newEventId);
+
+                    //change the event to have a new id
+                    currentEvent.id = newEventId;
+
+                    //if this event has a previous neighbor
+                    if(currentEvent.previousNeighborId) {
+
+                        //update it to the new value 
+                        currentEvent.previousNeighborId = oldIdToNewIdMap.get(currentEvent.previousNeighborId);
+                    }
+
+                    //increase the numeric part of the id for the next event
+                    autoGeneratedEventId++;
+                }
+
+                //now update all of the comments, delete  
+                updateSelectedIdsInComments(allElementIdsToDelete, oldIdToNewIdMap);
+            }
+
+            //This function removes any selectedIds (highlights) in a comment because
+            //they have been deleted. It also updates all of the ids since some of them
+            //might have changed
+            function updateSelectedIdsInComments(allElementIdsToDelete, oldIdToNewIdMap) {
+
+                var newCommentPositions = {};
+
+                //go through all of the event ids that have a comment
+                for(var eventId in playbackData.comments) {
+                    if(playbackData.comments.hasOwnProperty(eventId)) {
+
+                        //get the array of comments for the event id
+                        var arrayOfComments = playbackData.comments[eventId];
+
+                        //if the event where this comment is located has changed
+                        if(eventId !== oldIdToNewIdMap.get(eventId)) {
+
+                            //add the comments at the new id
+                            newCommentPositions[oldIdToNewIdMap.get(eventId)] = arrayOfComments;
+                            
+                            //delete the comments identified by the old id
+                            delete playbackData.comments[eventId];
+                        }
+
+                        //go through each comment
+                        for(var j = 0;j < arrayOfComments.length;j++) {
+
+                            //get the comment
+                            var comment = arrayOfComments[j];
+
+                            //if the comment's id has changed then update the displayCommentEvent
+                            if(comment.displayCommentEvent.id !== oldIdToNewIdMap.get(comment.displayCommentEvent.id)) {
+                                
+                                //update the copy of the display comment event that is stored in the comment 
+                                comment.displayCommentEvent.id = oldIdToNewIdMap.get(comment.displayCommentEvent.id);
+                            }
+
+                            //go through all of the selected code ids in a comment
+                            for(var k = comment.selectedCodeIds.length - 1;k >= 0;k--) {
+                                
+                                //get the selected code id
+                                var selectedCodeId = comment.selectedCodeIds[k];
+
+                                //if the selected id is one of the event ids being deleted
+                                if(allElementIdsToDelete.has(selectedCodeId)) {
+
+                                    //remove it from the array
+                                    comment.selectedCodeIds.splice(k, 1);
+                                
+                                } else { //it should stay as a selected id
+
+                                    //if the selected id is one of the ids that has changed
+                                    if(selectedCodeId !== oldIdToNewIdMap.get(selectedCodeId)) {
+                                        
+                                        //update it
+                                        comment.selectedCodeIds[k] = oldIdToNewIdMap.get(selectedCodeId);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //update the playback's events
+                for(var eventId in newCommentPositions) {
+                    if(newCommentPositions.hasOwnProperty(eventId)) {
+
+                        //put the moved comments back in playbackData's comments object
+                        playbackData.comments[eventId] = newCommentPositions[eventId];
+                    }
+                }
+            }
+
+            //This function coordinates the replacing of selected text in the playback window with
+            //some text entered in the replace UI. It uses much of the functionality of the insert
+            //and delete functions above.
+            function replaceHistory() {
+
+                //get the text to insert
+                var newCode = document.querySelector("#replaceNewHistoryText").value;
+
+                //if there is some code to add 
+                if(newCode.length > 0) {
+
+                    //first, insert all of the new code at the pause point
+                    //get all of the beginnings of the selected text                
+                    var allBeginSelectedCodeElements = document.querySelectorAll("[class*=beginSelectedCode-");
+                    var allEndSelectedCodeElements = document.querySelectorAll("[class*=endSelectedCode-");
+
+                    //go through the pairs of begins and ends
+                    for(var i = 0;i < allBeginSelectedCodeElements.length;i++) {
+
+                        //get the first and last element of the same selected range
+                        var beginElement = allBeginSelectedCodeElements[i];
+                        var endElement = allEndSelectedCodeElements[i];
+
+                        //if there is both a beginning and ending element
+                        if(beginElement && endElement) {                        
+
+                            //get the visible element before each selection
+                            var insertAfterSpan = getPreviousVisibleSpan(beginElement);
+
+                            //insert the text before each deleted section of code
+                            restartPlaybackAtIndex = editPlaybackHistoryInsert(newCode, insertAfterSpan);
+
+                            //update the playback data's index to account for the new code 
+                            playbackData.codeEventsIndex = restartPlaybackAtIndex;
+                        }
+                    }
+
+
+                    //next, delete any selected text
+                    //holds the ids of all of the files with some selected text to delete                                
+                    var allFileIdsWithSelectedText = new Set();
+
+                    //holds the element ids in between the beginning and ending of each of the selections (inclusive)
+                    var allElementIdsToDelete = new Set();
+
+                    //get all of the file ids and selected code to delete (this includes code that may not be
+                    //present on the screen yet because of how we build the dom)
+                    getSelectedTextToDelete(allFileIdsWithSelectedText, allElementIdsToDelete);
+
+                    //perform the delete of the selected characters
+                    var restartPlaybackAtIndex = editPlaybackHistoryDelete(allFileIdsWithSelectedText, allElementIdsToDelete);
+
+
+                    //renumber all of the event ids so that the new history looks like it was written in sequence
+                    renumberAllCodeEventIds(playbackData.branchId, allElementIdsToDelete);
+
+                    //redisplay the playback from the beginning
+                    getPlaybackWindowsReadyForAnimation(true);
+
+                    //move to where the playback will be with the new code
+                    step("forward", restartPlaybackAtIndex, false);
+                }                
+            }
+
+            //This function removes any comments associated with a event that was deleted
+            function deleteCommentsForADeletedEvent(event) {
+
+                //if there is an array of comments for this event
+                if(playbackData.comments[event.id]) {
+
+                    //remove any images
+
+                    //remove any videos
+
+                    //delete the array of comments
+                    delete playbackData.comments[event.id];
+                }
+            }
+
+            //*****************************************************************************
             //                         Comment related code
             //                         --------------------
             //*****************************************************************************
@@ -8905,14 +9872,17 @@
                     //get the first highlighted code character
                     var firstHighlightedCodeCharacter = document.querySelector("#" + comment.selectedCodeIds[0]);
 
-                    //get the file that this code is in
-                    var firstHighlightedCodeCharacterFileId = firstHighlightedCodeCharacter.parentElement.getAttribute("id").substr("playbackWindow-".length);
+                    if(firstHighlightedCodeCharacter) {
 
-                    //make sure the tab is active
-                    makePlaybackTabActive(firstHighlightedCodeCharacterFileId);
+                        //get the file that this code is in
+                        var firstHighlightedCodeCharacterFileId = firstHighlightedCodeCharacter.parentElement.getAttribute("id").substr("playbackWindow-".length);
 
-                    //move the cursor 
-                    handleScroll(firstHighlightedCodeCharacter);
+                        //make sure the tab is active
+                        makePlaybackTabActive(firstHighlightedCodeCharacterFileId);
+
+                        //move the cursor 
+                        handleScroll(firstHighlightedCodeCharacter);
+                    }
                 }
             }
 
@@ -8927,8 +9897,16 @@
                     //get the code on the screen
                     var code = document.querySelector("#" + comment.selectedCodeIds[i]);
 
-                    //highlight the code
-                    code.classList.add("commentRelevant");
+                    //if the code element can be found
+                    if(code) {
+
+                        //highlight the code
+                        code.classList.add("commentRelevant");
+
+                    } else {
+                        console.log("Bad selected code id: " + comment.selectedCodeIds[i]);
+                        console.log(comment);
+                    }
                 }
             }
 
@@ -9214,6 +10192,11 @@
                 }
 
                 divPanel.appendChild(commentTextDiv);
+                //make a text formatting toolbar for the comment
+                var textEditToolbar = makeATextEditToolbar();
+                //hide it until the comment is edited
+                textEditToolbar.classList.add("hiddenUntilEditable");                
+                divPanel.appendChild(textEditToolbar);
                 divPanel.appendChild(commentInfoDiv);
                 commentContainer.appendChild(divPanel);
 
@@ -9289,6 +10272,9 @@
                         commentTextDiv.setAttribute("contenteditable", "true");
                         commentTextDiv.focus();
 
+                        //make the text formatting toolbar visible
+                        textEditToolbar.classList.remove("hiddenUntilEditable");                
+
                         //update the edit button
                         editCommentButton.classList.add("btn-primary");
                         editCommentButton.innerHTML = "Save changes";
@@ -9328,6 +10314,10 @@
                             //re-display all of the comments in their new order
                             displayComments(comment.displayCommentEvent.id, true);
                         }
+
+                        //make the text formatting toolbar invisible
+                        textEditToolbar.classList.add("hiddenUntilEditable");                
+
                     }
                 });
 

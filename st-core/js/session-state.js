@@ -118,8 +118,8 @@ function saveAllStorytellerState(workspaceRootPath) {
     var editorState = editorNode.getEditorState();
         
     //convert the data into a string
-    var playbackDataString = JSON.stringify(playbackData);
-    var editorStateString = JSON.stringify(editorState);
+    var playbackDataString = JSON.stringify(playbackData, null, 2);
+    var editorStateString = JSON.stringify(editorState, null, 2);
     
     try {
         

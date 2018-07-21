@@ -164,7 +164,7 @@ var server = http.createServer(function(req, res) {
 
                 //send an error message
                 res.writeHead(404, {"Content-Type": "text/plain"});
-                res.end("Problem processing a comment" + err);
+                res.end("Problem processing a comment");
             }
         });
     } else if(req.url === "/commentPosition" && req.method === "PUT") { //updating a comment position from a playback   
@@ -223,7 +223,7 @@ var server = http.createServer(function(req, res) {
 
                 //send an error message
                 res.writeHead(404, {"Content-Type": "text/plain"});
-                res.end("Problem processing a comment" + err);
+                res.end("Problem processing a comment");
             }
         });
 

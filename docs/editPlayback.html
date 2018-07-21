@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+        <style type="text/css">
+
+            body {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .jumbotron {
+                background-color: #C9DBA3;
+            }
+            .jumbotron > hr {
+                border-top-color: darkgreen;
+            }
+
+            a {
+                color: darkgreen;
+            }
+            
+            .strong-link {
+                color: darkgreen;
+                font-weight: bold;
+            }
+
+            .extra-info-div {
+                position: relative;
+            }
+
+            .extra-info {
+                position: absolute;
+                bottom: 0;                
+            }
+
+            .right {
+                text-align: right; 
+            }
+
+            .logo {
+                text-decoration: none;
+                color: black;
+            }
+
+            .logo:hover {
+                text-decoration: none;
+                color: black;                
+            }
+
+        </style>
+
+        <title>Storyteller: Docs- Editing a Playback</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <h1 class="display-4"><a href="index.html" class="logo"><em><strong>Storyteller:</strong> Docs</em></a></h1>
+                <hr>
+            </div>
+            
+            <hr/>
+
+            <h4>Editing Playbacks in the Browser</h4>
+
+            <p>
+                After you have written some code and are commenting on it, it is sometimes useful 
+                to go back and make some minor edits. You may have noticed that you left something 
+                out (like a semi-colon) that you wish you added when you were originally working 
+                on the code. Or, you may be updating a previous playback and want to change from 
+                using floats to doubles but you don't want to completely rewrite the example program.
+            </p>
+            <p>
+                You can pause the playback at any point and add, delete, or replace some new code. 
+                The new code will appear to have been included at that pause point. In other words, 
+                you can add the semi-colon and no one will ever know that you forgot to add it in 
+                the first place.                  
+            </p>
+            <p>
+                Similarly, if there is some code that you wish you hadn't put in it can be removed
+                as if it was never written in the first place. For example, suppose that you added
+                a variable with the intention of using it but you never did. You can select that 
+                from the playback window and remove it. It will not show up in the playback if you 
+                replay it. 
+            </p>
+            <p>
+                There is an option to replace some code with some different code. This deletes the
+                selected code and inserts the new code in its place. With these operations it is 
+                possible to 'rewrite' some history in a playback.
+            </p>
+            <p>
+                To begin editing the playback select the 'Edit a Playback' link underneath the 
+                playback controls. This will expand the editing and merging options.                
+            </p>
+            <p>
+                <img src="images/editPlayback.png" class="img-thumbnail border-success" alt="Edit Playback">
+            </p>
+
+            <h5>Changes in the Editor</h5>
+            <p>
+                Using these controls only affects the current playback in the browser, it does 
+                not change what is in your text editor. If you want those changes to persist then
+                you can download the updated playback and work from the new copy. Here is some 
+                <a class="strong-link" href="download.html">information on how to save a playback</a>. 
+                The new copy will have the rewritten history in it. Since the edits don't change
+                anything until they are downloaded it is possible to restart an editing session
+                if the results aren't exactly what you want. 
+            </p>
+            <p>
+                This editing of a playback in the browser should be used sparingly. If there are 
+                major changes to the code it makes more sense to use the editor and Storyteller 
+                plugin than trying to write a significant amount of code using this interface. 
+            </p>  
+
+            <h5>Deleting Code</h5>
+            <p>
+                To delete some code, select it in the playback and choose the delete option.               
+            </p>
+            <p>
+                <img src="images/editPlaybackDelete.png" class="img-thumbnail border-success" alt="Edit Playback Delete">
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> When removing code, any text that was 
+                ever inside the selected range of characters will also be permanently removed. For 
+                example, if you wrote the code <code>int x;</code> and then later in the future you 
+                added an intialization to it like this, <code>int x = 10;</code>, then all of that 
+                code is related. If you pause the playback when the code looks like this <code>int x;</code> 
+                and select it to be deleted then those future events <code> = 10</code> will be 
+                removed as well because they won't make much sense without the variable declaration.
+            </p>
+
+            <h5>Inserting Code</h5>
+            <p>
+                A playback is a recreation of a set of events in the order that they were created. 
+                You can add new code into this sequence by pausing a playback, selecting where you
+                want the new code to go, and then adding a group of text. This new text will be 
+                turned into a set of Storyteller events and then inserted in the sequence at the 
+                pause point. The new events will have an accurate timestamp but otherwise they will
+                appear to have happened near the pause point.
+            </p>
+            <p>
+                To select an insert point the user must first choose to make the code selectable. 
+                Next, the user will select whether to insert the code before or after the selected
+                character. Finally, the user will choose a single character on the playback window. 
+                The selected character's background color will change to white and a cursor will be 
+                added either to the left or right of the selected character depending on the previous 
+                choice. Any text in the insert textbox will be added to the sequence of events and
+                will be played back in the playback.
+            </p>
+            <p>
+                <img src="images/editPlaybackInsert.png" class="img-thumbnail border-success" alt="Edit Playback Insert">
+            </p>
+
+            <h5>Replacing Code</h5>
+            <p>
+                Replacing code involves selecting code at a certain pause point and replacing it 
+                with some text. This is essentially a combination of the previous two operations. 
+                So, the pause point is important to specify where the replaced code characters will
+                go in the sequence of events.
+            </p>
+            <p>
+                <img src="images/editPlaybackReplace.png" class="img-thumbnail border-success" alt="Edit Playback Replace">
+            </p>
+                                
+            <hr/>
+            <div class="small container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <a href="https://github.com/markm208/storyteller">Storyteller on GitHub</a>                    
+                    </div>
+                    <div class="col-sm-6 right">
+                        Questions? Comments? Corrections? <a href="mailto:markm208@gmail.com">Contact the BDFL</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+        
+    </body>
+</html>
