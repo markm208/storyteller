@@ -711,7 +711,7 @@
                                                 </button>
 
                                                 <button id="stepForwardToEndButton" class="btn btn-default"
-                                                        data-toggle="tooltip" data-placement="bottom" title="Step forward to the next comment (shift + right arrow)">
+                                                        data-toggle="tooltip" data-placement="bottom" title="Step forward to the next comment (shift + right arrow or touch the playback window)">
                                                     <!-- image for the step forward button -->
                                                     &gt;&gt;
                                                 </button>
@@ -1755,6 +1755,15 @@
 
                     //handle the click of the play/pause button
                     togglePlayPause();
+                });
+
+                document.querySelector("#playbackWindows").addEventListener("touchend", function(event) {
+
+                    //consume the toch event and don't pass it on
+                    event.preventDefault();
+
+                    //simulate a corresponding forward button click
+                    document.querySelector("#stepForwardToEndButton").click();
                 });
 
                 //single step forwards button
