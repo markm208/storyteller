@@ -711,7 +711,7 @@
                                                 </button>
 
                                                 <button id="stepForwardToEndButton" class="btn btn-default"
-                                                        data-toggle="tooltip" data-placement="bottom" title="Step forward to the next comment (shift + right arrow or touch the playback window)">
+                                                        data-toggle="tooltip" data-placement="bottom" title="Step forward to the next comment (shift + right arrow or double tap the playback window)">
                                                     <!-- image for the step forward button -->
                                                     &gt;&gt;
                                                 </button>
@@ -1757,13 +1757,27 @@
                     togglePlayPause();
                 });
 
+                //handle a double tap in the playback window to move to the next comment
+                var firstTapComplete = false;
                 document.querySelector("#playbackWindows").addEventListener("touchend", function(event) {
 
                     //consume the toch event and don't pass it on
                     event.preventDefault();
 
-                    //simulate a corresponding forward button click
-                    document.querySelector("#stepForwardToEndButton").click();
+                    //if this is the first tap of a double tap
+                    if(firstTapComplete === false) {
+
+                        //create a timer to nullify the first tap a short time later in the future
+                        setTimeout(function() {firstTapComplete = false}, 300);
+
+                        //indicate that this is the first tap of a double tap
+                        firstTapComplete = true;
+                    
+                    } else { //the first tap has already happened (within 400 ms)
+
+                        //simulate a corresponding forward button click
+                        document.querySelector("#stepForwardToEndButton").click();
+                    }
                 });
 
                 //single step forwards button
