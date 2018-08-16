@@ -8610,7 +8610,7 @@
                             
                             //get all the elements that have 'beginSelectedCode-' in the class name (one for each selection), 
                             //count them, and add 1 for the next id
-                            var selectedCodeNumber = document.querySelectorAll("[class*=beginSelectedCode-").length + 1;
+                            var selectedCodeNumber = document.querySelectorAll("[class*=beginSelectedCode-]").length + 1;
                             
                             //a selected code span
                             var nextSelectedElement = range.startContainer.parentNode;
@@ -8671,7 +8671,7 @@
                 }
 
                 //get all of the beginning elements of selected code
-                var allBeginningSelectedCode = document.querySelectorAll("[class*=beginSelectedCode-");
+                var allBeginningSelectedCode = document.querySelectorAll("[class*=beginSelectedCode-]");
 
                 //go through all the beginning selected code elements
                 for(var i = 0;i < allBeginningSelectedCode.length;i++) {
@@ -8689,7 +8689,7 @@
                 }
 
                 //get all of the ending elements of selected code
-                var allEndingSelectedCode = document.querySelectorAll("[class*=endSelectedCode-");
+                var allEndingSelectedCode = document.querySelectorAll("[class*=endSelectedCode-]");
 
                 //go through all the ending selected code elements
                 for(var i = 0;i < allEndingSelectedCode.length;i++) {
@@ -9394,8 +9394,8 @@
 
                 //get the first and last elements in each selected range (there will be a 
                 //beginSelectedCode-X and endSelectedCode-X for each selected range where X is a number)
-                var allBeginSelectedCodeElements = document.querySelectorAll("[class*=beginSelectedCode-");
-                var allEndSelectedCodeElements = document.querySelectorAll("[class*=endSelectedCode-");
+                var allBeginSelectedCodeElements = document.querySelectorAll("[class*=beginSelectedCode-]");
+                var allEndSelectedCodeElements = document.querySelectorAll("[class*=endSelectedCode-]");
 
                 //go through the pairs of begins and ends
                 for(var i = 0;i < allBeginSelectedCodeElements.length;i++) {
@@ -9731,8 +9731,8 @@
 
                     //first, insert all of the new code at the pause point
                     //get all of the beginnings of the selected text                
-                    var allBeginSelectedCodeElements = document.querySelectorAll("[class*=beginSelectedCode-");
-                    var allEndSelectedCodeElements = document.querySelectorAll("[class*=endSelectedCode-");
+                    var allBeginSelectedCodeElements = document.querySelectorAll("[class*=beginSelectedCode-]");
+                    var allEndSelectedCodeElements = document.querySelectorAll("[class*=endSelectedCode-]");
 
                     //go through the pairs of begins and ends
                     for(var i = 0;i < allBeginSelectedCodeElements.length;i++) {
