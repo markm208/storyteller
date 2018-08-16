@@ -490,6 +490,9 @@
                                 <span id="playbackTitle"></span> <span class="caret"></span>
                             </a>
                             </span>
+                            <div class="pull-right">
+                                <a href="https://markm208.github.io/storyteller/index.html" target="_blank" class="small">Storyteller Docs</a>
+                            </div>
                         </div>
 
                         <div id="playbackDescriptionPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="playbackTitleLink">
@@ -614,22 +617,6 @@
                             <div id="commentAlertArea">
                             </div>
 						</fieldset>
-
-                        <!-- the view of the file system at any point in a playback -->
-						<fieldset>
-							<legend>Current View of the File System</legend>
-							
-                            <!-- button to save the state of the playback at the current point -->
-                            <div class="form-group">
-                                <button id="saveStateModalButton" data-toggle="modal" data-target="#saveStateModal" class="btn btn-primary">
-                                    Download Files at this Point 
-                                </button>
-                            </div>
-                            
-                            <!-- display of the files system at the current point in the playback -->
-                            <ul id="playbackViewOfFileSystem" class="playbackViewFileOrDirList">
-							</ul>
-                        </fieldset>
 					</div>                    
                     <!-- playback window 75% of screen -->                   
 					<div class="col-md-9">
@@ -850,9 +837,29 @@
                             </div>
                         </div>	
 					</div>
-
+                
 					<!-- end of nested tabs for the playback windows -->
-				</div>
+                </div>
+                <div class="row">     
+                    <!-- playback comments 25% of screen -->
+					<div class="col-md-3">
+                        <!-- the view of the file system at any point in a playback -->
+                        <fieldset>
+                            <legend>Current View of the File System</legend>
+                            
+                            <!-- button to save the state of the playback at the current point -->
+                            <div class="form-group">
+                                <button id="saveStateModalButton" data-toggle="modal" data-target="#saveStateModal" class="btn btn-primary">
+                                    Download Files at this Point 
+                                </button>
+                            </div>
+                            
+                            <!-- display of the files system at the current point in the playback -->
+                            <ul id="playbackViewOfFileSystem" class="playbackViewFileOrDirList">
+                            </ul>
+                        </fieldset>
+                    </div>
+                </div>
 			</div>
 		</div>
 
