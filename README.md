@@ -5,6 +5,9 @@ Often, there is not a good place to write down our thoughts and ideas about this
 
 Storyteller is an editor plugin that records all of the changes made during one or more programming sessions. It allows these changes to be played back and annotated. These 'playbacks' are stored in easily shareable web pages. This allows developers to reflect on what they have done, write down their thoughts, and draw pictures to tell the story of how their code has evolved. 
 
+
+![Playback Overview](docs/images/playbackOverview.gif)
+
 ## Code Comments
 Code comments are not always the best place to describe one's thoughts and ideas. After all, it doesn't make a lot of sense to have a code comment describing why someone changed the name of a variable from `weight` to `volumeOfPackage` if `weight` is no longer present in the code after the change. The same can be said of an algorithm that gets refactored to improve performance or a serious bug that was fixed.
 
