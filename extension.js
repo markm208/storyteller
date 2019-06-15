@@ -65,7 +65,7 @@ var storytellerStatusBarItem = null;
  * the reconciliation process which can be expensive.
  */
 function activate(context) {
-    
+
     //commands for this plugin  
     context.subscriptions.push(vscode.commands.registerCommand('storyteller.startPlaybackNoComment', startPlaybackNoComment));
     context.subscriptions.push(vscode.commands.registerCommand('storyteller.startPlaybackToMakeAComment', startPlaybackToMakeAComment));
@@ -182,8 +182,8 @@ function activate(context) {
 function deactivate() {
     
     //deactivate the storyteller extension
-    console.log("Deactiviating storyteller extension--");
-    
+    console.log("Deactivating storyteller extension--");
+
     //if there is anything in the list of recently created file paths
     if(recentlyCreatedFileOrDir.length > 0) {
         
@@ -488,6 +488,17 @@ function updateStorytellerStatusBar(text, tooltip, command) {
  * at the beginning.
  */ 
 function startPlayback(playbackIsForAComment) {
+
+    
+    //if we are tracking changes
+    if(isStorytellerCurrentlyActive) {
+        
+        //get an OS independent project root path
+        var workspaceRootPath = getWorkspaceRootPath();
+                
+        //save the state of the storyteller data in the hidden folder for this project
+        sessionState.saveAllStorytellerState(workspaceRootPath);
+    }
 
     //Display a message box to the user fo 10000 ms (10 s)
     vscode.window.setStatusBarMessage('Storyteller Playback Server at localhost:3000/playback', 10000);

@@ -19,7 +19,8 @@
   ],
   "main": "./extension",
   "contributes": {
-    "commands": [{
+    "commands": [
+      {
         "command": "storyteller.startPlaybackNoComment",
         "title": "Storyteller: Start Playback"
       },
@@ -50,11 +51,11 @@
       {
         "command": "storyteller.startTrackingProject",
         "title": "Storyteller: Start Tracking This Project"
-      },      
+      },
       {
         "command": "storyteller.stopTrackingProject",
         "title": "Storyteller: Stop Tracking This Project"
-      },      
+      },
       {
         "command": "storyteller.st-copy",
         "title": "Storyteller: Copy"
@@ -66,7 +67,8 @@
       {
         "command": "storyteller.st-paste",
         "title": "Storyteller: Paste"
-      }]
+      }
+    ]
   },
   "scripts": {
     "postinstall": "node ./node_modules/vscode/bin/install"
