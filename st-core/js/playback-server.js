@@ -101,6 +101,7 @@ var server = http.createServer(function(req, res) {
             //copy the new state of the playback data into the other module
             editorNode.setPlaybackData(playbackData);
 
+            //Save the current playback data in memory to the file system.
             sessionState.saveAllStorytellerState();
 
             //send a success response back
@@ -160,6 +161,7 @@ var server = http.createServer(function(req, res) {
                 //copy the new state of the playback data into the other module
                 editorNode.setPlaybackData(playbackData);
 
+                //Save the current playback data in memory to the file system.
                 sessionState.saveAllStorytellerState();
                 
                 //send a success response back
@@ -222,6 +224,7 @@ var server = http.createServer(function(req, res) {
                 //copy the new state of the playback data into the other module
                 editorNode.setPlaybackData(playbackData);
 
+                //Save the current playback data in memory to the file system.
                 sessionState.saveAllStorytellerState();
                 
                 //send a success response back
@@ -299,6 +302,7 @@ var server = http.createServer(function(req, res) {
             //copy the new state of the playback data into the other module
             editorNode.setPlaybackData(playbackData);
 
+            //Save the current playback data in memory to the file system.
             sessionState.saveAllStorytellerState();
 
             //send a success response back
@@ -340,6 +344,7 @@ var server = http.createServer(function(req, res) {
             //copy the new state of the playback data into the other module
             editorNode.setPlaybackData(playbackData);
 
+            //Save the current playback data in memory to the file system.
             sessionState.saveAllStorytellerState();
 
             //send a success response back
