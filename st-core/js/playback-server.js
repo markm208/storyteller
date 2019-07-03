@@ -4,6 +4,7 @@ var path = require("path"); //for creating valid paths to files
 
 //used to request the most recent playback data from the editor
 var editorNode = require('./event-collector');
+var sessionState = require('./session-state');
 
 /*
  * create (but don't start) a web server to serve playbacks
@@ -15,7 +16,7 @@ var server = http.createServer(function(req, res) {
     //check the url to see if it is a request for playback
     if(req.url.startsWith("/playback") && req.method === "GET") {
 		
-		console.log("Playback started... ");
+        console.log("Playback started... ");
 
         //holds playback data that will be added to the served html file
         //get the latest playback data from the editor
@@ -100,11 +101,15 @@ var server = http.createServer(function(req, res) {
             //copy the new state of the playback data into the other module
             editorNode.setPlaybackData(playbackData);
 
+            //Save the current playback data in memory to the file system.
+            sessionState.saveAllStorytellerState();
+
             //send a success response back
             res.writeHead(200, {"Content-Type": "application/json"});
             res.end(JSON.stringify({"result": "success"}));
+
         });
-        
+
     } else if(req.url === "/comment" && req.method === "PUT") { //updating a comment from a playback
         
         //body of http request
@@ -155,6 +160,9 @@ var server = http.createServer(function(req, res) {
 
                 //copy the new state of the playback data into the other module
                 editorNode.setPlaybackData(playbackData);
+
+                //Save the current playback data in memory to the file system.
+                sessionState.saveAllStorytellerState();
                 
                 //send a success response back
                 res.writeHead(200, {"Content-Type": "application/json"});
@@ -167,6 +175,7 @@ var server = http.createServer(function(req, res) {
                 res.end("Problem processing a comment");
             }
         });
+
     } else if(req.url === "/commentPosition" && req.method === "PUT") { //updating a comment position from a playback   
         
         //body of http request
@@ -214,6 +223,9 @@ var server = http.createServer(function(req, res) {
 
                 //copy the new state of the playback data into the other module
                 editorNode.setPlaybackData(playbackData);
+
+                //Save the current playback data in memory to the file system.
+                sessionState.saveAllStorytellerState();
                 
                 //send a success response back
                 res.writeHead(200, {"Content-Type": "application/json"});
@@ -290,6 +302,9 @@ var server = http.createServer(function(req, res) {
             //copy the new state of the playback data into the other module
             editorNode.setPlaybackData(playbackData);
 
+            //Save the current playback data in memory to the file system.
+            sessionState.saveAllStorytellerState();
+
             //send a success response back
             res.writeHead(200, {"Content-Type": "application/json"});
             res.end(JSON.stringify({"result": "success"}));
@@ -328,6 +343,9 @@ var server = http.createServer(function(req, res) {
 
             //copy the new state of the playback data into the other module
             editorNode.setPlaybackData(playbackData);
+
+            //Save the current playback data in memory to the file system.
+            sessionState.saveAllStorytellerState();
 
             //send a success response back
             res.writeHead(200, {"Content-Type": "application/json"});

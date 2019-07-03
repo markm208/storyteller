@@ -10,6 +10,9 @@ var editorNode = require('./event-collector');
 //used to perform a diff on files (included with vs code for free)
 var diffTool = require('diff');
 
+//'vscode' contains the VS Code extensibility API
+var vscode = require('vscode');
+
 /*
  * Check to see if there is a hidden .storyteller directory to hold information about the events and editor.
  */
@@ -104,9 +107,9 @@ function readStorytellerIgnoreFile(workspaceRootPath) {
  * Save the state of the editor and playback data to the .storyteller directory. playbackData.json will hold event, developer,
  * and file information. editorState.json will hold information about the state of the editor.
  */
-function saveAllStorytellerState(workspaceRootPath) {
+function saveAllStorytellerState(workspaceRootPath = vscode.workspace.rootPath) {
 
-    //console.log("Saving all the storyteller state data to the file system.");
+    console.log("Saving all the storyteller state data to the file system. " + vscode.workspace.rootPath);
     
     //write current editor session information to the disk
     var pathToStorytellerDir = path.join(workspaceRootPath, ".storyteller");

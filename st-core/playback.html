@@ -1496,6 +1496,7 @@
              * This data structure holds information necessary for a playback.
              */
             var playbackData = {
+                allRecentHighlights: [],            //Holds all recent highlighted events to speed up removal
                 codeEvents: [],						//holds all of the events to be played back
                 codeEventsIndex: -1,				//holds the index of the 'current' event during playback
                 mostRecentDirection: "forward",		//holds the direction of the latest animated event
@@ -4089,6 +4090,8 @@
 
                     //highlight the new code character as being reletively new
                     stepData.codeElement.classList.add("recentInsert");
+                    //push the highlighted event to the array of recent highlights
+                    playbackData.allRecentHighlights.push(stepData.codeElement);
                 }
 
                 //highlight the file name where the change took place
@@ -4099,6 +4102,7 @@
              * Highlights a newly deleted character so the user knows what change has been made. It also higlights
              * a file name so the user knows which files have changed. 
              */ 
+
             function addRecentDeleteHighlight(stepData) {
 
                 //attempt to get the previous visible element from the one that is being deleted        
@@ -4117,6 +4121,9 @@
                     
                     //mark the previous sibling as a recent delete (used to highlight where a delete happened on the screen)
                     deletesPreviousSibling.classList.add("recentDelete");
+
+                    //push the highlighted event to the array of recent highlights
+                    playbackData.allRecentHighlights.push(deletesPreviousSibling);
                 }
 
                 //highlight the file name where the change took place
@@ -4126,6 +4133,7 @@
             /*
              * Gets the anchor associated with a file name and adds a class to highlight that a change has occured
              */
+            
             function highlightChangedFileName(fileId) {
 
                 //get the anchor that holds the file name in the group of tabs with filenames
@@ -4137,6 +4145,9 @@
 
                     //highlight the file name
                     changedPlaybackWIndowAnchor.classList.add("recentFileChange");
+
+                    //push the highlighted event to the array of recent highlights
+                    playbackData.allRecentHighlights.push(changedPlaybackWIndowAnchor);
                 }
             }
 
@@ -4145,24 +4156,22 @@
              * new events are handled during playback.
              */
             function clearPreviousEventHighlights() {
+                //Look through the array of recent highlighted events
+                for (let i = 0; i < playbackData.allRecentHighlights.length;i++) {
+                    //if an event is a recent insert, remove the recentinsert class
+                    if (playbackData.allRecentHighlights[i].classList.contains("recentInsert")) {
+                        playbackData.allRecentHighlights[i].classList.remove("recentInsert");
+                    }//if an event is a recent delete, remove the recentdelete class
+                    else if (playbackData.allRecentHighlights[i].classList.contains("recentDelete")) {
+                        playbackData.allRecentHighlights[i].classList.remove("recentDelete");
+                    }//if an event is a recent File Change, remove the recentFileChange class
+                    else if (playbackData.allRecentHighlights[i].classList.contains("recentFileChange")) {
+                        playbackData.allRecentHighlights[i].classList.remove("recentFileChange");
+                    }
+                } 
+                //Now that we have removed all previous highlighted events, clear the array of highlighted events
+                playbackData.allRecentHighlights = [];
 
-                //get all events that have recently been inserted and remove the recent insert class
-                var previousEventHighlights = document.querySelector("#playbackWindows").getElementsByClassName("recentInsert");
-                while (previousEventHighlights.length) {
-                    previousEventHighlights[0].classList.remove("recentInsert");
-                }
-
-                //now do the same with the recent deletes
-                previousEventHighlights = document.querySelector("#playbackWindows").getElementsByClassName("recentDelete");
-                while (previousEventHighlights.length) {
-                    previousEventHighlights[0].classList.remove("recentDelete");
-                }
-
-                //get all the file tab links that are highlighted and remove the recentFileChange class
-                var allRecentlyChangedLinks = document.querySelector("#playbackWindowTabLinks").getElementsByClassName("recentFileChange");
-                while (allRecentlyChangedLinks.length) {
-                    allRecentlyChangedLinks[0].classList.remove("recentFileChange");
-                }
             }
             
             /*
