@@ -563,25 +563,29 @@
                                         <!-- a place to see all of the comment images for the current comment -->
                                         <div id="commentImagesInComment"></div>
 
-                                        <div class="form-group">
+                                       <!-- <div class="form-group">
                                             <button type="button" data-toggle="modal" data-target="#editCommentPictureModal" class="btn btn-default">
                                                 Add a picture 
                                             </button>
-                                        </div>
+                                        </div> -->
+                                        <!-- New Upload button for any type of file -->
+                                        <label class="btn btn-default btn-file">
+                                            Upload File <input type="file" id="UploadFileButton" style="display: none;"/>
+                                        </label>
                                     </filedset>
                                     
 
                                     <fieldset>
                                         <legend>Video for the Comment</legend>
                                         <!-- control to whether to allow video comments or not -->
-                                        <div class="form-group">
+                                    <!--    <div class="form-group">
                                             <div class="checkbox">
                                                 <label>
                                                     <input type="checkbox" id="enableVideoCommentsCheckbox" name="enableVideo" value="0">
                                                     <span>Enable video comments</span>
                                                 </label>
                                             </div>
-                                        </div>
+                                        </div> -->
                                         <div id="previewVideoControls" class="form-group hiddenUntilEditable">
                                             <!-- video preview window -->
                                             <video id="previewVideoWindow" class="videoWindow" autoplay muted></video>
@@ -1542,6 +1546,12 @@
                 prependId: "img_",
                 sequenceNumber: 0
             };
+
+            /*
+                A list of the acceptable file formats for each type of file
+            */
+            var videoFileTypes = ['mp4', 'mov', 'flv', 'avi'];
+            var audioFileTypes = ['mp3', 'wav'];
 
             /*
              * For video recording comments
@@ -2598,7 +2608,7 @@
                     //else- playback is playing, can't comment while the playback is moving
                 });
 
-                document.querySelector("#enableVideoCommentsCheckbox").addEventListener("click", function(e) { 
+                /*document.querySelector("#enableVideoCommentsCheckbox").addEventListener("click", function(e) { 
 
                     //get the div that holds the video controls                    
                     var previewVideoControls = document.querySelector("#previewVideoControls");
@@ -2612,7 +2622,7 @@
                         //make the video controls visible
                         previewVideoControls.classList.remove("hiddenUntilEditable");
 
-                    } else { //video is being disbaled
+                    } else { //video is being disabled
 
                         //turn off the web cam
                         tearDownVideoRecordingOfComments();
@@ -2620,7 +2630,7 @@
                         //hide the video controls
                         previewVideoControls.classList.add("hiddenUntilEditable");
                     }
-                });
+                }); */
 
                 //add a click handler to control recording
                 document.querySelector("#addNewVideoComment").addEventListener("click", function(e) {
@@ -2796,6 +2806,20 @@
 
                     //use the image in the canvas for a comment
                     useImageInAComment();
+                });
+
+                //WIP works for images?
+                document.querySelector("#UploadFileButton").addEventListener("change", function(e) {
+                    
+                    //get the selected file from the file input control
+                    var imageFile = this.files[0];
+
+                    //import the image into the canvas
+                    uploadFileForComment(imageFile);
+
+                    // //use the image in the canvas for a comment
+                    // useImageInAComment();
+
                 });
 
                 //import an image onto the comment drawing canvas
@@ -10854,6 +10878,265 @@
 
                 //begin the read operation to read the selected image file
                 fileReader.readAsDataURL(imageFile);
+            }
+
+            //Takes the file extension to be uploaded and generates the MIME Type String
+            function createMimeString(fileExt)
+            {
+                //Instantiate the string to be returned
+                var mimeType;
+
+                //create the correct string depending on the file extension
+                switch (fileExt)
+                {
+                    // Video Formats
+                    case "mp4":
+                        mimeType = "video/mp4";
+                        break;
+
+                    case "mov":
+                        mimeType = "video/quicktime";
+                        break;
+
+                    case "flv":
+                        mimeType = "video/x-flv";
+                        break;
+
+                    case "avi":
+                        mimeType = "video/x-msvideo";
+                        break;
+
+                    //Audio Formats
+                    case "mp3":
+                        mimeType = "audio/mp3";
+                        break;
+
+                    case "wav":
+                        mimeType = "audio/vnd.wav";
+                        break;
+
+                    // If no matching file extension was found throw an error
+                    default:
+                        console.log("Error creating MIME Type: Unknown File Format.");
+
+                }
+
+                //return the finished MIME Type string
+                return mimeType;
+
+            }
+
+            function uploadFileForComment(imageFile)
+            {
+                //create a reader to read the data
+                var fileReader = new FileReader();
+
+                //Extract the file extension from the input file
+                var fileExtension = imageFile.name.split('.').pop().toLowerCase();
+
+                //once the data is done being read
+                fileReader.onload = function(data) {
+
+                    var dataURL = data.target.result;
+
+                    //Check file type: if image, video, or audio
+                    if (videoFileTypes.includes(fileExtension))
+                    {
+                        // If Video:
+                        console.log("In the Video Import: " + fileExtension);
+
+                        //holds every video clip
+                        var videoClipDiv = document.createElement("div");
+                        
+                        //create a preview clip for the new recording
+                        var videoElement = document.createElement("video");
+                        videoElement.classList.add("videoWindow");
+                        videoElement.setAttribute("controls", "");
+                        //this has not been added to a comment yet
+                        videoElement.classList.add("potentialVideoClip");
+
+                        //add the data url to the collection of video comments
+                        globalVideoComments.push(fileReader.result);
+
+                        //Create a new Blob from the dataURL
+                        //
+                        var byteString = atob(data.target.result.split(',')[1]);
+
+                        // write the bytes of the string to an ArrayBuffer
+                        var ab = new ArrayBuffer(byteString.length);
+
+                        // create a view into the buffer
+                        var ia = new Uint8Array(ab);
+
+                        // set the bytes of the buffer to the correct values
+                        for (var i = 0; i < byteString.length; i++) {
+                            ia[i] = byteString.charCodeAt(i);
+                        }
+                        //
+
+                        //Create the MIME type for the blob
+                        var videoType = createMimeString(fileExtension);
+
+                        //create a blob of the video data
+                        var blob = new Blob([ab], {type: videoType});
+                        
+                        //create a data url and set the video control to point to it
+                        var videoURL = window.URL.createObjectURL(blob);
+                        videoElement.setAttribute("src", videoURL);
+                        
+                        var deleteButton = document.createElement("button");
+                        deleteButton.textContent = "Delete";
+                        deleteButton.classList.add("btn");
+                        deleteButton.classList.add("btn-default");
+                        deleteButton.classList.add("btn-xs");
+                        
+                        deleteButton.addEventListener("click", function(e) {
+
+                            evtTgt = e.target;
+                            
+                            //clean up the url object for the deleted video
+                            window.URL.revokeObjectURL(evtTgt.parentNode.children[0].getAttribute("src"));
+                            
+                            //remove the video element
+                            evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode);
+
+                            //clean up the video resources
+                            revokePotentialVideoComments();
+
+                            //empty out the collection of videos to add to the next comment
+                            globalVideoComments = [];
+                        });
+
+                        //add the elements to a div
+                        videoClipDiv.appendChild(videoElement);
+                        videoClipDiv.appendChild(deleteButton);
+
+                        videoCommentClips = document.querySelector("#videoCommentClips");
+                        videoCommentClips.appendChild(videoClipDiv);
+                        
+                    }
+                    else if (audioFileTypes.includes(fileExtension))
+                    {
+                        // If Audio:
+                        console.log("In the Audio Import: " + fileExtension);
+
+                        //holds every video clip
+                        var videoClipDiv = document.createElement("div");
+                        
+                        //create a preview clip for the new recording
+                        var videoElement = document.createElement("video");
+                        videoElement.classList.add("videoWindow");
+                        videoElement.setAttribute("controls", "");
+                        //this has not been added to a comment yet
+                        videoElement.classList.add("potentialVideoClip");
+
+                        //add the data url to the collection of video comments
+                        globalVideoComments.push(fileReader.result);
+
+                        //Create a new Blob from the dataURL
+                        //
+                        var byteString = atob(data.target.result.split(',')[1]);
+
+                        // write the bytes of the string to an ArrayBuffer
+                        var ab = new ArrayBuffer(byteString.length);
+
+                        // create a view into the buffer
+                        var ia = new Uint8Array(ab);
+
+                        // set the bytes of the buffer to the correct values
+                        for (var i = 0; i < byteString.length; i++) {
+                            ia[i] = byteString.charCodeAt(i);
+                        }
+                        //
+
+                        //Create the MIME type for the blob
+                        var videoType = createMimeString(fileExtension);
+
+                        //create a blob of the video data
+                        var blob = new Blob([ab], {type: videoType});
+                        
+                        //create a data url and set the video control to point to it
+                        var videoURL = window.URL.createObjectURL(blob);
+                        videoElement.setAttribute("src", videoURL);
+                        
+                        var deleteButton = document.createElement("button");
+                        deleteButton.textContent = "Delete";
+                        deleteButton.classList.add("btn");
+                        deleteButton.classList.add("btn-default");
+                        deleteButton.classList.add("btn-xs");
+                        
+                        deleteButton.addEventListener("click", function(e) {
+
+                            evtTgt = e.target;
+                            
+                            //clean up the url object for the deleted video
+                            window.URL.revokeObjectURL(evtTgt.parentNode.children[0].getAttribute("src"));
+                            
+                            //remove the video element
+                            evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode);
+
+                            //clean up the video resources
+                            revokePotentialVideoComments();
+
+                            //empty out the collection of videos to add to the next comment
+                            globalVideoComments = [];
+                        });
+
+                        //add the elements to a div
+                        videoClipDiv.appendChild(videoElement);
+                        videoClipDiv.appendChild(deleteButton);
+
+                        videoCommentClips = document.querySelector("#videoCommentClips");
+                        videoCommentClips.appendChild(videoClipDiv);
+
+                    }
+                    else
+                    {
+                        // If Image:
+                        console.log("In the Image Import: " + fileExtension);
+
+                        //generate a unique image id
+                        var imgId = images.prependId + images.sequenceNumber
+                        images.sequenceNumber++;
+
+                        //create an image object
+                            var image = {
+                            imgId: imgId,
+                            dataURL: dataURL,
+                            timestamp: Date.now()
+                        };
+
+                        //store the image object in the global image object 
+                        images[image.imgId] = image;
+
+                        //add the image to the collection that shows images that will be added to the comment
+                        //get the collection of images that will be added to the comment
+                        var commentImagesInComment = document.querySelector("#commentImagesInComment");
+
+                        //get an image element with a scaled down picture of the image
+                        var previewImg = getCommentImagePreview(80, 80, dataURL);
+
+                        //create a small image preview that can be selected or deselected
+                        var commentImagePreview = getSelectableCommentImagePreview(previewImg, imgId, "selectedCommentImage");
+
+                        //append a preview of the comment image
+                        commentImagesInComment.appendChild(commentImagePreview);
+
+                        //add an image to the gallery of starting points
+                        addImageToStartingPointGallery(images[imgId]);
+
+                    }
+
+                };
+
+                //handler for a file that can't be displayed on the canvas
+                fileReader.onerror = function(data) {
+                    console.log("Error reading file to add to the comment image canvas");
+                }
+
+                //begin the read operation to read the selected image file
+                fileReader.readAsDataURL(imageFile);
+
             }
 
             /*
