@@ -10882,10 +10882,10 @@
             }
 
             //Takes the file extension to be uploaded and generates the MIME Type String
-            function createMimeString(fileExt)
+            function createMimeString(fileExt, callback)
             {
                 //Instantiate the string to be returned
-                var mimeType;
+                var mimeType = callback;
 
                 //create the correct string depending on the file extension
                 switch (fileExt)
@@ -10918,7 +10918,7 @@
 
                     // If no matching file extension was found throw an error
                     default:
-                        console.log("Error creating MIME Type: Unknown File Format.");
+                        console.log("Error creating MIME Type: Unknown File Format. Using default.");
 
                 }
 
@@ -10976,7 +10976,7 @@
                         //
 
                         //Create the MIME type for the blob
-                        var videoType = createMimeString(fileExtension);
+                        var videoType = createMimeString(fileExtension, "video/mp4");
 
                         //create a blob of the video data
                         var blob = new Blob([ab], {type: videoType});
@@ -11051,7 +11051,7 @@
                         //
 
                         //Create the MIME type for the blob
-                        var videoType = createMimeString(fileExtension);
+                        var videoType = createMimeString(fileExtension, "audio/mp3");
 
                         //create a blob of the video data
                         var blob = new Blob([ab], {type: videoType});
