@@ -2,7 +2,7 @@
   "name": "storyteller",
   "displayName": "storyteller",
   "description": "Plugin that allows devs to tell stories about how their code has evolved.",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "publisher": "markm208",
   "repository": {
     "type": "git",
@@ -74,7 +74,7 @@
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "dependencies": {
-    "diff": "^2.2.3"
+    "diff": "^3.5.0"
   },
   "devDependencies": {
     "vscode": "^0.11.0"

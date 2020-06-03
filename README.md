@@ -27,8 +27,8 @@ In addition to moving the code comments out of the code, Storyteller was designe
 
 ## Examples
 The output of the Storyteller tool is called a 'playback'. Here are a collection of playbacks in C++ and Clojure that I used for some of my computer science courses:
-* [An Animated Introduction to Programming in C++](https://personal.carthage.edu/mmahoney/cppbook/)
-* [An Animated Introduction to Clojure](https://personal.carthage.edu/mmahoney/cljbook/)
+* [An Animated Introduction to Programming in C++](https://ourcodestories.com/markm208/Playlist/2)
+* [An Animated Introduction to Clojure](https://ourcodestories.com/markm208/Playlist/4)
 
 (this tool is not solely for educational purposes- it is for anyone who wants to show others how they thought about a problem while coding it).
 

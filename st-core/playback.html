@@ -1500,7 +1500,6 @@
              * This data structure holds information necessary for a playback.
              */
             var playbackData = {
-                allRecentHighlights: [],            //Holds all recent highlighted events to speed up removal
                 codeEvents: [],						//holds all of the events to be played back
                 codeEventsIndex: -1,				//holds the index of the 'current' event during playback
                 mostRecentDirection: "forward",		//holds the direction of the latest animated event
@@ -1508,6 +1507,7 @@
                 relevantEventIndex: 0,				//the index of the most recent relevant event
                 playbackState: "paused",			//state of the playback (playing/paused)
                 playbackTimerId: null,				//id of the timer used to control animating events
+                allRecentHighlights: [],            //holds all recent highlighted events to speed up removal
                 activeFileId: null,					//the latest active file id in the playback
                 activeLineNumber: null,				//the latest active line number in the playback
                 allDevelopers: null,				//an object of all of the developers (each dev id is a key)
@@ -2992,6 +2992,7 @@
                 playbackData.relevantEventIndex = 0;
                 playbackData.playbackState = "paused";
                 playbackData.playbackTimerId = null;
+                playbackData.allRecentHighlights = [];
                 playbackData.activeFileId = null;
                 playbackData.activeLineNumber = null;
                 playbackData.latestPlaybackEventDevGroupId = null;
