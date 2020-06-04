@@ -4005,20 +4005,6 @@
                         addRecentInsertHighlight(stepData);
                     }
 
-                    //if there is any delay between characters we will highlight the insert
-                    if(playbackData.delay > 0) {
-
-                        //for brief insert highlighting (class will be removed with a timer below)
-                        stepData.codeElement.classList.add("briefInsertHighlight");
-
-                        //set a timer to remove the .briefInsertHighlight class from the element
-                        window.setTimeout(function(codeElement) {
-
-                            //find the recent insert and remove the class
-                            codeElement.classList.remove("briefInsertHighlight");
-                        }, playbackData.highlightDelay, stepData.codeElement); //highlight delay and the element to remove the class from                        
-                    }
-
                 } else { //code is not relevant
 
                     //remove the class from the code element (it may have been set from a previous playback)
@@ -4037,30 +4023,11 @@
                 if(stepData.codeEvent.relevant) {
 
                     //for new delete highlighting (class will be removed with a timer below)
-                    stepData.codeElement.classList.add("briefDeleteHighlight");
                     
                     //add the 'code not visible' to hide it
                     stepData.codeElement.classList.add("codeNotVisible");
                     
-                    //if there is any delay between characters
-                    if(playbackData.delay > 0) {
-                        
-                        //set a timer to remove the .briefDeleteHighlight class and to actually hide the event
-                        window.setTimeout(function(codeElement, fileId){                            
-                            
-                            //remove the recent brief highlight class
-                            codeElement.classList.remove("briefDeleteHighlight");
-
-                            //if a new line was removed, remove the line number
-                            removeLineNumberIfNecessary(codeElement, fileId);
-
-                        }, playbackData.highlightDelay, stepData.codeElement, stepData.codeEvent.fileId); //highlight delay, the element to remove, and the id of the file where the delete is
-                    
-                    } else {
-
-                        //if a new line was removed, remove the line number
-                        removeLineNumberIfNecessary(stepData.codeElement, stepData.codeEvent.fileId);                        
-                    }
+                    removeLineNumberIfNecessary(stepData.codeElement, stepData.codeEvent.fileId);                        
 
                     //if a change highlight is needed (usually in forward direction only)
                     if(shouldHighlightChanges()) {
@@ -4130,27 +4097,6 @@
 
             function addRecentDeleteHighlight(stepData) {
 
-                //attempt to get the previous visible element from the one that is being deleted        
-                var deletesPreviousSibling = getLastVisibleSibling(stepData.codeElement);
-
-                //if the previous sibling is a new line character
-                if(deletesPreviousSibling.classList.contains("newLine")) {
-                    
-                    //get the line number gutter for this file
-                    var fileGutter = document.querySelector("#lineNumberGutter-" + stepData.codeEvent.fileId);
-
-                    //add the style to the line number element
-                    fileGutter.children[stepData.codeEvent.lineNumber - 1].classList.add("recentDelete");
-
-                } else { //a visible span with some code in it
-                    
-                    //mark the previous sibling as a recent delete (used to highlight where a delete happened on the screen)
-                    deletesPreviousSibling.classList.add("recentDelete");
-
-                    //push the highlighted event to the array of recent highlights
-                    playbackData.allRecentHighlights.push(deletesPreviousSibling);
-                }
-
                 //highlight the file name where the change took place
                 highlightChangedFileName(stepData.codeEvent.fileId);
             }
@@ -4184,15 +4130,10 @@
                 //Look through the array of recent highlighted events
                 for (let i = 0; i < playbackData.allRecentHighlights.length;i++) {
                     //if an event is a recent insert, remove the recentinsert class
-                    if (playbackData.allRecentHighlights[i].classList.contains("recentInsert")) {
-                        playbackData.allRecentHighlights[i].classList.remove("recentInsert");
-                    }//if an event is a recent delete, remove the recentdelete class
-                    else if (playbackData.allRecentHighlights[i].classList.contains("recentDelete")) {
-                        playbackData.allRecentHighlights[i].classList.remove("recentDelete");
-                    }//if an event is a recent File Change, remove the recentFileChange class
-                    else if (playbackData.allRecentHighlights[i].classList.contains("recentFileChange")) {
-                        playbackData.allRecentHighlights[i].classList.remove("recentFileChange");
-                    }
+                    playbackData.allRecentHighlights[i].classList.remove("recentInsert");
+                    //if an event is a recent delete, remove the recentdelete class
+                    playbackData.allRecentHighlights[i].classList.remove("recentFileChange");
+
                 } 
                 //Now that we have removed all previous highlighted events, clear the array of highlighted events
                 playbackData.allRecentHighlights = [];
