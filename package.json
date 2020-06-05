@@ -1,82 +1,91 @@
 {
-  "name": "storyteller",
-  "displayName": "storyteller",
-  "description": "Plugin that allows devs to tell stories about how their code has evolved.",
-  "version": "0.0.12",
-  "publisher": "markm208",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/markm208/storyteller.git"
-  },
-  "engines": {
-    "vscode": "^1.0.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "*"
-  ],
-  "main": "./extension",
-  "contributes": {
-    "commands": [
-      {
-        "command": "storyteller.startPlaybackNoComment",
-        "title": "Storyteller: Start Playback"
-      },
-      {
-        "command": "storyteller.storytellerState",
-        "title": "Storyteller: State"
-      },
-      {
-        "command": "storyteller.currentActiveDevelopers",
-        "title": "Storyteller: Active Developers"
-      },
-      {
-        "command": "storyteller.createNewDeveloper",
-        "title": "Storyteller: Create a New Developer"
-      },
-      {
-        "command": "storyteller.addDevelopersToActiveGroup",
-        "title": "Storyteller: Make Developers Active"
-      },
-      {
-        "command": "storyteller.removeDevelopersFromActiveGroup",
-        "title": "Storyteller: Make Developers Inactive"
-      },
-      {
-        "command": "storyteller.startPlaybackToMakeAComment",
-        "title": "Storyteller: Comment"
-      },
-      {
-        "command": "storyteller.startTrackingProject",
-        "title": "Storyteller: Start Tracking This Project"
-      },
-      {
-        "command": "storyteller.stopTrackingProject",
-        "title": "Storyteller: Stop Tracking This Project"
-      },
-      {
-        "command": "storyteller.st-copy",
-        "title": "Storyteller: Copy"
-      },
-      {
-        "command": "storyteller.st-cut",
-        "title": "Storyteller: Cut"
-      },
-      {
-        "command": "storyteller.st-paste",
-        "title": "Storyteller: Paste"
-      }
-    ]
-  },
-  "scripts": {
-    "postinstall": "node ./node_modules/vscode/bin/install"
-  },
-  "dependencies": {
-    "diff": "^3.5.0"
-  },
-  "devDependencies": {
-    "vscode": "^0.11.0"
-  }
+    "name": "storyteller",
+    "displayName": "storyteller",
+    "description": "Plugin that allows devs to tell stories about how their code has evolved.",
+    "version": "1.0.0",
+    "publisher": "markm208",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/markm208/storyteller.git"
+    },
+    "engines": {
+        "vscode": "^1.45.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "storyteller.startTrackingProject",
+                "title": "Start Tracking This Project",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.stopTrackingProject",
+                "title": "Stop Tracking This Project",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.startPlaybackNoComment",
+                "title": "Start Playback",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.storytellerState",
+                "title": "State",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.currentActiveDevelopers",
+                "title": "Active Developers",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.createNewDeveloper",
+                "title": "Create a New Developer",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.addDevelopersToActiveGroup",
+                "title": "Make Developers Active",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.removeDevelopersFromActiveGroup",
+                "title": "Make Developers Inactive",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.startPlaybackToMakeAComment",
+                "title": "Comment",
+                "category": "Storyteller"
+            }
+        ]
+    },
+    "scripts": {
+        "lint": "eslint .",
+        "pretest": "npm run lint",
+        "test": "node ./test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.45.0",
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^7.0.2",
+        "@types/node": "^13.11.0",
+        "eslint": "^6.8.0",
+        "glob": "^7.1.6",
+        "mocha": "^7.1.1",
+        "typescript": "^3.8.3",
+        "vscode-test": "^1.3.0"
+    },
+    "dependencies": {
+        "body-parser": "^1.19.0",
+        "diff": "^4.0.2",
+        "express": "^4.17.1"
+    }
 }
