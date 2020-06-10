@@ -83,20 +83,15 @@
                 However, the syntax is different than git's syntax. In particular, no wildcards are allowed. <code>st-ignore.json</code> 
                 files are ordinary <em><a href="https://json.org" target="_blank">JSON</a></em> files with the following format:
                 <br/><br/>
-                <code>
-                    {<br/>
+                <code>{<br/>
                         &nbsp;&nbsp;&nbsp;&nbsp;"ignoredFileExtensions": [".obj", ".o"], <br/>
                         &nbsp;&nbsp;&nbsp;&nbsp;"ignoredFiles": ["server.log", "sales.db"], <br/>
                         &nbsp;&nbsp;&nbsp;&nbsp;"ignoredDirectories": ["/bin", "/tests/docs", "/.git"] <br/>
-                    }<br/>
-                </code> 
+                        &nbsp;&nbsp;&nbsp;&nbsp;"ignoreAllWithExceptions": false <br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;"ignoreExceptions": ["/tests/docs/index.html"] <br/>
+                    }<br/></code> 
             </p>
 
-            <p>
-                <span class="badge badge-secondary">Tip:</span> Include all three of these properties in the object even if you are not using them.
-                Make sure to include an empty JSON array <code>[]</code> for any property that you are not using.
-            </p>
-    
             <h5>ignoredFileExtensions</h5>
             <p>
                 The property <code>ignoredFileExtensions</code> specifies an array of file extensions that will be ignored. 
@@ -131,6 +126,27 @@
             </p>
             <p>
                 <span class="badge badge-secondary">Tip:</span> The hidden directory <code>.storyteller</code> is always ignored.
+            </p>
+
+            <h5>ignoreAllWithExceptions</h5>
+            <p>
+                The property <code>ignoreAllWithExceptions</code> specifies that all files and directories will be ignored.
+                A value of true or false is required for this property. A user can specify some paths of files that are 
+                exceptions to the rule.
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> This is useful when you want to ignore most of the files in 
+                a directory and focus the viewers atention on one or more 'exceptional' files.
+            </p>
+            <h5>ignoreExceptions</h5>
+            <p>
+                The property <code>ignoreExceptions</code> specifies a list of relative file paths that should be included
+                even if another rule says that they should be ignored. Use the relative path starting from the open 
+                Storyteller project directory.
+            </p>
+            <p>
+                <span class="badge badge-secondary">Tip:</span> This will allow containing directories of the exceptional
+                files to be created, however, no other files or subdirectories will be allowed in them.
             </p>
             <hr/>
             <div class="small container">

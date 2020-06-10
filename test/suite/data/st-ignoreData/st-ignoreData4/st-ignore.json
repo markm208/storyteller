@@ -1,0 +1,6 @@
+{
+    "ignoredFileExtensions": [".cpp", ".java"], 
+    "ignoredFiles": ["server.log", "sales.db"], 
+    "ignoredDirectories": ["/bin", "/node_modules", "/.git"],
+    "ignoreAllWithExceptions": true
+}
