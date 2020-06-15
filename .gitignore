@@ -1,5 +1,7 @@
 node_modules
 .vscode-test
-test/suite/data
+test/suite/data/devData
+test/suite/data/fsData
+test/suite/data/projectTestData
 .storyteller
 *.log
