@@ -55,6 +55,9 @@ suite('Events Tests', function () {
         //next create a file
         const fileObj = fileSystemManager.addFile('/test.txt');
         
+        //create an event for the new file
+        eventManager.insertCreateFileEvent(fileObj, timestamp, 'devGroupId-0', 'branchId-0');
+
         //add a group of 15 insert events
         eventManager.insertTextEvents(fileObj, timestamp, 'devGroupId-0', 'branchId-0', 'inserted text\r\n', 0, 0, [], 'false');
         
@@ -67,8 +70,8 @@ suite('Events Tests', function () {
         //read the data from the json file
         const allEvents = eventManager.read();
 
-        //there should be 16 events read from the file
-        assert.equal(allEvents.length, 16);
+        //there should be 17 events read from the file
+        assert.equal(allEvents.length, 17);
     });
 
     test('Create enough events to write to intermediate file', function() {
