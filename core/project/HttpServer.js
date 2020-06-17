@@ -9,8 +9,6 @@ const utilities = require('../utilities.js');
 
 //port number to listen for http requests
 const HTTP_SERVER_PORT = 53140;
-//max upload size for a comment
-const MAX_MEDIA_SIZE = '50mb';
 
 //initial list of acceptable media files
 const acceptableImageMimeTypes = ['image/apng', 'image/bmp', 'image/gif', 'image/ico', 'image/jpeg', 'image/png', 'image/svg+xml'];
@@ -25,6 +23,9 @@ class HttpServer {
         //store a reference to the project manager
         this.projectManager = projectManager;
 
+        //create the 'public' directory if it doesn't exist
+        this.createPublicDirectoryIfNecessary();
+
         //create the express server
         const app = express();
 
@@ -32,15 +33,15 @@ class HttpServer {
         app.use(fileUpload({
             limits: { fileSize: 100 * 1024 * 1024 },
             useTempFiles : true,
-            tempFileDir : this.projectManager.commentManager.pathToMediaTempDirectory
+            tempFileDir : this.pathToMediaTempDirectory
         }));
 
         //add middleware
-        //serve media from the media directory 
-        app.use(express.static(this.projectManager.commentManager.pathToMediaDirectory));
+        //serve media from the 'public' directory created above 
+        app.use(express.static(this.pathToPublicDir));
         //for form data
-        app.use(bodyParser.urlencoded({limit: MAX_MEDIA_SIZE, extended: true}/*{ extended: false }*/));
-        app.use(bodyParser.json({limit: MAX_MEDIA_SIZE}));
+        app.use(bodyParser.urlencoded({extended: true}));
+        app.use(bodyParser.json());
         
         //set the routes
         this.createRoutes(app);
@@ -55,6 +56,58 @@ class HttpServer {
     close() {
         //close the http server
         this.server.close();
+    }
+    /*
+     * Create a 'public' directory inside /.storyteller if it doesn't already
+     * exist. This will hold content served statically like images, videos,
+     * audio files, and javascript.
+     */
+    createPublicDirectoryIfNecessary() {
+        //create a directory path to hold statically served public content
+        this.pathToPublicDir = path.join(this.projectManager.fullPathToHiddenStorytellerDir, 'public');
+        if(fs.existsSync(this.pathToPublicDir) === false) {
+            fs.mkdirSync(this.pathToPublicDir);
+        }
+
+        //copy any static javascript or other content into the public dir
+        //... soon to come??
+
+        //store the names of the directories to hold media
+        this.mediaDirectoryName = 'media';
+        this.mediaTempDirectoryName = '.tmp';
+        this.imageDirectoryName = 'images';
+        this.videoDirectoryName = 'videos';
+        this.audioDirectoryName = 'audios';
+
+        //create the full paths to the directories
+        this.pathToMediaDirectory = path.join(this.pathToPublicDir, this.mediaDirectoryName);
+        this.pathToMediaTempDirectory = path.join(this.projectManager.fullPathToHiddenStorytellerDir, this.mediaTempDirectoryName);
+        this.pathToImageDirectory = path.join(this.pathToMediaDirectory, this.imageDirectoryName);
+        this.pathToVideoDirectory = path.join(this.pathToMediaDirectory, this.videoDirectoryName);
+        this.pathToAudioDirectory = path.join(this.pathToMediaDirectory, this.audioDirectoryName);
+        
+        //if the media dir does not exist then create it
+        if(fs.existsSync(this.pathToMediaDirectory) === false) {
+            fs.mkdirSync(this.pathToMediaDirectory);
+        }
+
+        //create the temporary directory to hold file uploads
+        if(fs.existsSync(this.pathToMediaTempDirectory) === false) {
+            fs.mkdirSync(this.pathToMediaTempDirectory);
+        }
+
+        //create the image, video, and audio directories
+        if(fs.existsSync(this.pathToImageDirectory) === false) {
+            fs.mkdirSync(this.pathToImageDirectory);
+        }
+
+        if(fs.existsSync(this.pathToVideoDirectory) === false) {
+            fs.mkdirSync(this.pathToVideoDirectory);
+        }
+
+        if(fs.existsSync(this.pathToAudioDirectory) === false) {
+            fs.mkdirSync(this.pathToAudioDirectory);
+        }
     }
 
     /*
@@ -71,7 +124,7 @@ class HttpServer {
             //move the file into the directory
             await newFile.mv(pathToNewFile);
             //return the new relative file path
-            res.json({filePath: `/${mediaDirectory}/${newFileName}`});
+            res.json({filePath: `/media/${mediaDirectory}/${newFileName}`});
         } catch(err) {
             return res.status(500).send(err);
         }
@@ -128,7 +181,7 @@ class HttpServer {
             //verify the file has an acceptable mime type
             if(acceptableImageMimeTypes.includes(newFile.mimetype)) {
                 //save the file
-                this.saveMediaFile(newFile, this.projectManager.commentManager.pathToImageDirectory, this.projectManager.commentManager.imageDirectoryName, res);
+                this.saveMediaFile(newFile, this.pathToImageDirectory, this.imageDirectoryName, res);
             } else {
                 res.status(415).json({error: `File type not supported: ${newFile.name}`});
             }
@@ -146,7 +199,7 @@ class HttpServer {
             //verify the file has an acceptable mime type
             if(acceptableVideoMimeTypes.includes(newFile.mimetype)) {
                 //save the file
-                this.saveMediaFile(newFile, this.projectManager.commentManager.pathToVideoDirectory, this.projectManager.commentManager.videoDirectoryName, res);
+                this.saveMediaFile(newFile, this.pathToVideoDirectory, this.videoDirectoryName, res);
             } else {
                 res.status(415).json({error: `File type not supported: ${newFile.name}`});
             }
@@ -164,7 +217,7 @@ class HttpServer {
             //verify the file has an acceptable mime type
             if(acceptableAudioMimeTypes.includes(newFile.mimetype)) {
                 //save the file
-                this.saveMediaFile(newFile, this.projectManager.commentManager.pathToAudioDirectory, this.projectManager.commentManager.audioDirectoryName, res);
+                this.saveMediaFile(newFile, this.pathToAudioDirectory, this.audioDirectoryName, res);
             } else {
                 res.status(415).json({error: `File type not supported: ${newFile.name}`});
             }
