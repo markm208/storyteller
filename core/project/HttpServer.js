@@ -3,6 +3,7 @@ const path = require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const fileUpload = require('express-fileupload');
 
 const utilities = require('../utilities.js');
 
@@ -10,6 +11,11 @@ const utilities = require('../utilities.js');
 const HTTP_SERVER_PORT = 53140;
 //max upload size for a comment
 const MAX_MEDIA_SIZE = '50mb';
+
+//initial list of acceptable media files
+const acceptableImageMimeTypes = ['image/apng', 'image/bmp', 'image/gif', 'image/ico', 'image/jpeg', 'image/png', 'image/svg+xml'];
+const acceptableAudioMimeTypes = ['audio/aac', 'audio/mpeg', 'audio/wav', 'audio/webm'];
+const acceptableVideoMimeTypes = ['video/mpeg', 'video/mp4', 'video/webm'];
 /*
  * Creates an http server to accept requests from the playback page and
  * can be used with editors too.
@@ -22,8 +28,17 @@ class HttpServer {
         //create the express server
         const app = express();
 
+        //for file uploads- 100Mb limit using a temp dir instead of memory
+        app.use(fileUpload({
+            limits: { fileSize: 100 * 1024 * 1024 },
+            useTempFiles : true,
+            tempFileDir : this.projectManager.commentManager.pathToMediaTempDirectory
+        }));
+
         //add middleware
-        //app.use(express.static(path.join(__dirname, '..', 'public')));
+        //serve media from the media directory 
+        app.use(express.static(this.projectManager.commentManager.pathToMediaDirectory));
+        //for form data
         app.use(bodyParser.urlencoded({limit: MAX_MEDIA_SIZE, extended: true}/*{ extended: false }*/));
         app.use(bodyParser.json({limit: MAX_MEDIA_SIZE}));
         
@@ -42,6 +57,25 @@ class HttpServer {
         this.server.close();
     }
 
+    /*
+     * Stores a media file (image, video, audio) into the correct subdirectory
+     * inside /.storyteller/media.
+     */
+    async saveMediaFile(newFile, fullPathToMediaDirectory, mediaDirectory, res) {
+        //create a new file path that includes a timestamp (to show files in order of upload)
+        const timestamp = new Date().getTime();
+        const newFileInfo = path.parse(newFile.name);
+        const newFileName = `${timestamp}-${newFileInfo.base}`; 
+        const pathToNewFile = path.join(fullPathToMediaDirectory, newFileName);
+        try {
+            //move the file into the directory
+            await newFile.mv(pathToNewFile);
+            //return the new relative file path
+            res.json({filePath: `/${mediaDirectory}/${newFileName}`});
+        } catch(err) {
+            return res.status(500).send(err);
+        }
+    }
     /*
      * Creates the routes that this server responds to
      */
@@ -79,6 +113,61 @@ class HttpServer {
             const comment = req.body;
             this.projectManager.commentManager.deleteComment(comment);
             res.sendStatus(200);
+        });
+
+        //for uploading media files
+        app.post('/newMedia/image', async (req, res) => {
+            //if there are no files, send a 400
+            if (!req.files || Object.keys(req.files).length === 0) {
+                return res.status(400).send('No files were uploaded.');
+            }
+
+            //get the new image file from the request
+            const newFile = req.files.newImageFile;
+
+            //verify the file has an acceptable mime type
+            if(acceptableImageMimeTypes.includes(newFile.mimetype)) {
+                //save the file
+                this.saveMediaFile(newFile, this.projectManager.commentManager.pathToImageDirectory, this.projectManager.commentManager.imageDirectoryName, res);
+            } else {
+                res.status(415).json({error: `File type not supported: ${newFile.name}`});
+            }
+        });
+
+        app.post('/newMedia/video', async (req, res) => {
+            //if there are no files, send a 400
+            if (!req.files || Object.keys(req.files).length === 0) {
+                return res.status(400).send('No files were uploaded.');
+            }
+
+            //get the new video file from the request
+            const newFile = req.files.newVideoFile;
+
+            //verify the file has an acceptable mime type
+            if(acceptableVideoMimeTypes.includes(newFile.mimetype)) {
+                //save the file
+                this.saveMediaFile(newFile, this.projectManager.commentManager.pathToVideoDirectory, this.projectManager.commentManager.videoDirectoryName, res);
+            } else {
+                res.status(415).json({error: `File type not supported: ${newFile.name}`});
+            }
+        });
+
+        app.post('/newMedia/audio', async (req, res) => {
+            //if there are no files, send a 400
+            if (!req.files || Object.keys(req.files).length === 0) {
+                return res.status(400).send('No files were uploaded.');
+            }
+
+            //get the new audio file from the request
+            const newFile = req.files.newAudioFile;
+
+            //verify the file has an acceptable mime type
+            if(acceptableAudioMimeTypes.includes(newFile.mimetype)) {
+                //save the file
+                this.saveMediaFile(newFile, this.projectManager.commentManager.pathToAudioDirectory, this.projectManager.commentManager.audioDirectoryName, res);
+            } else {
+                res.status(415).json({error: `File type not supported: ${newFile.name}`});
+            }
         });
 
         //title and description edits

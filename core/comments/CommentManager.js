@@ -1,6 +1,10 @@
 const Comment  = require('./Comment.js');
 const FileBackedCollection = require('../FileBackedCollection.js');
+const path = require('path');
+const fs = require('fs');
 
+//name of the hidden storyteller directory
+const STORYTELLER_DIR = '.storyteller'; //TODO move this somewhere and refer to it only once
 /*
  * This class manages the comments in the system. There is an object that uses
  * event ids as the key and arrays of comments as the value. During playback
@@ -18,6 +22,9 @@ class CommentManager extends FileBackedCollection {
     constructor(storytellerDirPath) {
         //init the base class
         super(storytellerDirPath, 'comments', 'comments.json');
+
+        //create the 'media' directory if it doesn't exist
+        this.createMediaDirectoryIfNecessary();
 
         //if the json file exists
         if(this.fileExists()) {
@@ -62,6 +69,49 @@ class CommentManager extends FileBackedCollection {
 
             //replace the raw object array with one filled with Comments
             this.comments[eventId] = allCommentsForAnEvent;
+        }
+    }
+
+    /*
+     * Create a 'media' directory inside /.storyteller if it doesn't already
+     * exist.
+     */
+    createMediaDirectoryIfNecessary() {
+        //store the names of the directories to hold media
+        this.mediaDirectoryName = 'media';
+        this.mediaTempDirectoryName = '.tmp';
+        this.imageDirectoryName = 'images';
+        this.videoDirectoryName = 'videos';
+        this.audioDirectoryName = 'audios';
+
+        //create the full paths to the directories
+        this.pathToMediaDirectory = path.join(this.storytellerDirPath, STORYTELLER_DIR, this.mediaDirectoryName);
+        this.pathToMediaTempDirectory = path.join(this.pathToMediaDirectory, this.mediaTempDirectoryName);
+        this.pathToImageDirectory = path.join(this.pathToMediaDirectory, this.imageDirectoryName);
+        this.pathToVideoDirectory = path.join(this.pathToMediaDirectory, this.videoDirectoryName);
+        this.pathToAudioDirectory = path.join(this.pathToMediaDirectory, this.audioDirectoryName);
+        
+        //if the media dir does not exist then create it
+        if(fs.existsSync(this.pathToMediaDirectory) === false) {
+            fs.mkdirSync(this.pathToMediaDirectory);
+        }
+
+        //create the temporary directory to hold file uploads
+        if(fs.existsSync(this.pathToMediaTempDirectory) === false) {
+            fs.mkdirSync(this.pathToMediaTempDirectory);
+        }
+
+        //create the image, video, and audio directories
+        if(fs.existsSync(this.pathToImageDirectory) === false) {
+            fs.mkdirSync(this.pathToImageDirectory);
+        }
+
+        if(fs.existsSync(this.pathToVideoDirectory) === false) {
+            fs.mkdirSync(this.pathToVideoDirectory);
+        }
+
+        if(fs.existsSync(this.pathToAudioDirectory) === false) {
+            fs.mkdirSync(this.pathToAudioDirectory);
         }
     }
 
