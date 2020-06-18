@@ -1009,6 +1009,9 @@ function handleTextEditorChange(event) {
                             //store the pasted event ids
                             pastedInsertEventIds = clipboardData.eventIds;
                         } else { //this is a paste but it doesn't match the last storyteller copy/cut (pasted from another source)
+                            //create an array of strings with 'other' for the paste event ids to signify a paste from outside the editor
+                            pastedInsertEventIds = newText.split('').map(() => 'other');
+
                             //clear out any old data
                             clipboardData.text = '';
                             clipboardData.eventIds = [];
