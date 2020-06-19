@@ -1,18 +1,13 @@
 const Comment  = require('./Comment.js');
 const FileBackedCollection = require('../FileBackedCollection.js');
+const path = require('path');
+const fs = require('fs');
 
 /*
  * This class manages the comments in the system. There is an object that uses
  * event ids as the key and arrays of comments as the value. During playback
  * when an event is animated this object is checked to see if there are any
  * comments, and if so, they are displayed.
- *  
- * TODO I would like to change how I am storing the images and videos in a
- * future version. I will store the images and videos in a separate directory
- * and serve the media from the server instead of wrapping them up in a
- * JSON object to be sent back to the browser. I think this will result in
- * better performance since the media can be fetched separately from the
- * event data. 
  */
 class CommentManager extends FileBackedCollection {
     constructor(storytellerDirPath) {
@@ -57,7 +52,7 @@ class CommentManager extends FileBackedCollection {
                 //get the raw comment data
                 const comment = this.comments[eventId][i];
                 //create the Comment object and add it to the array
-                allCommentsForAnEvent.push(new Comment(comment.displayCommentEvent, comment.developerGroupId, comment.timestamp, comment.commentText, comment.selectedCodeIds, comment.images, comment.videoComments, comment.id));
+                allCommentsForAnEvent.push(new Comment(comment.displayCommentEvent, comment.developerGroupId, comment.timestamp, comment.commentText, comment.selectedCodeText, comment.selectedCodeBlocks, comment.imageURLs, comment.videoURLs, comment.audioURLs, comment.id));
             }
 
             //replace the raw object array with one filled with Comments
@@ -70,7 +65,7 @@ class CommentManager extends FileBackedCollection {
      */
     addComment(commentData) {
         //create a comment object
-        const newComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeIds, commentData.images, commentData.videoComments);
+        const newComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs);
         
         //if an array of comments does not already exist for this event
         if(!this.comments[commentData.displayCommentEvent.id]) {
@@ -92,11 +87,10 @@ class CommentManager extends FileBackedCollection {
 
             //search for the correct comment
             for(let i = 0;i < allCommentsForAnEvent.length;i++) {
-                //find the correct comment based on the timestamp when the 
-                //comment was created
-                if(allCommentsForAnEvent[i].timestamp === commentData.timestamp) {
+                //find the correct comment based on its id
+                if(allCommentsForAnEvent[i].id === commentData.id) {
                     //create an updated comment object
-                    const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeIds, commentData.images, commentData.videoComments, commentData.id);
+                    const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.id);
                     //update the comment
                     allCommentsForAnEvent[i] = updatedComment;
                     break;
@@ -111,14 +105,14 @@ class CommentManager extends FileBackedCollection {
     deleteComment(commentData) {
         //get the array of events at the event id
         const arrayOfCommentsAtThisEvent = this.comments[commentData.displayCommentEvent.id];
-        let indexOfComment = -1;
         
         //if there is an array for the event id
         if(arrayOfCommentsAtThisEvent) {
+            let indexOfComment = -1;
             //go through all of the events at this event
             for(let i = 0;i < arrayOfCommentsAtThisEvent.length;i++) {
-                //if the two comments have the same timestamp
-                if(arrayOfCommentsAtThisEvent[i].timestamp === commentData.timestamp) {
+                //if the two comments have the same id
+                if(arrayOfCommentsAtThisEvent[i].id === commentData.id) {
                     //record the position of the comment to remove
                     indexOfComment = i;
                     break;
