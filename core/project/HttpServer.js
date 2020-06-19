@@ -67,10 +67,14 @@ class HttpServer {
         this.pathToPublicDir = path.join(this.projectManager.fullPathToHiddenStorytellerDir, 'public');
         if(fs.existsSync(this.pathToPublicDir) === false) {
             fs.mkdirSync(this.pathToPublicDir);
+
+            //copy any static javascript or other content into the public dir
+            //... soon to come??
+            const pathToPlaybackHtml = path.join(__dirname, '..', 'playback.html');
+            fs.copyFileSync(pathToPlaybackHtml, path.join(this.pathToPublicDir, 'playback.html'));
         }
 
-        //copy any static javascript or other content into the public dir
-        //... soon to come??
+        
 
         //store the names of the directories to hold media
         this.mediaDirectoryName = 'media';
