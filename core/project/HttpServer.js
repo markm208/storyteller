@@ -23,9 +23,33 @@ class HttpServer {
         //store a reference to the project manager
         this.projectManager = projectManager;
 
-        //create the 'public' directory if it doesn't exist
-        this.createPublicDirectoryIfNecessary();
+        //create the 'public' directory if it doesn't exist to hold statically 
+        //served public content
+        this.pathToPublicDir = path.join(this.projectManager.fullPathToHiddenStorytellerDir, 'public');
+        if(fs.existsSync(this.pathToPublicDir) === false) {
+            fs.mkdirSync(this.pathToPublicDir);
+        }
+        //TODO copy files only once on new project?? An updated storyteller wouldn't use the new public files??
+        //copy any static html/css/javascript into the public dir
+        //get the path to the public dir inside /core
+        const pathToPublicDirInThisProject = path.join(__dirname, '..', 'public');
+        //copy everything in /core/public/ into the open project's dir, /.storyteller/public/
+        utilities.copyDirectoryHelper(pathToPublicDirInThisProject, this.pathToPublicDir)
 
+        //store the names of the directories to hold media
+        this.mediaDirectoryName = 'media';
+        this.mediaTempDirectoryName = '.tmp';
+        this.imageDirectoryName = 'images';
+        this.videoDirectoryName = 'videos';
+        this.audioDirectoryName = 'audios';
+
+        //create the full paths to the directories
+        this.pathToMediaDirectory = path.join(this.pathToPublicDir, this.mediaDirectoryName);
+        this.pathToMediaTempDirectory = path.join(this.projectManager.fullPathToHiddenStorytellerDir, this.mediaTempDirectoryName);
+        this.pathToImageDirectory = path.join(this.pathToMediaDirectory, this.imageDirectoryName);
+        this.pathToVideoDirectory = path.join(this.pathToMediaDirectory, this.videoDirectoryName);
+        this.pathToAudioDirectory = path.join(this.pathToMediaDirectory, this.audioDirectoryName);
+        
         //create the express server
         const app = express();
 
@@ -56,61 +80,6 @@ class HttpServer {
     close() {
         //close the http server
         this.server.close();
-    }
-    /*
-     * Create a 'public' directory inside /.storyteller if it doesn't already
-     * exist. This will hold content served statically like images, videos,
-     * audio files, and javascript.
-     */
-    createPublicDirectoryIfNecessary() {
-        //create a directory path to hold statically served public content
-        this.pathToPublicDir = path.join(this.projectManager.fullPathToHiddenStorytellerDir, 'public');
-        if(fs.existsSync(this.pathToPublicDir) === false) {
-            fs.mkdirSync(this.pathToPublicDir);
-
-            //copy any static javascript or other content into the public dir
-            //... soon to come??
-        }
-
-        const pathToPlaybackHtml = path.join(__dirname, '..', 'playback.html');
-        fs.copyFileSync(pathToPlaybackHtml, path.join(this.pathToPublicDir, 'playback.html'));
-
-        //store the names of the directories to hold media
-        this.mediaDirectoryName = 'media';
-        this.mediaTempDirectoryName = '.tmp';
-        this.imageDirectoryName = 'images';
-        this.videoDirectoryName = 'videos';
-        this.audioDirectoryName = 'audios';
-
-        //create the full paths to the directories
-        this.pathToMediaDirectory = path.join(this.pathToPublicDir, this.mediaDirectoryName);
-        this.pathToMediaTempDirectory = path.join(this.projectManager.fullPathToHiddenStorytellerDir, this.mediaTempDirectoryName);
-        this.pathToImageDirectory = path.join(this.pathToMediaDirectory, this.imageDirectoryName);
-        this.pathToVideoDirectory = path.join(this.pathToMediaDirectory, this.videoDirectoryName);
-        this.pathToAudioDirectory = path.join(this.pathToMediaDirectory, this.audioDirectoryName);
-        
-        //if the media dir does not exist then create it
-        if(fs.existsSync(this.pathToMediaDirectory) === false) {
-            fs.mkdirSync(this.pathToMediaDirectory);
-        }
-
-        //create the temporary directory to hold file uploads
-        if(fs.existsSync(this.pathToMediaTempDirectory) === false) {
-            fs.mkdirSync(this.pathToMediaTempDirectory);
-        }
-
-        //create the image, video, and audio directories
-        if(fs.existsSync(this.pathToImageDirectory) === false) {
-            fs.mkdirSync(this.pathToImageDirectory);
-        }
-
-        if(fs.existsSync(this.pathToVideoDirectory) === false) {
-            fs.mkdirSync(this.pathToVideoDirectory);
-        }
-
-        if(fs.existsSync(this.pathToAudioDirectory) === false) {
-            fs.mkdirSync(this.pathToAudioDirectory);
-        }
     }
 
     /*
@@ -207,14 +176,14 @@ class HttpServer {
         app.get('/event', (req, res) => {
             //return all the events
             const allEvents = this.projectManager.eventManager.read();
-            res.json({events: allEvents});
+            res.json(allEvents);
         });
 
         app.get('/event/start/:start', (req, res) => {
             //return all the events starting from a requested index
             const start = Number(req.params.start);
             const allEvents = this.projectManager.eventManager.read();
-            res.json({events: allEvents.slice(start)});
+            res.json(allEvents.slice(start));
         });
 
         app.get('/event/start/:start/numEvents/:numEvents', (req, res) => {
@@ -223,7 +192,7 @@ class HttpServer {
             const start = Number(req.params.start);
             const numEvents = Number(req.params.numEvents);
             const allEvents = this.projectManager.eventManager.read();
-            res.json({events: allEvents.slice(start, (start + numEvents))});
+            res.json(allEvents.slice(start, (start + numEvents)));
         });
 
         app.get('/event/start/:start/end/:end', (req, res) => {
@@ -232,7 +201,7 @@ class HttpServer {
             const start = Number(req.params.start);
             const end = Number(req.params.end);
             const allEvents = this.projectManager.eventManager.read();
-            res.json({events: allEvents.slice(start, end)});
+            res.json(allEvents.slice(start, end));
         });
 
         app.get('/event/upToFirstComment', (req, res) => {
@@ -240,14 +209,12 @@ class HttpServer {
             //first event that has a comment (can be used to move from comment 
             //to comment)
             const allEvents = this.projectManager.eventManager.read();
-            const returnEvents = {
-                events: []
-            };
+            const events = [];
             //go from the beginning index until the next comment or the end
             for(let i = 0;i < allEvents.length;i++) {
                 //grab the next event and add it
                 const event = allEvents[i];
-                returnEvents.events.push(event);
+                events.push(event);
 
                 //if there is a comment for the latest event
                 if(this.projectManager.commentManager.comments[event.id]) {
@@ -255,7 +222,7 @@ class HttpServer {
                     break;
                 }
             }
-            res.json(returnEvents);
+            res.json(events);
         });
 
         app.get('/event/start/:start/nextComment', (req, res) => {
@@ -264,14 +231,13 @@ class HttpServer {
             //to move from comment to comment)
             const start = Number(req.params.start);
             const allEvents = this.projectManager.eventManager.read();
-            const returnEvents = {
-                events: []
-            };
+            const events = [];
+
             //go from one beyond the starting index until the next comment or the end
             for(let i = start + 1;i < allEvents.length;i++) {
                 //grab the next event and add it
                 const event = allEvents[i];
-                returnEvents.events.push(event);
+                events.push(event);
 
                 //if there is a comment for the latest event
                 if(this.projectManager.commentManager.comments[event.id]) {
@@ -279,7 +245,7 @@ class HttpServer {
                     break;
                 }
             }
-            res.json(returnEvents);
+            res.json(events);
         });
 
         //comments

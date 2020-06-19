@@ -500,10 +500,10 @@ function openPlaybackInBrowser(playbackForComment) {
         //if the user wants to add a comment with this playback
         if(playbackForComment) {
             //now start the browser with the URL of the latest playback
-            spawn(command, ['http://localhost:53140/playback?comment=true']);
+            spawn(command, ['http://localhost:53140/playback.html?comment=true']);
         } else { //no comment, just a regular playback
             //now start the browser with the URL of the latest playback
-            spawn(command, ['http://localhost:53140/playback']);
+            spawn(command, ['http://localhost:53140/playback.html']);
         }
     }
 }

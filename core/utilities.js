@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 
 //official storyteller path separator (used internally for all relative file
 //and directory paths) 
@@ -90,8 +91,43 @@ function normalizeSeparators(fileOrDirPath) { //private
     return fileOrDirPath;
 }
 
+/*
+ * Copies a source directory and all of its files and subdirectories to a
+ * destination directory
+ */
+function copyDirectoryHelper(srcPath, destPath) {
+    //read the contents of the source directory
+    const allFilesAndDirs = fs.readdirSync(srcPath);
+
+    //go through the contents of the dir
+    for (let i = 0; i < allFilesAndDirs.length; i++) {
+        //get the full path to the file or directory
+        const fullPathToSrcFileOrDir = path.join(srcPath, allFilesAndDirs[i]);
+        const fullPathToDestFileOrDir = path.join(destPath, allFilesAndDirs[i]);
+
+        //get some stats about the file/dir
+        const stats = fs.statSync(fullPathToSrcFileOrDir);
+
+        //if this is a dir
+        if(stats.isDirectory()) {
+            //if the directory does not already exist
+            if(fs.existsSync(fullPathToDestFileOrDir) === false) {
+                //create the new subdirectory
+                fs.mkdirSync(fullPathToDestFileOrDir);
+            }
+
+            //recurse in the subdirectories
+            copyDirectoryHelper(fullPathToSrcFileOrDir, fullPathToDestFileOrDir);
+        } else if(stats.isFile()) {
+            //copy the file (overwite if it exists already)
+            fs.copyFileSync(fullPathToSrcFileOrDir, fullPathToDestFileOrDir);
+        }
+    }
+}
+
 module.exports = {
     addEndingPathSeparator,
+    copyDirectoryHelper,
     createRandomNumberBase62,
     escapeSpecialCharacter,
     normalizeSeparators,
