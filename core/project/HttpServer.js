@@ -70,11 +70,10 @@ class HttpServer {
 
             //copy any static javascript or other content into the public dir
             //... soon to come??
-            const pathToPlaybackHtml = path.join(__dirname, '..', 'playback.html');
-            fs.copyFileSync(pathToPlaybackHtml, path.join(this.pathToPublicDir, 'playback.html'));
         }
 
-        
+        const pathToPlaybackHtml = path.join(__dirname, '..', 'playback.html');
+        fs.copyFileSync(pathToPlaybackHtml, path.join(this.pathToPublicDir, 'playback.html'));
 
         //store the names of the directories to hold media
         this.mediaDirectoryName = 'media';
