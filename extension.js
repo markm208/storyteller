@@ -125,6 +125,9 @@ function startTrackingProject() {
                     storytellerState();
                 }
             } else { //this is a brand new project
+                //hide the .storyteller directory from the file explorer
+                hideStorytellerInFileExplorer();
+
                 //holds the number of existing files and directories in the new project
                 const existingFilesDirs = discrepancies.fullDirPathsPresentButNotTracked.length + discrepancies.fullFilePathsPresentButNotTracked.length;
 
@@ -133,6 +136,7 @@ function startTrackingProject() {
                     //add them to the project
                     projectManager.reconciler.addExistingFilesDirs(discrepancies);
                 }
+
                 //turn on file watching
                 turnOnFSWatcherAndTextHandler();
 
@@ -176,6 +180,54 @@ function stopTrackingProject() {
         //tell the user they need to open a workspace in order to use Storyteller
         promptInformingAboutUsingStoryteller(false);
     }
+}
+function hideStorytellerInFileExplorer() {
+    //paths to the .vscode directory and the settings.json file in it
+    const pathToVsCode = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.vscode');
+    const pathToVsCodeSettings = path.join(pathToVsCode, 'settings.json');
+    //default settings object if it doesn't exist in the file
+    let settings = {
+        'files.exclude': {
+            '.storyteller': true
+        },
+        'search.exclude': {
+            '.storyteller': true
+        }
+    };
+
+    //if there is a .vscode directory
+    if(fs.existsSync(pathToVsCode)) {
+        //if the settings file exists
+        if(fs.existsSync(pathToVsCodeSettings)) {
+            //read it into an object
+            settings = JSON.parse(fs.readFileSync(pathToVsCodeSettings));
+            //if the files.exclude property exists
+            if(settings['files.exclude']) {
+                //add .storyteller to the exclude list
+                settings['files.exclude']['.storyteller'] = true;
+            } else { //files.exclude does not exist
+                settings['files.exclude'] = {
+                    '.storyteller': true
+                };
+            }
+
+            //if the search.exclude property exists
+            if(settings['search.exclude']) {
+                //add .storyteller to the exclude list
+                settings['search.exclude']['.storyteller'] = true;
+            } else { //search.exclude does not exist
+                settings['search.exclude'] = {
+                    '.storyteller': true
+                };
+            }
+        } //else- no settings.json file, default settings object will be written below
+    } else {//no .vscode directory
+        //make .vscode directory and write default settings object below
+        fs.mkdirSync(pathToVsCode);
+    }
+
+    //write the settings object to the settings file
+    fs.writeFileSync(pathToVsCodeSettings, JSON.stringify(settings, null, 4));
 }
 /*
  * Turns the file system watcher, text change handler, and save handler on.
