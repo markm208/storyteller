@@ -66,3 +66,27 @@ async function init() {
         console.log(`Error retrieving data`);
     }
 }
+
+
+let allEvents;
+async function getAllEvents()
+{
+    try {
+        const eventsList = await Promise.all([
+            fetch('/event')
+        ]);
+
+        const results = await Promise.all([
+            eventsList[0].json()
+        ]);
+
+        eventsObject.events = results[0];
+
+        console.log("In async Function:");
+        console.log(allEvents);
+        return allEvents;
+
+    } catch(err) {
+        console.log(`Error retrieving data`);
+    }
+}
