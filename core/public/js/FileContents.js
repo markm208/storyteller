@@ -380,6 +380,7 @@ class FileContents {
                 retVal.push(newRange);
             }
         }
+        
 
         return retVal;
     }
