@@ -11,8 +11,12 @@
     <style>
 
         .playbackWindow {
-            height: calc(100vh - 160px);
+            height: calc(100vh - 160px);   
+           
             /* overflow-y: scroll; */
+        }
+        .commentWindow{
+            width: 20vw;
         }
         
         .tabHeight {
@@ -43,31 +47,43 @@
     </head>
     <h5>Storyteller</h5>
     <body>
-        <div class="container-fluid">
-            <!--Create Tabs-->
-            <div class="tab">
-                <ul class="nav nav-tabs" id="tabsList">
-                    <li class="nav-item tabHeight">
-                        <a class="nav-link active" href="#Playback" role="tab" data-toggle="tab" id="FirstTabLabel"><p><br></p></a>
-                    </li>
-                </ul>
-            </div>
 
-            <!-- Content div for the tabs -->
-            <div class="tab-content" id="tabContent">
-                <div id="Playback" class="tab-pane active">
-                    <div id="playbackWindow" class="playbackWindow"></div>
+        <div class="container-fluid">
+            <div class ="row">
+                <div class="col-3">
+                    <div class="commentWindow">
+                       comments go here
+                    </div>
+                </div>
+                <div class="col-9">
+                    <div class="container-fluid">
+                        <!--Create Tabs-->
+                        <div class="tab">
+                            <ul class="nav nav-tabs" id="tabsList">
+                                <li class="nav-item tabHeight">
+                                    <a class="nav-link active" href="#Playback" role="tab" data-toggle="tab" id="FirstTabLabel"><p><br></p></a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Content div for the tabs -->
+                        <div class="tab-content" id="tabContent">
+                            <div id="Playback" class="tab-pane active">
+                                <div id="playbackWindow" class="playbackWindow"></div>
+                            </div>
+                        </div>
+
+                        <!-- minimal controls -->
+                        <div id="playbackControls">
+                            <input type="range" id="playbackSlider" min="0" value="0" class="custom-range"/>
+                            <button id="stepBackOne" class="btn btn-light">&lt;</button>
+                            <button id="stepForwardOne" class="btn btn-light">&gt;</button>
+                            <button id="restartButton" class="btn btn-danger">Restart</button>
+                            <button id="highlightButton" class="btn btn-success">Add Highlight</button>
+                        </div>    
+                    </div>
                 </div>
             </div>
-
-            <!-- minimal controls -->
-            <div id="playbackControls">
-                <input type="range" id="playbackSlider" min="0" value="0" class="custom-range"/>
-                <button id="stepBackOne" class="btn btn-light">&lt;</button>
-                <button id="stepForwardOne" class="btn btn-light">&gt;</button>
-                <button id="restartButton" class="btn btn-danger">Restart</button>
-                <button id="highlightButton" class="btn btn-success">Add Highlight</button>
-            </div>    
         </div>
 
     <!-- Optional JavaScript -->

@@ -69,7 +69,7 @@ function AddEventListeners()
     });
 
     //add event handler to listen for changes to the slider
-    playbackSlider.addEventListener("input", event => {
+    playbackSlider.addEventListener("mouseup", event => {
         //DEBUG
         // console.log(`slide: ${playbackSlider.value}`);
         

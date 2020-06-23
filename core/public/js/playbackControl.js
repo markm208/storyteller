@@ -1,33 +1,38 @@
 async function step(numSteps) {
 
     //fetch all events that are needed
-    try {
-        
-        const nextEvents = await Promise.all([
-            fetch(`/event/start/${nextEventPosition}/numEvents/${nextEventPosition+numSteps}`)
-        ]);
-
-
-        const results = await Promise.all([
-            nextEvents[0].json()
-        ]);
-
-        eventsObject.events = results[0];
-
-
-    } catch(err) {
-        console.log(`Error retrieving data`);
-    }
+  
 
     //put returned events into  eventsObject.events
 
     //move forward
-    if(numSteps > 0) {
-        stepForward(numSteps);
-    } else if(numSteps < 0) { //move backward
-        stepBackward(-numSteps);
-    } //else- no need to move at all
-    
+    try{  
+        if(numSteps > 0) {
+            const nextEvents = await Promise.all([
+                fetch(`/event/start/${nextEventPosition}/numEvents/${numSteps}`)
+            ]);
+            const results = await Promise.all([
+                nextEvents[0].json()
+            ]);
+
+            eventsObject.events = results[0];
+            stepForward(numSteps);
+            
+        } else if(numSteps < 0) { //move backward
+            const nextEvents = await Promise.all([
+                fetch(`/event/start/${nextEventPosition + numSteps}/numEvents/${-numSteps}`)
+            ]);
+            const results = await Promise.all([
+                nextEvents[0].json()
+            ]);
+
+            eventsObject.events = results[0];
+            eventsObject.events = eventsObject.events.reverse();
+            stepBackward(-numSteps);
+        } //else- no need to move at all
+    }catch(err) {
+        console.log(`Error retrieving data`);
+    }
     //update the position of the slider
     playbackSlider.value = nextEventPosition;
 }
