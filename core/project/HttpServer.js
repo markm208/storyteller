@@ -181,8 +181,8 @@ class HttpServer {
 
         app.get('/event/numberOfEvents', (req, res) => {
             //return the number of events
-            const allEvents = this.projectManager.eventManager.read();
-            res.json({numberOfEvents: allEvents.length});
+            //const allEvents = this.projectManager.eventManager.read();
+            res.json({numberOfEvents: this.projectManager.eventManager.nextId});
         });
 
         app.get('/event/start/:start', (req, res) => {

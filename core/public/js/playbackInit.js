@@ -8,14 +8,15 @@ async function InitializePlayback()
 {
     try {
         const eventsList = await Promise.all([
-            fetch('/event/numberOfEvents')
+            fetch('/event')
         ]);
 
         const results = await Promise.all([
             eventsList[0].json()
         ]);
 
-        numEvents = results[0].numberOfEvents;
+        eventsObject.events = results[0];
+        numEvents = eventsObject.events.length;
         AddEventListeners();
 
 
@@ -69,7 +70,7 @@ function AddEventListeners()
     });
 
     //add event handler to listen for changes to the slider
-    playbackSlider.addEventListener("mouseup", event => {
+    playbackSlider.addEventListener("input", event => {
         //DEBUG
         // console.log(`slide: ${playbackSlider.value}`);
         

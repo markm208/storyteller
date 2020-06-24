@@ -1,4 +1,4 @@
-async function step(numSteps) {
+function step(numSteps) {
 
     //fetch all events that are needed
   
@@ -8,26 +8,11 @@ async function step(numSteps) {
     //move forward
     try{  
         if(numSteps > 0) {
-            const nextEvents = await Promise.all([
-                fetch(`/event/start/${nextEventPosition}/numEvents/${numSteps}`)
-            ]);
-            const results = await Promise.all([
-                nextEvents[0].json()
-            ]);
 
-            eventsObject.events = results[0];
             stepForward(numSteps);
             
         } else if(numSteps < 0) { //move backward
-            const nextEvents = await Promise.all([
-                fetch(`/event/start/${nextEventPosition + numSteps}/numEvents/${-numSteps}`)
-            ]);
-            const results = await Promise.all([
-                nextEvents[0].json()
-            ]);
 
-            eventsObject.events = results[0];
-            eventsObject.events = eventsObject.events.reverse();
             stepBackward(-numSteps);
         } //else- no need to move at all
     }catch(err) {
@@ -49,7 +34,7 @@ function stepForward(numSteps) {
         //go through the requested number of steps
         for(let i = 0;i < numSteps;i++) {
             //grab the next event to animate
-            nextEvent = eventsObject.events[i];
+            nextEvent = eventsObject.events[nextEventPosition];
 
             //check the event type and call the corresponding function for that event type
             switch (nextEvent.type)
@@ -98,7 +83,7 @@ function stepBackward(numSteps) {
         //go through the requested number of steps
         for(let i = 0;i < numSteps;i++) {
             //grab the next event to de-animate
-            nextEvent = eventsObject.events[i];
+            nextEvent = eventsObject.events[nextEventPosition];
 
             //check the event type and call the corresponding function for that event type
             switch (nextEvent.type)
