@@ -1,30 +1,22 @@
 function step(numSteps) {
 
-    //fetch all events that are needed
-  
-
-    //put returned events into  eventsObject.events
-
     //move forward
-    try{  
-        if(numSteps > 0) {
+    if(numSteps > 0) {
 
-            stepForward(numSteps);
-            
-        } else if(numSteps < 0) { //move backward
+        stepForward(numSteps);
+        
+    } else if(numSteps < 0) { //move backward
 
-            stepBackward(-numSteps);
-        } //else- no need to move at all
-    }catch(err) {
-        console.log(`Error retrieving data`);
-    }
+        stepBackward(-numSteps);
+    } //else- no need to move at all
+
     //update the position of the slider
-    playbackSlider.value = nextEventPosition;
+    playbackSlider.value = playbackData.nextEventPosition;
 }
 
 function stepForward(numSteps) {
     //if there is room to move in the forward direction
-    if(nextEventPosition < numEvents) {
+    if(playbackData.nextEventPosition < playbackData.numEvents) {
         //holds the next event to animate
         let nextEvent;
 
@@ -34,7 +26,7 @@ function stepForward(numSteps) {
         //go through the requested number of steps
         for(let i = 0;i < numSteps;i++) {
             //grab the next event to animate
-            nextEvent = eventsObject.events[nextEventPosition];
+            nextEvent = playbackData.events[playbackData.nextEventPosition];
 
             //check the event type and call the corresponding function for that event type
             switch (nextEvent.type)
@@ -56,10 +48,10 @@ function stepForward(numSteps) {
             }
             
             //move the next event
-            nextEventPosition++;
+            playbackData.nextEventPosition++;
 
             //if we played the last event
-            if(nextEventPosition === eventsObject.events.length) {
+            if(playbackData.nextEventPosition === playbackData.events.length) {
                 break;
             }
         }
@@ -71,19 +63,19 @@ function stepForward(numSteps) {
 
 function stepBackward(numSteps) {
     //if there is room to move backwards
-    if(nextEventPosition > 0) {
+    if(playbackData.nextEventPosition > 0) {
         //holds the next event to animate
         let nextEvent;
 
         //to account for the fact that nextEventPosition always 
         //refers to the next event to animate in the forward 
         //direction I move it back by one position
-        nextEventPosition--;
+        playbackData.nextEventPosition--;
 
         //go through the requested number of steps
         for(let i = 0;i < numSteps;i++) {
             //grab the next event to de-animate
-            nextEvent = eventsObject.events[nextEventPosition];
+            nextEvent = playbackData.events[playbackData.nextEventPosition];
 
             //check the event type and call the corresponding function for that event type
             switch (nextEvent.type)
@@ -105,10 +97,10 @@ function stepBackward(numSteps) {
             }
 
             //move to the previous event
-            nextEventPosition--;
+            playbackData.nextEventPosition--;
 
             //if we just played back the first event and then decremented
-            if(nextEventPosition < 0) {
+            if(playbackData.nextEventPosition < 0) {
                 break;
             }
         }
@@ -116,6 +108,6 @@ function stepBackward(numSteps) {
         //after moving backwards, account for the fact that this
         //always refers to the next index to animate in the forward
         //direction
-        nextEventPosition++;
+        playbackData.nextEventPosition++;
     }
 }

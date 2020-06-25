@@ -15,8 +15,8 @@ async function InitializePlayback()
             eventsList[0].json()
         ]);
 
-        eventsObject.events = results[0];
-        numEvents = eventsObject.events.length;
+        playbackData.events = results[0];
+        playbackData.numEvents = playbackData.events.length;
         AddEventListeners();
 
 
@@ -39,7 +39,7 @@ function AddEventListeners()
     const tabsList = document.getElementById("tabsList");
     const tabContent = document.getElementById("tabContent");
 
-    playbackSlider.setAttribute("max", numEvents);
+    playbackSlider.setAttribute("max", playbackData.numEvents);
     
     //add event handlers for clicking the buttons
     stepBackOne.addEventListener("click", event => {
@@ -54,7 +54,7 @@ function AddEventListeners()
     restartButton.addEventListener("click", event => {
         
         //reset the next event and the slider
-        nextEventPosition = 0;
+        playbackData.nextEventPosition = 0;
         playbackSlider.value = 0;
 
         //for measuring which approach is faster
@@ -76,7 +76,7 @@ function AddEventListeners()
         // console.log(`slide: ${playbackSlider.value}`);
         
         //take the slider value and subtract the next event's position
-        step(playbackSlider.value - nextEventPosition);
+        step(playbackSlider.value - playbackData.nextEventPosition);
     });
 
     highlightButton.addEventListener("click", event =>{

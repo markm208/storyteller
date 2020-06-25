@@ -26,11 +26,11 @@ function CreateAceEditor(codeDiv, filePath, fileId)
 
     //sets the mode for the editor based on the file it will display
     setEditorMode(tempEditor, filePath);
-    
-    //adds editor as a key/value pair to the list of editors using fileId as the key
-    allEditors[fileId] = tempEditor;
 
-    return allEditors[fileId];
+    //adds editor as a key/value pair to the list of editors using fileId as the key
+    playbackData.editors[fileId] = tempEditor;
+
+    return playbackData.editors[fileId];
 }
 
 /*
@@ -41,7 +41,7 @@ function addHighlight(startRow, startColumn, endRow, endColumn) {
     const marker = editor.getSession().addMarker(new Range(startRow, startColumn, endRow, endColumn), 'highlight', 'text', true);
     
     //add the id of the new marker so it can be cleared later
-    allHighlights.push(marker);
+    playbackData.highlights.push(marker);
 }
 
 /*
@@ -49,10 +49,10 @@ function addHighlight(startRow, startColumn, endRow, endColumn) {
 */
 function clearHighlights() {
     //go through the collection of marker ids
-    for(let i = 0;i < allHighlights.length;i++) {
+    for(let i = 0;i < playbackData.highlights.length;i++) {
         //remove the marker
-        editor.getSession().removeMarker(allHighlights[i]);
+        editor.getSession().removeMarker(playbackData.highlights[i]);
     }
     //empty the collection of marker ids
-    allHighlights = [];
+    playbackData.highlights = [];
 }
