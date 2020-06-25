@@ -15,6 +15,7 @@ function step(numSteps) {
 
 
     //update the comments to display those for the current event
+    displayComments();
 
 }
 
@@ -117,8 +118,24 @@ function stepBackward(numSteps) {
 }
 
 function displayComments(){
-
-    for (let comment in playbackData.comments.keys()){
-
+    if (playbackData.comments.length == 0){
+        return;
     }
+    let commentData = [];
+   
+    for (let i = playbackData.nextEventPosition-1; i >= 0; i--){
+        if (playbackData.comments[playbackData.events[i].id]){
+            commentData = playbackData.comments[playbackData.events[i].id];
+            break;
+        }
+    }
+
+    for (let j = 0; j < commentData.length; j++){
+        const newCommentHTML = document.createElement("div");
+        newCommentHTML.innerHTML = commentData[j].commentText;
+        newCommentHTML.classList.add("border");
+       
+        commentsDiv.appendChild(newCommentHTML);
+    }
+    
 }

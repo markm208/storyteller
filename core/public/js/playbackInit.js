@@ -33,6 +33,8 @@ function AddEventListeners()
     const restartButton = document.getElementById("restartButton");
     const playbackSlider = document.getElementById("playbackSlider");
     const highlightButton = document.getElementById("highlightButton");
+    const commentsDiv = document.getElementById("ViewCommentPanel");
+
 
 
     //Get references to the tabs and where the tabs get their content
