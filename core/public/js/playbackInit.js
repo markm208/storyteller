@@ -34,6 +34,7 @@ function AddEventListeners()
     const playbackSlider = document.getElementById("playbackSlider");
     const highlightButton = document.getElementById("highlightButton");
 
+
     //Get references to the tabs and where the tabs get their content
     const tabsList = document.getElementById("tabsList");
     const tabContent = document.getElementById("tabContent");
@@ -90,5 +91,37 @@ function AddEventListeners()
             //add the highlight to the selected code
             addHighlight(selections[i].start.row, selections[i].start.column, selections[i].end.row, selections[i].end.column);
         }
+    });
+
+    document.querySelector("#addCommentButton").addEventListener("click", event =>{
+        
+        var textCommentTextArea = document.querySelector("#textCommentTextArea");
+
+        var commentText = textCommentTextArea.value.trim();
+
+        //get all highlighted areas from Ace       
+        // const selections =     all.getSession().getSelection().getAllRanges();
+
+
+        //get all images associated with this comment
+
+        //if there was a comment, some selected text, or at least one image
+        //clear out the text area
+
+        //get the event to playback this comment
+
+        //create an object that has all of the comment info
+        var comment = {
+            commentText
+        };
+        console.log(comment);
+
+        //determine if any comments already exist for this event 
+        //if so add the new comment
+        //if not create a new array for the comments then add the comments
+
+        //clear out any images uploaded for this comment
+
+
     });
 }

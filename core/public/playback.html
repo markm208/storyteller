@@ -10,6 +10,10 @@
     <link rel="stylesheet" href="styles/st-styles.css">
     <style>
 
+        textarea {
+        resize: none;
+        }
+
         .playbackWindow {
             height: calc(100vh - 160px);   
            
@@ -51,9 +55,36 @@
         <div class="container-fluid">
             <div class ="row">
                 <div class="col-3">
-                    <div class="commentWindow">
-                       comments go here
-                    </div>
+                    <!-- Building comment panel -->
+                    <legend>Comments</legend>
+                    <div class ="tab">
+                        <ul class="nav nav-tabs" id="commentTab">
+                            <li class="nav-item">     
+                                <a class="nav-link" href="#ViewCommentPanel" role="tab" data-toggle="tab" id="viewCommentsTab">View Comments</a>                           
+                            </li>
+
+                            <li class="nav-item">                                
+                                <a class="nav-link active" href="#addCommentPanel" role="tab" data-toggle="tab" id="addCommentTab">Add Comment</a>
+                            </li>
+
+                        </ul>
+                    </div>           
+                   <div class="tab-content" id="commentTabContent">
+                       <div id="ViewCommentPanel" class="tab-pane">
+                        View comment tab
+                       </div> 
+
+                       <div id="addCommentPanel" class="tab-pane active">
+                            <div class="form-group">
+                                <textarea id="textCommentTextArea" class="form-control textarea" rows="10" placeholder="Select some text and add a comment at this point in the playback."></textarea>
+                            </div>
+                            <button id="addCommentButton" class="btn btn-success">Add Comment</button>
+                        </div>
+
+                   </div>
+                    
+
+                    
                 </div>
                 <div class="col-9">
                     <div class="container-fluid">
