@@ -106,19 +106,34 @@ function AddEventListeners()
         //get all images associated with this comment
 
         //if there was a comment, some selected text, or at least one image
-        //clear out the text area
+        
 
         //get the event to playback this comment
+        var eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
+        var commentEvent = playbackData.events[eventIndex];
 
         //create an object that has all of the comment info
         var comment = {
-            commentText
+            commentText,
+            timestamp: new Date().getTime(),
+            commentEvent
         };
-        console.log(comment);
+        
 
         //determine if any comments already exist for this event 
         //if so add the new comment
         //if not create a new array for the comments then add the comments
+        if (!playbackData.comments[commentEvent.id]){
+            playbackData.comments[commentEvent.id] = [];
+        }
+        playbackData.comments[commentEvent.id].push(comment);
+        
+        //clear out the text area
+        textCommentTextArea.value = "";
+
+
+
+
 
         //clear out any images uploaded for this comment
 

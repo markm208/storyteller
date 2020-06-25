@@ -12,6 +12,10 @@ function step(numSteps) {
 
     //update the position of the slider
     playbackSlider.value = playbackData.nextEventPosition;
+
+
+    //update the comments to display those for the current event
+
 }
 
 function stepForward(numSteps) {
@@ -109,5 +113,12 @@ function stepBackward(numSteps) {
         //always refers to the next index to animate in the forward
         //direction
         playbackData.nextEventPosition++;
+    }
+}
+
+function displayComments(){
+
+    for (let comment in playbackData.comments.keys()){
+
     }
 }
