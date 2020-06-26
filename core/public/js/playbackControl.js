@@ -130,6 +130,8 @@ function displayComments(){
         }
     }
 
+    commentsDiv.innerHTML = "";
+
     for (let j = 0; j < commentData.length; j++){
         const newCommentHTML = document.createElement("div");
         newCommentHTML.innerHTML = commentData[j].commentText;

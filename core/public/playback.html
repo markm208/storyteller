@@ -71,9 +71,6 @@
                     </div>           
                    <div class="tab-content" id="commentTabContent">
                        <div id="ViewCommentPanel" class="tab-pane">
-                        <div class="border">
-                            This is an example of where the comment will go and how it will look
-                        </div>
                        </div> 
 
                        <div id="addCommentPanel" class="tab-pane active">
@@ -163,6 +160,8 @@
         //this is used to automatically change focus when new tabs are created
         var currentActiveTab = document.getElementById("FirstTabLabel");
         var currentActiveContent = document.getElementById("Playback");
+
+        var commentsDiv = document.getElementById("ViewCommentPanel");
 
         //indicates whether the change can from the textarea not editing in ace
         let changeOutsideEditor = false;
