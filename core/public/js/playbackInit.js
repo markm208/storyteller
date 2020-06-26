@@ -98,8 +98,11 @@ function AddEventListeners()
 
         var commentText = textCommentTextArea.value.trim();
 
-        //get all highlighted areas from Ace       
-        //const selections =     all.getSession().getSelection().getAllRanges();
+        //get all selected ranges from Ace       
+        const ranges = editor.getSession().getSelection().getAllRanges();
+        //get all selected text from Ace
+        const selectedText = editor.getSelectedText();
+        
 
 
         //get all images associated with this comment
@@ -115,7 +118,13 @@ function AddEventListeners()
         var comment = {
             commentText,
             timestamp: new Date().getTime(),
-            displayCommentEvent: commentEvent
+            displayCommentEvent: commentEvent,
+            selectedCodeText: selectedText,
+            selectedCodeBlocks: ranges,
+            developerGroupId: null,
+            imageURLs: [],
+            videoURLs: [],
+            audioURLs: []
         };
         
 

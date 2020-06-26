@@ -45,6 +45,11 @@ function createFileEvent(nextEvent){
 
         //set the text of the tab to the file path of the file created
         document.getElementById("FirstTabLabel").innerHTML = nextEvent.filePath;
+
+        //switches currently active editor on tab switch
+        document.getElementById("FirstTabLabel").addEventListener("click", event => {
+            editor = playbackData.editors[nextEvent.fileId];
+        });
     }
     //if the current create file event is not the first encounted
     else
@@ -73,6 +78,11 @@ function createFileEvent(nextEvent){
 
         //sets the tab text to the filePath of the new file
         newLinkTag.innerText = nextEvent.filePath;
+
+        //switches currently active editor on tab switch
+        newLinkTag.addEventListener("click", event => {
+            editor = playbackData.editors[nextEvent.fileId];            
+        });
 
         //adds the link to the list item
         newListItem.appendChild(newLinkTag);
@@ -103,7 +113,7 @@ function createFileEvent(nextEvent){
         tabContent.appendChild(contentPanel);
 
         //create a new editor pointing to the code div
-        CreateAceEditor(codeDiv, nextEvent.filePath, nextEvent.fileId);
+        editor = CreateAceEditor(codeDiv, nextEvent.filePath, nextEvent.fileId);
 
         addFocusToTab(document.getElementById(`${nextEvent.fileId}-text`), document.getElementById(`${nextEvent.fileId}-content`));
     }
@@ -149,5 +159,14 @@ function addFocusToTab(tabToFocus, content)
     //update our global which stores the currently active tab and content pane
     currentActiveTab = tabToFocus;
     currentActiveContent = content;
+
+
+
+
+   
+    var tabClickEvent = new MouseEvent("click",{
+
+    });
+    tabToFocus.dispatchEvent(tabClickEvent);
 
 }
