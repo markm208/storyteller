@@ -100,8 +100,13 @@ function AddEventListeners()
 
         //get all selected ranges from Ace       
         const ranges = editor.getSession().getSelection().getAllRanges();
+
+        let test = ranges[0].start;
+        console.log(ranges);
+        console.log(test);
         //get all selected text from Ace
         const selectedText = editor.getSelectedText();
+        console.log(typeof(selectedText));
         
 
 
@@ -120,8 +125,7 @@ function AddEventListeners()
             timestamp: new Date().getTime(),
             displayCommentEvent: commentEvent,
             selectedCodeText: selectedText,
-            selectedCodeBlocks: ranges,
-            developerGroupId: null,
+            selectedCodeBlocks: ranges,            
             imageURLs: [],
             videoURLs: [],
             audioURLs: []
