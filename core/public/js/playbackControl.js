@@ -134,9 +134,14 @@ function displayComments(){
 
     for (let j = 0; j < commentData.length; j++){
         const newCommentHTML = document.createElement("div");
-        newCommentHTML.innerHTML = commentData[j].commentText;
+        const formatElement = document.createElement("p");
+
+        formatElement.innerHTML = commentData[j].commentText;
         newCommentHTML.classList.add("border");
-       
+        newCommentHTML.classList.add("commentBox");
+        formatElement.classList.add("border");
+        formatElement.classList.add("commentBox");
+        newCommentHTML.appendChild(formatElement);       
         commentsDiv.appendChild(newCommentHTML);
     }
     
