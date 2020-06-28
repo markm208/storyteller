@@ -15,8 +15,6 @@
             margin-left: 20px;
             margin-right: 20px;
             margin-bottom: 20px;
-
-
         }
 
         textarea {
@@ -54,76 +52,118 @@
             opacity: 20%;
         }
 
+        .wrapper {
+            background-color: #fff;
+            color: #444;
+            /* Use flexbox */
+            display: flex;
+        }
+
+        .box {
+
+            border-radius: 5px;
+            /* padding: 20px; */
+            /* font-size: 150%; */
+
+            /* Use box-sizing so that element's outerwidth will match width property */
+            box-sizing: border-box;
+
+            /* Allow box to grow and shrink, and ensure they are all equally sized */
+            flex: 1 0 auto;
+
+        }
+
+        .handler {
+            width: 20px;
+            padding: 0;
+            cursor: ew-resize;
+            flex: 0 0 auto;
+        }
+
+        .handler::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 100%;
+            background: red;
+            margin: 0 auto;
+        }
+
+        #codePanel{
+            width: 75vw;            
+        }
+
     </style>
 
     <title>Experimental Playback UI</title>
     </head>
     <h5>Storyteller</h5>
     <body>
-
-        <div class="container-fluid">
-            <div class ="row">
-                <div class="col-3">
-                    <!-- Building comment panel -->
-                    <legend>Comments</legend>
-                    <div class ="tab">
-                        <ul class="nav nav-tabs" id="commentTab">
-                            <li class="nav-item">     
-                                <a class="nav-link" href="#ViewCommentPanel" role="tab" data-toggle="tab" id="viewCommentsTab">View Comments</a>                           
-                            </li>
-
-                            <li class="nav-item">                                
-                                <a class="nav-link active" href="#addCommentPanel" role="tab" data-toggle="tab" id="addCommentTab">Add Comment</a>
-                            </li>
-
-                        </ul>
-                    </div>           
-                   <div class="tab-content" id="commentTabContent">
-                       <div id="ViewCommentPanel" class="tab-pane">
-                       </div> 
-
-                       <div id="addCommentPanel" class="tab-pane active">
-                            <div class="form-group">
-                                <textarea id="textCommentTextArea" class="form-control textarea" rows="10" placeholder="Select some text and add a comment at this point in the playback."></textarea>
-                            </div>
-                            <button id="addCommentButton" class="btn btn-success">Add Comment</button>
-                        </div>
-
-                   </div>
-                    
-
-                    
+        <div class="wrapper">
+            <div class="box">
+                <legend>Comments</legend>
+                <div class="tab">
+                    <ul class="nav nav-tabs" id="commentTab">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#ViewCommentPanel" role="tab" data-toggle="tab"
+                                id="viewCommentsTab">View Comments</a>
+                        </li>
+    
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#addCommentPanel" role="tab" data-toggle="tab"
+                                id="addCommentTab">Add Comment</a>
+                        </li>
+    
+                    </ul>
                 </div>
-                <div class="col-9">
-                    <div class="container-fluid">
-                        <!--Create Tabs-->
-                        <div class="tab">
-                            <ul class="nav nav-tabs" id="tabsList">
-                                <li class="nav-item tabHeight">
-                                    <a class="nav-link active" href="#Playback" role="tab" data-toggle="tab" id="FirstTabLabel"><p><br></p></a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <!-- Content div for the tabs -->
-                        <div class="tab-content" id="tabContent">
-                            <div id="Playback" class="tab-pane active">
-                                <div id="playbackWindow" class="playbackWindow"></div>
-                            </div>
-                        </div>
-
-                        <!-- minimal controls -->
-                        <div id="playbackControls">
-                            <input type="range" id="playbackSlider" min="0" value="0" class="custom-range"/>
-                            <button id="stepBackOne" class="btn btn-light">&lt;</button>
-                            <button id="stepForwardOne" class="btn btn-light">&gt;</button>
-                            <button id="restartButton" class="btn btn-danger">Restart</button>
-                            <button id="highlightButton" class="btn btn-success">Add Highlight</button>
-                        </div>    
+                <div class="tab-content" id="commentTabContent">
+                    <div id="ViewCommentPanel" class="tab-pane">
+                        View comment tab
                     </div>
+    
+                    <div id="addCommentPanel" class="tab-pane active">
+                        <div class="form-group">
+                            <textarea id="textCommentTextArea" class="form-control textarea" rows="10"
+                                placeholder="Select some text and add a comment at this point in the playback."></textarea>
+                        </div>
+                        <button id="addCommentButton" class="btn btn-success">Add Comment</button>
+                    </div>
+    
                 </div>
             </div>
+            <div class="handler"></div>
+            <div id="codePanel">
+                <div class="tab">
+                    <ul class="nav nav-tabs" id="tabsList">
+                        <li class="nav-item tabHeight">
+                            <a class="nav-link active" href="#Playback" role="tab" data-toggle="tab" id="FirstTabLabel">
+                                <p><br></p>
+                            </a>
+                        </li>
+                    </ul>
+    
+                </div>
+                <!-- Content div for the tabs -->
+                <div class="tab-content" id="tabContent">
+                    <div id="Playback" class="tab-pane active">
+                        <div id="playbackWindow" class="playbackWindow"></div>
+                    </div>
+                </div>
+    
+                <!-- minimal controls -->
+                <div id="playbackControls">
+                    <input type="range" id="playbackSlider" min="0" value="0" class="custom-range" />
+                    <button id="stepBackOne" class="btn btn-light">&lt;</button>
+                    <button id="stepForwardOne" class="btn btn-light">&gt;</button>
+                    <button id="restartButton" class="btn btn-danger">Restart</button>
+                    <button id="highlightButton" class="btn btn-success">Add Highlight</button>
+                </div>
+    
+            </div>
+    
         </div>
+
+        
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -180,7 +220,6 @@
           InitializePlayback();
           
         });
-
         
     </script>
   </body>

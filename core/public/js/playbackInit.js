@@ -151,4 +151,48 @@ function AddEventListeners()
 
 
     });
+
+    var handler = document.querySelector('.handler');
+    var wrapper = handler.closest('.wrapper');
+    var boxA = wrapper.querySelector('.box');
+    var isHandlerDragging = false;
+
+    document.addEventListener('mousedown', function (e) {
+        // If mousedown event is fired from .handler, toggle flag to true
+        if (e.target === handler) {
+            isHandlerDragging = true;
+            window.addEventListener('selectstart', disableSelect);
+        }
+
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        // Don't do anything if dragging flag is false
+        if (!isHandlerDragging) {
+            return false;
+        }
+
+        // Get offset
+        var containerOffsetLeft = wrapper.offsetLeft;
+        
+        // Get x-coordinate of pointer relative to container
+        var pointerRelativeXpos = e.clientX - containerOffsetLeft;
+
+        if (pointerRelativeXpos > screen.width * .1 && pointerRelativeXpos < screen.width * .75) {        
+            boxA.style.width = e.pageX + 'px';
+            boxA.style.flexGrow = 0;
+            $('#codePanel').css("width", screen.width - pointerRelativeXpos);
+        }
+    });
+
+    document.addEventListener('mouseup', function (e) {
+        // Turn off dragging flag when user mouse is up
+        isHandlerDragging = false;
+        window.removeEventListener('selectstart', disableSelect);
+    });
+}
+
+//disables mouse selection of text
+function disableSelect(event) {
+    event.preventDefault();
 }
