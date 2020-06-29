@@ -201,22 +201,9 @@ function addImagesToGallery(filePaths, makeSelected) {
         //get the image gallery
         const gallery = document.getElementById('imageGallery');
         
-        //create an image and add the required classes
-        const newImg = document.createElement('img');
-        newImg.setAttribute('src', filePaths[i]);
-        //add a bottstrap class and a st class
-        newImg.classList.add('img-thumbnail', 'mediaImage');
+        //create an element with the image
+        const newImg = createMediaControllerCommentImageUI(filePaths[i], makeSelected);
         
-        //if this image should be marked as pre-selected
-        if(makeSelected) {
-            newImg.classList.add('mediaSelected');
-        }
-        
-        //add an event handler to toggle whether it is selected
-        newImg.addEventListener('click', event => {
-            //toggle the 'selected' class
-            event.target.classList.toggle('mediaSelected')}
-        );
         //add the image
         gallery.appendChild(newImg);
     }
@@ -228,41 +215,8 @@ function addVideosToGallery(filePaths, makeSelected) {
         //get the video gallery
         const gallery = document.getElementById('videoGallery');
 
-        //create a card with a body and a footer
-        const cardDiv = document.createElement('div');
-        //create two bootstrap classes and a st class
-        cardDiv.classList.add('card', 'text-center','mediaVideoCard');
-
-        //card body
-        const cardBody = document.createElement('div');
-        cardBody.classList.add('card-body');
-        //card footer
-        const cardFooter = document.createElement('div');
-        cardFooter.classList.add('card-footer', 'text-muted');
-
-        //create a video and add the required classes
-        const newVideo = document.createElement('video');
-        newVideo.setAttribute('src', filePaths[i]);
-        newVideo.setAttribute('controls', '');
-        newVideo.setAttribute('preload', 'metadata');
-        newVideo.classList.add('mediaVideo');
-
-        //add all the pieces together
-        cardBody.append(newVideo);
-        cardFooter.append(filePaths[i].substring(filePaths[i].indexOf('-') + 1)); //file name
-        cardDiv.append(cardBody);
-        cardDiv.append(cardFooter);
-
-        //if this video should be marked as pre-selected
-        if(makeSelected) {
-            cardDiv.classList.add('mediaSelected');
-        }
-
-        //add an event handler to toggle whether it is selected
-        cardDiv.addEventListener('click', event => {
-            //toggle the 'selected' class
-            cardDiv.classList.toggle('mediaSelected')}
-        );
+        //create an element with the video
+        const cardDiv = createMediaControllerCommentVideoUI(filePaths[i], makeSelected);
 
         //add the video
         gallery.appendChild(cardDiv);
@@ -275,41 +229,8 @@ function addAudiosToGallery(filePaths, makeSelected) {
         //get the audio gallery
         const gallery = document.getElementById('audioGallery');
 
-        //create a card with a body and a footer
-        const cardDiv = document.createElement('div');
-        //create two bootstrap classes and a st class
-        cardDiv.classList.add('card', 'text-center', 'mediaAudioCard');
-
-        //card body
-        const cardBody = document.createElement('div');
-        cardBody.classList.add('card-body');
-        //card footer
-        const cardFooter = document.createElement('div');
-        cardFooter.classList.add('card-footer', 'text-muted');
-
-        //create a audio and add the required classes
-        const newAudio = document.createElement('audio');
-        newAudio.setAttribute('src', filePaths[i]);
-        newAudio.setAttribute('controls', '');
-        newAudio.setAttribute('preload', 'metadata');
-        newAudio.classList.add('mediaAudio');
-
-        //add all the pieces together
-        cardBody.append(newAudio);
-        cardFooter.append(filePaths[i].substring(filePaths[i].indexOf('-') + 1)); //file name
-        cardDiv.append(cardBody);
-        cardDiv.append(cardFooter);
-
-        //if this audio should be marked as pre-selected
-        if(makeSelected) {
-            cardDiv.classList.add('mediaSelected');
-        }
-
-        //add an event handler to toggle whether it is selected
-        cardDiv.addEventListener('click', event => {
-            //toggle the 'selected' class
-            cardDiv.classList.toggle('mediaSelected')}
-        );
+        //create an element with the audio
+        const cardDiv = createMediaControllerCommentAudioUI(filePaths[i], makeSelected);
 
         //add the audio
         gallery.appendChild(cardDiv);
