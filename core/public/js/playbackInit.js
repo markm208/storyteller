@@ -217,6 +217,18 @@ function AddEventListeners()
         isHandlerDragging = false;
         window.removeEventListener('selectstart', disableSelect);
     });
+
+    document.addEventListener('keydown', function(e){
+        if (e.keyCode == '39')
+        {
+            step(1);
+        }
+        else if (e.keyCode == '37')
+        {
+            step(-1);
+        }
+        
+    });
 }
 
 //disables mouse selection of text
