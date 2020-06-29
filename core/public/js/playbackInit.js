@@ -164,7 +164,6 @@ function AddEventListeners()
     });
 
     async function sendCommentToServer(comment){
-
         try {
             //post to the server
             const fetchConfigData = {
@@ -175,29 +174,28 @@ function AddEventListeners()
             
         } catch (error) {
             
-        }
-    
+        }    
     }
 
-    var handler = document.querySelector('.handler');
-    var wrapper = handler.closest('.wrapper');
-    var boxA = wrapper.querySelector('.box');
-    var isHandlerDragging = false;
-
-    document.addEventListener('mousedown', function (e) {
-        // If mousedown event is fired from .handler, toggle flag to true
-        if (e.target === handler) {
-            isHandlerDragging = true;
-            window.addEventListener('selectstart', disableSelect);
-        }
-
+    document.getElementById("handler").addEventListener('mousedown', function (e){  
+        //add listeners for moving and releasing the drag and disable selection of text  
+        window.addEventListener('selectstart', disableSelect);
+        document.documentElement.addEventListener('mousemove', doDrag, false);
+        document.documentElement.addEventListener('mouseup', stopDrag, false);
     });
 
-    document.addEventListener('mousemove', function (e) {
-        // Don't do anything if dragging flag is false
-        if (!isHandlerDragging) {
-            return false;
-        }
+    //global object to hold info about resizing the code and comments  
+    const codeResizeData  = {
+        positionOfStartOfDrag: 0, //the position of the cursor when a drag starts (in pixels from the left side of the screen)
+        startCommentsWidth: 0, //the width of the comments element before a drag
+        startCodeWidth: 0, //the width of the code element before a drag
+        comments: document.getElementById('comments'), //reference to the comments element
+        code: document.getElementById('code') //reference to the code element
+    };
+
+    function doDrag(e){    
+        var wrapper = handler.closest('.wrapper');
+        var boxA = wrapper.querySelector('.box');
 
         // Get offset
         var containerOffsetLeft = wrapper.offsetLeft;
@@ -210,28 +208,41 @@ function AddEventListeners()
             boxA.style.flexGrow = 0;
             $('#codePanel').css("width", screen.width - pointerRelativeXpos);
         }
-    });
+    }
 
-    document.addEventListener('mouseup', function (e) {
-        // Turn off dragging flag when user mouse is up
-        isHandlerDragging = false;
-        window.removeEventListener('selectstart', disableSelect);
-    });
+    function stopDrag(event){       
+        //remove the listeners for dragging movement 
+        document.documentElement.removeEventListener('mouseup', stopDrag, false);
+        document.documentElement.removeEventListener('mousemove', doDrag, false);  
+        window.removeEventListener('selectstart', disableSelect);  
+    }
 
+    //disables mouse selection of text
+    function disableSelect(event) {
+        event.preventDefault();
+    }
+
+    //detects key presses 
     document.addEventListener('keydown', function(e){
-        if (e.keyCode == '39')
-        {
-            step(1);
-        }
-        else if (e.keyCode == '37')
-        {
-            step(-1);
-        }
-        
+        let keyPressed = e.key;
+        let shift = e.shiftKey;
+        switch (true) {
+            //right arrow
+            case keyPressed == "ArrowRight" && !shift:
+                step(1);
+                break;
+            //left arrow
+            case keyPressed == "ArrowLeft" && !shift:
+                step(-1);
+                break;  
+            //right arrow and shift  
+            case keyPressed == "ArrowRight" && shift:
+                break;    
+            //left arrow and shift
+            case keyPressed == "ArrowLeft" && shift:                
+                break;  
+            default:
+                break;
+        }        
     });
-}
-
-//disables mouse selection of text
-function disableSelect(event) {
-    event.preventDefault();
 }
