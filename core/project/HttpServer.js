@@ -25,13 +25,14 @@ class HttpServer {
 
         //create the 'public' directory if it doesn't exist to hold statically 
         //served public content
+        //like C:/users/mark/documents/project1/.storyteller/public
         this.pathToPublicDir = path.join(this.projectManager.fullPathToHiddenStorytellerDir, 'public');
         if(fs.existsSync(this.pathToPublicDir) === false) {
             fs.mkdirSync(this.pathToPublicDir);
         }
         //TODO copy files only once on new project?? An updated storyteller wouldn't use the new public files??
-        //copy any static html/css/javascript into the public dir
-        //get the path to the public dir inside /core
+        //copy any static html/css/javascript into this repo's public dir
+        //get the path to the public dir inside this repo /core
         const pathToPublicDirInThisProject = path.join(__dirname, '..', 'public');
         //copy everything in /core/public/ into the open project's dir, /.storyteller/public/
         utilities.copyDirectoryHelper(pathToPublicDirInThisProject, this.pathToPublicDir)
@@ -44,12 +45,25 @@ class HttpServer {
         this.audioDirectoryName = 'audios';
 
         //create the full paths to the directories
-        this.pathToMediaDirectory = path.join(this.pathToPublicDir, this.mediaDirectoryName);
-        this.pathToMediaTempDirectory = path.join(this.projectManager.fullPathToHiddenStorytellerDir, this.mediaTempDirectoryName);
-        this.pathToImageDirectory = path.join(this.pathToMediaDirectory, this.imageDirectoryName);
-        this.pathToVideoDirectory = path.join(this.pathToMediaDirectory, this.videoDirectoryName);
-        this.pathToAudioDirectory = path.join(this.pathToMediaDirectory, this.audioDirectoryName);
+        //like C:/users/mark/documents/project1/.storyteller/public/media
+        this.fullPathToMediaDirectory = path.join(this.pathToPublicDir, this.mediaDirectoryName);
+        //like C:/users/mark/documents/project1/.storyteller/.tmp
+        this.fullPathToMediaTempDirectory = path.join(this.projectManager.fullPathToHiddenStorytellerDir, this.mediaTempDirectoryName);
+        //like C:/users/mark/documents/project1/.storyteller/public/media/images
+        this.fullPathToImageDirectory = path.join(this.fullPathToMediaDirectory, this.imageDirectoryName);
+        //like C:/users/mark/documents/project1/.storyteller/public/media/videos
+        this.fullPathToVideoDirectory = path.join(this.fullPathToMediaDirectory, this.videoDirectoryName);
+        //like C:/users/mark/documents/project1/.storyteller/public/media/audios
+        this.fullPathToAudioDirectory = path.join(this.fullPathToMediaDirectory, this.audioDirectoryName);
         
+        //these are relative paths from the served 'public' directory
+        // /media/images
+        this.webPathToImageDirectory = path.posix.join(`${path.posix.sep}`, this.mediaDirectoryName, this.imageDirectoryName);
+        // /media/videos
+        this.webPathToVideoDirectory = path.posix.join(`${path.posix.sep}`, this.mediaDirectoryName, this.videoDirectoryName);
+        // /media/audios
+        this.webPathToAudioDirectory = path.posix.join(`${path.posix.sep}`, this.mediaDirectoryName, this.audioDirectoryName);
+
         //create the express server
         const app = express();
 
@@ -57,7 +71,7 @@ class HttpServer {
         app.use(fileUpload({
             limits: { fileSize: 100 * 1024 * 1024 },
             useTempFiles : true,
-            tempFileDir : this.pathToMediaTempDirectory
+            tempFileDir : this.fullPathToMediaTempDirectory
         }));
 
         //add middleware
@@ -83,22 +97,51 @@ class HttpServer {
     }
 
     /*
-     * Stores a media file (image, video, audio) into the correct subdirectory
-     * inside /.storyteller/media.
+     * Stores a collection of media files (image, video, audio) into the correct 
+     * subdirectory inside /.storyteller/media.
      */
-    async saveMediaFile(newFile, fullPathToMediaDirectory, mediaDirectory, res) {
-        //create a new file path that includes a timestamp (to show files in order of upload)
-        const timestamp = new Date().getTime();
-        const newFileInfo = path.parse(newFile.name);
-        const newFileName = `${timestamp}-${newFileInfo.base}`; 
-        const pathToNewFile = path.join(fullPathToMediaDirectory, newFileName);
+    async saveMediaFiles(newFiles, fullPathToMediaDirectory, webPathToMediaDirectory, res) {
+        //all the relative web paths to the files being added (so they can be 
+        //immediately retrieved)
+        const addedPaths = [];
+        
         try {
-            //move the file into the directory
-            await newFile.mv(pathToNewFile);
-            //return the new relative file path
-            res.json({filePath: `/media/${mediaDirectory}/${newFileName}`});
+            //go through all of the new files
+            for(let i = 0;i < newFiles.length;i++) {
+                //create a new file path that includes a timestamp (to show files in order of upload)
+                const timestamp = new Date().getTime();
+                const newFileInfo = path.parse(newFiles[i].name);
+                const newFileName = `${timestamp}-${newFileInfo.base}`; 
+                
+                //system dependent full path to where the file will be stored
+                //like C:/users/mark/documents/project1/.storyteller/public/media/images/123-pic.png
+                const pathToNewFile = path.join(fullPathToMediaDirectory, newFileName);
+                
+                //relative web path from the public directory
+                //like /media/images/123-pic.png
+                const webPathToNewFile = path.posix.join(webPathToMediaDirectory, newFileName);
+
+                //move the file into the directory (using express-fileupload to move the file)
+                await newFiles[i].mv(pathToNewFile);
+
+                //add the new web path to an array that will be returned to the client
+                addedPaths.push(webPathToNewFile);
+            }
         } catch(err) {
             return res.status(500).send(err);
+        }
+        //return a collection of the newly added relative file paths
+        res.json({filePaths: addedPaths});
+    }
+
+    deleteFilesFromPublic(filePaths) {
+        //go through the paths
+        for(let i = 0;i < filePaths.length;i++) {
+            //change the relative web path to a full path and delete it from the 'public' dir
+            const parts = filePaths[i].split(path.posix.sep);
+            const systemDependentPath = path.join(...parts);
+            const fullFilePath = path.join(this.pathToPublicDir, systemDependentPath);
+            fs.unlinkSync(fullFilePath);
         }
     }
     /*
@@ -289,60 +332,177 @@ class HttpServer {
             res.sendStatus(200);
         });
 
-        //for uploading media files
+        //for uploading image files
         app.post('/newMedia/image', async (req, res) => {
             //if there are no files, send a 400
             if (!req.files || Object.keys(req.files).length === 0) {
                 return res.status(400).send('No files were uploaded.');
             }
 
-            //get the new image file from the request
-            const newFile = req.files.newImageFile;
+            //get the new image files from the request
+            let newFiles = [];
+            //if there were more than one files uploaded then this will be an array
+            //if there is no length then only one file is being passed in (see FormData in client)
+            if(req.files.newImageFiles.length === undefined) {
+                //store the one file in an array
+                newFiles.push(req.files.newImageFiles);
+            } else { //there are an array of files, store them all
+                newFiles = req.files.newImageFiles;
+            }
 
-            //verify the file has an acceptable mime type
-            if(acceptableImageMimeTypes.includes(newFile.mimetype)) {
-                //save the file
-                this.saveMediaFile(newFile, this.pathToImageDirectory, this.imageDirectoryName, res);
-            } else {
-                res.status(415).json({error: `File type not supported: ${newFile.name}`});
+            //verify that every file has an acceptable mime type
+            if(newFiles.every(newFile => acceptableImageMimeTypes.includes(newFile.mimetype))) {
+                //save the files in the server's public directory
+                this.saveMediaFiles(newFiles, this.fullPathToImageDirectory, this.webPathToImageDirectory, res);
+            } else { //at least one invalid mimetype
+                res.status(415).json({error: `One or more file types not supported`});
             }
         });
 
-        //media for comments
+        //for getting the web urls of the existing media items
+        app.get('/newMedia/image', async (req, res) => {
+            //holds the web paths of the images
+            const filePaths = [];
+
+            //go through the images dir
+            const files = fs.readdirSync(this.fullPathToImageDirectory);
+            for(let i = 0;i < files.length;i++) {
+                //ignore the .keep file
+                if(files[i] !== '.keep') {
+                    //create and store a relative path on the server to the image
+                    const webPath = path.posix.join(this.webPathToImageDirectory, files[i]);
+                    filePaths.push(webPath);
+                }
+            }
+            //return all of the web paths to the images
+            res.json({filePaths: filePaths});
+        });
+
+        //for deleting existing media items
+        app.delete('/newMedia/image', async (req, res) => {
+            //get the file paths to delete
+            const filePaths = req.body;
+
+            //delete them from the public dir
+            this.deleteFilesFromPublic(filePaths);
+
+            //return success
+            res.sendStatus(200);
+        });
+        
+        //for uploading video files
         app.post('/newMedia/video', async (req, res) => {
             //if there are no files, send a 400
             if (!req.files || Object.keys(req.files).length === 0) {
                 return res.status(400).send('No files were uploaded.');
             }
 
-            //get the new video file from the request
-            const newFile = req.files.newVideoFile;
+            //get the new video files from the request
+            let newFiles = [];
+            //if there were more than one files uploaded then this will be an array
+            //if there is no length then only one file is being passed in (see FormData in client)
+            if(req.files.newVideoFiles.length === undefined) {
+                //store the one file in an array
+                newFiles.push(req.files.newVideoFiles);
+            } else { //there are an array of files, store them all
+                newFiles = req.files.newVideoFiles;
+            }
 
-            //verify the file has an acceptable mime type
-            if(acceptableVideoMimeTypes.includes(newFile.mimetype)) {
-                //save the file
-                this.saveMediaFile(newFile, this.pathToVideoDirectory, this.videoDirectoryName, res);
-            } else {
-                res.status(415).json({error: `File type not supported: ${newFile.name}`});
+            //verify that every file has an acceptable mime type
+            if(newFiles.every(newFile => acceptableVideoMimeTypes.includes(newFile.mimetype))) {
+                //save the files in the server's public directory
+                this.saveMediaFiles(newFiles, this.fullPathToVideoDirectory, this.webPathToVideoDirectory, res);
+            } else { //at least one invalid mimetype
+                res.status(415).json({error: `One or more file types not supported`});
             }
         });
+        //for getting the web urls of the existing media items
+        app.get('/newMedia/video', async (req, res) => {
+            //holds the web paths of the videos
+            const filePaths = [];
 
+            //go through the videos dir
+            const files = fs.readdirSync(this.fullPathToVideoDirectory);
+            for(let i = 0;i < files.length;i++) {
+                //ignore the .keep file
+                if(files[i] !== '.keep') {
+                    //create and store a relative path on the server to the video
+                    const webPath = path.posix.join(this.webPathToVideoDirectory, files[i]);
+                    filePaths.push(webPath);
+                }
+            }
+            //return all of the web paths to the videos
+            res.json({filePaths: filePaths});
+        });
+
+        //for deleting existing media items
+        app.delete('/newMedia/video', async (req, res) => {
+            //get the file paths to delete
+            const filePaths = req.body;
+                        
+            //delete them from the public dir
+            this.deleteFilesFromPublic(filePaths);
+
+            //return success
+            res.sendStatus(200);
+        });
+
+        //for uploading audio files
         app.post('/newMedia/audio', async (req, res) => {
             //if there are no files, send a 400
             if (!req.files || Object.keys(req.files).length === 0) {
                 return res.status(400).send('No files were uploaded.');
             }
 
-            //get the new audio file from the request
-            const newFile = req.files.newAudioFile;
-
-            //verify the file has an acceptable mime type
-            if(acceptableAudioMimeTypes.includes(newFile.mimetype)) {
-                //save the file
-                this.saveMediaFile(newFile, this.pathToAudioDirectory, this.audioDirectoryName, res);
-            } else {
-                res.status(415).json({error: `File type not supported: ${newFile.name}`});
+            //get the new audio files from the request
+            let newFiles = [];
+            //if there were more than one files uploaded then this will be an array
+            //if there is no length then only one file is being passed in (see FormData in client)
+            if(req.files.newAudioFiles.length === undefined) {
+                //store the one file in an array
+                newFiles.push(req.files.newAudioFiles);
+            } else { //there are an array of files, store them all
+                newFiles = req.files.newAudioFiles;
             }
+
+            //verify that every file has an acceptable mime type
+            if(newFiles.every(newFile => acceptableAudioMimeTypes.includes(newFile.mimetype))) {
+                //save the files in the server's public directory
+                this.saveMediaFiles(newFiles, this.fullPathToAudioDirectory, this.webPathToAudioDirectory, res);
+            } else { //at least one invalid mimetype
+                res.status(415).json({error: `One or more file types not supported`});
+            }
+        });
+
+        //for getting the web urls of the existing media items
+        app.get('/newMedia/audio', async (req, res) => {
+            //holds the web paths of the audios
+            const filePaths = [];
+
+            //go through the audios dir
+            const files = fs.readdirSync(this.fullPathToAudioDirectory);
+            for(let i = 0;i < files.length;i++) {
+                //ignore the .keep file
+                if(files[i] !== '.keep') {
+                    //create and store a relative path on the server to the audio
+                    const webPath = path.posix.join(this.webPathToAudioDirectory, files[i]);
+                    filePaths.push(webPath);
+                }
+            }
+            //return all of the web paths to the audios
+            res.json({filePaths: filePaths});
+        });
+
+        //for deleting existing media items
+        app.delete('/newMedia/audio', async (req, res) => {
+            //get the file paths to delete
+            const filePaths = req.body;
+
+            //delete them from the public dir
+            this.deleteFilesFromPublic(filePaths);
+
+            //return success
+            res.sendStatus(200);
         });
 
         //if this server will handle http requests from web editors

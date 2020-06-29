@@ -86,6 +86,7 @@
                             <div class="form-group">
                                 <textarea id="textCommentTextArea" class="form-control textarea" rows="10" placeholder="Select some text and add a comment at this point in the playback."></textarea>
                             </div>
+                            <button id="addMediaButton" class="btn btn-light">Add Media to Comment</button>
                             <button id="addCommentButton" class="btn btn-success">Add Comment</button>
                         </div>
 
@@ -124,7 +125,57 @@
                 </div>
             </div>
         </div>
-
+        <div id="mediaControlModal" class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Media Control</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <h5>
+                            Images 
+                            <label class="btn btn-outline-primary btn-sm mediaAddButton">
+                                <strong>Add</strong>
+                                <input id="addImageButton" type="file" accept=".jpg, .jpeg, .png" multiple hidden/>
+                            </label>
+                        </h5>
+                        <div id="imageGallery" class="mediaGallery">
+                        </div>
+                        
+                        <h5>
+                            Videos 
+                            <label id="addVideoButton" type="button" class="btn btn-outline-primary btn-sm mediaAddButton">
+                                <strong>Add</strong>
+                                <input id="addVideoButton" type="file" accept=".mpeg, .mp4, .webm" multiple hidden/>
+                            </label>
+                        </h5>
+                        <div class="container">
+                            <div class="row">
+                            </div>
+                        </div>
+                        <div id="videoGallery" class="mediaGallery">
+                        </div>
+                        <h5>
+                            Audio Files                        
+                            <label id="addAudioButton" type="button" class="btn btn-outline-primary btn-sm mediaAddButton">
+                                <strong>Add</strong>
+                                <input id="addAudioButton" type="file" accept=".mp3, .mpeg, .wav" multiple hidden/>
+                            </label>
+                        </h5>
+                        <div id="audioGallery" class="mediaGallery">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="deleteMediaButton" type="button" class="btn btn-outline-danger btn-sm mr-auto">Delete selected media</button>
+                        <button id="addMediaToCommentButton" type="button" class="btn btn-primary">Add to Comment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
@@ -139,6 +190,7 @@
     <script src="/js/playbackEventFunctions.js"></script>
     <script src="/js/aceEditorManager.js"></script>
     <script src="/js/playbackControl.js"></script>
+    <script src="/js/mediaControl.js"></script>
     <script src="/js/ext/md5.min.js"></script> <!-- md5 https://github.com/blueimp/JavaScript-MD5 https://en.gravatar.com/site/implement/hash/ https://en.gravatar.com/site/implement/images/-->
     <script src="/js/ext/jszip.min.js"></script> <!-- jszip https://stuk.github.io/jszip/ -->
 
