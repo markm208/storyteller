@@ -19,7 +19,8 @@ async function InitializePlayback()
         playbackData.numEvents = playbackData.events.length;
         AddEventListeners();
 
-
+        //grab any existing media from the server and display it in the media control modal
+        initImageGallery();
     } catch(err) {
         console.log(`Error retrieving data`);
     }
