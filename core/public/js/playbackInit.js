@@ -7,15 +7,19 @@
 async function InitializePlayback()
 {
     try {
-        const eventsList = await Promise.all([
-            fetch('/event')
+        const playbackInfo = await Promise.all([
+            fetch('/event'),
+            fetch('/comment')
+
         ]);
 
         const results = await Promise.all([
-            eventsList[0].json()
+            playbackInfo[0].json(),
+            playbackInfo[1].json()
         ]);
 
         playbackData.events = results[0];
+        playbackData.comments = results[1];
         playbackData.numEvents = playbackData.events.length;
         AddEventListeners();
 
@@ -99,15 +103,22 @@ function AddEventListeners()
 
         var commentText = textCommentTextArea.value.trim();
 
-        //get all selected ranges from Ace       
+        //get all selected ranges from Ace    
+        //builds an array of ranges   
         const ranges = editor.getSession().getSelection().getAllRanges();
+        var rangeArray = [];
+        for (let i = 0; i < ranges.length; i++){
+            var rangeObj = {};
+            rangeObj.startRow = ranges[i].startRow;
+            rangeObj.startColumn = ranges[i].startColumn;
+            rangeObj.endRow = ranges[i].endRow;
+            rangeObj.endColumn = ranges[i].endColumn;
+            rangeArray.push(rangeObj);
+        }
 
-        let test = ranges[0].start;
-        console.log(ranges);
-        console.log(test);
+  
         //get all selected text from Ace
         const selectedText = editor.getSelectedText();
-        console.log(typeof(selectedText));
         
 
 
@@ -126,12 +137,11 @@ function AddEventListeners()
             timestamp: new Date().getTime(),
             displayCommentEvent: commentEvent,
             selectedCodeText: selectedText,
-            selectedCodeBlocks: ranges,            
+            selectedCodeBlocks: rangeArray,            
             imageURLs: [],
             videoURLs: [],
             audioURLs: []
-        };
-        
+        };        
 
         //determine if any comments already exist for this event 
         //if so add the new comment
@@ -143,15 +153,31 @@ function AddEventListeners()
         
         //clear out the text area
         textCommentTextArea.value = "";
-
+       
+        sendCommentToServer(comment);        
 
         //display a newly added comment on the current event
         displayComments();
 
         //clear out any images uploaded for this comment
 
-
     });
+
+    async function sendCommentToServer(comment){
+
+        try {
+            //post to the server
+            const fetchConfigData = {
+            method: "POST",
+            body: comment 
+            };
+            const response = await fetch("/comment", fetchConfigData);
+            
+        } catch (error) {
+            
+        }
+    
+    }
 
     var handler = document.querySelector('.handler');
     var wrapper = handler.closest('.wrapper');
