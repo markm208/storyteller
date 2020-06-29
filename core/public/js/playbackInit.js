@@ -184,15 +184,6 @@ function AddEventListeners()
         document.documentElement.addEventListener('mouseup', stopDrag, false);
     });
 
-    //global object to hold info about resizing the code and comments  
-    const codeResizeData  = {
-        positionOfStartOfDrag: 0, //the position of the cursor when a drag starts (in pixels from the left side of the screen)
-        startCommentsWidth: 0, //the width of the comments element before a drag
-        startCodeWidth: 0, //the width of the code element before a drag
-        comments: document.getElementById('comments'), //reference to the comments element
-        code: document.getElementById('code') //reference to the code element
-    };
-
     function doDrag(e){    
         var wrapper = handler.closest('.wrapper');
         var boxA = wrapper.querySelector('.box');
