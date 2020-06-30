@@ -128,6 +128,7 @@ function displayAllComments(){
         eventGroupDiv.classList.add("border");
         eventGroupDiv.classList.add("commentBox");
 
+        let subId = 0;
         for (let j = 0; j < commentBlock.length; j++){
             const newCommentHTML = document.createElement("div");
             const formatElement = document.createElement("p");
@@ -138,8 +139,18 @@ function displayAllComments(){
             formatElement.classList.add("commentBox");
 
             newCommentHTML.appendChild(formatElement);
+
+            newCommentHTML.id = `${commentBlock[j].displayCommentEvent.id}-${subId}`;
+            subId++;
             newCommentHTML.addEventListener('click', function (e){  
-                step(commentBlock[j].displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition);
+                step(commentBlock[j].displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+
+                clearHighlights();
+
+                for (let i = 0; i < commentBlock[j].selectedCodeBlocks.length; i++)
+                {
+                    addHighlight(commentBlock[j].selectedCodeBlocks[i].startRow, commentBlock[j].selectedCodeBlocks[i].startColumn, commentBlock[j].selectedCodeBlocks[i].endRow, commentBlock[j].selectedCodeBlocks[i].endColumn);
+                }
             });
             
             eventGroupDiv.appendChild(newCommentHTML);
