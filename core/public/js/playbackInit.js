@@ -109,10 +109,10 @@ function AddEventListeners()
         var rangeArray = [];
         for (let i = 0; i < ranges.length; i++){
             var rangeObj = {};
-            rangeObj.startRow = ranges[i].startRow;
-            rangeObj.startColumn = ranges[i].startColumn;
-            rangeObj.endRow = ranges[i].endRow;
-            rangeObj.endColumn = ranges[i].endColumn;
+            rangeObj.startRow = ranges[i].start.row
+            rangeObj.startColumn = ranges[i].start.column;
+            rangeObj.endRow = ranges[i].end.row;
+            rangeObj.endColumn = ranges[i].end.column;
             rangeArray.push(rangeObj);
         }
 
@@ -163,14 +163,24 @@ function AddEventListeners()
 
     });
 
+    //send the comment object to the server
     async function sendCommentToServer(comment){
         try {
-            //post to the server
             const fetchConfigData = {
-            method: "POST",
-            body: comment 
+                method: "POST",
+                body: JSON.stringify(comment), 
+                headers: {
+                    "Content-Type": "application/json"
+                }
             };
             const response = await fetch("/comment", fetchConfigData);
+
+            //check the response
+            if(response.ok) {
+               console.log("Success");
+            } else {
+                console.log("Error with the response data");
+            }
             
         } catch (error) {
             
@@ -216,24 +226,23 @@ function AddEventListeners()
     //detects key presses 
     document.addEventListener('keydown', function(e){
         let keyPressed = e.key;
-        let shift = e.shiftKey;
-        switch (true) {
-            //right arrow
-            case keyPressed == "ArrowRight" && !shift:
+        let shiftPressed = e.shiftKey;
+
+        if (keyPressed == "ArrowRight"){
+            if (shiftPressed){
+                
+            }
+            else{
                 step(1);
-                break;
-            //left arrow
-            case keyPressed == "ArrowLeft" && !shift:
+            }
+        }
+        else if (keyPressed == "ArrowLeft"){
+            if (shiftPressed){
+                
+            }
+            else{
                 step(-1);
-                break;  
-            //right arrow and shift  
-            case keyPressed == "ArrowRight" && shift:
-                break;    
-            //left arrow and shift
-            case keyPressed == "ArrowLeft" && shift:                
-                break;  
-            default:
-                break;
-        }        
+            }
+        }
     });
 }
