@@ -136,10 +136,14 @@ function displayAllComments(){
             newCommentHTML.classList.add("commentBox");
             formatElement.classList.add("border");
             formatElement.classList.add("commentBox");
-            newCommentHTML.appendChild(formatElement);       
+            newCommentHTML.appendChild(formatElement);    
+            
+  
+
             eventGroupDiv.appendChild(newCommentHTML);
         }
         commentsDiv.appendChild(eventGroupDiv);
     })
     
 }
+
