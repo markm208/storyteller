@@ -87,8 +87,6 @@ border-top: none;
 .box {
 
     border-radius: 5px;
-    /* padding: 20px; */
-    /* font-size: 150%; */
 
     /* Use box-sizing so that element's outerwidth will match width property */
     box-sizing: border-box;
@@ -110,10 +108,18 @@ border-top: none;
     display: block;
     width: 4px;
     height: 100%;
-    background: gray;
+    /* background: gray; */
     margin: 0 auto;
+    border-left: 2px dotted #444;
 }
 
 .codePanel{
     width: 75vw;            
+}
+
+.commentsDivScroll{
+    overflow-y: scroll;
+    height: 85vh;
+    word-wrap: break-word;
+    width: 25vw;
 }

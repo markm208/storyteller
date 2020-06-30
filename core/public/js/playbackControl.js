@@ -12,11 +12,6 @@ function step(numSteps) {
 
     //update the position of the slider
     playbackSlider.value = playbackData.nextEventPosition;
-
-
-    //update the comments to display those for the current event
-    displayComments();
-
 }
 
 function stepForward(numSteps) {
@@ -117,32 +112,34 @@ function stepBackward(numSteps) {
     }
 }
 
-function displayComments(){
-    if (playbackData.comments.length == 0){
-        return;
-    }
-    let commentData = [];
-   
-    for (let i = playbackData.nextEventPosition-1; i >= 0; i--){
-        if (playbackData.comments[playbackData.events[i].id]){
-            commentData = playbackData.comments[playbackData.events[i].id];
-            break;
-        }
-    }
-
+function displayAllComments(){
+    //clear comments Div before displaying any comments
     commentsDiv.innerHTML = "";
-
-    for (let j = 0; j < commentData.length; j++){
-        const newCommentHTML = document.createElement("div");
-        const formatElement = document.createElement("p");
-
-        formatElement.innerHTML = commentData[j].commentText;
-        newCommentHTML.classList.add("border");
-        newCommentHTML.classList.add("commentBox");
-        formatElement.classList.add("border");
-        formatElement.classList.add("commentBox");
-        newCommentHTML.appendChild(formatElement);       
-        commentsDiv.appendChild(newCommentHTML);
+    //convert all string keys into numbers for proper sorting of comment sequence
+    var keysArray = Object.keys(playbackData.comments);    
+    for (let i = 0; i < keysArray.length; i++){
+        keysArray[i] = Number(keysArray[i].slice(3));
     }
+
+    //sort by interger key and add each comment to the commentsDiv
+    keysArray.sort((a,b)=> a - b).forEach(function(key){
+        let commentBlock = playbackData.comments[`ev-${key}`];
+        const eventGroupDiv = document.createElement("div");
+        eventGroupDiv.classList.add("border");
+        eventGroupDiv.classList.add("commentBox");
+
+        for (let j = 0; j < commentBlock.length; j++){
+            const newCommentHTML = document.createElement("div");
+            const formatElement = document.createElement("p");
+            formatElement.innerHTML = commentBlock[j].commentText;
+            newCommentHTML.classList.add("border");
+            newCommentHTML.classList.add("commentBox");
+            formatElement.classList.add("border");
+            formatElement.classList.add("commentBox");
+            newCommentHTML.appendChild(formatElement);       
+            eventGroupDiv.appendChild(newCommentHTML);
+        }
+        commentsDiv.appendChild(eventGroupDiv);
+    })
     
 }

@@ -12,22 +12,31 @@ async function InitializePlayback()
             fetch('/comment')
 
         ]);
+        
 
         const results = await Promise.all([
             playbackInfo[0].json(),
             playbackInfo[1].json()
         ]);
+       
 
         playbackData.events = results[0];
         playbackData.comments = results[1];
+
+        //displays all comments
+        displayAllComments();
+
+        console.log(playbackData.comments);
         playbackData.numEvents = playbackData.events.length;
         AddEventListeners();
+     
 
         //grab any existing media from the server and display it in the media control modal
         initImageGallery();
     } catch(err) {
         console.log(`Error retrieving data`);
     }
+ 
 }
 
 function AddEventListeners()
@@ -157,7 +166,7 @@ function AddEventListeners()
         sendCommentToServer(comment);        
 
         //display a newly added comment on the current event
-        displayComments();
+        displayAllComments();
 
         //clear out any images uploaded for this comment
 
@@ -208,6 +217,7 @@ function AddEventListeners()
             boxA.style.width = e.pageX + 'px';
             boxA.style.flexGrow = 0;
             $('#codePanel').css("width", screen.width - pointerRelativeXpos);
+            commentsDiv.style.width = e.pageX + 'px';
         }
     }
 

@@ -21,6 +21,7 @@ class CommentManager extends FileBackedCollection {
         } else { //no json file exists
             //init an object to hold comments
             this.comments = {};
+            this.write();
         }
     }
 
