@@ -136,7 +136,11 @@ function displayAllComments(){
             newCommentHTML.classList.add("commentBox");
             formatElement.classList.add("border");
             formatElement.classList.add("commentBox");
-            newCommentHTML.appendChild(formatElement);       
+            newCommentHTML.appendChild(formatElement);
+            newCommentHTML.addEventListener('click', function (e){  
+                step(commentBlock[j].displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition);
+            });
+            
             eventGroupDiv.appendChild(newCommentHTML);
         }
         commentsDiv.appendChild(eventGroupDiv);
