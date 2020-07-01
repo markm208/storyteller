@@ -350,3 +350,49 @@ async function deleteSelectedAudios() {
         console.log(error);
     }
 }
+
+//Takes the file extension to be uploaded and generates the MIME Type String
+function createMimeString(fileExt)
+{
+    //Instantiate the string to be returned
+    var mimeType;
+
+    //create the correct string depending on the file extension
+    switch (fileExt)
+    {
+        // Video Formats
+        case "mp4":
+            mimeType = "video/mp4";
+            break;
+
+        case "mov":
+            mimeType = "video/quicktime";
+            break;
+
+        case "flv":
+            mimeType = "video/x-flv";
+            break;
+
+        case "avi":
+            mimeType = "video/x-msvideo";
+            break;
+
+        //Audio Formats
+        case "mp3":
+            mimeType = "audio/mp3";
+            break;
+
+        case "wav":
+            mimeType = "audio/vnd.wav";
+            break;
+
+        // If no matching file extension was found throw an error
+        default:
+            console.log("Error creating MIME Type: Unknown File Format.");
+
+    }
+
+    //return the finished MIME Type string
+    return mimeType;
+
+}

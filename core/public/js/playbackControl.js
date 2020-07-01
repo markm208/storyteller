@@ -158,28 +158,44 @@ function displayAllComments(){
             for (let m = 0; m < commentBlock[j].videoURLs.length; m++)
             {
                 let videoTag = document.createElement("video");
-
-                videoTag.src = commentBlock[j].videoURLs[m];
+                //Extract the file extension from the input file
+                var fileExtension = commentBlock[j].videoURLs[m].split('.').pop().toLowerCase();
+                var MIMEtype = createMimeString(fileExtension);
+                
                 videoTag.width = 200;
                 videoTag.height = 200;
+                videoTag.controls = true;
 
                 videoTag.classList.add("border");
                 videoTag.classList.add("commentBox");
 
+                let videoSource = document.createElement("source");
+                videoSource.src = commentBlock[j].videoURLs[m];
+                videoSource.type = MIMEtype;
+
+                videoTag.appendChild(videoSource);
                 newCommentHTML.appendChild(videoTag);
             }
 
             for (let m = 0; m < commentBlock[j].audioURLs.length; m++)
             {
                 let audioTag = document.createElement("audio");
-
-                audioTag.src = commentBlock[j].audioURLs[m];
+                //Extract the file extension from the input file
+                var fileExtension = commentBlock[j].audioURLs[m].split('.').pop().toLowerCase();
+                var MIMEtype = createMimeString(fileExtension);
+                
                 audioTag.width = 200;
                 audioTag.height = 200;
+                audioTag.controls = true;
 
                 audioTag.classList.add("border");
                 audioTag.classList.add("commentBox");
 
+                let audioSource = document.createElement("source");
+                audioSource.src = commentBlock[j].audioURLs[m];
+                audioSource.type = MIMEtype;
+
+                audioTag.appendChild(audioSource);
                 newCommentHTML.appendChild(audioTag);
             }
 
