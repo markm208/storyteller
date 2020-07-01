@@ -8,6 +8,8 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <link rel="stylesheet" href="css/st-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
    
     <title>Experimental Playback UI</title>
     </head>
@@ -69,6 +71,7 @@
                 <div id="playbackControls">
                     <input type="range" id="playbackSlider" min="0" value="0" class="custom-range" />
                     <button id="stepBackOne" class="btn btn-light">&lt;</button>
+                    <button id="playPauseButton" class="btn" onclick="this.blur();"><i class="fa fa-play"></i></button>
                     <button id="stepForwardOne" class="btn btn-light">&gt;</button>
                     <button id="restartButton" class="btn btn-danger">Restart</button>
                     <button id="highlightButton" class="btn btn-success">Add Highlight</button>
@@ -182,6 +185,9 @@
         document.addEventListener("DOMContentLoaded", event => {
           InitializePlayback();          
         });
+
+        var isPlaying = false;
+
         
     </script>
   </body>

@@ -52,6 +52,7 @@ function stepForward(numSteps) {
 
             //if we played the last event
             if(playbackData.nextEventPosition === playbackData.events.length) {
+                pausePlayback();
                 break;
             }
         }
@@ -143,6 +144,7 @@ function displayAllComments(){
             newCommentHTML.id = `${commentBlock[j].displayCommentEvent.id}-${subId}`;
             subId++;
             newCommentHTML.addEventListener('click', function (e){  
+                pausePlayback();
                 step(commentBlock[j].displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
                 clearHighlights();
@@ -158,5 +160,11 @@ function displayAllComments(){
         commentsDiv.appendChild(eventGroupDiv);
     })
     
+}
+
+function pausePlayback(){
+    if (isPlaying){
+        playPauseButton.click();
+    }
 }
 

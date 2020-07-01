@@ -21,6 +21,7 @@
 }
 .mediaVideoCard, .mediaAudioCard {
     margin: 50px 75px;
+   
 }
 
 .mediaAudio {
@@ -122,4 +123,9 @@ border-top: none;
     height: 85vh;
     word-wrap: break-word;
     width: 23.9vw;
+}
+
+.btn:hover{
+    border: 1px solid Grey;
+    
 }

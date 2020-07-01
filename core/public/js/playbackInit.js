@@ -47,6 +47,7 @@ function AddEventListeners()
     const restartButton = document.getElementById("restartButton");
     const playbackSlider = document.getElementById("playbackSlider");
     const highlightButton = document.getElementById("highlightButton");
+    const playPauseButton = document.getElementById("playPauseButton");
 
     //Get references to the tabs and where the tabs get their content
     const tabsList = document.getElementById("tabsList");
@@ -56,10 +57,12 @@ function AddEventListeners()
     
     //add event handlers for clicking the buttons
     stepBackOne.addEventListener("click", event => {
+        pausePlayback();
         step(-1);
     });
 
     stepForwardOne.addEventListener("click", event => {
+        pausePlayback();
         step(1);
     });
 
@@ -85,6 +88,7 @@ function AddEventListeners()
 
     //add event handler to listen for changes to the slider
     playbackSlider.addEventListener("input", event => {
+        pausePlayback();
         //DEBUG
         // console.log(`slide: ${playbackSlider.value}`);
         
@@ -239,7 +243,8 @@ function AddEventListeners()
         let shiftPressed = e.shiftKey;
 
         if (keyPressed == "ArrowRight"){
-            if (shiftPressed){
+            pausePlayback();
+            if (shiftPressed){               
                 //find next event that has a comment
                 let targetEvent = -1;
                 let commentPositions = Object.keys(playbackData.comments);
@@ -282,6 +287,7 @@ function AddEventListeners()
             }
         }
         else if (keyPressed == "ArrowLeft"){
+            pausePlayback();
             if (shiftPressed){
                 //find next event that has a comment
                 let targetEvent = -1;
@@ -326,5 +332,19 @@ function AddEventListeners()
                 step(-1);
             }
         }
+    });
+
+    var playPauseInterval = null;
+    playPauseButton.addEventListener("click", event =>{
+        if (!isPlaying && playbackData.nextEventPosition < playbackData.events.length){
+            playPauseInterval = setInterval(function() {step(1)}, 300);            
+            $("i", playPauseButton).toggleClass("fa-play fa-pause");
+            isPlaying = true;
+        }
+        else if (isPlaying){
+            clearInterval(playPauseInterval);
+            $("i", playPauseButton).toggleClass("fa-play fa-pause");
+            isPlaying = false;
+        }        
     });
 }
