@@ -129,3 +129,8 @@ border-top: none;
     border: 1px solid Grey;
     
 }
+
+.d-flex {
+    align-items: center;
+    display: flex;
+  }

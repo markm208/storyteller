@@ -383,7 +383,7 @@ function createMimeString(fileExt)
             break;
 
         case "wav":
-            mimeType = "audio/vnd.wav";
+            mimeType = "audio/wav";
             break;
 
         // If no matching file extension was found throw an error

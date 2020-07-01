@@ -187,7 +187,7 @@ function displayAllComments(){
                 audioTag.width = 200;
                 audioTag.height = 200;
                 audioTag.controls = true;
-
+                audioTag.style.width = '200px';
                 audioTag.classList.add("border");
                 audioTag.classList.add("commentBox");
 
