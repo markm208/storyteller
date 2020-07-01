@@ -163,7 +163,7 @@ function displayAllComments(){
 }
 
 function pausePlayback(){
-    if (isPlaying){
+    if (playbackData.isPlaying){
         playPauseButton.click();
     }
 }

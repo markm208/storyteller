@@ -164,7 +164,9 @@
             //holds the currently viewed fileId
             currentFileId: null,
             //the position of the event to play next in the forward direction
-            nextEventPosition: 0
+            nextEventPosition: 0,
+            //is the playback currently in play mode, where events are stepped through automatically
+            isPlaying: false
         };
 
         var editor = CreateAceEditor("playbackWindow", "","" );    
@@ -185,8 +187,6 @@
         document.addEventListener("DOMContentLoaded", event => {
           InitializePlayback();          
         });
-
-        var isPlaying = false;
 
         
     </script>

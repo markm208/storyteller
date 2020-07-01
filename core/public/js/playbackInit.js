@@ -114,7 +114,8 @@ function AddEventListeners()
         
         var textCommentTextArea = document.querySelector("#textCommentTextArea");
 
-        var commentText = textCommentTextArea.value.trim();
+        var commentText = null;
+        commentText = textCommentTextArea.value.trim();
 
         //get all selected ranges from Ace    
         //builds an array of ranges   
@@ -133,72 +134,57 @@ function AddEventListeners()
         //get all selected text from Ace
         const selectedText = editor.getSelectedText();
         
-
-
         //get all images associated with this comment
+        var commentImages = [];
 
         //if there was a comment, some selected text, or at least one image
+        if (commentText != null || rangeArray.length != 0 || commentImages.length != 0)
+        {
+
+            if (playbackData.isPlaying)
+            {
+                var playButtonClickEvent = new MouseEvent("click",{
+
+                });
+                playPauseButton.dispatchEvent(playButtonClickEvent);
+            }
+            //get the event to playback this comment
+            var eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
+            var commentEvent = playbackData.events[eventIndex];
+
+            //create an object that has all of the comment info
+            var comment = {
+                commentText,
+                timestamp: new Date().getTime(),
+                displayCommentEvent: commentEvent,
+                selectedCodeText: selectedText,
+                selectedCodeBlocks: rangeArray,            
+                imageURLs: [],
+                videoURLs: [],
+                audioURLs: []
+            };        
+
+            //determine if any comments already exist for this event 
+            //if so add the new comment
+            //if not create a new array for the comments then add the comments
+            if (!playbackData.comments[commentEvent.id]){
+                playbackData.comments[commentEvent.id] = [];
+            }
+            playbackData.comments[commentEvent.id].push(comment);
+            
+            //clear out the text area
+            textCommentTextArea.value = "";
         
+            sendCommentToServer(comment);        
 
-        //get the event to playback this comment
-        var eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
-        var commentEvent = playbackData.events[eventIndex];
+            //display a newly added comment on the current event
+            displayAllComments();
 
-        //create an object that has all of the comment info
-        var comment = {
-            commentText,
-            timestamp: new Date().getTime(),
-            displayCommentEvent: commentEvent,
-            selectedCodeText: selectedText,
-            selectedCodeBlocks: rangeArray,            
-            imageURLs: [],
-            videoURLs: [],
-            audioURLs: []
-        };        
+            //clear out any images uploaded for this comment
 
-        //determine if any comments already exist for this event 
-        //if so add the new comment
-        //if not create a new array for the comments then add the comments
-        if (!playbackData.comments[commentEvent.id]){
-            playbackData.comments[commentEvent.id] = [];
         }
-        playbackData.comments[commentEvent.id].push(comment);
-        
-        //clear out the text area
-        textCommentTextArea.value = "";
-       
-        sendCommentToServer(comment);        
-
-        //display a newly added comment on the current event
-        displayAllComments();
-
-        //clear out any images uploaded for this comment
 
     });
-
-    //send the comment object to the server
-    async function sendCommentToServer(comment){
-        try {
-            const fetchConfigData = {
-                method: "POST",
-                body: JSON.stringify(comment), 
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            };
-            const response = await fetch("/comment", fetchConfigData);
-
-            //check the response
-            if(response.ok) {
-               console.log("Success");
-            } else {
-                console.log("Error with the response data");
-            }
-            
-        } catch (error) {
-            
-        }    
-    }
 
     document.getElementById("handler").addEventListener('mousedown', function (e){  
         //add listeners for moving and releasing the drag and disable selection of text  
@@ -206,36 +192,6 @@ function AddEventListeners()
         document.documentElement.addEventListener('mousemove', doDrag, false);
         document.documentElement.addEventListener('mouseup', stopDrag, false);
     });
-
-    function doDrag(e){    
-        var wrapper = handler.closest('.wrapper');
-        var boxA = wrapper.querySelector('.box');
-
-        // Get offset
-        var containerOffsetLeft = wrapper.offsetLeft;
-        
-        // Get x-coordinate of pointer relative to container
-        var pointerRelativeXpos = e.clientX - containerOffsetLeft;
-
-        if (pointerRelativeXpos > screen.width * .1 && pointerRelativeXpos < screen.width * .75) {        
-            boxA.style.width = e.pageX + 'px';
-            boxA.style.flexGrow = 0;
-            $('#codePanel').css("width", screen.width - pointerRelativeXpos);
-            commentsDiv.style.width = e.pageX + 'px';
-        }
-    }
-
-    function stopDrag(event){       
-        //remove the listeners for dragging movement 
-        document.documentElement.removeEventListener('mouseup', stopDrag, false);
-        document.documentElement.removeEventListener('mousemove', doDrag, false);  
-        window.removeEventListener('selectstart', disableSelect);  
-    }
-
-    //disables mouse selection of text
-    function disableSelect(event) {
-        event.preventDefault();
-    }
 
     //detects key presses 
     document.addEventListener('keydown', function(e){
@@ -336,15 +292,69 @@ function AddEventListeners()
 
     var playPauseInterval = null;
     playPauseButton.addEventListener("click", event =>{
-        if (!isPlaying && playbackData.nextEventPosition < playbackData.events.length){
+        if (!playbackData.isPlaying && playbackData.nextEventPosition < playbackData.events.length){
             playPauseInterval = setInterval(function() {step(1)}, 300);            
             $("i", playPauseButton).toggleClass("fa-play fa-pause");
-            isPlaying = true;
+            playbackData.isPlaying = true;
         }
-        else if (isPlaying){
+        else if (playbackData.isPlaying){
             clearInterval(playPauseInterval);
             $("i", playPauseButton).toggleClass("fa-play fa-pause");
-            isPlaying = false;
+            playbackData.isPlaying = false;
         }        
     });
+}
+
+//send the comment object to the server
+async function sendCommentToServer(comment){
+    try {
+        const fetchConfigData = {
+            method: "POST",
+            body: JSON.stringify(comment), 
+            headers: {
+                "Content-Type": "application/json"
+            }
+        };
+        const response = await fetch("/comment", fetchConfigData);
+
+        //check the response
+        if(response.ok) {
+           console.log("Success");
+        } else {
+            console.log("Error with the response data");
+        }
+        
+    } catch (error) {
+        
+    }    
+}
+
+function doDrag(e){    
+    var wrapper = handler.closest('.wrapper');
+    var boxA = wrapper.querySelector('.box');
+
+    // Get offset
+    var containerOffsetLeft = wrapper.offsetLeft;
+    
+    // Get x-coordinate of pointer relative to container
+    var pointerRelativeXpos = e.clientX - containerOffsetLeft;
+
+    if (pointerRelativeXpos > screen.width * .1 && pointerRelativeXpos < screen.width * .75) {        
+        boxA.style.width = e.pageX + 'px';
+        boxA.style.flexGrow = 0;
+        $('#codePanel').css("width", screen.width - pointerRelativeXpos);
+        commentsDiv.style.width = e.pageX + 'px';
+    }
+}
+
+function stopDrag(event){       
+    //remove the listeners for dragging movement 
+    document.documentElement.removeEventListener('mouseup', stopDrag, false);
+    document.documentElement.removeEventListener('mousemove', doDrag, false);  
+    window.removeEventListener('selectstart', disableSelect);  
+}
+
+//disables mouse selection of text
+function disableSelect(event) {
+    event.preventDefault();
 }
