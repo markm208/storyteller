@@ -70,6 +70,9 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
     }
 
     //TODO do something with the selected urls like add them to a comment element
+    playbackData.mediaForNewComment.push(selectedImageURLs);
+    playbackData.mediaForNewComment.push(selectedVideoURLs);
+    playbackData.mediaForNewComment.push(selectedAudioURLs);
 
     //hide the modal (using jquery)
     $('#mediaControlModal').modal('hide');

@@ -181,6 +181,7 @@ function AddEventListeners()
             displayAllComments();
 
             //clear out any images uploaded for this comment
+            playbackData.mediaForNewComment = [];
 
         }
 
