@@ -184,8 +184,8 @@ function displayAllComments(){
                 var fileExtension = commentBlock[j].audioURLs[m].split('.').pop().toLowerCase();
                 var MIMEtype = createMimeString(fileExtension);
                 
-                audioTag.width = 200;
-                audioTag.height = 200;
+                audioTag.style.width = '200px';
+                audioTag.style.height = '200px';
                 audioTag.controls = true;
                 audioTag.style.width = '200px';
                 audioTag.classList.add("border");
