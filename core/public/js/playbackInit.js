@@ -201,93 +201,94 @@ function AddEventListeners()
 
         if (keyPressed == "ArrowRight"){
             pausePlayback();
-            if (shiftPressed){               
-                //find next event that has a comment
-                let targetEvent = -1;
-                let commentPositions = Object.keys(playbackData.comments);
-                for (let i = playbackData.nextEventPosition; i < playbackData.events.length; i++)
-                {
-                    
-                    for (let j = 0; j < commentPositions.length; j++)
-                    {
-                        if (playbackData.events[i].id == commentPositions[j])
-                        {
-                            targetEvent = playbackData.events[i].id;
-                            break;
-                        }
-                    }
-
-                    if (targetEvent != -1)
-                        break;
-                }
-
-                if (targetEvent < 0)
-                {
-                    targetEvent = playbackData.events[playbackData.events.length-1].eventSequenceNumber;
-                    
-                    clearHighlights();
-                    step(targetEvent - playbackData.nextEventPosition + 1);
-                }
-                else{
-
-                    var commentClickEvent = new MouseEvent("click",{
-
-                    });
-                    let commentToLoad = document.getElementById(`${targetEvent}-0`);
-
-                    commentToLoad.dispatchEvent(commentClickEvent);
-                }
-                
-            }
-            else{
+            if (!shiftPressed)
+            {
                 step(1);
             }
         }
         else if (keyPressed == "ArrowLeft"){
             pausePlayback();
-            if (shiftPressed){
-                //find next event that has a comment
-                let targetEvent = -1;
-                let commentPositions = Object.keys(playbackData.comments);
-                for (let i = playbackData.nextEventPosition-2; i >= 0; i--)
-                {
-                    
-                    for (let j = 0; j < commentPositions.length; j++)
-                    {
-                        if (playbackData.events[i].id == commentPositions[j])
-                        {
-                            targetEvent = playbackData.events[i].id;
-                            break;
-                        }
-                    }
-
-                    if (targetEvent != -1)
-                        break;
-                }
-
-                if (targetEvent < 0)
-                {
-                    targetEvent = 0;
-
-                    clearHighlights();
-                    step(targetEvent - playbackData.nextEventPosition + 1);
-                }
-                else{
-
-                    var commentClickEvent = new MouseEvent("click",{
-
-                    });
-                    let commentToLoad = document.getElementById(`${targetEvent}-0`);
-
-                    commentToLoad.dispatchEvent(commentClickEvent);
-                }
-                //console.log(`currentEvent = ${playbackData.nextEventPosition-1}, targetevent = ${targetEvent}`);
-
-
-            }
-            else{
+            if (!shiftPressed)
+            {
                 step(-1);
             }
+        }
+        else if (keyPressed == ">")
+        {
+            //find next event that has a comment
+            let targetEvent = -1;
+            let commentPositions = Object.keys(playbackData.comments);
+            for (let i = playbackData.nextEventPosition; i < playbackData.events.length; i++)
+            {
+                
+                for (let j = 0; j < commentPositions.length; j++)
+                {
+                    if (playbackData.events[i].id == commentPositions[j])
+                    {
+                        targetEvent = playbackData.events[i].id;
+                        break;
+                    }
+                }
+
+                if (targetEvent != -1)
+                    break;
+            }
+
+            if (targetEvent < 0)
+            {
+                targetEvent = playbackData.events[playbackData.events.length-1].eventSequenceNumber;
+                
+                clearHighlights();
+                step(targetEvent - playbackData.nextEventPosition + 1);
+            }
+            else{
+
+                var commentClickEvent = new MouseEvent("click",{
+
+                });
+                let commentToLoad = document.getElementById(`${targetEvent}-0`);
+
+                commentToLoad.dispatchEvent(commentClickEvent);
+            }
+        }
+        else if (keyPressed == "<")
+        {
+            //find next event that has a comment
+            let targetEvent = -1;
+            let commentPositions = Object.keys(playbackData.comments);
+            for (let i = playbackData.nextEventPosition-2; i >= 0; i--)
+            {
+                
+                for (let j = 0; j < commentPositions.length; j++)
+                {
+                    if (playbackData.events[i].id == commentPositions[j])
+                    {
+                        targetEvent = playbackData.events[i].id;
+                        break;
+                    }
+                }
+
+                if (targetEvent != -1)
+                    break;
+            }
+
+            if (targetEvent < 0)
+            {
+                targetEvent = 0;
+
+                clearHighlights();
+                step(targetEvent - playbackData.nextEventPosition + 1);
+            }
+            else{
+
+                var commentClickEvent = new MouseEvent("click",{
+
+                });
+                let commentToLoad = document.getElementById(`${targetEvent}-0`);
+
+                commentToLoad.dispatchEvent(commentClickEvent);
+            }
+            //console.log(`currentEvent = ${playbackData.nextEventPosition-1}, targetevent = ${targetEvent}`);
         }
     });
 
