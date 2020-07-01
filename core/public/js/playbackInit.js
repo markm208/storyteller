@@ -137,6 +137,8 @@ function AddEventListeners()
         //get all images associated with this comment
         var commentImages = [];
 
+        //console.log(playbackData.mediaForNewComment);
+
         //if there was a comment, some selected text, or at least one image
         if (commentText != null || rangeArray.length != 0 || commentImages.length != 0)
         {
@@ -159,9 +161,9 @@ function AddEventListeners()
                 displayCommentEvent: commentEvent,
                 selectedCodeText: selectedText,
                 selectedCodeBlocks: rangeArray,            
-                imageURLs: [],
-                videoURLs: [],
-                audioURLs: []
+                imageURLs: playbackData.mediaForNewComment[0],
+                videoURLs: playbackData.mediaForNewComment[1],
+                audioURLs: playbackData.mediaForNewComment[2]
             };        
 
             //determine if any comments already exist for this event 

@@ -141,6 +141,48 @@ function displayAllComments(){
 
             newCommentHTML.appendChild(formatElement);
 
+            for (let m = 0; m < commentBlock[j].imageURLs.length; m++)
+            {
+                let imageTag = document.createElement("img");
+
+                imageTag.src = commentBlock[j].imageURLs[m];
+                imageTag.width = 200;
+                imageTag.height = 200;
+
+                imageTag.classList.add("border");
+                imageTag.classList.add("commentBox");
+
+                newCommentHTML.appendChild(imageTag);
+            }
+
+            for (let m = 0; m < commentBlock[j].videoURLs.length; m++)
+            {
+                let videoTag = document.createElement("video");
+
+                videoTag.src = commentBlock[j].videoURLs[m];
+                videoTag.width = 200;
+                videoTag.height = 200;
+
+                videoTag.classList.add("border");
+                videoTag.classList.add("commentBox");
+
+                newCommentHTML.appendChild(videoTag);
+            }
+
+            for (let m = 0; m < commentBlock[j].audioURLs.length; m++)
+            {
+                let audioTag = document.createElement("audio");
+
+                audioTag.src = commentBlock[j].audioURLs[m];
+                audioTag.width = 200;
+                audioTag.height = 200;
+
+                audioTag.classList.add("border");
+                audioTag.classList.add("commentBox");
+
+                newCommentHTML.appendChild(audioTag);
+            }
+
             newCommentHTML.id = `${commentBlock[j].displayCommentEvent.id}-${subId}`;
             subId++;
             newCommentHTML.addEventListener('click', function (e){  
