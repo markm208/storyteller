@@ -29,7 +29,6 @@ async function InitializePlayback()
         console.log(playbackData.comments);
         playbackData.numEvents = playbackData.events.length;
         AddEventListeners();
-     
 
         //grab any existing media from the server and display it in the media control modal
         initImageGallery();
@@ -38,6 +37,7 @@ async function InitializePlayback()
     }
  
 }
+
 
 function AddEventListeners()
 {
@@ -55,12 +55,10 @@ function AddEventListeners()
     
     //add event handlers for clicking the buttons
     stepBackOne.addEventListener("click", event => {
-        pausePlayback();
         step(-1);
     });
 
     stepForwardOne.addEventListener("click", event => {
-        pausePlayback();
         step(1);
     });
 
@@ -68,7 +66,6 @@ function AddEventListeners()
 
     //add event handler to listen for changes to the slider
     playbackSlider.addEventListener("input", event => {
-        pausePlayback();
         //DEBUG
         // console.log(`slide: ${playbackSlider.value}`);
         
@@ -111,13 +108,6 @@ function AddEventListeners()
         if (commentText != null || rangeArray.length != 0 || commentImages.length != 0)
         {
 
-            if (playbackData.isPlaying)
-            {
-                var playButtonClickEvent = new MouseEvent("click",{
-
-                });
-                playPauseButton.dispatchEvent(playButtonClickEvent);
-            }
             //get the event to playback this comment
             var eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
             var commentEvent = playbackData.events[eventIndex];
@@ -170,14 +160,12 @@ function AddEventListeners()
         let shiftPressed = e.shiftKey;
 
         if (keyPressed == "ArrowRight"){
-            pausePlayback();
             if (!shiftPressed)
             {
                 step(1);
             }
         }
         else if (keyPressed == "ArrowLeft"){
-            pausePlayback();
             if (!shiftPressed)
             {
                 step(-1);
@@ -185,41 +173,7 @@ function AddEventListeners()
         }
         else if (keyPressed == ">")
         {
-            //find next event that has a comment
-            let targetEvent = -1;
-            let commentPositions = Object.keys(playbackData.comments);
-            for (let i = playbackData.nextEventPosition; i < playbackData.events.length; i++)
-            {
-                
-                for (let j = 0; j < commentPositions.length; j++)
-                {
-                    if (playbackData.events[i].id == commentPositions[j])
-                    {
-                        targetEvent = playbackData.events[i].id;
-                        break;
-                    }
-                }
-
-                if (targetEvent != -1)
-                    break;
-            }
-
-            if (targetEvent < 0)
-            {
-                targetEvent = playbackData.events[playbackData.events.length-1].eventSequenceNumber;
-                
-                clearHighlights();
-                step(targetEvent - playbackData.nextEventPosition + 1);
-            }
-            else{
-
-                var commentClickEvent = new MouseEvent("click",{
-
-                });
-                let commentToLoad = document.getElementById(`${targetEvent}-0`);
-
-                commentToLoad.dispatchEvent(commentClickEvent);
-            }
+            playPauseButton.click();
         }
         else if (keyPressed == "<")
         {
@@ -264,16 +218,41 @@ function AddEventListeners()
 
     var playPauseInterval = null;
     playPauseButton.addEventListener("click", event =>{
-        if (!playbackData.isPlaying && playbackData.nextEventPosition < playbackData.events.length){
-            playPauseInterval = setInterval(function() {step(1)}, 300);            
-            $("i", playPauseButton).toggleClass("fa-play fa-pause");
-            playbackData.isPlaying = true;
+        //find next event that has a comment
+        let targetEvent = -1;
+        let commentPositions = Object.keys(playbackData.comments);
+        for (let i = playbackData.nextEventPosition; i < playbackData.events.length; i++)
+        {
+            
+            for (let j = 0; j < commentPositions.length; j++)
+            {
+                if (playbackData.events[i].id == commentPositions[j])
+                {
+                    targetEvent = playbackData.events[i].id;
+                    break;
+                }
+            }
+
+            if (targetEvent != -1)
+                break;
         }
-        else if (playbackData.isPlaying){
-            clearInterval(playPauseInterval);
-            $("i", playPauseButton).toggleClass("fa-play fa-pause");
-            playbackData.isPlaying = false;
-        }        
+
+        if (targetEvent < 0)
+        {
+            targetEvent = playbackData.events[playbackData.events.length-1].eventSequenceNumber;
+            
+            clearHighlights();
+            step(targetEvent - playbackData.nextEventPosition + 1);
+        }
+        else{
+
+            var commentClickEvent = new MouseEvent("click",{
+
+            });
+            let commentToLoad = document.getElementById(`${targetEvent}-0`);
+
+            commentToLoad.dispatchEvent(commentClickEvent);
+        }    
     });
 }
 
