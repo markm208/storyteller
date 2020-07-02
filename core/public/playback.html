@@ -42,6 +42,10 @@
                             <textarea id="textCommentTextArea" class="form-control textarea" rows="10"
                                 placeholder="Select some text and add a comment at this point in the playback."></textarea>
                         </div>
+                        <!-- change this name -->
+                        <div id="commentPreview"> 
+
+                        </div>
                         <button id="addMediaButton" class="btn btn-light">Add Media to Comment</button>
                         <button id="addCommentButton" class="btn btn-success">Add Comment</button>
                     </div>
@@ -185,9 +189,11 @@
         let changeOutsideEditor = false;
 
         document.addEventListener("DOMContentLoaded", event => {
-          InitializePlayback();          
+          InitializePlayback();     
         });
 
+
+       
         
     </script>
   </body>
