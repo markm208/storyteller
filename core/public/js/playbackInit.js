@@ -155,10 +155,16 @@ function AddEventListeners()
     });
 
     //detects key presses 
-    document.addEventListener('keydown', function(e){
+    document.addEventListener('keydown', function(e){    
+
+        if (e.target.id == "textCommentTextArea"){
+            //prevent keyboard presses within the comment textbox from triggering actions 
+            return;
+        }
+       
         let keyPressed = e.key;
         let shiftPressed = e.shiftKey;
-
+       
         if (keyPressed == "ArrowRight"){
             if (!shiftPressed)
             {
