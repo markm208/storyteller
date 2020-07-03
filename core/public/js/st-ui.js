@@ -26,6 +26,8 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected) {
     //create two bootstrap classes and a st class
     cardDiv.classList.add('card', 'text-center','mediaVideoCard');
 
+  
+
     //card body
     const cardBody = document.createElement('div');
     cardBody.classList.add('card-body');
@@ -39,7 +41,7 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected) {
     newVideo.setAttribute('controls', '');
     newVideo.setAttribute('preload', 'metadata');
     newVideo.classList.add('mediaVideo');
-
+   
     //add all the pieces together
     cardBody.append(newVideo);
     cardFooter.append(fileName);

@@ -76,8 +76,7 @@ function AddEventListeners()
 
 
 
-    document.querySelector("#addCommentButton").addEventListener("click", event =>{
-        
+    document.querySelector("#addCommentButton").addEventListener("click", event =>{        
         
         var textCommentTextArea = document.querySelector("#textCommentTextArea");
 
@@ -147,7 +146,6 @@ function AddEventListeners()
 
             //reset the comment previews
             document.getElementById("commentPreview").innerHTML = "";
-
         }
 
     });
