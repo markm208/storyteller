@@ -133,4 +133,20 @@ border-top: none;
 .d-flex {
     align-items: center;
     display: flex;
-  }
+}
+
+.slider {
+    height: 40px;
+}
+
+.data-list-style {
+    display: inline-block;
+}
+
+.ui-slider-tick-mark {
+    display: inline-block;
+    position: absolute;
+    width: 2px;
+    height: 16px;
+    z-index: -1;
+}

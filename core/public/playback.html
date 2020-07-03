@@ -71,9 +71,13 @@
                 <div id="playbackControls"> 
                      <div class="d-flex">
                         <button id="playPauseButton" class="btn" onclick="this.blur();"><i class="fa fa-play-circle-o fa-2x"></i></button>
-                        <input type="range" id="playbackSlider" min="0" value="0" class="custom-range" />
+                        <input type="range" id="playbackSlider" min="0" value="0" class="custom-range slider" list="tickmarks"/>
                         <button id="stepBackOne" class="btn" onclick="this.blur();"><i class="fa fa-chevron-left"></i></button>
                         <button id="stepForwardOne" class="btn" onclick="this.blur();"><i class="fa fa-chevron-right"></i></button>
+
+                        <datalist id="tickmarks" class="data-list-style">
+                            <option value="10" class="ui-slider-tick-mark"></option>
+                        </datalist>
                     </div>                  
          
                 </div>
