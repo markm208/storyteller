@@ -82,7 +82,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         let src = selectedAudioElements[0].children[0].children[0].getAttribute('src');
 
         //create the preview cards and add them to the preview div
-        let audioCard = createMediaControllerCommentAudioUI(selectedAudioElements[0].children[0].children[0].src , false);
+        let audioCard = createMediaControllerCommentAudioUI(src, false);
 
         //add cancel button to the top of the preview card
         const closeButton = addCancelButton(src, audioCard, selectedAudioURLs);
