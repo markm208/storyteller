@@ -71,6 +71,7 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected) {
     //card body
     const cardBody = document.createElement('div');
     cardBody.classList.add('card-body');
+    cardBody.style.height = 75 +"px";
     //card footer
     const cardFooter = document.createElement('div');
     cardFooter.classList.add('card-footer', 'text-muted');
@@ -81,6 +82,8 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected) {
     newAudio.setAttribute('controls', '');
     newAudio.setAttribute('preload', 'metadata');
     newAudio.classList.add('mediaAudio');
+    newAudio.style.height = 40 + "px";
+
 
     //add all the pieces together
     cardBody.append(newAudio);

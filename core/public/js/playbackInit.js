@@ -47,6 +47,7 @@ function AddEventListeners()
     const playbackSlider = document.getElementById("playbackSlider");
     const playPauseButton = document.getElementById("playPauseButton");
 
+
     //Get references to the tabs and where the tabs get their content
     const tabsList = document.getElementById("tabsList");
     const tabContent = document.getElementById("tabContent");
@@ -76,6 +77,7 @@ function AddEventListeners()
 
 
     document.querySelector("#addCommentButton").addEventListener("click", event =>{
+        
         
         var textCommentTextArea = document.querySelector("#textCommentTextArea");
 
@@ -142,6 +144,9 @@ function AddEventListeners()
 
             //clear out any images uploaded for this comment
             playbackData.mediaForNewComment = [[],[],[]];
+
+            //reset the comment previews
+            document.getElementById("commentPreview").innerHTML = "";
 
         }
 

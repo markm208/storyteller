@@ -55,16 +55,31 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         selectedAudioURLs.push(selectedAudioElements[i].children[0].children[0].getAttribute('src'));
     }
 
-    //remove the media selected class
+
+    const previewPanel = document.getElementById("commentPreview");
+
+    //adds the selected media to the comment preview and removes the media selected class
     while(selectedImageElements[0]) {
+        //create the preview cards and add them to the preview div
+        let imageCard = createMediaControllerCommentImageUI(selectedImageElements[0].getAttribute('src') , false);
+        previewPanel.appendChild(imageCard);
+
         //clear out the selected media class
         selectedImageElements[0].classList.remove('mediaSelected');
     }
     while(selectedVideoElements[0]) {
+        //create the preview cards and add them to the preview div
+        let videoCard = createMediaControllerCommentVideoUI(selectedVideoElements[0].children[0].children[0].src , false);
+        previewPanel.appendChild(videoCard);
+
         //clear out the selected media class
         selectedVideoElements[0].classList.remove('mediaSelected');
     }
     while(selectedAudioElements[0]) {
+        //create the preview cards and add them to the preview div
+        let audioCard = createMediaControllerCommentAudioUI(selectedAudioElements[0].children[0].children[0].src , false);
+        previewPanel.appendChild(audioCard);
+        
         //clear out the selected media class
         selectedAudioElements[0].classList.remove('mediaSelected');
     }
