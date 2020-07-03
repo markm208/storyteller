@@ -101,7 +101,7 @@ class File extends FileSystemElement {
             }
             
             //if the new character was a newline character
-            if(eventCharacter === '\n') {
+            if(eventCharacter === '\n' || eventCharacter === '\r\n') {
                 //get the rest of the line after the newline character
                 const restOfLine = this.textFileInsertEvents[row].splice(col + 1, this.textFileInsertEvents[row].length - col);
                 
@@ -122,7 +122,7 @@ class File extends FileSystemElement {
         //make sure the request is within the bounds
         if(row >= 0 && row < this.textFileInsertEvents.length && col >= 0 && col < this.textFileInsertEvents[row].length) {
             //if we are removing a newline character
-            if(this.textFileInsertEvents[row][col].character === '\n') {
+            if(this.textFileInsertEvents[row][col].character === '\n' || this.textFileInsertEvents[row][col].character === '\r\n') {
                 //remove the newline character from its line
                 this.textFileInsertEvents[row].splice(col, 1);
 
@@ -244,7 +244,7 @@ class File extends FileSystemElement {
                 events.push(currentEvent);
 
                 //if this code character was a newline
-                if(currentEvent.character === '\n') {
+                if(currentEvent.character === '\n' || currentEvent.character === '\r\n') {
                     //go to the next row
                     row++;
 
