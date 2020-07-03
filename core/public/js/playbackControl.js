@@ -128,6 +128,14 @@ function displayAllComments(){
         eventGroupDiv.classList.add("border");
         eventGroupDiv.classList.add("commentBox");
 
+        //add a tick mark to the slider for the comment group
+        var tickmarkObject = document.getElementById('tickmarks');
+        const newTick = document.createElement('option');
+        newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
+        newTick.classList.add("ui-slider-tick-mark");
+        tickmarkObject.appendChild(newTick);
+        //console.log(commentBlock[0].eventSequenceNumber);
+
         let subId = 0;
         for (let j = 0; j < commentBlock.length; j++){
             const newCommentHTML = document.createElement("div");

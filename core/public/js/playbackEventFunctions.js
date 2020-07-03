@@ -49,6 +49,7 @@ function createFileEvent(nextEvent){
         //switches currently active editor on tab switch
         document.getElementById("FirstTabLabel").addEventListener("click", event => {
             editor = playbackData.editors[nextEvent.fileId];
+            editor.getSession().setValue(editor.getSession().getValue());
         });
     }
     //if the current create file event is not the first encounted
@@ -81,7 +82,8 @@ function createFileEvent(nextEvent){
 
         //switches currently active editor on tab switch
         newLinkTag.addEventListener("click", event => {
-            editor = playbackData.editors[nextEvent.fileId];            
+            editor = playbackData.editors[nextEvent.fileId];
+            editor.getSession().setValue(editor.getSession().getValue());
         });
 
         //adds the link to the list item
