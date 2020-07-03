@@ -80,12 +80,14 @@ function AddEventListeners()
         
         var textCommentTextArea = document.querySelector("#textCommentTextArea");
 
-        var commentText = null;
-        commentText = textCommentTextArea.value.trim();
+        //get all text from the comment text box
+        const commentText = textCommentTextArea.value.trim();
 
-        //get all selected ranges from Ace    
-        //builds an array of ranges   
-        const ranges = editor.getSession().getSelection().getAllRanges();
+        //get all selected text from Ace            
+        const selectedText = editor.getSelectedText();
+        //builds an array of ranges if any text was selected
+        const ranges = selectedText ? editor.getSession().getSelection().getAllRanges() : [];
+
         var rangeArray = [];
         for (let i = 0; i < ranges.length; i++){
             var rangeObj = {};
@@ -94,21 +96,22 @@ function AddEventListeners()
             rangeObj.endRow = ranges[i].end.row;
             rangeObj.endColumn = ranges[i].end.column;
             rangeArray.push(rangeObj);
-        }
-
-  
-        //get all selected text from Ace
-        const selectedText = editor.getSelectedText();
+        }  
         
         //get all images associated with this comment
-        var commentImages = [];
+        const commentImages = playbackData.mediaForNewComment[0];
+
+        //get all videos associated with this comment
+        const commentVideos = playbackData.mediaForNewComment[1];
+
+        //get all audio files associated with this comment
+        const commentAudios = playbackData.mediaForNewComment[2];
 
         //console.log(playbackData.mediaForNewComment);
 
-        //if there was a comment, some selected text, or at least one image
-        if (commentText != null || rangeArray.length != 0 || commentImages.length != 0)
+        //if there was a comment, some selected text, or at least one media file
+        if (commentText || selectedText || commentImages.length || commentVideos.length || commentAudios.length)
         {
-
             //get the event to playback this comment
             var eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
             var commentEvent = playbackData.events[eventIndex];
@@ -147,7 +150,6 @@ function AddEventListeners()
             //reset the comment previews
             document.getElementById("commentPreview").innerHTML = "";
         }
-
     });
 
     document.getElementById("handler").addEventListener('mousedown', function (e){  
@@ -285,7 +287,7 @@ async function sendCommentToServer(comment){
         }
         
     } catch (error) {
-        
+        console.log("Error with the POST");
     }    
 }
 

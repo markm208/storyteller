@@ -35,17 +35,11 @@ document.getElementById('addMediaButton').addEventListener('click', event => {
 document.getElementById('addMediaToCommentButton').addEventListener('click', event => {
     //get the selected urls to add to the comment
     const selectedImageURLs = [];
-    const selectedImageElements = document.getElementsByClassName('mediaImage mediaSelected');
-  
-    const selectedVideoURLs = [];
-    const selectedVideoElements = document.getElementsByClassName('mediaVideoCard mediaSelected'); 
-
-    const selectedAudioURLs = [];
+    const selectedImageElements = document.getElementsByClassName('mediaImage mediaSelected');  
+    const selectedVideoElements = document.getElementsByClassName('mediaVideoCard mediaSelected');
     const selectedAudioElements = document.getElementsByClassName('mediaAudioCard mediaSelected');
 
-    const previewPanel = document.getElementById("commentPreview");
-
-  
+    const previewPanel = document.getElementById("commentPreview");  
 
     //adds the selected media to the comment preview and removes the media selected class
     while(selectedImageElements[0]) {
@@ -61,92 +55,61 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
     }
     while(selectedVideoElements[0]) {
 
-        let src = selectedVideoElements[0].children[0].children[0].getAttribute('src');
+        const src = selectedVideoElements[0].children[0].children[0].getAttribute('src');
 
         //create the preview cards and add them to the preview div
-        let videoCard = createMediaControllerCommentVideoUI(src , false, selectedVideoURLs); 
+        let videoCard = createMediaControllerCommentVideoUI(src , false); 
 
         //add cancel button to the top of the preview card
-        const closeButton = addCancelButton(src, videoCard, selectedVideoURLs);
+        addCancelButtonToCard(videoCard, src, playbackData.mediaForNewComment[1]);
 
         //add the preview to the div
         previewPanel.appendChild(videoCard);
 
         //store the url
-         selectedVideoURLs.push(src);
+         playbackData.mediaForNewComment[1].push(src);
 
         //clear out the selected media class
         selectedVideoElements[0].classList.remove('mediaSelected');
     }
     while(selectedAudioElements[0]) {
-        let src = selectedAudioElements[0].children[0].children[0].getAttribute('src');
+        const src = selectedAudioElements[0].children[0].children[0].getAttribute('src');
 
         //create the preview cards and add them to the preview div
         let audioCard = createMediaControllerCommentAudioUI(src, false);
 
         //add cancel button to the top of the preview card
-        const closeButton = addCancelButton(src, audioCard, selectedAudioURLs);
+        addCancelButtonToCard(audioCard, src, playbackData.mediaForNewComment[2]);
 
         previewPanel.appendChild(audioCard);
 
         //store the url
-        selectedAudioURLs.push(src);
+        playbackData.mediaForNewComment[2].push(src);
         
         //clear out the selected media class
         selectedAudioElements[0].classList.remove('mediaSelected');
     }
 
-    //TODO do something with the selected urls like add them to a comment element
-
-    //checks to make sure that if the user selected the addMediaToComment button
-    //more than once, all media will still be added correctly
-    if (playbackData.mediaForNewComment[0].length == 0){
-        playbackData.mediaForNewComment[0] = selectedImageURLs;
-    }
-    else{
-        for (let i =0; i< selectedImageURLs.length; i++){
-            playbackData.mediaForNewComment[0].push(selectedImageURLs[i]);
-        }
-    }
-
-    if (playbackData.mediaForNewComment[1].length == 0){
-        playbackData.mediaForNewComment[1] = selectedVideoURLs;
-    }
-    else{
-        for (let i =0; i< selectedVideoURLs.length; i++){
-            playbackData.mediaForNewComment[1].push(selectedVideoURLs[i]);
-        }
-    }
-
-    if (playbackData.mediaForNewComment[2].length == 0){
-        playbackData.mediaForNewComment[2] = selectedAudioURLs;
-    }
-    else{
-        for (let i =0; i< selectedAudioURLs.length; i++){
-            playbackData.mediaForNewComment[2].push(selectedAudioURLs[i]);
-        }
-    }  
-
     //hide the modal (using jquery)
     $('#mediaControlModal').modal('hide');
 });
 
-function addCancelButton(src, card, folder){
-    let button = document.createElement("button");
+function addCancelButtonToCard(card, src, folder){
     const previewPanel = document.getElementById("commentPreview");
 
+    let button = document.createElement("button");
     button.classList.add("close");
     button.setAttribute("aria-label", "close");
     button.innerHTML ="&times;";
     button.style.color = 'red';
     button.setAttribute('title',"Remove media from comment");
     button.addEventListener("click",event =>{
+        //removes the selected media from the preview and from the stored list of selected media
         previewPanel.removeChild(card);
         const index = folder.indexOf(src);
         folder.splice(index, 1);
     });
     card.firstChild.append(button);
-    return button;   
 }
 
 document.getElementById('deleteMediaButton').addEventListener('click', async event => {
