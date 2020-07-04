@@ -58,7 +58,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         const src = selectedVideoElements[0].children[0].children[0].getAttribute('src');
 
         //create the preview cards and add them to the preview div
-        let videoCard = createMediaControllerCommentVideoUI(src , false, false); 
+        let videoCard = createMediaControllerCommentVideoUI(src , false); 
 
         //add cancel button to the top of the preview card
         addCancelButtonToCard(videoCard, src, playbackData.mediaForNewComment[1]);
@@ -76,7 +76,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         const src = selectedAudioElements[0].children[0].children[0].getAttribute('src');
 
         //create the preview cards and add them to the preview div
-        let audioCard = createMediaControllerCommentAudioUI(src, false, false);
+        let audioCard = createMediaControllerCommentAudioUI(src, false);
 
         //add cancel button to the top of the preview card
         addCancelButtonToCard(audioCard, src, playbackData.mediaForNewComment[2]);
@@ -103,8 +103,8 @@ function addCancelButtonToCard(card, src, folder){
     button.innerHTML ="&times;";
     button.style.color = 'red';
     button.setAttribute('title',"Remove media from comment");
-    //removes the selected media from the preview and from the stored list of selected media
     button.addEventListener("click",event =>{
+        //removes the selected media from the preview and from the stored list of selected media
         previewPanel.removeChild(card);
         const index = folder.indexOf(src);
         folder.splice(index, 1);
