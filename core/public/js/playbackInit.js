@@ -35,6 +35,12 @@ async function InitializePlayback()
     } catch(err) {
         console.log(`Error retrieving data`);
     }
+
+    //limits the movement of sortable items to the y access
+    $('.sort').sortable({        
+        axis: "y",
+        cursor: 'move'
+      });
  
 }
 
@@ -78,6 +84,9 @@ function AddEventListeners()
 
     document.querySelector("#addCommentButton").addEventListener("click", event =>{        
         
+        //get all media from the preview window in the proper order
+        let mediaInOrder = $("#commentPreview").sortable('toArray');
+
         var textCommentTextArea = document.querySelector("#textCommentTextArea");
 
         //get all text from the comment text box

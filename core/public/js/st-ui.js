@@ -18,7 +18,9 @@ function createMediaControllerCommentImageUI(srcPath, makeSelected) {
     return newImg;
 }
 
-function createMediaControllerCommentVideoUI(srcPath, makeSelected) {
+//lets the caller decide if they want the eventListener for click
+//allows for cards that cant be selected
+function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEventistener = true) {
     //filename of the video
     const fileName = srcPath.substring(srcPath.indexOf('-') + 1);
     //create a card with a body and a footer
@@ -48,16 +50,21 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected) {
     cardDiv.append(cardBody);
     cardDiv.append(cardFooter);
 
+    //preserves src for maitaining the order 
+    cardDiv.id = srcPath;
+
     //if this video should be marked as pre-selected
     if(makeSelected) {
         cardDiv.classList.add('mediaSelected');
     }
 
-    //add an event handler to toggle whether it is selected
-    cardDiv.addEventListener('click', event => {
+    if (returnWithEventistener){
+        //add an event handler to toggle whether it is selected
+        cardDiv.addEventListener('click', event => {
         //toggle the 'selected' class
-        cardDiv.classList.toggle('mediaSelected')}
-    );
+        cardDiv.classList.toggle('mediaSelected')});
+    }
+  
 
     return cardDiv;
 }
@@ -92,6 +99,9 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected) {
     cardFooter.append(fileName);
     cardDiv.append(cardBody);
     cardDiv.append(cardFooter);
+
+    //preserves src for maitaining the order 
+    cardDiv.id = srcPath;
 
     //if this audio should be marked as pre-selected
     if(makeSelected) {
