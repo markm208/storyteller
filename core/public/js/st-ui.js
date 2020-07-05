@@ -69,7 +69,7 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
     return cardDiv;
 }
 
-function createMediaControllerCommentAudioUI(srcPath, makeSelected) {
+function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEventistener = true) {
     //filename of the audio
     const fileName = srcPath.substring(srcPath.indexOf('-') + 1);
     //create a card with a body and a footer
@@ -108,11 +108,11 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected) {
         cardDiv.classList.add('mediaSelected');
     }
 
-    //add an event handler to toggle whether it is selected
-    cardDiv.addEventListener('click', event => {
+    if (returnWithEventistener){
+        //add an event handler to toggle whether it is selected
+        cardDiv.addEventListener('click', event => {
         //toggle the 'selected' class
-        cardDiv.classList.toggle('mediaSelected')}
-    );
-
+        cardDiv.classList.toggle('mediaSelected')});
+    }
     return cardDiv;
 }

@@ -176,7 +176,10 @@
             //holds the currently viewed fileId
             currentFileId: null,
             //the position of the event to play next in the forward direction
-            nextEventPosition: 0
+            nextEventPosition: 0,
+            //all media in the order they were added to the comment
+            orderedMedia: {}
+    
         };
 
         var editor = CreateAceEditor("playbackWindow", "","" );    

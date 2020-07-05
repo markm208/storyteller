@@ -150,3 +150,11 @@ border-top: none;
     height: 16px;
     z-index: -1;
 }
+
+.comment-text {
+    resize: none;
+    white-space: normal;
+    text-align: justify;
+    -moz-text-align-last: center; 
+    text-align-last: center;
+}
