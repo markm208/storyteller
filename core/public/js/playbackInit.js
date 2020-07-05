@@ -47,13 +47,7 @@ async function InitializePlayback()
 
 function AddEventListeners()
 {
-    document.getElementById('textCommentTextArea').addEventListener('click', event =>{
-        console.log(document.getElementById('textCommentTextArea').scrollHeight);
-    })
-
-
-
-    //get the controls
+     //get the controls
     const stepBackOne = document.getElementById("stepBackOne");
     const stepForwardOne = document.getElementById("stepForwardOne");
     const playbackSlider = document.getElementById("playbackSlider");

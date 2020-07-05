@@ -125,9 +125,7 @@ function displayAllComments(){
     keysArray.sort((a,b)=> a - b).forEach(function(key){
         let commentBlock = playbackData.orderedMedia[`ev-${key}`];
         const commentDiv = document.createElement('div');
-
-
-        //iterating through events
+        
         for (let i = 0; i < commentBlock.length; i++){
              const textAreaHeader = document.createElement('textarea');
             textAreaHeader.classList.add('card-header');
@@ -139,12 +137,9 @@ function displayAllComments(){
             //TODO get height working on large comments in textareaheader
           
             const commentObject = commentBlock[i];
-            //iterating through comments          
                 
-            //iterating through comment media
             let cardFinal = document.createElement('div');
             cardFinal.classList.add('card', 'text-center');
-
 
             for (let k = 0; k < commentObject.mediaURLs.length; k++){
                 const strippedSrc = commentObject.mediaURLs[k].replace('/media/', '');
@@ -173,21 +168,14 @@ function displayAllComments(){
             const finalDiv = document.createElement('div');
             finalDiv.classList.add('commentBox','border');
 
-            //TODO get eventListener working 
-
-                    //     newCommentHTML.addEventListener('click', function (e){  
-        //         step(commentBlock[j].displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
-
-        //         clearHighlights();
-
-        //         for (let i = 0; i < commentBlock[j].selectedCodeBlocks.length; i++)
-        //         {
-        //             addHighlight(commentBlock[j].selectedCodeBlocks[i].startRow, commentBlock[j].selectedCodeBlocks[i].startColumn, commentBlock[j].selectedCodeBlocks[i].endRow, commentBlock[j].selectedCodeBlocks[i].endColumn);
-        //         }
-        //     });
-
-
-
+            let comment = playbackData.comments[`ev-${key}`][i];
+            finalDiv.addEventListener('click', function(e) {
+                step(comment.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); //TODO should this be +1?
+                clearHighlights();
+                for (let j = 0; j < comment.selectedCodeBlocks.length; j++){
+                    addHighlight(comment.selectedCodeBlocks[j].startRow, comment.selectedCodeBlocks[j].startColumn, comment.selectedCodeBlocks[j].endRow, comment.selectedCodeBlocks[j].endColumn);
+                }
+            });
 
             finalDiv.append(cardFinal);
             commentsDiv.append(finalDiv);
