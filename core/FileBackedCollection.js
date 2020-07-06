@@ -14,6 +14,9 @@ class FileBackedCollection {
         //store the path to the storyteller directory
         this.storytellerDirPath = storytellerDirPath;
 
+        //store the path to the hidden .storyteller directory inside the project directory
+        this.fullPathToHiddenStorytellerDir = path.join(storytellerDirPath, STORYTELLER_DIR);
+        
         //store the path to the parent dir that holds the json file
         this.fullPathToParentDir = path.join(storytellerDirPath, STORYTELLER_DIR, dirName);
         
