@@ -146,15 +146,6 @@ resize: none;
     z-index: -1;
 }
 
-<<<<<<< HEAD
-.comment-text {
-    resize: none;
-    white-space: normal;
-    text-align: justify;
-    -moz-text-align-last: center; 
-    text-align-last: center;
-}
-=======
 .wrapper {
     background-color: #fff;
     color: #444;
@@ -162,4 +153,3 @@ resize: none;
     display: flex;
 }
 
->>>>>>> 47fd7af48e912401b5642ba96ab04af0578c44dd
