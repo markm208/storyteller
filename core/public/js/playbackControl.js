@@ -118,7 +118,7 @@ function displayAllComments(){
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
     //convert all string keys into numbers for proper sorting of comment sequence
-    var keysArray = Object.keys(playbackData.comments);    
+    let keysArray = Object.keys(playbackData.comments);    
     for (let i = 0; i < keysArray.length; i++){
         keysArray[i] = Number(keysArray[i].slice(3));
     }
@@ -131,7 +131,7 @@ function displayAllComments(){
         eventGroupDiv.classList.add('commentBox');
 
         //add a tick mark to the slider for the comment group
-        var tickmarkObject = document.getElementById('tickmarks');
+        const tickmarkObject = document.getElementById('tickmarks');
         const newTick = document.createElement('option');
         newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
         newTick.classList.add('ui-slider-tick-mark');
@@ -168,8 +168,8 @@ function displayAllComments(){
             {
                 let videoTag = document.createElement('video');
                 //Extract the file extension from the input file
-                var fileExtension = commentBlock[j].videoURLs[m].split('.').pop().toLowerCase();
-                var MIMEtype = createMimeString(fileExtension);
+                const fileExtension = commentBlock[j].videoURLs[m].split('.').pop().toLowerCase();
+                const MIMEtype = createMimeString(fileExtension);
                 
                 videoTag.width = 200;
                 videoTag.height = 200;
@@ -190,8 +190,8 @@ function displayAllComments(){
             {
                 let audioTag = document.createElement('audio');
                 //Extract the file extension from the input file
-                var fileExtension = commentBlock[j].audioURLs[m].split('.').pop().toLowerCase();
-                var MIMEtype = createMimeString(fileExtension);
+                const fileExtension = commentBlock[j].audioURLs[m].split('.').pop().toLowerCase();
+                const MIMEtype = createMimeString(fileExtension);
                 
                 audioTag.style.width = '200px';
                 audioTag.style.height = '200px';

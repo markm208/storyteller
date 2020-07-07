@@ -166,7 +166,7 @@ function addFocusToTab(tabToFocus, content)
 
 
    
-    var tabClickEvent = new MouseEvent('click',{
+    const tabClickEvent = new MouseEvent('click',{
 
     });
     tabToFocus.dispatchEvent(tabClickEvent);
