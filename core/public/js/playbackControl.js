@@ -134,6 +134,13 @@ function displayAllComments(){
             textAreaHeader.disabled = true;
             textAreaHeader.value = commentBlock[i].commentText;
 
+            //add a tick mark to the slider for the comment group
+            var tickmarkObject = document.getElementById('tickmarks');
+            const newTick = document.createElement('option');
+            newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
+            newTick.classList.add("ui-slider-tick-mark");
+            tickmarkObject.appendChild(newTick);
+
             //TODO get height working on large comments in textareaheader
           
             const commentObject = commentBlock[i];
