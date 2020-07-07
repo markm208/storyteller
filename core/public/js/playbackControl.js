@@ -171,9 +171,8 @@ function displayAllComments(){
                 const fileExtension = commentBlock[j].videoURLs[m].split('.').pop().toLowerCase();
                 const MIMEtype = createMimeString(fileExtension);
                 
-                videoTag.width = 200;
-                videoTag.height = 200;
                 videoTag.controls = true;
+                videoTag.classList.add('mediaVideo');
 
                 videoTag.classList.add('border');
                 videoTag.classList.add('commentBox');
@@ -192,13 +191,12 @@ function displayAllComments(){
                 //Extract the file extension from the input file
                 const fileExtension = commentBlock[j].audioURLs[m].split('.').pop().toLowerCase();
                 const MIMEtype = createMimeString(fileExtension);
-                
-                audioTag.style.width = '200px';
-                audioTag.style.height = '200px';
+
                 audioTag.controls = true;
                 audioTag.style.width = '200px';
                 audioTag.classList.add('border');
                 audioTag.classList.add('commentBox');
+                audioTag.classList.add('mediaAudio');
 
                 let audioSource = document.createElement('source');
                 audioSource.src = commentBlock[j].audioURLs[m];

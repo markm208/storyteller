@@ -1,3 +1,74 @@
+
+.box {
+    border-radius: 5px;
+
+    /* Use box-sizing so that element's outerwidth will match width property */
+    box-sizing: border-box;
+
+    /* Allow box to grow and shrink, and ensure they are all equally sized */
+    flex: 1 0 auto;
+}
+
+.btn:hover{
+    border: 1px solid Grey;
+    
+}
+
+.codePanel{
+    width: 75vw;            
+}
+
+.commentBox {
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+}
+
+.commentsDivScroll{
+    overflow-y: scroll;
+    height: 85vh;
+    word-wrap: break-word;
+    width: 23.9vw;
+}
+
+.commentWindow{
+    width: 20vw;
+}
+
+.d-flex {
+    align-items: center;
+    display: flex;
+}
+
+.data-list-style {
+    display: inline-block;
+}
+
+.handler {
+    width: 20px;
+    padding: 0;
+    cursor: ew-resize;
+    flex: 0 0 auto;
+}
+
+.handler::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 100%;
+    /* background: gray; */
+    margin: 0 auto;
+    border-left: 2px dotted #444;
+}
+
+.highlight {
+    position:absolute;
+    z-index:20; /* place in a layer above anything with a lower z-index */
+    background-color:limegreen;
+    opacity: 20%;
+}
+
 .mediaAddButton {
     margin-bottom: 0px;
 }
@@ -36,111 +107,35 @@
     
 }
 
-.commentBox{
-    margin-top: 20px;
-    margin-left: 20px;
-    margin-right: 20px;
-    margin-bottom: 20px;
-}
-
-.textarea {
-resize: none;
-}
-
 .playbackWindow {
     height: calc(100vh - 160px);   
    
     /* overflow-y: scroll; */
-}
-.commentWindow{
-    width: 20vw;
-}
-
-.tabHeight {
-    height: 40px;
-}
-
-/* Create an active/current tablink class */
-.tab button.active {
-background-color: #ccc;
-}
-/* Style the tab content */
-.tabcontent {
-display: none;
-padding: 6px 12px;
-border: 1px solid #ccc;
-border-top: none;
-}
-.highlight {
-    position:absolute;
-    z-index:20; /* place in a layer above anything with a lower z-index */
-    background-color:limegreen;
-    opacity: 20%;
-}
-
-.wrapper {
-    background-color: #fff;
-    color: #444;
-    /* Use flexbox */
-    display: flex;
-}
-
-.box {
-
-    border-radius: 5px;
-
-    /* Use box-sizing so that element's outerwidth will match width property */
-    box-sizing: border-box;
-
-    /* Allow box to grow and shrink, and ensure they are all equally sized */
-    flex: 1 0 auto;
-
-}
-
-.handler {
-    width: 20px;
-    padding: 0;
-    cursor: ew-resize;
-    flex: 0 0 auto;
-}
-
-.handler::before {
-    content: '';
-    display: block;
-    width: 4px;
-    height: 100%;
-    /* background: gray; */
-    margin: 0 auto;
-    border-left: 2px dotted #444;
-}
-
-.codePanel{
-    width: 75vw;            
-}
-
-.commentsDivScroll{
-    overflow-y: scroll;
-    height: 85vh;
-    word-wrap: break-word;
-    width: 23.9vw;
-}
-
-.btn:hover{
-    border: 1px solid Grey;
-    
-}
-
-.d-flex {
-    align-items: center;
-    display: flex;
 }
 
 .slider {
     height: 40px;
 }
 
-.data-list-style {
-    display: inline-block;
+/* Create an active/current tablink class */
+.tab button.active {
+    background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+.tabHeight {
+    height: 40px;
+}
+
+.textarea {
+resize: none;
 }
 
 .ui-slider-tick-mark {
@@ -150,3 +145,11 @@ border-top: none;
     height: 16px;
     z-index: -1;
 }
+
+.wrapper {
+    background-color: #fff;
+    color: #444;
+    /* Use flexbox */
+    display: flex;
+}
+
