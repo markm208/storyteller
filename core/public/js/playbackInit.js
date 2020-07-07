@@ -162,7 +162,7 @@ function setupEventListeners()
     //detects key presses 
     document.addEventListener('keydown', function(e){    
 
-        if (e.target.id == 'textCommentTextArea'){
+        if (e.target.id === 'textCommentTextArea'){
             //prevent keyboard presses within the comment textbox from triggering actions 
             return;
         }
@@ -170,23 +170,23 @@ function setupEventListeners()
         let keyPressed = e.key;
         let shiftPressed = e.shiftKey;
        
-        if (keyPressed == 'ArrowRight'){
+        if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
             {
                 step(1);
             }
         }
-        else if (keyPressed == 'ArrowLeft'){
+        else if (keyPressed === 'ArrowLeft'){
             if (!shiftPressed)
             {
                 step(-1);
             }
         }
-        else if (keyPressed == '>')
+        else if (keyPressed === '>')
         {
             playPauseButton.click();
         }
-        else if (keyPressed == '<')
+        else if (keyPressed === '<')
         {
             //find next event that has a comment
             let targetEvent = -1;
@@ -196,7 +196,7 @@ function setupEventListeners()
                 
                 for (let j = 0; j < commentPositions.length; j++)
                 {
-                    if (playbackData.events[i].id == commentPositions[j])
+                    if (playbackData.events[i].id === commentPositions[j])
                     {
                         targetEvent = playbackData.events[i].id;
                         break;
@@ -237,7 +237,7 @@ function setupEventListeners()
             
             for (let j = 0; j < commentPositions.length; j++)
             {
-                if (playbackData.events[i].id == commentPositions[j])
+                if (playbackData.events[i].id === commentPositions[j])
                 {
                     targetEvent = playbackData.events[i].id;
                     break;
