@@ -1,5 +1,7 @@
 function step(numSteps) {
 
+    clearHighlights();
+
     //move forward
     if(numSteps > 0) {
 
