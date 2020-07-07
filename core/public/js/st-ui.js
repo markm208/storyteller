@@ -3,7 +3,7 @@ function createMediaControllerCommentImageUI(srcPath, makeSelected) {
     const newImg = document.createElement('img');
     newImg.setAttribute('src', srcPath);
     //add a bottstrap class and a st class
-    newImg.classList.add('img-thumbnail', 'mediaImage');
+    newImg.classList.add('img-thumbnail', 'mediaImage', 'contain');
     
     //if this image should be marked as pre-selected
     if(makeSelected) {
