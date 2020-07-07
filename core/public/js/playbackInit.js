@@ -34,18 +34,17 @@ async function initializePlayback()
         initImageGallery();
     } catch(err) {
         console.log(`Error retrieving data`);
-    }
- 
+    } 
 }
 
 
 function setupEventListeners()
 {
-    //get the controls
-    const stepBackOne = document.getElementById('stepBackOne');
-    const stepForwardOne = document.getElementById('stepForwardOne');
-    const playbackSlider = document.getElementById('playbackSlider');
-    const playPauseButton = document.getElementById('playPauseButton');
+     //get the controls
+    const stepBackOne = document.getElementById("stepBackOne");
+    const stepForwardOne = document.getElementById("stepForwardOne");
+    const playbackSlider = document.getElementById("playbackSlider");
+    const playPauseButton = document.getElementById("playPauseButton");
 
 
     //Get references to the tabs and where the tabs get their content
@@ -76,9 +75,14 @@ function setupEventListeners()
 
 
 
+<<<<<<< HEAD
+    document.querySelector("#addCommentButton").addEventListener("click", event =>{       
+         var textCommentTextArea = document.querySelector("#textCommentTextArea");
+=======
     document.querySelector('#addCommentButton').addEventListener('click', event =>{        
         
         const textCommentTextArea = document.querySelector('#textCommentTextArea');
+>>>>>>> 47fd7af48e912401b5642ba96ab04af0578c44dd
 
         //get all text from the comment text box
         const commentText = textCommentTextArea.value.trim();
@@ -109,12 +113,24 @@ function setupEventListeners()
 
         //console.log(playbackData.mediaForNewComment);
 
-        //if there was a comment, some selected text, or at least one media file
-        if (commentText || selectedText || commentImages.length || commentVideos.length || commentAudios.length)
+        //if there was a comment, or at least one media file
+        if (commentText || commentImages.length || commentVideos.length || commentAudios.length)
         {
             //get the event to playback this comment
             let eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
             let commentEvent = playbackData.events[eventIndex];
+
+            // //store the media in the order specified by the user
+            // if (!playbackData.orderedMedia[commentEvent.id]){
+            //     playbackData.orderedMedia[commentEvent.id] = [];
+            // }
+            // let sortedMediaComment = {
+            //     commentText,
+            //     mediaURLs: mediaInOrder
+            // };
+            // playbackData.orderedMedia[commentEvent.id].push(sortedMediaComment);
+     
+            
 
             //create an object that has all of the comment info
             const comment = {
