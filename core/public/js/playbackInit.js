@@ -34,14 +34,7 @@ async function InitializePlayback()
         initImageGallery();
     } catch(err) {
         console.log(`Error retrieving data`);
-    }
-
-    //limits the movement of sortable items to the y access
-    $('.sort').sortable({        
-        axis: "y",
-        cursor: 'move'
-      });
- 
+    } 
 }
 
 
@@ -82,12 +75,8 @@ function AddEventListeners()
 
 
 
-    document.querySelector("#addCommentButton").addEventListener("click", event =>{        
-        
-        //get all media from the preview window in the proper order
-        let mediaInOrder = $("#commentPreview").sortable('toArray');
-
-        var textCommentTextArea = document.querySelector("#textCommentTextArea");
+    document.querySelector("#addCommentButton").addEventListener("click", event =>{       
+         var textCommentTextArea = document.querySelector("#textCommentTextArea");
 
         //get all text from the comment text box
         const commentText = textCommentTextArea.value.trim();
@@ -125,15 +114,15 @@ function AddEventListeners()
             var eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
             var commentEvent = playbackData.events[eventIndex];
 
-            //store the media in the order specified by the user
-            if (!playbackData.orderedMedia[commentEvent.id]){
-                playbackData.orderedMedia[commentEvent.id] = [];
-            }
-            let sortedMediaComment = {
-                commentText,
-                mediaURLs: mediaInOrder
-            };
-            playbackData.orderedMedia[commentEvent.id].push(sortedMediaComment);
+            // //store the media in the order specified by the user
+            // if (!playbackData.orderedMedia[commentEvent.id]){
+            //     playbackData.orderedMedia[commentEvent.id] = [];
+            // }
+            // let sortedMediaComment = {
+            //     commentText,
+            //     mediaURLs: mediaInOrder
+            // };
+            // playbackData.orderedMedia[commentEvent.id].push(sortedMediaComment);
      
             
 

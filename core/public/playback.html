@@ -43,7 +43,11 @@
                                 placeholder="Select some text and add a comment at this point in the playback."></textarea>
                         </div>
                         <!-- change this name -->
-                        <div class='sort' id="commentPreview"></div>
+                        <div id="commentPreview">
+                            <div class="image-preview" style="display:none;"></div>
+                            <div class="video-preview commentBox border hidden" style="display:none;"><h5>Videos</h5></div>
+                            <div class="audio-preview commentBox border hidden" style="display:none;"><h5>Audios</h5></div>
+                        </div>
                         <button id="addMediaButton" class="btn btn-light">Add Media to Comment</button>
                         <button id="addCommentButton" class="btn btn-success">Add Comment</button>
                     </div>

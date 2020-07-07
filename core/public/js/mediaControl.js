@@ -39,8 +39,6 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
     const selectedVideoElements = document.getElementsByClassName('mediaVideoCard mediaSelected');
     const selectedAudioElements = document.getElementsByClassName('mediaAudioCard mediaSelected');
 
-    const previewPanel = document.getElementById("commentPreview");  
-
     //adds the selected media to the comment preview and removes the media selected class
     while(selectedImageElements[0]) {
         //create the preview cards and add them to the preview div
@@ -55,16 +53,19 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
     }
     while(selectedVideoElements[0]) {
 
+        const videoPreviewDiv = $(".video-preview")[0];
+        $("div.video-preview").show();
+
         const src = selectedVideoElements[0].children[0].children[0].getAttribute('src');
 
         //create the preview cards and add them to the preview div
         let videoCard = createMediaControllerCommentVideoUI(src , false, false); 
 
         //add cancel button to the top of the preview card
-        addCancelButtonToCard(videoCard, src, playbackData.mediaForNewComment[1]);
+        addCancelButtonToCard(videoCard, src, playbackData.mediaForNewComment[1], videoPreviewDiv);
 
         //add the preview to the div
-        previewPanel.appendChild(videoCard);
+        videoPreviewDiv.appendChild(videoCard);
 
         //store the url
          playbackData.mediaForNewComment[1].push(src);
@@ -73,15 +74,18 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         selectedVideoElements[0].classList.remove('mediaSelected');
     }
     while(selectedAudioElements[0]) {
+        const audioPreviewDiv = $(".audio-preview")[0];
+        $("div.audio-preview").show();
+
         const src = selectedAudioElements[0].children[0].children[0].getAttribute('src');
 
         //create the preview cards and add them to the preview div
         let audioCard = createMediaControllerCommentAudioUI(src, false, false);
 
         //add cancel button to the top of the preview card
-        addCancelButtonToCard(audioCard, src, playbackData.mediaForNewComment[2]);
+        addCancelButtonToCard(audioCard, src, playbackData.mediaForNewComment[2], audioPreviewDiv);
 
-        previewPanel.appendChild(audioCard);
+        audioPreviewDiv.appendChild(audioCard);
 
         //store the url
         playbackData.mediaForNewComment[2].push(src);
@@ -94,7 +98,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
     $('#mediaControlModal').modal('hide');
 });
 
-function addCancelButtonToCard(card, src, folder){
+function addCancelButtonToCard(card, src, folderToDeleteFrom, panelToDeleteFrom){
     const previewPanel = document.getElementById("commentPreview");
 
     let button = document.createElement("button");
@@ -105,9 +109,26 @@ function addCancelButtonToCard(card, src, folder){
     button.setAttribute('title',"Remove media from comment");
     //removes the selected media from the preview and from the stored list of selected media
     button.addEventListener("click",event =>{
-        previewPanel.removeChild(card);
-        const index = folder.indexOf(src);
-        folder.splice(index, 1);
+        panelToDeleteFrom.removeChild(card);
+
+        //hides the div if there are none of the media type left
+        if (panelToDeleteFrom.classList.contains('hidden')){
+            let nodesLeft = false;
+            let panelChildren = panelToDeleteFrom.children;
+            
+            for (let i = 0; i < panelChildren.length; i++){
+                if (panelChildren[i].classList.contains('card')){
+                    nodesLeft = true;
+                    break;
+                }
+            }
+            if (!nodesLeft){
+                panelToDeleteFrom.style.display = 'none';
+            }
+        }
+
+        const index = folderToDeleteFrom.indexOf(src);
+        folderToDeleteFrom.splice(index, 1);
     });
     card.firstChild.append(button);
 }
