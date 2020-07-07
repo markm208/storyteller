@@ -44,7 +44,7 @@
                         </div>
                         <!-- change this name -->
                         <div id="commentPreview">
-                            <div class="image-preview" style="display:none;"></div>
+                            <div class="image-preview commentBox border hidden" style="display:none;"><h5>Images</h5></div>
                             <div class="video-preview commentBox border hidden" style="display:none;"><h5>Videos</h5></div>
                             <div class="audio-preview commentBox border hidden" style="display:none;"><h5>Audios</h5></div>
                         </div>
@@ -176,10 +176,7 @@
             //holds the currently viewed fileId
             currentFileId: null,
             //the position of the event to play next in the forward direction
-            nextEventPosition: 0,
-            //all media in the order they were added to the comment
-            orderedMedia: {}
-    
+            nextEventPosition: 0,   
         };
 
         let editor = createAceEditor('playbackWindow', '','' );    

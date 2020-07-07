@@ -75,14 +75,9 @@ function setupEventListeners()
 
 
 
-<<<<<<< HEAD
-    document.querySelector("#addCommentButton").addEventListener("click", event =>{       
-         var textCommentTextArea = document.querySelector("#textCommentTextArea");
-=======
     document.querySelector('#addCommentButton').addEventListener('click', event =>{        
         
         const textCommentTextArea = document.querySelector('#textCommentTextArea');
->>>>>>> 47fd7af48e912401b5642ba96ab04af0578c44dd
 
         //get all text from the comment text box
         const commentText = textCommentTextArea.value.trim();
@@ -164,7 +159,12 @@ function setupEventListeners()
             playbackData.mediaForNewComment = [[],[],[]];
 
             //reset the comment previews
-            document.getElementById('commentPreview').innerHTML = '';
+            $('.audio-preview')[0].style.display='none';
+            $('.audio-preview')[0].innerHTML = '';
+            $('.video-preview')[0].style.display='none';
+            $('.video-preview')[0].innerHTML = '';
+            $('.image-preview')[0].style.display='none';
+            $('.image-preview')[0].innerHTML = '';
         }
     });
 

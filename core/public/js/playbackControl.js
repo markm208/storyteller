@@ -118,19 +118,14 @@ function displayAllComments(){
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
     //convert all string keys into numbers for proper sorting of comment sequence
-<<<<<<< HEAD
-    var keysArray = Object.keys(playbackData.orderedMedia);    
-=======
     let keysArray = Object.keys(playbackData.comments);    
->>>>>>> 47fd7af48e912401b5642ba96ab04af0578c44dd
     for (let i = 0; i < keysArray.length; i++){
         keysArray[i] = Number(keysArray[i].slice(3));
     }
 
     //sort by interger key and add each comment to the commentsDiv
     keysArray.sort((a,b)=> a - b).forEach(function(key){
-<<<<<<< HEAD
-        let commentBlock = playbackData.orderedMedia[`ev-${key}`];
+        let commentBlock = playbackData.comments[`ev-${key}`];
         const commentDiv = document.createElement('div');
         
         for (let i = 0; i < commentBlock.length; i++){
@@ -154,72 +149,37 @@ function displayAllComments(){
                 
             let cardFinal = document.createElement('div');
             cardFinal.classList.add('card', 'text-center');
+            let temp;
 
-            for (let k = 0; k < commentObject.mediaURLs.length; k++){
-                const strippedSrc = commentObject.mediaURLs[k].replace('/media/', '');
-                const mediaType = strippedSrc.substring(0,strippedSrc.indexOf('/'));
+            for (let j = 0; j < commentObject.imageURLs.length; j++){
+                temp = createMediaControllerCommentImageUI(commentObject.imageURLs[j], false, false);  
+                //add next media
+                cardFinal.append(temp);
+            }
 
-                let temp;
-                switch (mediaType) {
-                    case "audios":
-                        temp = createMediaControllerCommentAudioUI(commentObject.mediaURLs[k], false, false);  
-                        break;
-                    case "videos":
-                        temp= createMediaControllerCommentVideoUI(commentObject.mediaURLs[k], false, false);                           
-                        break;   
-                    default:
-                        break;
-                }               
+            for (let j = 0; j < commentObject.videoURLs.length; j++){
+                temp = createMediaControllerCommentVideoUI(commentObject.videoURLs[j], false, false);       
                 //add next media
                 cardFinal.append(temp.firstChild);
 
                 //file names added invisible in case we later want to see them when editing
                 temp.lastChild.style.display ='none';
-                cardFinal.append(temp.lastChild);
-=======
-        let commentBlock = playbackData.comments[`ev-${key}`];
-        const eventGroupDiv = document.createElement('div');
-        eventGroupDiv.classList.add('border');
-        eventGroupDiv.classList.add('commentBox');
-
-        //add a tick mark to the slider for the comment group
-        const tickmarkObject = document.getElementById('tickmarks');
-        const newTick = document.createElement('option');
-        newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
-        newTick.classList.add('ui-slider-tick-mark');
-        tickmarkObject.appendChild(newTick);
-        //console.log(commentBlock[0].eventSequenceNumber);
-
-        let subId = 0;
-        for (let j = 0; j < commentBlock.length; j++){
-            const newCommentHTML = document.createElement('div');
-            const formatElement = document.createElement('p');
-            formatElement.innerHTML = commentBlock[j].commentText;
-            newCommentHTML.classList.add('border');
-            newCommentHTML.classList.add('commentBox');
-            formatElement.classList.add('border');
-            formatElement.classList.add('commentBox');
-
-            newCommentHTML.appendChild(formatElement);
-
-            for (let m = 0; m < commentBlock[j].imageURLs.length; m++)
-            {
-                let imageTag = document.createElement('img');
-
-                imageTag.src = commentBlock[j].imageURLs[m];
-                imageTag.width = 200;
-                imageTag.height = 200;
-
-                imageTag.classList.add('border');
-                imageTag.classList.add('commentBox');
->>>>>>> 47fd7af48e912401b5642ba96ab04af0578c44dd
-
+                cardFinal.append(temp.lastChild);     
             }
+
+            for (let j = 0; j < commentObject.audioURLs.length; j++){
+                temp = createMediaControllerCommentAudioUI(commentObject.audioURLs[j], false, false); 
+                cardFinal.append(temp.firstChild);
+
+                //file names added invisible in case we later want to see them when editing
+                temp.lastChild.style.display ='none';
+                cardFinal.append(temp.lastChild);  
+            }
+
             cardFinal.prepend(textAreaHeader);
             const finalDiv = document.createElement('div');
             finalDiv.classList.add('commentBox','border');
 
-<<<<<<< HEAD
             let comment = playbackData.comments[`ev-${key}`][i];
             finalDiv.addEventListener('click', function(e) {
                 step(comment.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); //TODO should this be +1?
@@ -228,17 +188,6 @@ function displayAllComments(){
                     addHighlight(comment.selectedCodeBlocks[j].startRow, comment.selectedCodeBlocks[j].startColumn, comment.selectedCodeBlocks[j].endRow, comment.selectedCodeBlocks[j].endColumn);
                 }
             });
-=======
-            for (let m = 0; m < commentBlock[j].videoURLs.length; m++)
-            {
-                let videoTag = document.createElement('video');
-                //Extract the file extension from the input file
-                const fileExtension = commentBlock[j].videoURLs[m].split('.').pop().toLowerCase();
-                const MIMEtype = createMimeString(fileExtension);
-                
-                videoTag.controls = true;
-                videoTag.classList.add('mediaVideo');
->>>>>>> 47fd7af48e912401b5642ba96ab04af0578c44dd
 
             finalDiv.append(cardFinal);
             commentsDiv.append(finalDiv);
@@ -247,30 +196,7 @@ function displayAllComments(){
         // cardBody.classList.add('card-body');
 
 
-<<<<<<< HEAD
         // playbackData.orderedMedia[`ev-${key}`].mediaURLs.pop();
-=======
-            for (let m = 0; m < commentBlock[j].audioURLs.length; m++)
-            {
-                let audioTag = document.createElement('audio');
-                //Extract the file extension from the input file
-                const fileExtension = commentBlock[j].audioURLs[m].split('.').pop().toLowerCase();
-                const MIMEtype = createMimeString(fileExtension);
-
-                audioTag.controls = true;
-                audioTag.style.width = '200px';
-                audioTag.classList.add('border');
-                audioTag.classList.add('commentBox');
-                audioTag.classList.add('mediaAudio');
-
-                let audioSource = document.createElement('source');
-                audioSource.src = commentBlock[j].audioURLs[m];
-                audioSource.type = MIMEtype;
-
-                audioTag.appendChild(audioSource);
-                newCommentHTML.appendChild(audioTag);
-            }
->>>>>>> 47fd7af48e912401b5642ba96ab04af0578c44dd
 
         // let test2 = playbackData.orderedMedia[`ev-${key}`];
         // cardBody.append(textArea);

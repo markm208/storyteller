@@ -32,6 +32,14 @@
     width: 23.9vw;
 }
 
+.comment-text {
+    resize: none;
+    white-space: normal;
+    text-align: justify;
+    -moz-text-align-last: center; 
+    text-align-last: center;
+}
+
 .commentWindow{
     width: 20vw;
 }

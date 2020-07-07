@@ -41,12 +41,17 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
 
     //adds the selected media to the comment preview and removes the media selected class
     while(selectedImageElements[0]) {
+        const imagePreviewDiv = $(".image-preview")[0];
+        $("div.image-preview").show();
+
+        const src = selectedImageElements[0].getAttribute('src');
+
         //create the preview cards and add them to the preview div
-        let imageCard = createMediaControllerCommentImageUI(selectedImageElements[0].getAttribute('src') , false);
-        previewPanel.appendChild(imageCard);
+        let imageCard = createMediaControllerCommentImageUI(src , false);
+        imagePreviewDiv.appendChild(imageCard);
 
         //store the url
-        selectedImageURLs.push(selectedImageElements[0].getAttribute('src'));
+        playbackData.mediaForNewComment[0].push(src);
 
         //clear out the selected media class
         selectedImageElements[0].classList.remove('mediaSelected');
@@ -68,14 +73,14 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         videoPreviewDiv.appendChild(videoCard);
 
         //store the url
-         playbackData.mediaForNewComment[1].push(src);
+        playbackData.mediaForNewComment[1].push(src);
 
         //clear out the selected media class
         selectedVideoElements[0].classList.remove('mediaSelected');
     }
     while(selectedAudioElements[0]) {
-        const audioPreviewDiv = $(".audio-preview")[0];
-        $("div.audio-preview").show();
+         let audioPreviewDiv = $(".audio-preview")[0];
+         $("div.audio-preview").show();
 
         const src = selectedAudioElements[0].children[0].children[0].getAttribute('src');
 
