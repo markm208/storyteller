@@ -1,12 +1,12 @@
 //On insert event, insert the new character into the Ace editor at the correct position
 function insertEvent(nextEvent){
     //If the character is not a '\n' or '\r' 
-    if(nextEvent.character.length == 1){
+    if(nextEvent.character.length === 1){
         //get the Ace editor that the insert will go into and insert at the row/column of the event
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, nextEvent.character);
     }    
     //If the character is a '\n', insert a new line 
-    else if (nextEvent.character == 'NEWLINE'){
+    else if (nextEvent.character === 'NEWLINE'){
         //get the Ace editor the new line will go into and insert at the row/column of the event
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, '\n');
     }                       
@@ -14,12 +14,12 @@ function insertEvent(nextEvent){
 
 //On delete event, delete the character from the Ace editor at the correct position
 function deleteEvent(nextEvent){
-    if (nextEvent.character == 'NEWLINE'){
+    if (nextEvent.character === 'NEWLINE'){
         //create a new Range from the end of the starting line to the beginning of the next line
         //remove characters in that range from the Ace editor
         playbackData.editors[nextEvent.fileId].getSession().remove(new Range(nextEvent.lineNumber-1, nextEvent.column-1,nextEvent.lineNumber, 0));
     }
-    else if (nextEvent.character.length == 1){
+    else if (nextEvent.character.length === 1){
         //create a new Range from the index of the character to the index + 1
         //remove takes a range with an inclusive start and non-inclusive end
         //remove that range from the Ace editor
@@ -35,7 +35,7 @@ function createFileEvent(nextEvent){
     
     //if this event is the first create file event encountered
     //there is no need to create a new tab or Ace editor because the page is created with one
-    if (playbackData.numFilesCreated == 0)
+    if (playbackData.numFilesCreated === 0)
     {        
         //sets the Ace editor to the correct mode based on the language of the file
         setEditorMode(editor, nextEvent.filePath);
@@ -166,7 +166,7 @@ function addFocusToTab(tabToFocus, content)
 
 
    
-    var tabClickEvent = new MouseEvent('click',{
+    const tabClickEvent = new MouseEvent('click',{
 
     });
     tabToFocus.dispatchEvent(tabClickEvent);

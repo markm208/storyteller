@@ -410,7 +410,7 @@ async function deleteSelectedAudios() {
 function createMimeString(fileExt)
 {
     //Instantiate the string to be returned
-    var mimeType;
+    let mimeType;
 
     //create the correct string depending on the file extension
     switch (fileExt)

@@ -75,8 +75,14 @@ function setupEventListeners()
 
 
 
+<<<<<<< HEAD
     document.querySelector("#addCommentButton").addEventListener("click", event =>{       
          var textCommentTextArea = document.querySelector("#textCommentTextArea");
+=======
+    document.querySelector('#addCommentButton').addEventListener('click', event =>{        
+        
+        const textCommentTextArea = document.querySelector('#textCommentTextArea');
+>>>>>>> 47fd7af48e912401b5642ba96ab04af0578c44dd
 
         //get all text from the comment text box
         const commentText = textCommentTextArea.value.trim();
@@ -86,9 +92,9 @@ function setupEventListeners()
         //builds an array of ranges if any text was selected
         const ranges = selectedText ? editor.getSession().getSelection().getAllRanges() : [];
 
-        var rangeArray = [];
+        let rangeArray = [];
         for (let i = 0; i < ranges.length; i++){
-            var rangeObj = {};
+            let rangeObj = {};
             rangeObj.startRow = ranges[i].start.row
             rangeObj.startColumn = ranges[i].start.column;
             rangeObj.endRow = ranges[i].end.row;
@@ -111,8 +117,8 @@ function setupEventListeners()
         if (commentText || commentImages.length || commentVideos.length || commentAudios.length)
         {
             //get the event to playback this comment
-            var eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
-            var commentEvent = playbackData.events[eventIndex];
+            let eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
+            let commentEvent = playbackData.events[eventIndex];
 
             // //store the media in the order specified by the user
             // if (!playbackData.orderedMedia[commentEvent.id]){
@@ -127,7 +133,7 @@ function setupEventListeners()
             
 
             //create an object that has all of the comment info
-            var comment = {
+            const comment = {
                 commentText,
                 timestamp: new Date().getTime(),
                 displayCommentEvent: commentEvent,
@@ -172,7 +178,7 @@ function setupEventListeners()
     //detects key presses 
     document.addEventListener('keydown', function(e){    
 
-        if (e.target.id == 'textCommentTextArea'){
+        if (e.target.id === 'textCommentTextArea'){
             //prevent keyboard presses within the comment textbox from triggering actions 
             return;
         }
@@ -180,23 +186,23 @@ function setupEventListeners()
         let keyPressed = e.key;
         let shiftPressed = e.shiftKey;
        
-        if (keyPressed == 'ArrowRight'){
+        if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
             {
                 step(1);
             }
         }
-        else if (keyPressed == 'ArrowLeft'){
+        else if (keyPressed === 'ArrowLeft'){
             if (!shiftPressed)
             {
                 step(-1);
             }
         }
-        else if (keyPressed == '>')
+        else if (keyPressed === '>')
         {
             playPauseButton.click();
         }
-        else if (keyPressed == '<')
+        else if (keyPressed === '<')
         {
             //find next event that has a comment
             let targetEvent = -1;
@@ -206,7 +212,7 @@ function setupEventListeners()
                 
                 for (let j = 0; j < commentPositions.length; j++)
                 {
-                    if (playbackData.events[i].id == commentPositions[j])
+                    if (playbackData.events[i].id === commentPositions[j])
                     {
                         targetEvent = playbackData.events[i].id;
                         break;
@@ -226,7 +232,7 @@ function setupEventListeners()
             }
             else{
 
-                var commentClickEvent = new MouseEvent('click',{
+                const commentClickEvent = new MouseEvent('click',{
 
                 });
                 let commentToLoad = document.getElementById(`${targetEvent}-0`);
@@ -237,7 +243,7 @@ function setupEventListeners()
         }
     });
 
-    var playPauseInterval = null;
+    const playPauseInterval = null;
     playPauseButton.addEventListener('click', event =>{
         //find next event that has a comment
         let targetEvent = -1;
@@ -247,7 +253,7 @@ function setupEventListeners()
             
             for (let j = 0; j < commentPositions.length; j++)
             {
-                if (playbackData.events[i].id == commentPositions[j])
+                if (playbackData.events[i].id === commentPositions[j])
                 {
                     targetEvent = playbackData.events[i].id;
                     break;
@@ -267,7 +273,7 @@ function setupEventListeners()
         }
         else{
 
-            var commentClickEvent = new MouseEvent('click',{
+            const commentClickEvent = new MouseEvent('click',{
 
             });
             let commentToLoad = document.getElementById(`${targetEvent}-0`);
@@ -302,14 +308,14 @@ async function sendCommentToServer(comment){
 }
 
 function doDrag(e){    
-    var wrapper = handler.closest('.wrapper');
-    var boxA = wrapper.querySelector('.box');
+    const wrapper = handler.closest('.wrapper');
+    const boxA = wrapper.querySelector('.box');
 
     // Get offset
-    var containerOffsetLeft = wrapper.offsetLeft;
+    const containerOffsetLeft = wrapper.offsetLeft;
     
     // Get x-coordinate of pointer relative to container
-    var pointerRelativeXpos = e.clientX - containerOffsetLeft;
+    let pointerRelativeXpos = e.clientX - containerOffsetLeft;
 
     if (pointerRelativeXpos > screen.width * .1 && pointerRelativeXpos < screen.width * .75) {        
         boxA.style.width = e.pageX + 'px';
