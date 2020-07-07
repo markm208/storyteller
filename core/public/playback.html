@@ -175,23 +175,23 @@
             nextEventPosition: 0
         };
 
-        var editor = CreateAceEditor("playbackWindow", "","" );    
+        var editor = createAceEditor('playbackWindow', '','' );    
 
         //import the Range type from ace (don't use the built in browser Range type)
         const Range = ace.require('ace/range').Range;
 
         //stores the currently active tab and content-pane,
         //this is used to automatically change focus when new tabs are created
-        var currentActiveTab = document.getElementById("FirstTabLabel");
-        var currentActiveContent = document.getElementById("Playback");
+        var currentActiveTab = document.getElementById('FirstTabLabel');
+        var currentActiveContent = document.getElementById('Playback');
 
-        var commentsDiv = document.getElementById("ViewCommentPanel");
+        var commentsDiv = document.getElementById('ViewCommentPanel');
 
         //indicates whether the change can from the textarea not editing in ace
         let changeOutsideEditor = false;
 
-        document.addEventListener("DOMContentLoaded", event => {
-          InitializePlayback();     
+        document.addEventListener('DOMContentLoaded', event => {
+          initializePlayback();     
         });
 
 

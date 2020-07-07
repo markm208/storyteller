@@ -4,7 +4,7 @@
 
 //We can use classes here instead of plain functions
 
-async function InitializePlayback()
+async function initializePlayback()
 {
     try {
         const playbackInfo = await Promise.all([
@@ -28,7 +28,7 @@ async function InitializePlayback()
 
         console.log(playbackData.comments);
         playbackData.numEvents = playbackData.events.length;
-        AddEventListeners();
+        setupEventListeners();
 
         //grab any existing media from the server and display it in the media control modal
         initImageGallery();
@@ -39,34 +39,34 @@ async function InitializePlayback()
 }
 
 
-function AddEventListeners()
+function setupEventListeners()
 {
     //get the controls
-    const stepBackOne = document.getElementById("stepBackOne");
-    const stepForwardOne = document.getElementById("stepForwardOne");
-    const playbackSlider = document.getElementById("playbackSlider");
-    const playPauseButton = document.getElementById("playPauseButton");
+    const stepBackOne = document.getElementById('stepBackOne');
+    const stepForwardOne = document.getElementById('stepForwardOne');
+    const playbackSlider = document.getElementById('playbackSlider');
+    const playPauseButton = document.getElementById('playPauseButton');
 
 
     //Get references to the tabs and where the tabs get their content
-    const tabsList = document.getElementById("tabsList");
-    const tabContent = document.getElementById("tabContent");
+    const tabsList = document.getElementById('tabsList');
+    const tabContent = document.getElementById('tabContent');
 
-    playbackSlider.setAttribute("max", playbackData.numEvents);
+    playbackSlider.setAttribute('max', playbackData.numEvents);
     
     //add event handlers for clicking the buttons
-    stepBackOne.addEventListener("click", event => {
+    stepBackOne.addEventListener('click', event => {
         step(-1);
     });
 
-    stepForwardOne.addEventListener("click", event => {
+    stepForwardOne.addEventListener('click', event => {
         step(1);
     });
 
 
 
     //add event handler to listen for changes to the slider
-    playbackSlider.addEventListener("input", event => {
+    playbackSlider.addEventListener('input', event => {
         //DEBUG
         // console.log(`slide: ${playbackSlider.value}`);
         
@@ -76,9 +76,9 @@ function AddEventListeners()
 
 
 
-    document.querySelector("#addCommentButton").addEventListener("click", event =>{        
+    document.querySelector('#addCommentButton').addEventListener('click', event =>{        
         
-        var textCommentTextArea = document.querySelector("#textCommentTextArea");
+        var textCommentTextArea = document.querySelector('#textCommentTextArea');
 
         //get all text from the comment text box
         const commentText = textCommentTextArea.value.trim();
@@ -137,7 +137,7 @@ function AddEventListeners()
             playbackData.comments[commentEvent.id].push(comment);
             
             //clear out the text area
-            textCommentTextArea.value = "";
+            textCommentTextArea.value = '';
         
             sendCommentToServer(comment);        
 
@@ -148,11 +148,11 @@ function AddEventListeners()
             playbackData.mediaForNewComment = [[],[],[]];
 
             //reset the comment previews
-            document.getElementById("commentPreview").innerHTML = "";
+            document.getElementById('commentPreview').innerHTML = '';
         }
     });
 
-    document.getElementById("handler").addEventListener('mousedown', function (e){  
+    document.getElementById('handler').addEventListener('mousedown', function (e){  
         //add listeners for moving and releasing the drag and disable selection of text  
         window.addEventListener('selectstart', disableSelect);
         document.documentElement.addEventListener('mousemove', doDrag, false);
@@ -162,7 +162,7 @@ function AddEventListeners()
     //detects key presses 
     document.addEventListener('keydown', function(e){    
 
-        if (e.target.id == "textCommentTextArea"){
+        if (e.target.id == 'textCommentTextArea'){
             //prevent keyboard presses within the comment textbox from triggering actions 
             return;
         }
@@ -170,23 +170,23 @@ function AddEventListeners()
         let keyPressed = e.key;
         let shiftPressed = e.shiftKey;
        
-        if (keyPressed == "ArrowRight"){
+        if (keyPressed == 'ArrowRight'){
             if (!shiftPressed)
             {
                 step(1);
             }
         }
-        else if (keyPressed == "ArrowLeft"){
+        else if (keyPressed == 'ArrowLeft'){
             if (!shiftPressed)
             {
                 step(-1);
             }
         }
-        else if (keyPressed == ">")
+        else if (keyPressed == '>')
         {
             playPauseButton.click();
         }
-        else if (keyPressed == "<")
+        else if (keyPressed == '<')
         {
             //find next event that has a comment
             let targetEvent = -1;
@@ -216,7 +216,7 @@ function AddEventListeners()
             }
             else{
 
-                var commentClickEvent = new MouseEvent("click",{
+                var commentClickEvent = new MouseEvent('click',{
 
                 });
                 let commentToLoad = document.getElementById(`${targetEvent}-0`);
@@ -228,7 +228,7 @@ function AddEventListeners()
     });
 
     var playPauseInterval = null;
-    playPauseButton.addEventListener("click", event =>{
+    playPauseButton.addEventListener('click', event =>{
         //find next event that has a comment
         let targetEvent = -1;
         let commentPositions = Object.keys(playbackData.comments);
@@ -257,7 +257,7 @@ function AddEventListeners()
         }
         else{
 
-            var commentClickEvent = new MouseEvent("click",{
+            var commentClickEvent = new MouseEvent('click',{
 
             });
             let commentToLoad = document.getElementById(`${targetEvent}-0`);
@@ -271,23 +271,23 @@ function AddEventListeners()
 async function sendCommentToServer(comment){
     try {
         const fetchConfigData = {
-            method: "POST",
+            method: 'POST',
             body: JSON.stringify(comment), 
             headers: {
-                "Content-Type": "application/json"
+                'Content-Type': 'application/json'
             }
         };
-        const response = await fetch("/comment", fetchConfigData);
+        const response = await fetch('/comment', fetchConfigData);
 
         //check the response
         if(response.ok) {
-           console.log("Success");
+           console.log('Success');
         } else {
-            console.log("Error with the response data");
+            console.log('Error with the response data');
         }
         
     } catch (error) {
-        console.log("Error with the POST");
+        console.log('Error with the POST');
     }    
 }
 
@@ -304,7 +304,7 @@ function doDrag(e){
     if (pointerRelativeXpos > screen.width * .1 && pointerRelativeXpos < screen.width * .75) {        
         boxA.style.width = e.pageX + 'px';
         boxA.style.flexGrow = 0;
-        $('#codePanel').css("width", screen.width - pointerRelativeXpos);
+        $('#codePanel').css('width', screen.width - pointerRelativeXpos);
         commentsDiv.style.width = e.pageX + 'px';
     }
 }

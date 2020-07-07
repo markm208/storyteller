@@ -39,7 +39,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
     const selectedVideoElements = document.getElementsByClassName('mediaVideoCard mediaSelected');
     const selectedAudioElements = document.getElementsByClassName('mediaAudioCard mediaSelected');
 
-    const previewPanel = document.getElementById("commentPreview");  
+    const previewPanel = document.getElementById('commentPreview');  
 
     //adds the selected media to the comment preview and removes the media selected class
     while(selectedImageElements[0]) {
@@ -95,15 +95,15 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
 });
 
 function addCancelButtonToCard(card, src, folder){
-    const previewPanel = document.getElementById("commentPreview");
+    const previewPanel = document.getElementById('commentPreview');
 
-    let button = document.createElement("button");
-    button.classList.add("close");
-    button.setAttribute("aria-label", "close");
-    button.innerHTML ="&times;";
+    let button = document.createElement('button');
+    button.classList.add('close');
+    button.setAttribute('aria-label', 'close');
+    button.innerHTML ='&times;';
     button.style.color = 'red';
-    button.setAttribute('title',"Remove media from comment");
-    button.addEventListener("click",event =>{
+    button.setAttribute('title','Remove media from comment');
+    button.addEventListener('click',event =>{
         //removes the selected media from the preview and from the stored list of selected media
         previewPanel.removeChild(card);
         const index = folder.indexOf(src);
@@ -139,10 +139,10 @@ document.getElementById('addImageButton').addEventListener('change', async event
 
         //post to the server
         const fetchConfigData = {
-            method: "POST",
+            method: 'POST',
             body: formData, 
         };
-        const response = await fetch("/newMedia/image", fetchConfigData);
+        const response = await fetch('/newMedia/image', fetchConfigData);
     
         //check the response
         if(response.ok) {
@@ -151,10 +151,10 @@ document.getElementById('addImageButton').addEventListener('change', async event
             //add the new images to the gallery
             addImagesToGallery(imageInfo.filePaths, true);
         } else {
-            console.log("Error with the response data");
+            console.log('Error with the response data');
         }
     } catch(error) {
-        console.log("Error with request");
+        console.log('Error with request');
     }
 });
 
@@ -176,10 +176,10 @@ document.getElementById('addVideoButton').addEventListener('change', async event
 
         //post to the server
         const fetchConfigData = {
-            method: "POST",
+            method: 'POST',
             body: formData, 
         };
-        const response = await fetch("/newMedia/video", fetchConfigData);
+        const response = await fetch('/newMedia/video', fetchConfigData);
     
         //check the response
         if(response.ok) {
@@ -188,10 +188,10 @@ document.getElementById('addVideoButton').addEventListener('change', async event
             //add the new videos to the gallery
             addVideosToGallery(videoInfo.filePaths, true);
         } else {
-            console.log("Error with the response data");
+            console.log('Error with the response data');
         }
     } catch(error) {
-        console.log("Error with request");
+        console.log('Error with request');
     }
 });
 
@@ -213,10 +213,10 @@ document.getElementById('addAudioButton').addEventListener('change', async event
 
         //post to the server
         const fetchConfigData = {
-            method: "POST",
+            method: 'POST',
             body: formData, 
         };
-        const response = await fetch("/newMedia/audio", fetchConfigData);
+        const response = await fetch('/newMedia/audio', fetchConfigData);
     
         //check the response
         if(response.ok) {
@@ -225,10 +225,10 @@ document.getElementById('addAudioButton').addEventListener('change', async event
             //add the new audios to the gallery
             addAudiosToGallery(audioInfo.filePaths, true);
         } else {
-            console.log("Error with the response data");
+            console.log('Error with the response data');
         }
     } catch(error) {
-        console.log("Error with request");
+        console.log('Error with request');
     }
 });
 
@@ -289,13 +289,13 @@ async function deleteSelectedImages() {
 
         //delete to the server
         const fetchConfigData = {
-            method: "DELETE",
+            method: 'DELETE',
             body: JSON.stringify(filePaths), 
             headers: {
-                "Content-Type": "application/json"
+                'Content-Type': 'application/json'
             }
         };
-        const response = await fetch("/newMedia/image", fetchConfigData);
+        const response = await fetch('/newMedia/image', fetchConfigData);
 
         //check the response
         if(response.ok) {
@@ -304,7 +304,7 @@ async function deleteSelectedImages() {
                 selectedImages[0].parentNode.removeChild(selectedImages[0]);
             }
         } else {
-            console.log("Error with the response data");
+            console.log('Error with the response data');
         }
     } catch(error) {
         console.log(error);
@@ -326,13 +326,13 @@ async function deleteSelectedVideos() {
 
         //delete to the server
         const fetchConfigData = {
-            method: "DELETE",
+            method: 'DELETE',
             body: JSON.stringify(filePaths), 
             headers: {
-                "Content-Type": "application/json"
+                'Content-Type': 'application/json'
             }
         };
-        const response = await fetch("/newMedia/video", fetchConfigData);
+        const response = await fetch('/newMedia/video', fetchConfigData);
 
         //check the response
         if(response.ok) {
@@ -341,7 +341,7 @@ async function deleteSelectedVideos() {
                 selectedVideos[0].parentNode.removeChild(selectedVideos[0]);
             }
         } else {
-            console.log("Error with the response data");
+            console.log('Error with the response data');
         }
     } catch(error) {
         console.log(error);
@@ -363,13 +363,13 @@ async function deleteSelectedAudios() {
 
         //delete to the server
         const fetchConfigData = {
-            method: "DELETE",
+            method: 'DELETE',
             body: JSON.stringify(filePaths), 
             headers: {
-                "Content-Type": "application/json"
+                'Content-Type': 'application/json'
             }
         };
-        const response = await fetch("/newMedia/audio", fetchConfigData);
+        const response = await fetch('/newMedia/audio', fetchConfigData);
 
         //check the response
         if(response.ok) {
@@ -378,7 +378,7 @@ async function deleteSelectedAudios() {
                 selectedAudios[0].parentNode.removeChild(selectedAudios[0]);
             }
         } else {
-            console.log("Error with the response data");
+            console.log('Error with the response data');
         }
     } catch(error) {
         console.log(error);
@@ -395,34 +395,34 @@ function createMimeString(fileExt)
     switch (fileExt)
     {
         // Video Formats
-        case "mp4":
-            mimeType = "video/mp4";
+        case 'mp4':
+            mimeType = 'video/mp4';
             break;
 
-        case "mov":
-            mimeType = "video/quicktime";
+        case 'mov':
+            mimeType = 'video/quicktime';
             break;
 
-        case "flv":
-            mimeType = "video/x-flv";
+        case 'flv':
+            mimeType = 'video/x-flv';
             break;
 
-        case "avi":
-            mimeType = "video/x-msvideo";
+        case 'avi':
+            mimeType = 'video/x-msvideo';
             break;
 
         //Audio Formats
-        case "mp3":
-            mimeType = "audio/mp3";
+        case 'mp3':
+            mimeType = 'audio/mp3';
             break;
 
-        case "wav":
-            mimeType = "audio/wav";
+        case 'wav':
+            mimeType = 'audio/wav';
             break;
 
         // If no matching file extension was found throw an error
         default:
-            console.log("Error creating MIME Type: Unknown File Format.");
+            console.log('Error creating MIME Type: Unknown File Format.');
 
     }
 

@@ -6,7 +6,7 @@ function insertEvent(nextEvent){
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, nextEvent.character);
     }    
     //If the character is a '\n', insert a new line 
-    else if (nextEvent.character == "NEWLINE"){
+    else if (nextEvent.character == 'NEWLINE'){
         //get the Ace editor the new line will go into and insert at the row/column of the event
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, '\n');
     }                       
@@ -14,7 +14,7 @@ function insertEvent(nextEvent){
 
 //On delete event, delete the character from the Ace editor at the correct position
 function deleteEvent(nextEvent){
-    if (nextEvent.character == "NEWLINE"){
+    if (nextEvent.character == 'NEWLINE'){
         //create a new Range from the end of the starting line to the beginning of the next line
         //remove characters in that range from the Ace editor
         playbackData.editors[nextEvent.fileId].getSession().remove(new Range(nextEvent.lineNumber-1, nextEvent.column-1,nextEvent.lineNumber, 0));
@@ -44,10 +44,10 @@ function createFileEvent(nextEvent){
         playbackData.editors[nextEvent.fileId] = editor;
 
         //set the text of the tab to the file path of the file created
-        document.getElementById("FirstTabLabel").innerHTML = nextEvent.filePath;
+        document.getElementById('FirstTabLabel').innerHTML = nextEvent.filePath;
 
         //switches currently active editor on tab switch
-        document.getElementById("FirstTabLabel").addEventListener("click", event => {
+        document.getElementById('FirstTabLabel').addEventListener('click', event => {
             editor = playbackData.editors[nextEvent.fileId];
             editor.getSession().setValue(editor.getSession().getValue());
         });
@@ -59,13 +59,13 @@ function createFileEvent(nextEvent){
         //create a new item in the list of tabs 
         const newListItem = document.createElement('li');
         //allows use in navigation
-        newListItem.classList.add("nav-item");
+        newListItem.classList.add('nav-item');
         //link the tab to the file thats its holding
         newListItem.id = nextEvent.fileId;     
 
         //sets up a link between the tab and the panel it will display
         const newLinkTag = document.createElement('a');
-        newLinkTag.classList.add("nav-link");
+        newLinkTag.classList.add('nav-link');
 
         //setting the id of the tab for future access
         //allows for renaming of tabs in the event of a file name change
@@ -74,14 +74,14 @@ function createFileEvent(nextEvent){
         //points this tab to the Ace editor it will display
         //the div that this points to is created below
         newLinkTag.href = `#${nextEvent.fileId}-content`;
-        newLinkTag.setAttribute("role", "tab");
-        newLinkTag.setAttribute("data-toggle", "tab");
+        newLinkTag.setAttribute('role', 'tab');
+        newLinkTag.setAttribute('data-toggle', 'tab');
 
         //sets the tab text to the filePath of the new file
         newLinkTag.innerText = nextEvent.filePath;
 
         //switches currently active editor on tab switch
-        newLinkTag.addEventListener("click", event => {
+        newLinkTag.addEventListener('click', event => {
             editor = playbackData.editors[nextEvent.fileId];
             editor.getSession().setValue(editor.getSession().getValue());
         });
@@ -101,7 +101,7 @@ function createFileEvent(nextEvent){
         //set up the contentPanel id for future deletion
         contentPanel.id = `${nextEvent.fileId}-content`;
         //adding the tab-pane class so the div can be displayed correctly by the newLinkTag
-        contentPanel.classList.add("tab-pane");
+        contentPanel.classList.add('tab-pane');
         //give the codeDiv and unique id so Ace can work with it
         codeDiv.id = `${nextEvent.fileId}-code`;
         //give the codeDiv the playbackWindow class
@@ -115,7 +115,7 @@ function createFileEvent(nextEvent){
         tabContent.appendChild(contentPanel);
 
         //create a new editor pointing to the code div
-        editor = CreateAceEditor(codeDiv, nextEvent.filePath, nextEvent.fileId);
+        editor = createAceEditor(codeDiv, nextEvent.filePath, nextEvent.fileId);
 
         addFocusToTab(document.getElementById(`${nextEvent.fileId}-text`), document.getElementById(`${nextEvent.fileId}-content`));
     }
@@ -151,12 +151,12 @@ function deleteFileEvent(nextEvent){
 function addFocusToTab(tabToFocus, content)
 {
     //remove active class from the old tab and content pane
-    currentActiveTab.classList.remove("active");
-    currentActiveContent.classList.remove("active");
+    currentActiveTab.classList.remove('active');
+    currentActiveContent.classList.remove('active');
 
     //add active class to the new tab and content pane
-    tabToFocus.classList.add("active");
-    content.classList.add("active");
+    tabToFocus.classList.add('active');
+    content.classList.add('active');
 
     //update our global which stores the currently active tab and content pane
     currentActiveTab = tabToFocus;
@@ -166,7 +166,7 @@ function addFocusToTab(tabToFocus, content)
 
 
    
-    var tabClickEvent = new MouseEvent("click",{
+    var tabClickEvent = new MouseEvent('click',{
 
     });
     tabToFocus.dispatchEvent(tabClickEvent);

@@ -2,7 +2,7 @@
 function setEditorMode(thisEditor, filePath){
 
     //generates a list of all supported languages for syntax highlighting  
-    let modelist = ace.require("ace/ext/modelist");
+    let modelist = ace.require('ace/ext/modelist');
     //determines the correct mode for the given file type
     let mode = modelist.getModeForPath(filePath).mode;
 
@@ -10,7 +10,7 @@ function setEditorMode(thisEditor, filePath){
     thisEditor.session.setMode(mode);
 }
 
-function CreateAceEditor(codeDiv, filePath, fileId)
+function createAceEditor(codeDiv, filePath, fileId)
 {
     //creates a new Ace editor pointing to the passed codeDiv
     const tempEditor = ace.edit(codeDiv);
@@ -18,7 +18,7 @@ function CreateAceEditor(codeDiv, filePath, fileId)
     tempEditor.setReadOnly(true);
     //sets the theme for the editor
     //maybe add support for user adjustment later
-    tempEditor.setTheme("ace/theme/monokai");
+    tempEditor.setTheme('ace/theme/monokai');
     //set font size
     tempEditor.setFontSize(16);
     //removes the 80 character limit horizontal line from the editor
