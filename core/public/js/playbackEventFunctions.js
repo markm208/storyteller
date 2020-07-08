@@ -61,7 +61,7 @@ function createFileEvent(nextEvent){
         //allows use in navigation
         newListItem.classList.add('nav-item');
         //link the tab to the file thats its holding
-        newListItem.id = nextEvent.fileId;     
+        newListItem.setAttribute('id', nextEvent.fileId);     
 
         //sets up a link between the tab and the panel it will display
         const newLinkTag = document.createElement('a');
@@ -69,7 +69,7 @@ function createFileEvent(nextEvent){
 
         //setting the id of the tab for future access
         //allows for renaming of tabs in the event of a file name change
-        newLinkTag.id = `${nextEvent.fileId}-text`;
+        newLinkTag.setAttribute('id', `${nextEvent.fileId}-text`);
 
         //points this tab to the Ace editor it will display
         //the div that this points to is created below
@@ -99,11 +99,11 @@ function createFileEvent(nextEvent){
         const codeDiv = document.createElement('div');
 
         //set up the contentPanel id for future deletion
-        contentPanel.id = `${nextEvent.fileId}-content`;
+        contentPanel.setAttribute('id', `${nextEvent.fileId}-content`);
         //adding the tab-pane class so the div can be displayed correctly by the newLinkTag
         contentPanel.classList.add('tab-pane');
         //give the codeDiv and unique id so Ace can work with it
-        codeDiv.id = `${nextEvent.fileId}-code`;
+        codeDiv.setAttribute('id', `${nextEvent.fileId}-code`);
         //give the codeDiv the playbackWindow class
         //this is a style that specifies the height of the div
         //which is necessary for Ace to display code
