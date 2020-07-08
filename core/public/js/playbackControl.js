@@ -152,7 +152,7 @@ function displayAllComments(){
             cardFinal.classList.add('card', 'text-center');
             let temp;
 
-            if (commentObject.imageURLs.length){
+            if (commentObject.imageURLs.length >1){
                 let carousel = createCarousel();
 
                 // Get the modal
@@ -164,14 +164,13 @@ function displayAllComments(){
                 //var captionText = document.getElementById("caption");
 
                 for (let j = 0; j < commentObject.imageURLs.length; j++){
-                   // temp = createMediaControllerCommentImageUI(commentObject.imageURLs[j], false, false); 
                     addImageToCarousel(commentObject.imageURLs[j], carousel);
                     makeCarouselControls(carousel);
 
-
                     carousel.addEventListener('click', event =>{
-                        //if the carousel is clicked on either the left or right button, dont trigger the modal
-                        if (!event.toElement.className.includes('carousel-control')){                            
+                        //if the carousel is clicked on either the left or right button, dont trigger the enlarged image modal
+                        if (!event.toElement.className.includes('carousel-control')){   
+                            //get the src of the current active image from the carousel that was clicked on                    
                             let src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
                             modal.style.display = "block";
                             modalImg.src = src;
@@ -181,19 +180,28 @@ function displayAllComments(){
                     // Get the <span> element that closes the modal
                     let span = document.getElementsByClassName("modalClose")[0];
     
-                    // When the user clicks on <span> (x), close the modal
+                    //close the modal
                     span.onclick = function() {
                         modalImg.removeAttribute('src');
                         modal.style.display = "none";
                     }
-                    // carousel.firstChild.firstChild.classList.add('active');
-                    //add next media
+                    //add carousel
                     cardFinal.append(carousel);
-
-               
-
-                 }
-
+                }
+            }
+            else if (commentObject.imageURLs.length === 1){
+                temp = createMediaControllerCommentImageUI(commentObject.imageURLs[0], false, false);  
+                temp.addEventListener('click',event => {
+                    //add image to the modal
+                    document.getElementById("imgExpandModal").style.display = "block";
+                    document.getElementById("imgToExpand").src = commentObject.imageURLs[0];
+                })
+                //modal close button
+                document.getElementsByClassName("modalClose")[0].onclick = function() {
+                    document.getElementById("imgToExpand").removeAttribute('src');
+                    document.getElementById("imgExpandModal").style.display = "none";
+                }
+                cardFinal.append(temp);
             }
          
 

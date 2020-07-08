@@ -1,4 +1,4 @@
-function createMediaControllerCommentImageUI(srcPath, makeSelected) {
+function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEventistener = true) {
     //create an image and add the required classes
     const newImg = document.createElement('img');
     newImg.setAttribute('src', srcPath);
@@ -10,11 +10,14 @@ function createMediaControllerCommentImageUI(srcPath, makeSelected) {
         newImg.classList.add('mediaSelected');
     }
     
-    //add an event handler to toggle whether it is selected
-    newImg.addEventListener('click', event => {
-        //toggle the 'selected' class
-        event.target.classList.toggle('mediaSelected')}
-    );
+    if(returnWithEventistener){
+        //add an event handler to toggle whether it is selected
+        newImg.addEventListener('click', event => {
+            //toggle the 'selected' class
+            event.target.classList.toggle('mediaSelected')
+        });
+    }
+   
     return newImg;
 }
 
