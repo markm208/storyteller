@@ -156,7 +156,7 @@ function setupEventListeners()
         }
     });
 
-    document.getElementById('handler').addEventListener('mousedown', function (e){  
+    document.getElementById('dragBar').addEventListener('mousedown', function (e){  
         //add listeners for moving and releasing the drag and disable selection of text  
         window.addEventListener('selectstart', disableSelect);
         document.documentElement.addEventListener('mousemove', doDrag, false);
@@ -296,7 +296,7 @@ async function sendCommentToServer(comment){
 }
 
 function doDrag(e){    
-    const wrapper = handler.closest('.wrapper');
+    const wrapper = dragBar.closest('.wrapper');
     const boxA = wrapper.querySelector('.box');
 
     // Get offset

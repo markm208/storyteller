@@ -57,14 +57,14 @@
     display: inline-block;
 }
 
-.handler {
+.dragBar {
     width: 20px;
     padding: 0;
     cursor: ew-resize;
     flex: 0 0 auto;
 }
 
-.handler::before {
+.dragBar::before {
     content: '';
     display: block;
     width: 4px;
