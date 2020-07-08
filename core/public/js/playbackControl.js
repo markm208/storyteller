@@ -126,17 +126,18 @@ function displayAllComments(){
     //sort by interger key and add each comment to the commentsDiv
     keysArray.sort((a,b)=> a - b).forEach(function(key){
         let commentBlock = playbackData.comments[`ev-${key}`];
-        const commentDiv = document.createElement('div');
+        const commentGroupDiv = document.createElement('div');
+        commentGroupDiv.classList.add('border', 'commentGroupSpacing');
         
         for (let i = 0; i < commentBlock.length; i++){
-             const textAreaHeader = document.createElement('textarea');
+            const textAreaHeader = document.createElement('textarea');
             textAreaHeader.classList.add('card-header');
             textAreaHeader.classList.add('form-control', 'comment-text');
 
             textAreaHeader.disabled = true;
             textAreaHeader.value = commentBlock[i].commentText;
 
-            //add a tick mark to the slider for the comment group
+            //add a tick mark to the slider for the comment group ---DOESN'T WORK
             var tickmarkObject = document.getElementById('tickmarks');
             const newTick = document.createElement('option');
             newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
@@ -185,19 +186,19 @@ function displayAllComments(){
 
             cardFinal.prepend(textAreaHeader);
             const finalDiv = document.createElement('div');
-            finalDiv.classList.add('commentBox','border');
+            finalDiv.classList.add('commentBox');
 
             let comment = playbackData.comments[`ev-${key}`][i];
             finalDiv.addEventListener('click', function(e) {
                 step(comment.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); 
-                clearHighlights();
                 for (let j = 0; j < comment.selectedCodeBlocks.length; j++){
                     addHighlight(comment.selectedCodeBlocks[j].startRow, comment.selectedCodeBlocks[j].startColumn, comment.selectedCodeBlocks[j].endRow, comment.selectedCodeBlocks[j].endColumn);
                 }
             });
 
             finalDiv.append(cardFinal);
-            commentsDiv.append(finalDiv);
+            commentGroupDiv.append(finalDiv);
+            commentsDiv.append(commentGroupDiv);
         }
 
     })
