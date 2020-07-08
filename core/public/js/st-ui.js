@@ -185,6 +185,7 @@ let currentCarousel = 0;
 
 function createCarousel(){
     let carouselOuter = document.createElement('div');
+ 
     carouselOuter.setAttribute('id', 'mycarousel' + currentCarousel++);
     carouselOuter.setAttribute('data-ride', 'carousel');
     carouselOuter.setAttribute('data-interval','false');
@@ -202,6 +203,10 @@ function addImageToCarousel(src, carousel){
     img.classList.add('d-block','w-100');
     imgDiv.append(img);
     carousel.firstChild.append(imgDiv);
+    //sets an image active if none are
+    if (!carousel.firstChild.firstChild.classList.value.includes("active")){
+        carousel.firstChild.firstChild.classList.add('active');
+    }
 }
 
 function makeCarouselControls(carousel){

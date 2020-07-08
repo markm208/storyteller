@@ -153,14 +153,45 @@ function displayAllComments(){
 
             if (commentObject.imageURLs.length){
                 let carousel = createCarousel();
+
+                // Get the modal
+                let modal = document.getElementById("imgExpandModal");
+
+                // Get the image and insert it inside the modal - use its "alt" text as a caption
+                let img = document.getElementById("myImg");
+                let modalImg = document.getElementById("imgToExpand");
+                //var captionText = document.getElementById("caption");
+
                 for (let j = 0; j < commentObject.imageURLs.length; j++){
                    // temp = createMediaControllerCommentImageUI(commentObject.imageURLs[j], false, false); 
                     addImageToCarousel(commentObject.imageURLs[j], carousel);
                     makeCarouselControls(carousel);
-                }
-                    carousel.firstChild.firstChild.classList.add('active');
+
+
+                    carousel.addEventListener('click', event =>{
+                        //if the carousel is clicked on either the left or right button, dont trigger the modal
+                        if (!event.toElement.className.includes('carousel-control')){                            
+                            let src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
+                            modal.style.display = "block";
+                            modalImg.src = src;
+                        }
+                    });
+    
+                    // Get the <span> element that closes the modal
+                    let span = document.getElementsByClassName("modalClose")[0];
+    
+                    // When the user clicks on <span> (x), close the modal
+                    span.onclick = function() {
+                        modalImg.removeAttribute('src');
+                        modal.style.display = "none";
+                    }
+                    // carousel.firstChild.firstChild.classList.add('active');
                     //add next media
                     cardFinal.append(carousel);
+
+               
+
+                 }
 
             }
          

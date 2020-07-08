@@ -188,3 +188,52 @@ resize: none;
     display: flex;
 }
 
+/* The Modal (background) */
+.imgExpandModal {
+    display: none; /* Hidden by default */
+    z-index: 100; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+  
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+  }
+
+  @keyframes zoom {
+    from {transform:scale(0)}
+    to {transform:scale(1)}
+  }
+
+  #imgToExpand {
+    border-radius: 5px;
+    /* cursor: pointer; */
+    transition: 0.3s;
+  }
+
+
+  .modalClose {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+
+  .modalClose:hover,
+.modalClose:focus {
+  color: #bbb;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Add Animation - Zoom in the Modal */
+#imgToExpand {
+    animation-name: zoom;
+    animation-duration: 0.6s;
+  }
+
+  .imgExpandModal {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
