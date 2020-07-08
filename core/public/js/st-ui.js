@@ -106,3 +106,77 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     }
     return cardDiv;
 }
+
+function addCancelButtonToImage(image, src, folderToDeleteFrom, panelToDeleteFrom){
+    let imageDiv = document.createElement('div');
+    imageDiv.classList.add('image-div')
+    let button = document.createElement('button');
+    button.classList.add('close', 'imageCancelButton');
+    button.setAttribute('aria-label', 'close');
+    button.innerHTML ='&times;';
+    button.style.color = 'red';
+    button.setAttribute('title',"Remove image from comment");
+
+    button.addEventListener('click', event =>{
+        panelToDeleteFrom.removeChild(imageDiv);
+ 
+
+        //hides the div if there are none of the media type left
+        if (panelToDeleteFrom.classList.contains('hidden')){
+            let nodesLeft = false;
+            let panelChildren = panelToDeleteFrom.children;
+            
+            for (let i = 0; i < panelChildren.length; i++){
+                if (panelChildren[i].classList.contains('image-div')){
+                    nodesLeft = true;
+                    break;
+                }
+            }
+            if (!nodesLeft){
+                panelToDeleteFrom.style.display = 'none';
+            }
+
+            const index = folderToDeleteFrom.indexOf(src);
+            folderToDeleteFrom.splice(index, 1);
+        }
+    });
+
+    imageDiv.append(image);
+
+    imageDiv.append(button);
+    panelToDeleteFrom.append(imageDiv);
+}
+
+function addCancelButtonToCard(card, src, folderToDeleteFrom, panelToDeleteFrom){
+    let button = document.createElement('button');
+    button.classList.add('close');
+    button.setAttribute('aria-label', 'close');
+    button.innerHTML ='&times;';
+    button.style.color = 'red';
+    button.setAttribute('title',"Remove media from comment");
+    //removes the selected media from the preview and from the stored list of selected media
+    button.addEventListener("click",event =>{
+        panelToDeleteFrom.removeChild(card);
+
+        //hides the div if there are none of the media type left
+        if (panelToDeleteFrom.classList.contains('hidden')){
+            let nodesLeft = false;
+            let panelChildren = panelToDeleteFrom.children;
+            
+            for (let i = 0; i < panelChildren.length; i++){
+                if (panelChildren[i].classList.contains('card')){
+                    nodesLeft = true;
+                    break;
+                }
+            }
+            if (!nodesLeft){
+                panelToDeleteFrom.style.display = 'none';
+            }
+        }
+
+        const index = folderToDeleteFrom.indexOf(src);
+        folderToDeleteFrom.splice(index, 1);
+    });
+    card.firstChild.append(button);
+}
+

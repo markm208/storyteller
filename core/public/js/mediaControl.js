@@ -48,7 +48,8 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
 
         //create the preview cards and add them to the preview div
         let imageCard = createMediaControllerCommentImageUI(src , false);
-        imagePreviewDiv.appendChild(imageCard);
+        addCancelButtonToImage(imageCard, src, playbackData.mediaForNewComment[0], imagePreviewDiv);
+        //imagePreviewDiv.appendChild(imageCard);
 
         //store the url
         playbackData.mediaForNewComment[0].push(src);
@@ -102,41 +103,6 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
     //hide the modal (using jquery)
     $('#mediaControlModal').modal('hide');
 });
-
-function addCancelButtonToCard(card, src, folderToDeleteFrom, panelToDeleteFrom){
-    const previewPanel = document.getElementById("commentPreview");
-
-    let button = document.createElement('button');
-    button.classList.add('close');
-    button.setAttribute('aria-label', 'close');
-    button.innerHTML ='&times;';
-    button.style.color = 'red';
-    button.setAttribute('title',"Remove media from comment");
-    //removes the selected media from the preview and from the stored list of selected media
-    button.addEventListener("click",event =>{
-        panelToDeleteFrom.removeChild(card);
-
-        //hides the div if there are none of the media type left
-        if (panelToDeleteFrom.classList.contains('hidden')){
-            let nodesLeft = false;
-            let panelChildren = panelToDeleteFrom.children;
-            
-            for (let i = 0; i < panelChildren.length; i++){
-                if (panelChildren[i].classList.contains('card')){
-                    nodesLeft = true;
-                    break;
-                }
-            }
-            if (!nodesLeft){
-                panelToDeleteFrom.style.display = 'none';
-            }
-        }
-
-        const index = folderToDeleteFrom.indexOf(src);
-        folderToDeleteFrom.splice(index, 1);
-    });
-    card.firstChild.append(button);
-}
 
 document.getElementById('deleteMediaButton').addEventListener('click', async event => {
     //delete any selected images

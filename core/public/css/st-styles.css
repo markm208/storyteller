@@ -81,6 +81,29 @@
     opacity: 20%;
 }
 
+.imageCancelButton{
+    position: absolute;
+    top: 10%;
+    left: 90%;
+    /* transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%); */
+    background-color: transparent;
+    color: red;
+    font-size: 24px;
+    border: none;
+    cursor: pointer;
+}
+
+.image-div{
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+      
+}
+
+.imageCancelButton:hover {
+    opacity: 0.5}
+
 .mediaAddButton {
     margin-bottom: 0px;
 }
@@ -103,9 +126,9 @@
     height: 250px;
 }
 .mediaVideoCard, .mediaAudioCard {
-    margin: 50px 75px;
-   
-}
+    margin: 50px 0px;
+    
+ }
 
 .mediaAudio {
     height: 250px;
