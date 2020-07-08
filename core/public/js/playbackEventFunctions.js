@@ -162,10 +162,7 @@ function addFocusToTab(tabToFocus, content)
     currentActiveTab = tabToFocus;
     currentActiveContent = content;
 
-
-
-
-   
+    //Simulates a mouse click on the tab we want to focus on.
     const tabClickEvent = new MouseEvent('click',{
 
     });
