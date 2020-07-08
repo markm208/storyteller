@@ -32,6 +32,12 @@
     width: 23.9vw;
 }
 
+.commentGroupSpacing {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-color: black;
+}
+
 .comment-text {
     resize: none;
     white-space: normal;
