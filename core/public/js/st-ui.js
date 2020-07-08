@@ -180,3 +180,65 @@ function addCancelButtonToCard(card, src, folderToDeleteFrom, panelToDeleteFrom)
     card.firstChild.append(button);
 }
 
+//a number that is incremented with each carousel to keep ids unique
+let currentCarousel = 0;
+
+function createCarousel(){
+    let carouselOuter = document.createElement('div');
+    carouselOuter.setAttribute('id', 'mycarousel' + currentCarousel++);
+    carouselOuter.setAttribute('data-ride', 'carousel');
+    carouselOuter.setAttribute('data-interval','false');
+    carouselOuter.classList.add('carousel','slide');
+    let carouselInner = document.createElement('div');
+    carouselOuter.append(carouselInner);
+    return carouselOuter;
+}
+
+function addImageToCarousel(src, carousel){
+    let img = document.createElement('img');
+    let imgDiv = document.createElement('div');
+    imgDiv.classList.add('carousel-item');
+    img.src = src;
+    img.classList.add('d-block','w-100');
+    imgDiv.append(img);
+    carousel.firstChild.append(imgDiv);
+}
+
+function makeCarouselControls(carousel){
+    let right = document.createElement('a');
+    let left = document.createElement('a');
+
+    right.classList.add("carousel-control-next");
+    left.classList.add("carousel-control-prev");
+
+    right.setAttribute('href','#' + carousel.id);
+    left.setAttribute('href','#' + carousel.id);
+
+    right.setAttribute('role','button');
+    right.setAttribute('data-slide','next');
+
+    left.setAttribute('role','button');
+    left.setAttribute('data-slide','prev');
+
+    let prevSpan = document.createElement('span');
+    prevSpan.classList.add('carousel-control-prev-icon');
+    prevSpan.setAttribute('aria-hidden', 'true');
+    let prevSRSpan = document.createElement('span');
+    prevSRSpan.innerHTML='Previous';
+    prevSRSpan.classList.add('sr-only');
+
+    let nextSpan = document.createElement('span');
+    nextSpan.classList.add('carousel-control-next-icon');
+    nextSpan.setAttribute('aria-hidden', 'true');
+    let nextSRSpan = document.createElement('span');
+    nextSRSpan.innerHTML='Next';
+    nextSRSpan.classList.add('sr-only');
+
+    right.append(nextSpan);
+    right.append(nextSRSpan);
+    left.append(prevSpan);
+    left.append(prevSRSpan);
+
+    carousel.append(right);
+    carousel.append(left);
+}

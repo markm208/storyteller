@@ -113,20 +113,8 @@ function setupEventListeners()
         {
             //get the event to playback this comment
             let eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
-            let commentEvent = playbackData.events[eventIndex];
-
-            // //store the media in the order specified by the user
-            // if (!playbackData.orderedMedia[commentEvent.id]){
-            //     playbackData.orderedMedia[commentEvent.id] = [];
-            // }
-            // let sortedMediaComment = {
-            //     commentText,
-            //     mediaURLs: mediaInOrder
-            // };
-            // playbackData.orderedMedia[commentEvent.id].push(sortedMediaComment);
-     
-            
-
+            let commentEvent = playbackData.events[eventIndex];  
+          
             //create an object that has all of the comment info
             const comment = {
                 commentText,

@@ -151,17 +151,24 @@ function displayAllComments(){
             cardFinal.classList.add('card', 'text-center');
             let temp;
 
-            for (let j = 0; j < commentObject.imageURLs.length; j++){
-                temp = createMediaControllerCommentImageUI(commentObject.imageURLs[j], false, false);  
-                //add next media
-                cardFinal.append(temp);
+            if (commentObject.imageURLs.length){
+                let carousel = createCarousel();
+                for (let j = 0; j < commentObject.imageURLs.length; j++){
+                   // temp = createMediaControllerCommentImageUI(commentObject.imageURLs[j], false, false); 
+                    addImageToCarousel(commentObject.imageURLs[j], carousel);
+                    makeCarouselControls(carousel);
+                }
+                    carousel.firstChild.firstChild.classList.add('active');
+                    //add next media
+                    cardFinal.append(carousel);
+
             }
+         
 
             for (let j = 0; j < commentObject.videoURLs.length; j++){
                 temp = createMediaControllerCommentVideoUI(commentObject.videoURLs[j], false, false);       
                 //add next media
                 cardFinal.append(temp.firstChild);
-
                 //file names added invisible in case we later want to see them when editing
                 temp.lastChild.style.display ='none';
                 cardFinal.append(temp.lastChild);     
@@ -182,7 +189,7 @@ function displayAllComments(){
 
             let comment = playbackData.comments[`ev-${key}`][i];
             finalDiv.addEventListener('click', function(e) {
-                step(comment.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); //TODO should this be +1?
+                step(comment.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); 
                 clearHighlights();
                 for (let j = 0; j < comment.selectedCodeBlocks.length; j++){
                     addHighlight(comment.selectedCodeBlocks[j].startRow, comment.selectedCodeBlocks[j].startColumn, comment.selectedCodeBlocks[j].endRow, comment.selectedCodeBlocks[j].endColumn);
@@ -193,117 +200,6 @@ function displayAllComments(){
             commentsDiv.append(finalDiv);
         }
 
-        // cardBody.classList.add('card-body');
-
-
-        // playbackData.orderedMedia[`ev-${key}`].mediaURLs.pop();
-
-        // let test2 = playbackData.orderedMedia[`ev-${key}`];
-        // cardBody.append(textArea);
-        // let test = test2.substring(test2.lastInstanceOf('.'), test2.length);
-
-
-        
-
-        // let commentBlock = playbackData.comments[`ev-${key}`];
-        // const eventGroupDiv = document.createElement("div");
-        // eventGroupDiv.classList.add("border");
-        // eventGroupDiv.classList.add("commentBox");
-
-        // //add a tick mark to the slider for the comment group
-        // var tickmarkObject = document.getElementById('tickmarks');
-        // const newTick = document.createElement('option');
-        // newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
-        // newTick.classList.add("ui-slider-tick-mark");
-        // tickmarkObject.appendChild(newTick);
-        // //console.log(commentBlock[0].eventSequenceNumber);
-
-        // let subId = 0;
-        // for (let j = 0; j < commentBlock.length; j++){
-        //     const newCommentHTML = document.createElement("div");
-        //     const formatElement = document.createElement("p");
-        //     formatElement.innerHTML = commentBlock[j].commentText;
-        //     newCommentHTML.classList.add("border");
-        //     newCommentHTML.classList.add("commentBox");
-        //     formatElement.classList.add("border");
-        //     formatElement.classList.add("commentBox");
-
-        //     newCommentHTML.appendChild(formatElement);
-
-        //     for (let m = 0; m < commentBlock[j].imageURLs.length; m++)
-        //     {
-        //         let imageTag = document.createElement("img");
-
-        //         imageTag.src = commentBlock[j].imageURLs[m];
-        //         imageTag.width = 200;
-        //         imageTag.height = 200;
-
-        //         imageTag.classList.add("border");
-        //         imageTag.classList.add("commentBox");
-
-        //         newCommentHTML.appendChild(imageTag);
-        //     }
-
-        //     for (let m = 0; m < commentBlock[j].videoURLs.length; m++)
-        //     {
-        //         let videoTag = document.createElement("video");
-        //         //Extract the file extension from the input file
-        //         var fileExtension = commentBlock[j].videoURLs[m].split('.').pop().toLowerCase();
-        //         var MIMEtype = createMimeString(fileExtension);
-                
-        //         videoTag.width = 200;
-        //         videoTag.height = 200;
-        //         videoTag.controls = true;
-
-        //         videoTag.classList.add("border");
-        //         videoTag.classList.add("commentBox");
-
-        //         let videoSource = document.createElement("source");
-        //         videoSource.src = commentBlock[j].videoURLs[m];
-        //         videoSource.type = MIMEtype;
-
-        //         videoTag.appendChild(videoSource);
-        //         newCommentHTML.appendChild(videoTag);
-        //     }
-
-        //     for (let m = 0; m < commentBlock[j].audioURLs.length; m++)
-        //     {
-        //         let audioTag = document.createElement("audio");
-        //         //Extract the file extension from the input file
-        //         var fileExtension = commentBlock[j].audioURLs[m].split('.').pop().toLowerCase();
-        //         var MIMEtype = createMimeString(fileExtension);
-                
-        //         audioTag.style.width = '200px';
-        //         audioTag.style.height = '200px';
-        //         audioTag.controls = true;
-        //         audioTag.style.width = '200px';
-        //         audioTag.classList.add("border");
-        //         audioTag.classList.add("commentBox");
-
-        //         let audioSource = document.createElement("source");
-        //         audioSource.src = commentBlock[j].audioURLs[m];
-        //         audioSource.type = MIMEtype;
-
-        //         audioTag.appendChild(audioSource);
-        //         newCommentHTML.appendChild(audioTag);
-        //     }
-
-        //     newCommentHTML.id = `${commentBlock[j].displayCommentEvent.id}-${subId}`;
-        //     subId++;
-        //     newCommentHTML.addEventListener('click', function (e){  
-        //         step(commentBlock[j].displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
-
-        //         clearHighlights();
-
-        //         for (let i = 0; i < commentBlock[j].selectedCodeBlocks.length; i++)
-        //         {
-        //             addHighlight(commentBlock[j].selectedCodeBlocks[i].startRow, commentBlock[j].selectedCodeBlocks[i].startColumn, commentBlock[j].selectedCodeBlocks[i].endRow, commentBlock[j].selectedCodeBlocks[i].endColumn);
-        //         }
-        //     });
-            
-        //     eventGroupDiv.appendChild(newCommentHTML);
-        // }
-        // commentsDiv.appendChild(eventGroupDiv);
     })
     
 }
