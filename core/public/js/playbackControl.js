@@ -47,6 +47,11 @@ function stepForward(numSteps) {
                 //call the createFileEvent function found in playbackEventFunctions.js
                 createFileEvent(nextEvent);
                 break;
+
+                case 'DELETE FILE':
+                //call the deleteFileEventFunction found in playbackEventFunctions.js
+                deleteFileEvent(nextEvent);
+                break;
             }
             
             //move the next event
@@ -95,6 +100,11 @@ function stepBackward(numSteps) {
                 case 'CREATE FILE':
                 //call the deleteFileEvent function found in playbackEventFunctions.js
                 deleteFileEvent(nextEvent);
+                break;
+
+                case 'DELETE FILE':
+                //call the deleteFileEventFunction found in playbackEventFunctions.js
+                createFileEvent(nextEvent);
                 break;
             }
 
