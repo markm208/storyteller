@@ -160,6 +160,22 @@ function displayAllComments(){
                 
             let cardFinal = document.createElement('div');
             cardFinal.classList.add('card', 'text-center');
+
+            //allows us to send a click event to this card in order to jump to it in the playback
+            cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
+
+            //if this is not here the play button does not work, because the card will have no functionality
+            cardFinal.addEventListener('click', function (e){ 
+                //step to the event this comment is at
+                step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+
+                //add highlights for the comment
+                for (let j = 0; i < commentObject.selectedCodeBlocks.length; i++)
+                {
+                    addHighlight(commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
+                }
+            });
+
             let carousel = createCarousel();
             let temp;
 
