@@ -9,7 +9,9 @@ function insertEvent(nextEvent){
     else if (nextEvent.character === 'NEWLINE'){
         //get the Ace editor the new line will go into and insert at the row/column of the event
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, '\n');
-    }                       
+    }
+
+    //addFocusToTab(document.getElementById(`${nextEvent.fileId}-text`), document.getElementById(`${nextEvent.fileId}-content`));
 }
 
 //On delete event, delete the character from the Ace editor at the correct position
@@ -25,6 +27,8 @@ function deleteEvent(nextEvent){
         //remove that range from the Ace editor
         playbackData.editors[nextEvent.fileId].getSession().remove(new Range(nextEvent.lineNumber-1, nextEvent.column-1,nextEvent.lineNumber-1, nextEvent.column));
     }
+
+    //addFocusToTab(document.getElementById(`${nextEvent.fileId}-text`), document.getElementById(`${nextEvent.fileId}-content`));
 }
 
 //when a createFileEvent is encountered while stepping forward
@@ -43,11 +47,16 @@ function createFileEvent(nextEvent){
         //adds editor to the list of editors with the file id as the key
         playbackData.editors[nextEvent.fileId] = editor;
 
+        const tabLabel = document.getElementById('FirstTabLabel');
+        //tabLabel.setAttribute('id', `${nextEvent.fileId}-text`)
+
+        //document.getElementById(`Playback`).setAttribute('id', `${nextEvent.fileId}-content`)
+
         //set the text of the tab to the file path of the file created
-        document.getElementById('FirstTabLabel').innerHTML = nextEvent.filePath;
+        tabLabel.innerHTML = nextEvent.filePath;
 
         //switches currently active editor on tab switch
-        document.getElementById('FirstTabLabel').addEventListener('click', event => {
+        tabLabel.addEventListener('click', event => {
             editor = playbackData.editors[nextEvent.fileId];
             editor.getSession().setValue(editor.getSession().getValue());
         });
