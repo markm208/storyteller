@@ -150,11 +150,10 @@ function displayAllComments(){
                 
             let cardFinal = document.createElement('div');
             cardFinal.classList.add('card', 'text-center');
+            let carousel = createCarousel();
             let temp;
 
-            if (commentObject.imageURLs.length >1){
-                let carousel = createCarousel();
-
+            if (commentObject.imageURLs.length > 1){  
                 // Get the modal
                 let modal = document.getElementById("imgExpandModal");
 
@@ -189,9 +188,11 @@ function displayAllComments(){
                     cardFinal.append(carousel);
                 }
             }
+            //creates a carousel without controls to keep consistency among single images and images in carousels
             else if (commentObject.imageURLs.length === 1){
-                temp = createMediaControllerCommentImageUI(commentObject.imageURLs[0], false, false);  
-                temp.addEventListener('click',event => {
+                addImageToCarousel(commentObject.imageURLs[0], carousel);
+
+                carousel.addEventListener('click',event => {
                     //add image to the modal
                     document.getElementById("imgExpandModal").style.display = "block";
                     document.getElementById("imgToExpand").src = commentObject.imageURLs[0];
@@ -201,9 +202,8 @@ function displayAllComments(){
                     document.getElementById("imgToExpand").removeAttribute('src');
                     document.getElementById("imgExpandModal").style.display = "none";
                 }
-                cardFinal.append(temp);
-            }
-         
+                cardFinal.append(carousel);
+            }         
 
             for (let j = 0; j < commentObject.videoURLs.length; j++){
                 temp = createMediaControllerCommentVideoUI(commentObject.videoURLs[j], false, false);       
@@ -239,8 +239,6 @@ function displayAllComments(){
             commentGroupDiv.append(finalDiv);
             commentsDiv.append(commentGroupDiv);
         }
-
-    })
-    
+    })    
 }
 

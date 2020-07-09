@@ -47,7 +47,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         const src = selectedImageElements[0].getAttribute('src');
 
         //create the preview cards and add them to the preview div
-        let imageCard = createMediaControllerCommentImageUI(src , false);
+        let imageCard = createMediaControllerCommentImageUI(src , false, false);
         addCancelButtonToImage(imageCard, src, playbackData.mediaForNewComment[0], imagePreviewDiv);
         //imagePreviewDiv.appendChild(imageCard);
 
@@ -65,7 +65,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         const src = selectedVideoElements[0].children[0].children[0].getAttribute('src');
 
         //create the preview cards and add them to the preview div
-        let videoCard = createMediaControllerCommentVideoUI(src , false); 
+        let videoCard = createMediaControllerCommentVideoUI(src , false, false); 
 
         //add cancel button to the top of the preview card
         addCancelButtonToCard(videoCard, src, playbackData.mediaForNewComment[1], videoPreviewDiv);
@@ -86,7 +86,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         const src = selectedAudioElements[0].children[0].children[0].getAttribute('src');
 
         //create the preview cards and add them to the preview div
-        let audioCard = createMediaControllerCommentAudioUI(src, false);
+        let audioCard = createMediaControllerCommentAudioUI(src, false, false);
 
         //add cancel button to the top of the preview card
         addCancelButtonToCard(audioCard, src, playbackData.mediaForNewComment[2], audioPreviewDiv);

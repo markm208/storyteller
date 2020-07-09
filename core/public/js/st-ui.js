@@ -21,15 +21,13 @@ function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEv
     return newImg;
 }
 
-function createMediaControllerCommentVideoUI(srcPath, makeSelected) {
+function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEventistener = true){
     //filename of the video
     const fileName = srcPath.substring(srcPath.indexOf('-') + 1);
     //create a card with a body and a footer
     const cardDiv = document.createElement('div');
     //create two bootstrap classes and a st class
-    cardDiv.classList.add('card', 'text-center','mediaVideoCard');
-
-  
+    cardDiv.classList.add('card', 'text-center','mediaVideoCard');  
 
     //card body
     const cardBody = document.createElement('div');
@@ -56,11 +54,14 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected) {
         cardDiv.classList.add('mediaSelected');
     }
 
-    //add an event handler to toggle whether it is selected
-    cardDiv.addEventListener('click', event => {
-        //toggle the 'selected' class
-        cardDiv.classList.toggle('mediaSelected')}
-    );
+    if (returnWithEventistener){
+        //add an event handler to toggle whether it is selected
+        cardDiv.addEventListener('click', event => {
+            //toggle the 'selected' class
+            cardDiv.classList.toggle('mediaSelected')
+        });
+    }
+
 
     return cardDiv;
 }

@@ -27,7 +27,7 @@
 
 .commentsDivScroll{
     overflow-y: scroll;
-    height: 85vh;
+    height: 84vh;
     word-wrap: break-word;
     width: 23.9vw;
 }
@@ -239,3 +239,4 @@ resize: none;
     /* Use flexbox */
     display: flex;
 }
+
