@@ -1,14 +1,14 @@
 function step(numSteps) {
-
+    //clear any existing comment and new code highlights
     clearHighlights();
+    clearNewCodeHighlights();
+    clearInsertLineNumbers();
+    clearDeleteLineNumbers();
 
     //move forward
     if(numSteps > 0) {
-
         stepForward(numSteps);
-        
     } else if(numSteps < 0) { //move backward
-
         stepBackward(-numSteps);
     } //else- no need to move at all
 
@@ -25,6 +25,9 @@ function stepForward(numSteps) {
         //timing for debug purposes
         //const t0 = performance.now();
 
+        //only in the forward direction create an object to track and highlight new changes
+        const newCodeMarkers = new NewCodeMarkerGenerator();
+
         //go through the requested number of steps
         for(let i = 0;i < numSteps;i++) {
             //grab the next event to animate
@@ -34,11 +37,15 @@ function stepForward(numSteps) {
             switch (nextEvent.type)
             {
                 case 'INSERT':
+                //mark the new code
+                newCodeMarkers.insert(nextEvent);
                 //call the insertEvent function found in playbackEventFunctions.js
                 insertEvent(nextEvent);
                 break;
 
                 case 'DELETE':
+                //mark the new code
+                newCodeMarkers.delete(nextEvent);
                 //call the deleteEvent function found in playbackEventFunctions.js
                 deleteEvent(nextEvent);
                 break;
@@ -63,6 +70,11 @@ function stepForward(numSteps) {
             }
         }
 
+        //highlight the new code
+        highlightNewCode(newCodeMarkers.getAllNewCodeMarkers());
+        highlightInsertLineNumbers(newCodeMarkers.getAllInsertLineNumbers());
+        highlightDeleteLineNumbers(newCodeMarkers.getAllDeleteLineNumbers());
+        
         //const t1 = performance.now();
         //console.log(`step forward took: ${t1-t0} ms`);
     }

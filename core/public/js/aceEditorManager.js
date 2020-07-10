@@ -56,3 +56,133 @@ function clearHighlights() {
     //empty the collection of marker ids
     playbackData.highlights = [];
 }
+/*
+ * Adds a new code highlight to any code added since the last pause point.
+ * There is a new code marker created for only the files that have changed
+ * since the last pause point. 
+ */
+function highlightNewCode(newCodeMarkers) {
+    //go through all of the new code markers (one per changed file)
+    for(let fileId in newCodeMarkers) {
+        //if the editor is still present (files and associated editors can get removed by moving backwards)
+        if(playbackData.editors[fileId]) {
+            //get the edit session
+            const editSession = playbackData.editors[fileId].getSession();
+
+            //add the new code highlights in this file
+            for(let i = 0;i < newCodeMarkers[fileId].length;i++) {
+                //get a range to highlight
+                const range = newCodeMarkers[fileId][i];
+                //create an Ace marker in the right range
+                const marker = editSession.addMarker(new Range(range.startRow, range.startColumn, range.endRow, range.endColumn), 'newCodeHighlight', 'text', false);            
+                
+                //if an array of markers does not exist for the file in the global playbackData object
+                if(!playbackData.newCodeHighlights[fileId]) {
+                    //create an array to hold markers for this file
+                    playbackData.newCodeHighlights[fileId] = [];
+                }
+                //add the id of the new marker so it can be cleared later
+                playbackData.newCodeHighlights[fileId].push(marker);
+            }
+        }
+    }
+}
+
+/*
+ * Function to clear all the new code highlights.
+ */
+function clearNewCodeHighlights() {
+    //go through the latest new code highlight markers
+    for(let fileId in playbackData.newCodeHighlights) {
+        //if the editor is still present (files and associated editors can get removed by moving backwards)
+        if(playbackData.editors[fileId]) {
+            //get the edit session
+            const editSession = playbackData.editors[fileId].getSession();
+
+            //go through the collection of new code marker ids
+            for(let i = 0;i < playbackData.newCodeHighlights[fileId].length;i++) {
+                //remove the marker
+                editSession.removeMarker(playbackData.newCodeHighlights[fileId][i]);
+            }
+        }
+        //empty the collection of marker ids
+        playbackData.newCodeHighlights[fileId] = [];
+    }
+}
+
+/*
+ * Adds a highlight to the line number gutter for every line that has an insert.
+ */
+function highlightInsertLineNumbers(lineNumbers) {
+    //go through each file with with an insert
+    for(let fileId in lineNumbers) {
+        //if the editor is still present (files and associated editors can get removed by moving backwards)
+        if(playbackData.editors[fileId]) {
+            //get the edit session
+            const editSession = playbackData.editors[fileId].getSession();
+
+            //go through all of the line numbers
+            for(let i = 0;i < lineNumbers[fileId].length;i++) {
+                //add the gutter decoration to the lines with inserts
+                editSession.addGutterDecoration(lineNumbers[fileId][i], 'insertOnLine');
+            }
+            //add the line numbers to the global object to remove them later
+            playbackData.insertGutterHighlights[fileId] = lineNumbers[fileId];
+        }
+    }
+}
+
+/*
+ * Adds a highlight to the line number gutter for every line that has a delete.
+ */
+function highlightDeleteLineNumbers(lineNumbers) {
+    //go through each file with a delete
+    for(let fileId in lineNumbers) {
+        //if the editor is still present (files and associated editors can get removed by moving backwards)
+        if(playbackData.editors[fileId]) {
+            //get the edit session
+            const editSession = playbackData.editors[fileId].getSession();
+
+            //go through all of the line numbers
+            for(let i = 0;i < lineNumbers[fileId].length;i++) {
+                //add the gutter decoration to the lines with deletes
+                editSession.addGutterDecoration(lineNumbers[fileId][i], 'deleteOnLine');
+            }
+            //add the line numbers to the global object to remove them later
+            playbackData.deleteGutterHighlights[fileId] = lineNumbers[fileId];
+        }
+    }
+}
+
+function clearInsertLineNumbers() {
+    //go through the most recent insert line number highlights
+    for(let fileId in playbackData.insertGutterHighlights) {
+        //if the editor is still present (files and associated editors can get removed by moving backwards)
+        if(playbackData.editors[fileId]) {
+            const session = playbackData.editors[fileId].getSession();
+
+            //get the file's line numbers and remove the highlights
+            const lineNumbers = playbackData.insertGutterHighlights[fileId];
+            for(let i = 0;i < lineNumbers.length;i++) {
+                session.removeGutterDecoration(lineNumbers[i], 'insertOnLine');
+            }
+        }
+        delete playbackData.insertGutterHighlights[fileId];
+    }
+}
+function clearDeleteLineNumbers() {
+    //go through the most recent delete line number highlights
+    for(let fileId in playbackData.deleteGutterHighlights) {
+        //if the editor is still present (files and associated editors can get removed by moving backwards)
+        if(playbackData.editors[fileId]) {
+            const session = playbackData.editors[fileId].getSession();
+            
+            //get the file's line numbers and remove the highlights
+            const lineNumbers = playbackData.deleteGutterHighlights[fileId];
+            for(let i = 0;i < lineNumbers.length;i++) {
+                session.removeGutterDecoration(lineNumbers[i], 'deleteOnLine');
+            }
+        }
+        delete playbackData.deleteGutterHighlights[fileId];
+    }
+}

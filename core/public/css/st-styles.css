@@ -63,6 +63,11 @@
     display: inline-block;
 }
 
+.deleteOnLine {
+    font-style: italic;
+    color: red;
+}
+
 .dragBar {
     width: 20px;
     padding: 0;
@@ -133,6 +138,10 @@
     background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
 }
 
+.insertOnLine {
+    text-decoration: underline;
+    font-weight: bold;
+}
   
 @keyframes zoom {
     from {transform:scale(0)}
@@ -192,6 +201,13 @@
   color: #bbb;
   text-decoration: none;
   cursor: pointer;
+}
+
+.newCodeHighlight {
+    position:absolute;
+    z-index:20; /* place in a layer above anything with a lower z-index */
+    background-color:white;
+    opacity: 10%;
 }
 
 .playbackWindow {

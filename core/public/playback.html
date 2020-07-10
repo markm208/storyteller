@@ -163,6 +163,8 @@
     <script src="/js/aceEditorManager.js"></script>
     <script src="/js/playbackControl.js"></script>
     <script src="/js/mediaControl.js"></script>
+    <script src="/js/NewCodeFileMarker.js"></script>
+    <script src="/js/NewCodeMarkerGenerator.js"></script>
     <script src="/js/st-ui.js"></script>
     <script src="/js/ext/md5.min.js"></script> <!-- md5 https://github.com/blueimp/JavaScript-MD5 https://en.gravatar.com/site/implement/hash/ https://en.gravatar.com/site/implement/images/-->
     <script src="/js/ext/jszip.min.js"></script> <!-- jszip https://stuk.github.io/jszip/ -->
@@ -174,7 +176,9 @@
             comments: {}, //An object that will hold arrays of comments in key/value pairs
             highlights: [], //An array that holds the ids of all markers added by ace
             mediaForNewComment: [[],[],[]], //an array to hold media to be added to the next comment
-
+            newCodeHighlights: {}, //highlights of new code (fileId as the key)
+            insertGutterHighlights: {}, //insert line numbers (fileId as the key)
+            deleteGutterHighlights: {}, //delete line numbers (fileId as the key)
             //holds the total number of events in the playback
             numEvents: null,
             //keeps track of the number of created tabs
