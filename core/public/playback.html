@@ -58,7 +58,7 @@
                 <div class="tab">
                     <ul class="nav nav-tabs" id="tabsList">
                         <li class="nav-item tabHeight">
-                            <a class="nav-link active" href="#Playback" role="tab" data-toggle="tab" id="FirstTabLabel">
+                            <a id="no-file-id-tab" class="nav-link st-editor-tab active" href="#Playback" role="tab" data-toggle="tab">
                                 <p><br></p>
                             </a>
                         </li>
@@ -67,7 +67,7 @@
                 </div>
                 <!-- Content div for the tabs -->
                 <div class="tab-content" id="tabContent">
-                    <div id="Playback" class="tab-pane active">
+                    <div id="no-file-id-editor-container" class="tab-pane st-editor-tab-pane active">
                         <div id="playbackWindow" class="playbackWindow"></div>
                     </div>
                 </div>
@@ -172,32 +172,26 @@
     <script>
         const playbackData = {
             editors: {}, //A list of all ace editors
+            activeEditorFileId: null, //the file if of the active editor (can be used with editors above)
             events: [], //An array of all code events in the playback
             comments: {}, //An object that will hold arrays of comments in key/value pairs
-            highlights: [], //An array that holds the ids of all markers added by ace
+            highlights: {}, //An object (keyed by fileId) that holds arrays of the ids of Ace markers
             mediaForNewComment: [[],[],[]], //an array to hold media to be added to the next comment
             newCodeHighlights: {}, //highlights of new code (fileId as the key)
             insertGutterHighlights: {}, //insert line numbers (fileId as the key)
             deleteGutterHighlights: {}, //delete line numbers (fileId as the key)
             //holds the total number of events in the playback
             numEvents: null,
-            //keeps track of the number of created tabs
-            numFilesCreated: 0,
             //holds the currently viewed fileId
             currentFileId: null,
             //the position of the event to play next in the forward direction
             nextEventPosition: 0,   
         };
 
-        let editor = createAceEditor('playbackWindow', '','' );    
+        const emptyEditor = createAceEditor('playbackWindow', '','' );    
 
         //import the Range type from ace (don't use the built in browser Range type)
         const Range = ace.require('ace/range').Range;
-
-        //stores the currently active tab and content-pane,
-        //this is used to automatically change focus when new tabs are created
-        let currentActiveTab = document.getElementById('FirstTabLabel');
-        let currentActiveContent = document.getElementById('Playback');
 
         const commentsDiv = document.getElementById('ViewCommentPanel');
 
@@ -208,9 +202,6 @@
           initializePlayback();     
         });
 
-
-       
-        
     </script>
   </body>
 </html>

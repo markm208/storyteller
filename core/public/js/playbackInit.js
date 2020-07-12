@@ -70,7 +70,7 @@ function setupEventListeners()
         // console.log(`slide: ${playbackSlider.value}`);
         
         //take the slider value and subtract the next event's position
-        step(playbackSlider.value - playbackData.nextEventPosition);
+        step(Number(playbackSlider.value) - playbackData.nextEventPosition);
     });
 
 
@@ -82,14 +82,17 @@ function setupEventListeners()
         //get all text from the comment text box
         const commentText = textCommentTextArea.value.trim();
 
-        //get all selected text from Ace            
-        const selectedText = editor.getSelectedText();
-        //builds an array of ranges if any text was selected
-        const ranges = selectedText ? editor.getSession().getSelection().getAllRanges() : [];
+        //get the active editor
+        const editor = playbackData.editors[playbackData.activeEditorFileId];
+
+        //get any selected text 
+        const ranges = editor.getSession().getSelection().getAllRanges();
 
         let rangeArray = [];
         for (let i = 0; i < ranges.length; i++){
             let rangeObj = {};
+            rangeObj.fileId = playbackData.activeEditorFileId,
+            rangeObj.selectedText = editor.getSession().getTextRange(ranges[i]),
             rangeObj.startRow = ranges[i].start.row
             rangeObj.startColumn = ranges[i].start.column;
             rangeObj.endRow = ranges[i].end.row;
@@ -120,7 +123,6 @@ function setupEventListeners()
                 commentText,
                 timestamp: new Date().getTime(),
                 displayCommentEvent: commentEvent,
-                selectedCodeText: selectedText,
                 selectedCodeBlocks: rangeArray,            
                 imageURLs: playbackData.mediaForNewComment[0],
                 videoURLs: playbackData.mediaForNewComment[1],

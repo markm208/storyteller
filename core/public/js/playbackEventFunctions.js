@@ -10,8 +10,6 @@ function insertEvent(nextEvent){
         //get the Ace editor the new line will go into and insert at the row/column of the event
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, '\n');
     }
-
-    //addFocusToTab(document.getElementById(`${nextEvent.fileId}-text`), document.getElementById(`${nextEvent.fileId}-content`));
 }
 
 //On delete event, delete the character from the Ace editor at the correct position
@@ -27,154 +25,114 @@ function deleteEvent(nextEvent){
         //remove that range from the Ace editor
         playbackData.editors[nextEvent.fileId].getSession().remove(new Range(nextEvent.lineNumber-1, nextEvent.column-1,nextEvent.lineNumber-1, nextEvent.column));
     }
-
-    //addFocusToTab(document.getElementById(`${nextEvent.fileId}-text`), document.getElementById(`${nextEvent.fileId}-content`));
 }
 
 //when a createFileEvent is encountered while stepping forward
 //or a deleteFileEvent is encountered while stepping backwards
 //this function is called to handle all necessary operations
 function createFileEvent(nextEvent){
-    //console.log(`adding to file to the ${numFilesCreated} existing files`);
-    
-    //if this event is the first create file event encountered
-    //there is no need to create a new tab or Ace editor because the page is created with one
-    if (playbackData.numFilesCreated === 0)
-    {        
-        //sets the Ace editor to the correct mode based on the language of the file
-        setEditorMode(editor, nextEvent.filePath);
+    //Create a new tab
+    //create a new item in the list of tabs 
+    const newListItem = document.createElement('li');
+    //allows use in navigation
+    newListItem.classList.add('nav-item');
+    //link the tab to the file thats its holding
+    newListItem.setAttribute('id', nextEvent.fileId);     
 
-        //adds editor to the list of editors with the file id as the key
-        playbackData.editors[nextEvent.fileId] = editor;
+    //sets up a link between the tab and the panel it will display
+    const newLinkTag = document.createElement('a');
+    newLinkTag.classList.add('nav-link');
+    newLinkTag.classList.add('st-editor-tab');
 
-        const tabLabel = document.getElementById('FirstTabLabel');
-        //tabLabel.setAttribute('id', `${nextEvent.fileId}-text`)
+    //setting the id of the tab for future access
+    //allows for renaming of tabs in the event of a file name change
+    newLinkTag.setAttribute('id', `${nextEvent.fileId}-tab`);
 
-        //document.getElementById(`Playback`).setAttribute('id', `${nextEvent.fileId}-content`)
+    //points this tab to the Ace editor it will display
+    //the div that this points to is created below
+    newLinkTag.href = `#${nextEvent.fileId}-editor-container`;
+    newLinkTag.setAttribute('role', 'tab');
+    newLinkTag.setAttribute('data-toggle', 'tab');
 
-        //set the text of the tab to the file path of the file created
-        tabLabel.innerHTML = nextEvent.filePath;
+    //sets the tab text to the filePath of the new file
+    newLinkTag.innerText = nextEvent.filePath;
 
-        //switches currently active editor on tab switch
-        tabLabel.addEventListener('click', event => {
-            editor = playbackData.editors[nextEvent.fileId];
-            editor.getSession().setValue(editor.getSession().getValue());
-        });
-    }
-    //if the current create file event is not the first encounted
-    else
-    {
-        //Create a new tab
-        //create a new item in the list of tabs 
-        const newListItem = document.createElement('li');
-        //allows use in navigation
-        newListItem.classList.add('nav-item');
-        //link the tab to the file thats its holding
-        newListItem.setAttribute('id', nextEvent.fileId);     
+    //switches currently active editor on tab switch
+    newLinkTag.addEventListener('click', event => {
+        //store the active editor file id
+        playbackData.activeEditorFileId = nextEvent.fileId;
+    });
 
-        //sets up a link between the tab and the panel it will display
-        const newLinkTag = document.createElement('a');
-        newLinkTag.classList.add('nav-link');
+    //adds the link to the list item
+    newListItem.appendChild(newLinkTag);
+    //adds the list item to the page html
+    tabsList.appendChild(newListItem);
 
-        //setting the id of the tab for future access
-        //allows for renaming of tabs in the event of a file name change
-        newLinkTag.setAttribute('id', `${nextEvent.fileId}-text`);
+    //create new divs to go in the new tab
+    //contentPanel is where newLinkTag points to and holds the codeDiv 
+    //which is what the Ace editor points to
+    const contentPanel = document.createElement('div');
+    //what the Ace editor points to
+    const codeDiv = document.createElement('div');
 
-        //points this tab to the Ace editor it will display
-        //the div that this points to is created below
-        newLinkTag.href = `#${nextEvent.fileId}-content`;
-        newLinkTag.setAttribute('role', 'tab');
-        newLinkTag.setAttribute('data-toggle', 'tab');
+    //set up the contentPanel id for future deletion
+    contentPanel.setAttribute('id', `${nextEvent.fileId}-editor-container`);
+    //adding the tab-pane class so the div can be displayed correctly by the newLinkTag
+    contentPanel.classList.add('tab-pane');
+    contentPanel.classList.add('st-editor-tab-pane');
+    //give the codeDiv and unique id so Ace can work with it
+    codeDiv.setAttribute('id', `${nextEvent.fileId}-code`);
+    //give the codeDiv the playbackWindow class
+    //this is a style that specifies the height of the div
+    //which is necessary for Ace to display code
+    codeDiv.classList.add('playbackWindow');
 
-        //sets the tab text to the filePath of the new file
-        newLinkTag.innerText = nextEvent.filePath;
+    //attach codeDiv to contentPanel
+    contentPanel.appendChild(codeDiv);
+    //attach the contentPanel to the tab-content div
+    tabContent.appendChild(contentPanel);
 
-        //switches currently active editor on tab switch
-        newLinkTag.addEventListener('click', event => {
-            editor = playbackData.editors[nextEvent.fileId];
-            editor.getSession().setValue(editor.getSession().getValue());
-        });
-
-        //adds the link to the list item
-        newListItem.appendChild(newLinkTag);
-        //adds the list item to the page html
-        tabsList.appendChild(newListItem);
-
-        //create new divs to go in the new tab
-        //contentPanel is where newLinkTag points to and holds the codeDiv 
-        //which is what the Ace editor points to
-        const contentPanel = document.createElement('div');
-        //what the Ace editor points to
-        const codeDiv = document.createElement('div');
-
-        //set up the contentPanel id for future deletion
-        contentPanel.setAttribute('id', `${nextEvent.fileId}-content`);
-        //adding the tab-pane class so the div can be displayed correctly by the newLinkTag
-        contentPanel.classList.add('tab-pane');
-        //give the codeDiv and unique id so Ace can work with it
-        codeDiv.setAttribute('id', `${nextEvent.fileId}-code`);
-        //give the codeDiv the playbackWindow class
-        //this is a style that specifies the height of the div
-        //which is necessary for Ace to display code
-        codeDiv.classList.add('playbackWindow');
-
-        //attach codeDiv to contentPanel
-        contentPanel.appendChild(codeDiv);
-        //attach the contentPanel to the tab-content div
-        tabContent.appendChild(contentPanel);
-
-        //create a new editor pointing to the code div
-        editor = createAceEditor(codeDiv, nextEvent.filePath, nextEvent.fileId);
-
-        addFocusToTab(document.getElementById(`${nextEvent.fileId}-text`), document.getElementById(`${nextEvent.fileId}-content`));
-    }
-    //increment the total number of files that have been created
-    playbackData.numFilesCreated++;
-    //console.log(`there are now ${numFilesCreated} files`);
+    //create a new editor pointing to the code div
+    createAceEditor(codeDiv, nextEvent.filePath, nextEvent.fileId);
 }
 
 //when a createFileEvent is encountered while stepping backwards
 //or a deleteFileEvent is encountered while stepping forwards
 function deleteFileEvent(nextEvent){
-    //console.log(`deleting one of ${numFilesCreated} files`);
-    if (playbackData.numFilesCreated != 1)
-    {
-        //delete the editor that is no longer being used
-        delete playbackData.editors[nextEvent.fileId];
+    //delete the editor that is no longer being used
+    delete playbackData.editors[nextEvent.fileId];
 
-        //Delete the div in tabContent
-        let tabPane = document.getElementById(`${nextEvent.fileId}-content`);
-        tabPane.parentNode.removeChild(tabPane);
+    //Delete the div in tabContent
+    let tabPane = document.getElementById(`${nextEvent.fileId}-editor-container`);
+    tabPane.parentNode.removeChild(tabPane);
 
-        //delete the tab from tabList
-        let fileTab = document.getElementById(nextEvent.fileId);
-        fileTab.parentNode.removeChild(fileTab);
-
-        addFocusToTab(document.getElementById(`FirstTabLabel`), document.getElementById(`Playback`));
-    }
-    //decrement the total number of files that have been created
-    playbackData.numFilesCreated--;
-    //console.log(`there are ${numFilesCreated} files left`);
+    //delete the tab from tabList
+    let fileTab = document.getElementById(nextEvent.fileId);
+    fileTab.parentNode.removeChild(fileTab);;
 }
 
-function addFocusToTab(tabToFocus, content)
+function addFocusToTab(fileId)
 {
-    //remove active class from the old tab and content pane
-    currentActiveTab.classList.remove('active');
-    currentActiveContent.classList.remove('active');
+    //if a tab other than the active one should get the focus
+    if(playbackData.activeEditorFileId !== fileId) {
+        //get the current active tab and content 
+        const currentActiveTabs = document.getElementsByClassName('st-editor-tab active');
+        const currentActiveContents = document.getElementsByClassName('st-editor-tab-pane active');
+        //if there is an active editor (there should only ever be one of these)
+        while(currentActiveTabs[0] && currentActiveContents[0]) {
+            //remove active class from the old tab and content pane
+            currentActiveTabs[0].classList.remove('active');
+            currentActiveContents[0].classList.remove('active');
+        }
 
-    //add active class to the new tab and content pane
-    tabToFocus.classList.add('active');
-    content.classList.add('active');
+        //get the tab and content to make active
+        const tabToFocus = document.getElementById(`${fileId}-tab`);
+        const content = document.getElementById(`${fileId}-editor-container`);
+        //add active class to the new tab and content pane
+        tabToFocus.classList.add('active');
+        content.classList.add('active');
 
-    //update our global which stores the currently active tab and content pane
-    currentActiveTab = tabToFocus;
-    currentActiveContent = content;
-
-    //Simulates a mouse click on the tab we want to focus on.
-    const tabClickEvent = new MouseEvent('click',{
-
-    });
-    tabToFocus.dispatchEvent(tabClickEvent);
-
+        //set the current active file id
+        playbackData.activeEditorFileId = fileId;
+    }
 }

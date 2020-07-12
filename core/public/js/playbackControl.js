@@ -21,7 +21,10 @@ function stepForward(numSteps) {
     if(playbackData.nextEventPosition < playbackData.numEvents) {
         //holds the next event to animate
         let nextEvent;
-
+        
+        //the id of the file to make active
+        let activeFileId = 'no-file-id';
+        
         //timing for debug purposes
         //const t0 = performance.now();
 
@@ -37,6 +40,8 @@ function stepForward(numSteps) {
             switch (nextEvent.type)
             {
                 case 'INSERT':
+                //set the active file
+                activeFileId = nextEvent.fileId;
                 //mark the new code
                 newCodeMarkers.insert(nextEvent);
                 //call the insertEvent function found in playbackEventFunctions.js
@@ -44,6 +49,8 @@ function stepForward(numSteps) {
                 break;
 
                 case 'DELETE':
+                //set the active file
+                activeFileId = nextEvent.fileId;
                 //mark the new code
                 newCodeMarkers.delete(nextEvent);
                 //call the deleteEvent function found in playbackEventFunctions.js
@@ -51,11 +58,15 @@ function stepForward(numSteps) {
                 break;
 
                 case 'CREATE FILE':
+                //set the active file
+                activeFileId = nextEvent.fileId;
                 //call the createFileEvent function found in playbackEventFunctions.js
                 createFileEvent(nextEvent);
                 break;
 
                 case 'DELETE FILE':
+                //set the active file
+                activeFileId = 'no-file-id';
                 //call the deleteFileEventFunction found in playbackEventFunctions.js
                 deleteFileEvent(nextEvent);
                 break;
@@ -69,6 +80,9 @@ function stepForward(numSteps) {
                 break;
             }
         }
+
+        //make the correct editor active
+        addFocusToTab(activeFileId);
 
         //highlight the new code
         highlightNewCode(newCodeMarkers.getAllNewCodeMarkers());
@@ -86,6 +100,9 @@ function stepBackward(numSteps) {
         //holds the next event to animate
         let nextEvent;
 
+        //the id of the file to make active
+        let activeFileId = 'no-file-id';
+        
         //to account for the fact that nextEventPosition always 
         //refers to the next event to animate in the forward 
         //direction I move it back by one position
@@ -100,21 +117,29 @@ function stepBackward(numSteps) {
             switch (nextEvent.type)
             {
                 case 'INSERT':
+                //set the active file
+                activeFileId = nextEvent.fileId;
                 //call the deleteEvent function found in playbackEventFunctions.js
                 deleteEvent(nextEvent);
                 break;
 
                 case 'DELETE':
+                //set the active file
+                activeFileId = nextEvent.fileId;
                 //call the insertEvent function found in playbackEventFunctions.js
                 insertEvent(nextEvent);
                 break;
 
                 case 'CREATE FILE':
+                //set the active file
+                activeFileId = 'no-file-id';
                 //call the deleteFileEvent function found in playbackEventFunctions.js
                 deleteFileEvent(nextEvent);
                 break;
 
                 case 'DELETE FILE':
+                //set the active file
+                activeFileId = nextEvent.fileId;
                 //call the deleteFileEventFunction found in playbackEventFunctions.js
                 createFileEvent(nextEvent);
                 break;
@@ -128,6 +153,9 @@ function stepBackward(numSteps) {
                 break;
             }
         }
+
+        //make the correct editor active
+        addFocusToTab(activeFileId);
 
         //after moving backwards, account for the fact that this
         //always refers to the next index to animate in the forward
@@ -182,9 +210,9 @@ function displayAllComments(){
                 step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
                 //add highlights for the comment
-                for (let j = 0; i < commentObject.selectedCodeBlocks.length; i++)
+                for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
                 {
-                    addHighlight(commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
+                    addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
                 }
             });
 
@@ -269,7 +297,7 @@ function displayAllComments(){
             finalDiv.addEventListener('click', function(e) {
                 step(comment.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); 
                 for (let j = 0; j < comment.selectedCodeBlocks.length; j++){
-                    addHighlight(comment.selectedCodeBlocks[j].startRow, comment.selectedCodeBlocks[j].startColumn, comment.selectedCodeBlocks[j].endRow, comment.selectedCodeBlocks[j].endColumn);
+                    addHighlight(comment.selectedCodeBlocks[j].fileId, comment.selectedCodeBlocks[j].startRow, comment.selectedCodeBlocks[j].startColumn, comment.selectedCodeBlocks[j].endRow, comment.selectedCodeBlocks[j].endColumn);
                 }
             });
 

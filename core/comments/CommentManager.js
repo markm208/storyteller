@@ -53,7 +53,7 @@ class CommentManager extends FileBackedCollection {
                 //get the raw comment data
                 const comment = this.comments[eventId][i];
                 //create the Comment object and add it to the array
-                allCommentsForAnEvent.push(new Comment(comment.displayCommentEvent, comment.developerGroupId, comment.timestamp, comment.commentText, comment.selectedCodeText, comment.selectedCodeBlocks, comment.imageURLs, comment.videoURLs, comment.audioURLs, comment.id));
+                allCommentsForAnEvent.push(new Comment(comment.displayCommentEvent, comment.developerGroupId, comment.timestamp, comment.commentText, comment.selectedCodeBlocks, comment.imageURLs, comment.videoURLs, comment.audioURLs, comment.id));
             }
 
             //replace the raw object array with one filled with Comments
@@ -66,7 +66,7 @@ class CommentManager extends FileBackedCollection {
      */
     addComment(commentData) {
         //create a comment object
-        const newComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs);
+        const newComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs);
         
         //if an array of comments does not already exist for this event
         if(!this.comments[commentData.displayCommentEvent.id]) {
@@ -91,7 +91,7 @@ class CommentManager extends FileBackedCollection {
                 //find the correct comment based on its id
                 if(allCommentsForAnEvent[i].id === commentData.id) {
                     //create an updated comment object
-                    const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.id);
+                    const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.id);
                     //update the comment
                     allCommentsForAnEvent[i] = updatedComment;
                     break;

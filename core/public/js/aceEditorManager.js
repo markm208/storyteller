@@ -36,25 +36,47 @@ function createAceEditor(codeDiv, filePath, fileId)
 /*
 * Create a highlight (ace calls these 'markers')
 */
-function addHighlight(startRow, startColumn, endRow, endColumn) {
-    //create a marker in the right range
-    const marker = editor.getSession().addMarker(new Range(startRow, startColumn, endRow, endColumn), 'highlight', 'text', true);
-    
-    //add the id of the new marker so it can be cleared later
-    playbackData.highlights.push(marker);
+function addHighlight(fileId, startRow, startColumn, endRow, endColumn) {
+    //get the editor where the highlight will take place
+    const editor = playbackData.editors[fileId];
+    //if it still exists (editors can be removed when moving in reverse)
+    if(editor) {
+        //create a marker in the right range
+        const marker = editor.getSession().addMarker(new Range(startRow, startColumn, endRow, endColumn), 'highlight', 'text', true);
+        
+        //if there is not an entry for this file yet
+        if(!playbackData.highlights[fileId]) {
+            //create an array to hold ace marker ids
+            playbackData.highlights[fileId] = [];
+        }
+        //add the id of the new marker so it can be cleared later
+        playbackData.highlights[fileId].push(marker);
+    }
 }
 
 /*
 * Function to clear all the highlights.
 */
 function clearHighlights() {
-    //go through the collection of marker ids
-    for(let i = 0;i < playbackData.highlights.length;i++) {
-        //remove the marker
-        editor.getSession().removeMarker(playbackData.highlights[i]);
+    //go through the files that have a recent highlight
+    for(let fileId in playbackData.highlights) {
+        //get the editor where the highlight is
+        const editor = playbackData.editors[fileId];
+
+        //if it still exists (editors can be removed when moving in reverse)
+        if(editor) {
+            //get the array of ace marker ids
+            const highlightMarkerIds = playbackData.highlights[fileId];
+            
+            //go through the collection of marker ids
+            for(let i = 0;i < highlightMarkerIds.length;i++) {
+                //remove the marker
+                editor.getSession().removeMarker(highlightMarkerIds[i]);
+            }
+        }
+        //get rid of the highlights for this file
+        delete playbackData.highlights[fileId];
     }
-    //empty the collection of marker ids
-    playbackData.highlights = [];
 }
 /*
  * Adds a new code highlight to any code added since the last pause point.
