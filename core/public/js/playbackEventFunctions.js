@@ -61,6 +61,9 @@ function createFileEvent(nextEvent){
     newLinkTag.addEventListener('click', event => {
         //store the active editor file id
         playbackData.activeEditorFileId = nextEvent.fileId;
+        //fixes Ace bug where editors are not updated
+        const editor = playbackData.editors[nextEvent.fileId];
+        editor.getSession().setValue(editor.getSession().getValue());
     });
 
     //adds the link to the list item
