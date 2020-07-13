@@ -39,8 +39,16 @@
     
                     <div id="addCommentPanel" class="tab-pane">
                         <div class="form-group">
-                            <textarea id="textCommentTextArea" class="form-control textarea" rows="10"
-                                placeholder="Select some text and add a comment at this point in the playback."></textarea>
+                            <div id="textCommentTextArea" contenteditable="true" class="form-control storytellerCommentEditable st-comment-placeholder">Comment text</div>
+                            <div class="input-group input-group-sm mb-3">
+                                <div class="input-group-prepend">
+                                    <button id="boldCommentButton" class="btn btn-outline-secondary" type="button" style="font-weight: bold;">B</button>
+                                    <button id="italicCommentButton" class="btn btn-outline-secondary" type="button" style="font-style: italic;">I</button>
+                                    <button id="codeCommentButton" class="btn btn-outline-secondary" type="button" style="font-family: Courier;">&ltcode/&gt</button>
+                                    <button id="linkCommentButton" class="btn btn-outline-secondary" type="button" style="text-decoration: underline;">Link</button>
+                                </div>
+                                <input id="commentLinkInput" type="text" class="form-control" placeholder="Link URL">
+                            </div>
                         </div>
                         <div id="commentPreview">
                             <div class="image-preview commentBox border hidden" style="display:none;"><h5>Images</h5></div>
@@ -191,7 +199,7 @@
         const emptyEditor = createAceEditor('playbackWindow', '','' );    
 
         //import the Range type from ace (don't use the built in browser Range type)
-        const Range = ace.require('ace/range').Range;
+        const AceRange = ace.require('ace/range').Range;
 
         const commentsDiv = document.getElementById('ViewCommentPanel');
 

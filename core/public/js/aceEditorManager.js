@@ -42,7 +42,7 @@ function addHighlight(fileId, startRow, startColumn, endRow, endColumn) {
     //if it still exists (editors can be removed when moving in reverse)
     if(editor) {
         //create a marker in the right range
-        const marker = editor.getSession().addMarker(new Range(startRow, startColumn, endRow, endColumn), 'highlight', 'text', true);
+        const marker = editor.getSession().addMarker(new AceRange(startRow, startColumn, endRow, endColumn), 'highlight', 'text', true);
         
         //if there is not an entry for this file yet
         if(!playbackData.highlights[fileId]) {
@@ -96,7 +96,7 @@ function highlightNewCode(newCodeMarkers) {
                 //get a range to highlight
                 const range = newCodeMarkers[fileId][i];
                 //create an Ace marker in the right range
-                const marker = editSession.addMarker(new Range(range.startRow, range.startColumn, range.endRow, range.endColumn), 'newCodeHighlight', 'text', false);            
+                const marker = editSession.addMarker(new AceRange(range.startRow, range.startColumn, range.endRow, range.endColumn), 'newCodeHighlight', 'text', false);            
                 
                 //if an array of markers does not exist for the file in the global playbackData object
                 if(!playbackData.newCodeHighlights[fileId]) {

@@ -15,15 +15,15 @@ function insertEvent(nextEvent){
 //On delete event, delete the character from the Ace editor at the correct position
 function deleteEvent(nextEvent){
     if (nextEvent.character === 'NEWLINE'){
-        //create a new Range from the end of the starting line to the beginning of the next line
+        //create a new AceRange from the end of the starting line to the beginning of the next line
         //remove characters in that range from the Ace editor
-        playbackData.editors[nextEvent.fileId].getSession().remove(new Range(nextEvent.lineNumber-1, nextEvent.column-1,nextEvent.lineNumber, 0));
+        playbackData.editors[nextEvent.fileId].getSession().remove(new AceRange(nextEvent.lineNumber-1, nextEvent.column-1,nextEvent.lineNumber, 0));
     }
     else if (nextEvent.character.length === 1){
-        //create a new Range from the index of the character to the index + 1
+        //create a new AceRange from the index of the character to the index + 1
         //remove takes a range with an inclusive start and non-inclusive end
         //remove that range from the Ace editor
-        playbackData.editors[nextEvent.fileId].getSession().remove(new Range(nextEvent.lineNumber-1, nextEvent.column-1,nextEvent.lineNumber-1, nextEvent.column));
+        playbackData.editors[nextEvent.fileId].getSession().remove(new AceRange(nextEvent.lineNumber-1, nextEvent.column-1,nextEvent.lineNumber-1, nextEvent.column));
     }
 }
 

@@ -219,7 +219,13 @@
 .slider {
     height: 40px;
 }
-
+.st-comment-placeholder {
+    color: grey
+}
+.storytellerCommentEditable {
+    min-height: 200px;
+    overflow: auto;
+}
 /* Create an active/current tablink class */
 .tab button.active {
     background-color: #ccc;

@@ -73,14 +73,54 @@ function setupEventListeners()
         step(Number(playbackSlider.value) - playbackData.nextEventPosition);
     });
 
-
-
+    //focus in the comment text area
+    document.querySelector('#textCommentTextArea').addEventListener('focus', event => {
+        //if the default text is in the comment area
+        if(event.target.innerHTML.trim() === 'Comment text') {
+            //empty out the comment area
+            event.target.classList.remove('st-comment-placeholder');
+            event.target.innerHTML = '';
+        }
+    });
+    //losing focus in the comment text area
+    document.querySelector('#textCommentTextArea').addEventListener('blur', event => {
+        //if there isn't anything from the user in the comment area
+        if(event.target.innerHTML.trim() === '') {
+            //put the placeholder back
+            event.target.classList.add('st-comment-placeholder');
+            event.target.innerHTML = 'Comment text';
+        }
+    });
+    //bold button
+    document.querySelector('#boldCommentButton').addEventListener('click', event => {
+        //make the selected text bold
+        document.execCommand('bold');
+    });
+    //italics button
+    document.querySelector('#italicCommentButton').addEventListener('click', event => {
+        //make the selected text italic
+        document.execCommand('italic');
+    });
+    //code button
+    document.querySelector('#codeCommentButton').addEventListener('click', event => {
+        //make the selected text look like code by using a fixed width font
+        document.execCommand('fontName', null, 'Courier');
+    });
+    //add a link
+    document.querySelector('#linkCommentButton').addEventListener('click', event => {
+        //get the url from the input
+        const linkURL = document.getElementById('commentLinkInput').value.trim();
+        document.getElementById('commentLinkInput').value = '';
+        //make the selected text a link
+        document.execCommand('createLink', null, linkURL);
+    });
+    
     document.querySelector('#addCommentButton').addEventListener('click', event =>{        
         
         const textCommentTextArea = document.querySelector('#textCommentTextArea');
 
-        //get all text from the comment text box
-        const commentText = textCommentTextArea.value.trim();
+        //get all text and html from the comment text box
+        const commentText = textCommentTextArea.innerHTML;
 
         //get the active editor
         const editor = playbackData.editors[playbackData.activeEditorFileId];

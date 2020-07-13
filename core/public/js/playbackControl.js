@@ -180,12 +180,10 @@ function displayAllComments(){
         commentGroupDiv.classList.add('border', 'commentGroupSpacing');
         
         for (let i = 0; i < commentBlock.length; i++){
-            const textAreaHeader = document.createElement('textarea');
+            const textAreaHeader = document.createElement('div');
+            //TODO should this be a card header??
             textAreaHeader.classList.add('card-header');
-            textAreaHeader.classList.add('form-control', 'comment-text');
-
-            textAreaHeader.disabled = true;
-            textAreaHeader.value = commentBlock[i].commentText;
+            textAreaHeader.innerHTML = commentBlock[i].commentText;
 
             //add a tick mark to the slider for the comment group ---DOESN'T WORK
             var tickmarkObject = document.getElementById('tickmarks');
