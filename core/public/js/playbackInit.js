@@ -123,7 +123,7 @@ function setupEventListeners()
         const commentText = textCommentTextArea.innerHTML;
 
         //get the active editor
-        const editor = playbackData.editors[playbackData.activeEditorFileId];
+        const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
 
         //get any selected text 
         const ranges = editor.getSession().getSelection().getAllRanges();
