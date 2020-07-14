@@ -8,12 +8,16 @@ function step(numSteps) {
     //move forward
     if(numSteps > 0) {
         stepForward(numSteps);
+        
+        //update the position of the slider
+        playbackSlider.value = playbackData.nextEventPosition;
     } else if(numSteps < 0) { //move backward
         stepBackward(-numSteps);
+
+        //update the position of the slider
+        playbackSlider.value = playbackData.nextEventPosition-1;
     } //else- no need to move at all
 
-    //update the position of the slider
-    playbackSlider.value = playbackData.nextEventPosition;
 }
 
 function stepForward(numSteps) {
