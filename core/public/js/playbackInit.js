@@ -178,7 +178,7 @@ function setupEventListeners()
             playbackData.comments[commentEvent.id].push(comment);
             
             //clear out the text area
-            textCommentTextArea.value = '';
+            textCommentTextArea.innerHTML = '';
         
             sendCommentToServer(comment);        
 
