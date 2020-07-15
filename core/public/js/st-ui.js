@@ -62,7 +62,6 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
         });
     }
 
-
     return cardDiv;
 }
 
@@ -250,4 +249,20 @@ function makeCarouselControls(carousel){
 
     carousel.append(right);
     carousel.append(left);
+}
+
+function makeDraggable(param, dropFolder){
+    param.setAttribute('draggable', 'true');
+    param.classList.add('draggable');
+
+    param.addEventListener('dragstart', () => {
+        param.classList.add('dragging');
+    })
+
+    param.addEventListener('dragend', () => {
+        param.classList.remove('dragging');
+    })
+
+    
+    
 }

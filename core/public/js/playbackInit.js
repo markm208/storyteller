@@ -119,6 +119,24 @@ function setupEventListeners()
         
         const textCommentTextArea = document.querySelector('#textCommentTextArea');
 
+        //getting all video files in order
+        const videoFiles = document.getElementsByClassName('video-preview')[0].children;
+        const currentVideoOrder = [];
+        for (let i = 0; i < videoFiles.length; i++){
+            if (videoFiles[i].classList.contains("card") ){
+                currentVideoOrder.push(videoFiles[i].firstChild.firstChild.getAttribute("src"));
+            }
+        }
+
+           //getting all audio files in order
+           const audioFiles = document.getElementsByClassName('audio-preview')[0].children;
+           const currentAudioOrder = [];
+           for (let i = 0; i < audioFiles.length; i++){
+               if (audioFiles[i].classList.contains("card") ){
+                currentAudioOrder.push(audioFiles[i].firstChild.firstChild.getAttribute("src"));
+               }
+           }
+
         //get all text and html from the comment text box
         const commentText = textCommentTextArea.innerHTML;
 
@@ -144,15 +162,15 @@ function setupEventListeners()
         const commentImages = playbackData.mediaForNewComment[0];
 
         //get all videos associated with this comment
-        const commentVideos = playbackData.mediaForNewComment[1];
+        //const commentVideos = playbackData.mediaForNewComment[1];
 
         //get all audio files associated with this comment
-        const commentAudios = playbackData.mediaForNewComment[2];
+        //const commentAudios = playbackData.mediaForNewComment[2];
 
         //console.log(playbackData.mediaForNewComment);
 
         //if there was a comment, or at least one media file
-        if (commentText || commentImages.length || commentVideos.length || commentAudios.length)
+        if (commentText || commentImages.length || currentVideoOrder.length || currentAudioOrder.length)
         {
             //get the event to playback this comment
             let eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
@@ -165,8 +183,8 @@ function setupEventListeners()
                 displayCommentEvent: commentEvent,
                 selectedCodeBlocks: rangeArray,            
                 imageURLs: playbackData.mediaForNewComment[0],
-                videoURLs: playbackData.mediaForNewComment[1],
-                audioURLs: playbackData.mediaForNewComment[2]
+                videoURLs: currentVideoOrder,
+                audioURLs: currentAudioOrder
             };        
 
             //determine if any comments already exist for this event 
@@ -311,6 +329,57 @@ function setupEventListeners()
             commentToLoad.dispatchEvent(commentClickEvent);
         }    
     });
+    
+    
+    const videoDrop = document.querySelector('.video-preview');
+    videoDrop.addEventListener('dragover', event => {
+        //determining if the item currently being dragged originated in the video-preview div
+        const draggable = videoDrop.querySelector('.dragging');
+        if (draggable !== null){
+            event.preventDefault();
+            const afterElement = getDragAfterElement(videoDrop, event.clientY);
+            if (afterElement === null){
+                videoDrop.appendChild(draggable);
+            }
+            else{
+                videoDrop.insertBefore(draggable, afterElement);
+            }            
+        }        
+    });
+
+    const audioDrop = document.querySelector('.audio-preview');
+    audioDrop.addEventListener('dragover', event => {
+        const draggable = audioDrop.querySelector('.dragging');
+        if (draggable !== null){
+            event.preventDefault();
+            const afterElement = getDragAfterElement(audioDrop, event.clientY);
+            if (afterElement === null){
+                audioDrop.appendChild(draggable);
+            }
+            else{
+                audioDrop.insertBefore(draggable, afterElement);
+            }            
+        }    
+    });   
+}
+
+function getDragAfterElement(container, y){
+    const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')];
+   return draggableElements.reduce((closest, child) => {
+
+        //gives us the dimensions of the box
+        const box = child.getBoundingClientRect();
+
+        //getting the center of the box
+        const offset = y - box.top - box.height / 2;
+
+        if (offset < 0 && offset > closest.offset){
+            return {offset: offset, element: child};
+        }
+        else{
+            return closest;
+        }
+    },{offset: Number.NEGATIVE_INFINITY}).element
 }
 
 //send the comment object to the server

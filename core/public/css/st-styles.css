@@ -262,3 +262,10 @@ resize: none;
     display: flex;
 }
 
+.draggable{
+    cursor: move;
+}
+
+.draggable.dragging{
+    opacity: 0.5;
+}
