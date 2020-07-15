@@ -15,7 +15,7 @@ function step(numSteps) {
         stepBackward(-numSteps);
 
         //update the position of the slider
-        playbackSlider.value = playbackData.nextEventPosition-1;
+        playbackSlider.value = playbackData.nextEventPosition;
     } //else- no need to move at all
 
 }

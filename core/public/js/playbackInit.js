@@ -52,6 +52,7 @@ function setupEventListeners()
     const tabContent = document.getElementById('tabContent');
 
     playbackSlider.setAttribute('max', playbackData.numEvents);
+    playbackSlider.setAttribute('min', 0);
     
     //add event handlers for clicking the buttons
     stepBackOne.addEventListener('click', event => {
@@ -173,8 +174,18 @@ function setupEventListeners()
         if (commentText || commentImages.length || currentVideoOrder.length || currentAudioOrder.length)
         {
             //get the event to playback this comment
-            let eventIndex = playbackData.nextEventPosition > 0  ? playbackData.nextEventPosition -1: 0;
-            let commentEvent = playbackData.events[eventIndex];  
+            let eventIndex = playbackData.nextEventPosition - 1;
+
+            let commentEvent;
+
+            if (eventIndex >= 0)
+            {
+                commentEvent = playbackData.events[eventIndex];
+            }
+            else
+            {
+                commentEvent = {id: 'ev--1', eventSequenceNumber: -1};
+            }
           
             //create an object that has all of the comment info
             const comment = {
