@@ -355,6 +355,11 @@ function setupEventListeners()
 
     const imageDrop = document.querySelector('.image-preview');
     imageDrop.addEventListener('dragover', event => {
+        //prevents image from opening in new tab in Firefox
+        document.body.ondrop = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         //determining if the item currently being dragged originated in the image-preview div
         const draggable = imageDrop.querySelector('.dragging');
         if (draggable !== null){
