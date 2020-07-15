@@ -110,7 +110,7 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     return cardDiv;
 }
 
-function addCancelButtonToImage(image, src, folderToDeleteFrom, panelToDeleteFrom){
+function addCancelButtonToImage(image, src, panelToDeleteFrom){
     let imageDiv = document.createElement('div');
     imageDiv.classList.add('image-div')
     let button = document.createElement('button');
@@ -138,9 +138,6 @@ function addCancelButtonToImage(image, src, folderToDeleteFrom, panelToDeleteFro
             if (!nodesLeft){
                 panelToDeleteFrom.style.display = 'none';
             }
-
-            const index = folderToDeleteFrom.indexOf(src);
-            folderToDeleteFrom.splice(index, 1);
         }
     });
 
@@ -150,7 +147,7 @@ function addCancelButtonToImage(image, src, folderToDeleteFrom, panelToDeleteFro
     panelToDeleteFrom.append(imageDiv);
 }
 
-function addCancelButtonToCard(card, src, folderToDeleteFrom, panelToDeleteFrom){
+function addCancelButtonToCard(card, src, panelToDeleteFrom){
     let button = document.createElement('button');
     button.classList.add('close');
     button.setAttribute('aria-label', 'close');
@@ -177,8 +174,6 @@ function addCancelButtonToCard(card, src, folderToDeleteFrom, panelToDeleteFrom)
             }
         }
 
-        const index = folderToDeleteFrom.indexOf(src);
-        folderToDeleteFrom.splice(index, 1);
     });
     card.firstChild.append(button);
 }
@@ -263,6 +258,6 @@ function makeDraggable(param, dropFolder){
         param.classList.remove('dragging');
     })
 
-    
+
     
 }

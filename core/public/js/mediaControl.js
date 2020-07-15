@@ -48,11 +48,9 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
 
         //create the preview cards and add them to the preview div
         let imageCard = createMediaControllerCommentImageUI(src , false, false);
-        addCancelButtonToImage(imageCard, src, playbackData.mediaForNewComment[0], imagePreviewDiv);
-        //imagePreviewDiv.appendChild(imageCard);
+        makeDraggable(imageCard, imagePreviewDiv);
 
-        //store the url
-        playbackData.mediaForNewComment[0].push(src);
+        addCancelButtonToImage(imageCard, src, imagePreviewDiv);
 
         //clear out the selected media class
         selectedImageElements[0].classList.remove('mediaSelected');
@@ -71,13 +69,10 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
 
 
         //add cancel button to the top of the preview card
-        addCancelButtonToCard(videoCard, src, playbackData.mediaForNewComment[1], videoPreviewDiv);        
+        addCancelButtonToCard(videoCard, src, videoPreviewDiv);        
 
         //add the preview to the div
         videoPreviewDiv.appendChild(videoCard);
-
-        //store the url
-        //playbackData.mediaForNewComment[1].push(src);
 
         //clear out the selected media class
         selectedVideoElements[0].classList.remove('mediaSelected');
@@ -94,12 +89,9 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         makeDraggable(audioCard, audioPreviewDiv);
 
         //add cancel button to the top of the preview card
-        addCancelButtonToCard(audioCard, src, playbackData.mediaForNewComment[2], audioPreviewDiv);
+        addCancelButtonToCard(audioCard, src, audioPreviewDiv);
 
         audioPreviewDiv.appendChild(audioCard);
-
-        //store the url
-        //playbackData.mediaForNewComment[2].push(src);
         
         //clear out the selected media class
         selectedAudioElements[0].classList.remove('mediaSelected');
