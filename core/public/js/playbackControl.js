@@ -171,12 +171,17 @@ function stepBackward(numSteps) {
 function displayAllComments(){
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
-    //convert all string keys into numbers for proper sorting of comment sequence
-    let keysArray = Object.keys(playbackData.comments);    
-    for (let i = 0; i < keysArray.length; i++){
-        keysArray[i] = Number(keysArray[i].slice(3));
-    }
 
+    let commentCount = 0;
+    let currentComment = 1;    
+
+    //convert all string keys into numbers for proper sorting of comment sequence
+    let keysArray = Object.keys(playbackData.comments);  
+    for (let i = 0; i < keysArray.length; i++){
+        commentCount += playbackData.comments[keysArray[i]].length;
+        keysArray[i] = Number(keysArray[i].slice(3));        
+    }
+   
     //sort by interger key and add each comment to the commentsDiv
     keysArray.sort((a,b)=> a - b).forEach(function(key){
         let commentBlock = playbackData.comments[`ev-${key}`];
@@ -184,10 +189,13 @@ function displayAllComments(){
         commentGroupDiv.classList.add('border', 'commentGroupSpacing');
         
         for (let i = 0; i < commentBlock.length; i++){
-            const textAreaHeader = document.createElement('div');
-            //TODO should this be a card header??
-            textAreaHeader.classList.add('card-body');
-            textAreaHeader.innerHTML = commentBlock[i].commentText;
+            const commentCountHeader = document.createElement('div');
+            commentCountHeader.classList.add('card-header');
+            commentCountHeader.innerHTML = "Comment " + currentComment++ + '/' + commentCount;
+            
+            const commentBody = document.createElement('div');
+            commentBody.classList.add('card-body');
+            commentBody.innerHTML = commentBlock[i].commentText;
 
             //add a tick mark to the slider for the comment group ---DOESN'T WORK
             var tickmarkObject = document.getElementById('tickmarks');
@@ -195,8 +203,6 @@ function displayAllComments(){
             newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
             newTick.classList.add("ui-slider-tick-mark");
             tickmarkObject.appendChild(newTick);
-
-            //TODO get height working on large comments in textareaheader
           
             const commentObject = commentBlock[i];
                 
@@ -291,7 +297,7 @@ function displayAllComments(){
                 cardFinal.append(temp.lastChild);  
             }
 
-            cardFinal.prepend(textAreaHeader);
+            cardFinal.prepend(commentBody);
             const finalDiv = document.createElement('div');
             finalDiv.classList.add('commentBox');
 
@@ -302,7 +308,7 @@ function displayAllComments(){
                     addHighlight(comment.selectedCodeBlocks[j].fileId, comment.selectedCodeBlocks[j].startRow, comment.selectedCodeBlocks[j].startColumn, comment.selectedCodeBlocks[j].endRow, comment.selectedCodeBlocks[j].endColumn);
                 }
             });
-
+            cardFinal.prepend(commentCountHeader);
             finalDiv.append(cardFinal);
             commentGroupDiv.append(finalDiv);
             commentsDiv.append(commentGroupDiv);
