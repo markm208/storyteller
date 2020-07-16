@@ -85,6 +85,14 @@
     border-left: 2px dotted #444;
 }
 
+.draggable{
+    cursor: move;
+}
+
+.draggable.dragging{
+    opacity: 0.5;
+}
+
 .highlight {
     position:absolute;
     z-index:20; /* place in a layer above anything with a lower z-index */
@@ -262,10 +270,4 @@ resize: none;
     display: flex;
 }
 
-.draggable{
-    cursor: move;
-}
 
-.draggable.dragging{
-    opacity: 0.5;
-}

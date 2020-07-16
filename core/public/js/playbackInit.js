@@ -433,21 +433,23 @@ async function sendCommentToServer(comment){
     }    
 }
 
-function doDrag(e){    
+function doDrag(event){    
     const wrapper = dragBar.closest('.wrapper');
     const boxA = wrapper.querySelector('.box');
+    const addCommentPanel = document.getElementById('addCommentPanel');
 
     // Get offset
     const containerOffsetLeft = wrapper.offsetLeft;
     
     // Get x-coordinate of pointer relative to container
-    let pointerRelativeXpos = e.clientX - containerOffsetLeft;
+    let pointerRelativeXpos = event.clientX - containerOffsetLeft;
 
     if (pointerRelativeXpos > screen.width * .1 && pointerRelativeXpos < screen.width * .75) {        
-        boxA.style.width = e.pageX + 'px';
+        boxA.style.width = event.pageX + 'px';
         boxA.style.flexGrow = 0;
         $('#codePanel').css('width', screen.width - pointerRelativeXpos);
-        commentsDiv.style.width = e.pageX + 'px';
+        commentsDiv.style.width = event.pageX + 'px';
+        addCommentPanel.style.width = event.pageX + 'px';
     }
 }
 
