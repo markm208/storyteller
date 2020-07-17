@@ -51,14 +51,17 @@ function createFileEvent(nextEvent){
     //points this tab to the Ace editor it will display
     //the div that this points to is created below
     newLinkTag.href = `#${nextEvent.fileId}-editor-container`;
+
     newLinkTag.setAttribute('role', 'tab');
     newLinkTag.setAttribute('data-toggle', 'tab');
 
-    //sets the tab text to the filePath of the new file
-
+    //sets the tab text to the fileName of the new file
     const fileName = nextEvent.filePath.substring(nextEvent.filePath.lastIndexOf('/') + 1, nextEvent.filePath.lastIndexOf('.'));
     newLinkTag.innerText = fileName;
 
+    //sets up the tooltip showing the full filePath
+    newLinkTag.setAttribute('data-toggle', 'tooltip');
+    newLinkTag.setAttribute('data-placement', 'left');
     newLinkTag.setAttribute('title', nextEvent.filePath);
 
     //switches currently active editor on tab switch
@@ -74,6 +77,9 @@ function createFileEvent(nextEvent){
     newListItem.appendChild(newLinkTag);
     //adds the list item to the page html
     tabsList.appendChild(newListItem);
+
+    //enables the tooltip
+    $("#" + `${nextEvent.fileId}-tab`).tooltip();    
 
     //create new divs to go in the new tab
     //contentPanel is where newLinkTag points to and holds the codeDiv 
