@@ -262,7 +262,7 @@ function makeDraggable(param, dropFolder){
 function createCommentCard(commentObject, currentComment, commentCount, i)
 {
     const cardHeader = document.createElement('div');
-    cardHeader.classList.add('card-header', 'text-muted', 'text-left', 'p-0');
+    cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'p-0');
     cardHeader.innerHTML = currentComment++ + '/' + commentCount;
     
     const cardBody = document.createElement('div');
