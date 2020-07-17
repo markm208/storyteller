@@ -377,7 +377,7 @@ function createCommentCard(commentObject, currentComment, commentCount)
     
 }
 
-function createTitleCard(commentObject)
+function createTitleCard(titleInfo, descriptionInfo)
 {
-    
+
 }

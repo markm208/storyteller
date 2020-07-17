@@ -192,8 +192,9 @@ function displayAllComments(){
 
         if (`ev-${key}` === 'ev--1')
         {
-            const commentObject = commentBlock[i];
-            const titleCard = createTitleCard(commentObject);
+            const titleInfo = commentBlock[0];
+            const descriptionInfo = commentBlock[1];
+            const titleCard = createTitleCard(titleInfo, descriptionInfo);
 
             startingValue += 2;
         }
