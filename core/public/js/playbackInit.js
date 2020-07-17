@@ -31,6 +31,9 @@ async function initializePlayback()
             playbackData.comments['ev--1'] = [];
             playbackData.comments['ev--1'].push(newTitle);
             playbackData.comments['ev--1'].push(newDescription);
+
+            sendCommentToServer(newTitle);
+            sendCommentToServer(newDescription);
         }
 
         //displays all comments

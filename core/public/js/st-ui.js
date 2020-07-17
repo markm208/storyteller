@@ -380,4 +380,6 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
 function createTitleCard(titleInfo, descriptionInfo)
 {
 
+    
+
 }
