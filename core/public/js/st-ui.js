@@ -256,8 +256,5 @@ function makeDraggable(param, dropFolder){
 
     param.addEventListener('dragend', () => {
         param.classList.remove('dragging');
-    })
-
-
-    
+    })    
 }

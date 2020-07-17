@@ -107,15 +107,56 @@ function setupEventListeners()
         //make the selected text look like code by using a fixed width font
         document.execCommand('fontName', null, 'Courier');
     });
+
     //add a link
-    document.querySelector('#linkCommentButton').addEventListener('click', event => {
-        //get the url from the input
-        const linkURL = document.getElementById('commentLinkInput').value.trim();
-        document.getElementById('commentLinkInput').value = '';
-        //make the selected text a link
-        document.execCommand('createLink', null, linkURL);
-    });
+    let selectedRange = {};
+    document.querySelector('#linkCommentButton').addEventListener('click', event => {       
+        const textArea = $('#textCommentTextArea')[0].firstChild;
+        const selectedText = window.getSelection();
+        const tempRange =  selectedText.getRangeAt(0);
+        const selectedTextString = selectedText.toString();
+        selectedRange = tempRange.cloneRange();       
+
+        //check to make sure there is selected text and it is in the textArea
+        if ((selectedText.anchorNode.parentElement.parentElement.id === 'textCommentTextArea' || selectedText.containsNode(textArea)) && selectedTextString){
+            const toastDiv = $('#URL-Toast')[0]; 
+
+            //removes style="display: none"
+            toastDiv.removeAttribute('style');
+
+            toastDiv.style.position = "absolute";
+            toastDiv.style.zIndex = "100";
+            toastDiv.style.width = 500 + 'px';
     
+            //sets the position of the toast to just under the linkCommentButton
+            const commentButtonRectangle = document.querySelector('#linkCommentButton').getBoundingClientRect();
+            toastDiv.style.top = commentButtonRectangle.y + 20 +'px';
+            toastDiv.style.left = commentButtonRectangle.left + 'px';
+            $('#URL-Toast').toast('show');
+        }
+    });
+
+    document.querySelector('#URL-Confirm').addEventListener('click', event => {
+        const URLInput = $('#URL')[0].innerText; 
+        if (URLInput){
+            $('#URL-Toast').toast('hide');
+            const windowSelection = window.getSelection();
+
+            //restores the original selection
+            windowSelection.removeAllRanges();
+            windowSelection.addRange(selectedRange);
+            
+            //creates the link
+            document.execCommand('createLink', null, URLInput);
+
+            $('#URL')[0].innerHTML = "";
+        }
+    });  
+
+    document.querySelector('#URL-Close').onclick = function(){
+        $('#URL')[0].innerHTML = "";
+    };
+
     document.querySelector('#addCommentButton').addEventListener('click', event =>{        
         
         const textCommentTextArea = document.querySelector('#textCommentTextArea');

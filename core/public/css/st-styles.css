@@ -233,6 +233,7 @@
 .storytellerCommentEditable {
     min-height: 200px;
     overflow: auto;
+    resize: vertical;
 }
 /* Create an active/current tablink class */
 .tab button.active {
@@ -263,11 +264,14 @@ resize: none;
     z-index: -1;
 }
 
+#URL{
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
 .wrapper {
     background-color: #fff;
     color: #444;
     /* Use flexbox */
     display: flex;
 }
-
-

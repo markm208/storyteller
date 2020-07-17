@@ -46,8 +46,8 @@
                                     <button id="italicCommentButton" class="btn btn-outline-secondary" type="button" style="font-style: italic;">I</button>
                                     <button id="codeCommentButton" class="btn btn-outline-secondary" type="button" style="font-family: Courier;">&ltcode/&gt</button>
                                     <button id="linkCommentButton" class="btn btn-outline-secondary" type="button" style="text-decoration: underline;">Link</button>
+                                    <button id="addMediaButton" class="btn btn-outline-secondary">Add Media to Comment</button>
                                 </div>
-                                <input id="commentLinkInput" type="text" class="form-control" placeholder="Link URL">
                             </div>
                         </div>
                         <div id="commentPreview">
@@ -55,7 +55,6 @@
                             <div class="video-preview commentBox border hidden" style="display:none;"><h5>Videos</h5></div>
                             <div class="audio-preview commentBox border hidden" style="display:none;"><h5>Audios</h5></div>
                         </div>
-                        <button id="addMediaButton" class="btn btn-light">Add Media to Comment</button>
                         <button id="addCommentButton" class="btn btn-success">Add Comment</button>
                     </div>
     
@@ -155,7 +154,18 @@
                 <img class="modal-content" id="imgToExpand"> 
             </div>            
         </div>
-        
+        <div class='container' >
+            <div class="toast" id='URL-Toast' style="display: none" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto text-primary">Enter the URL</strong>      
+              <button type="button" id='URL-Close' class="ml-2 mb-1 close" data-dismiss="toast">&times;</button>
+              </div>
+              <div class="toast-body">
+                <div class="form-control" id="URL" contenteditable="true" > </div>
+                 <button type="button" id ='URL-Confirm' class="float-right btn btn-outline-primary">Submit</button>
+              </div>
+            </div>
+        </div>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
