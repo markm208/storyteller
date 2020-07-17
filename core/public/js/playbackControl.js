@@ -182,13 +182,16 @@ function displayAllComments(){
         keysArray[i] = Number(keysArray[i].slice(3));        
     }
    
+    let uniqueCommentGroupID = 0;
     //sort by interger key and add each comment to the commentsDiv
     keysArray.sort((a,b)=> a - b).forEach(function(key){
         let commentBlock = playbackData.comments[`ev-${key}`];
         const commentGroupDiv = document.createElement('div');
-        commentGroupDiv.classList.add('border', 'commentGroupSpacing');
+        //commentGroupDiv.classList.add('commentGroupSpacing');
         
         let startingValue = 0;
+
+        
 
         if (`ev-${key}` === 'ev--1')
         {
@@ -199,6 +202,10 @@ function displayAllComments(){
             startingValue += 2;
         }
 
+        commentGroupDiv.setAttribute('id','CG' + uniqueCommentGroupID); //TODO this has to change
+        let outerCommentGroup = document.createElement('div');
+        outerCommentGroup.classList.add('commentGroupSpacing');
+
         for (let i = startingValue; i < commentBlock.length; i++){
 
             const commentObject = commentBlock[i];
@@ -206,6 +213,10 @@ function displayAllComments(){
             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
             const commentCard = returnObject.cardObject;
             currentComment = returnObject.count;
+
+            if (playbackData.isEditable){
+               commentCard.classList.add('drag');
+            }
 
             //add a tick mark to the slider for the comment group ---DOESN'T WORK
             var tickmarkObject = document.getElementById('tickmarks');
@@ -215,8 +226,28 @@ function displayAllComments(){
             tickmarkObject.appendChild(newTick);
 
             commentGroupDiv.append(commentCard);
-            commentsDiv.append(commentGroupDiv);
-        }
+            outerCommentGroup.append(commentGroupDiv);
+            commentsDiv.append(outerCommentGroup);
+        }     
+
+        if (playbackData.isEditable && commentBlock.length > 1){
+
+            const editCommentBlockButton = document.createElement('button');
+            editCommentBlockButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+            editCommentBlockButton.appendChild(document.createTextNode('Edit Comment Block'));
+
+            let tempNum = uniqueCommentGroupID;
+            editCommentBlockButton.addEventListener('click', event => {
+                $('.drag', "#" + 'CG' + tempNum).each(function(){
+                    makeDraggable(this);
+                });
+            });
+
+            outerCommentGroup.setAttribute('style', 'text-align: right');
+            outerCommentGroup.append(editCommentBlockButton);
+            makeDivDroppable(commentGroupDiv);
+        }   
+        uniqueCommentGroupID++;            
     })    
 }
 

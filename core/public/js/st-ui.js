@@ -246,7 +246,7 @@ function makeCarouselControls(carousel){
     carousel.append(left);
 }
 
-function makeDraggable(param, dropFolder){
+function makeDraggable(param){
     param.setAttribute('draggable', 'true');
     param.classList.add('draggable');
 
@@ -257,6 +257,26 @@ function makeDraggable(param, dropFolder){
     param.addEventListener('dragend', () => {
         param.classList.remove('dragging');
     })    
+}
+
+function makeDivDroppable(div){
+
+    const divDrop = $('#' + div.id)[0];
+    divDrop.addEventListener('dragover', event => {
+        const draggable = divDrop.querySelector('.dragging');
+        
+        //make sure the item being dragged originated in the droppable div
+        if (draggable !== null){
+            event.preventDefault();
+            const afterElement = getDragAfterElement(divDrop, event.clientY);
+            if (afterElement === null){
+                divDrop.appendChild(draggable);
+            }
+            else{
+                divDrop.insertBefore(draggable, afterElement);
+            }            
+        }    
+    });   
 }
 
 function createCommentCard(commentObject, currentComment, commentCount, i)
@@ -396,3 +416,4 @@ function createTitleCard(titleInfo, descriptionInfo)
     
 
 }
+

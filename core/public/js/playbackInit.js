@@ -9,19 +9,22 @@ async function initializePlayback()
     try {
         const playbackInfo = await Promise.all([
             fetch('/event'),
-            fetch('/comment')
+            fetch('/comment'),
+            fetch('/editComment')
 
         ]);
         
 
         const results = await Promise.all([
             playbackInfo[0].json(),
-            playbackInfo[1].json()
+            playbackInfo[1].json(),
+            playbackInfo[2].json()
         ]);
        
 
         playbackData.events = results[0];
         playbackData.comments = results[1];
+        playbackData.isEditable = results[2].editable;
 
         if (!playbackData.comments['ev--1'])
         {
@@ -452,6 +455,7 @@ function setupEventListeners()
             }            
         }    
     });   
+
 }
 
 function getDragAfterElement(container, y){

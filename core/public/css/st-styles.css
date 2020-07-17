@@ -35,7 +35,7 @@
 .commentGroupSpacing {
     margin-top: 10px;
     margin-bottom: 10px;
-    border-color: black;
+    border: thick solid #000000;
 }
 
 .comment-text {
@@ -275,3 +275,5 @@ resize: none;
     /* Use flexbox */
     display: flex;
 }
+
+

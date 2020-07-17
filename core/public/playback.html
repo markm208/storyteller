@@ -202,7 +202,9 @@
             //holds the currently viewed fileId
             currentFileId: null,
             //the position of the event to play next in the forward direction
-            nextEventPosition: 0,   
+            nextEventPosition: 0,  
+            //whether or not edits are allowed to be made to comments 
+            isEditable: false 
         };
 
         const emptyEditor = createAceEditor('playbackWindow', '','' );    

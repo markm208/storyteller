@@ -303,6 +303,10 @@ class HttpServer {
             res.json(this.projectManager.commentManager.comments);
         });
 
+        app.get('/editComment', (req, res) => {
+            res.json({editable: true});
+        });
+
         app.post('/comment', (req, res) => {
             //add a comment            
             const comment = req.body;            
