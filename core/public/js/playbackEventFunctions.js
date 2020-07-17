@@ -53,7 +53,6 @@ function createFileEvent(nextEvent){
     newLinkTag.href = `#${nextEvent.fileId}-editor-container`;
 
     newLinkTag.setAttribute('role', 'tab');
-    newLinkTag.setAttribute('data-toggle', 'tab');
 
     //sets the tab text to the fileName of the new file
     const fileName = nextEvent.filePath.substring(nextEvent.filePath.lastIndexOf('/') + 1, nextEvent.filePath.lastIndexOf('.'));
@@ -61,6 +60,8 @@ function createFileEvent(nextEvent){
 
     //sets up the tooltip showing the full filePath
     newLinkTag.setAttribute('data-toggle', 'tooltip');
+    newLinkTag.setAttribute('data-toggle', 'tab');
+
     newLinkTag.setAttribute('data-placement', 'left');
     newLinkTag.setAttribute('title', nextEvent.filePath);
 

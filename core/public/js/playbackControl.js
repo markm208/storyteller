@@ -190,7 +190,7 @@ function displayAllComments(){
         
         for (let i = 0; i < commentBlock.length; i++){
             const commentCountHeader = document.createElement('div');
-            commentCountHeader.classList.add('card-header', 'text-muted', 'text-left', 'p-0');
+            commentCountHeader.classList.add('card-header', 'small', 'text-muted', 'text-left', 'p-0');
             commentCountHeader.innerHTML = currentComment++ + '/' + commentCount;
             
             const commentBody = document.createElement('div');
