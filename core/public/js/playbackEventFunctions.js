@@ -55,7 +55,11 @@ function createFileEvent(nextEvent){
     newLinkTag.setAttribute('data-toggle', 'tab');
 
     //sets the tab text to the filePath of the new file
-    newLinkTag.innerText = nextEvent.filePath;
+
+    const fileName = nextEvent.filePath.substring(nextEvent.filePath.lastIndexOf('/') + 1, nextEvent.filePath.lastIndexOf('.'));
+    newLinkTag.innerText = fileName;
+
+    newLinkTag.setAttribute('title', nextEvent.filePath);
 
     //switches currently active editor on tab switch
     newLinkTag.addEventListener('click', event => {
