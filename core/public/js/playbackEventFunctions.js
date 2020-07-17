@@ -55,7 +55,7 @@ function createFileEvent(nextEvent){
     newLinkTag.setAttribute('role', 'tab');
 
     //sets the tab text to the fileName of the new file
-    const fileName = nextEvent.filePath.substring(nextEvent.filePath.lastIndexOf('/') + 1, nextEvent.filePath.lastIndexOf('.'));
+    const fileName = nextEvent.filePath.substring(nextEvent.filePath.lastIndexOf('/') + 1);
     newLinkTag.innerText = fileName;
 
     //sets up the tooltip showing the full filePath
