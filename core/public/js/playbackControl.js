@@ -187,11 +187,8 @@ function displayAllComments(){
     keysArray.sort((a,b)=> a - b).forEach(function(key){
         let commentBlock = playbackData.comments[`ev-${key}`];
         const commentGroupDiv = document.createElement('div');
-        //commentGroupDiv.classList.add('commentGroupSpacing');
         
-        let startingValue = 0;
-
-        
+        let startingValue = 0;        
 
         if (`ev-${key}` === 'ev--1')
         {
@@ -202,7 +199,11 @@ function displayAllComments(){
             startingValue += 2;
         }
 
-        commentGroupDiv.setAttribute('id','CG' + uniqueCommentGroupID); //TODO this has to change
+        //give each commentGroup a unique id 
+        commentGroupDiv.setAttribute('id','CG' + uniqueCommentGroupID++);
+        
+        //create an outer group to hold the edit button
+        //this keeps the dragging of cards from changing the position of the button
         let outerCommentGroup = document.createElement('div');
         outerCommentGroup.classList.add('commentGroupSpacing');
 
@@ -215,6 +216,7 @@ function displayAllComments(){
             currentComment = returnObject.count;
 
             if (playbackData.isEditable){
+               //gives each card a class to later access it
                commentCard.classList.add('drag');
             }
 
@@ -236,9 +238,9 @@ function displayAllComments(){
             editCommentBlockButton.classList.add("btn", "btn-outline-dark", "btn-sm");
             editCommentBlockButton.appendChild(document.createTextNode('Edit Comment Block'));
 
-            let tempNum = uniqueCommentGroupID;
+            //go to every card marked 'drag' in the div where editCommentBlockButton was clicked, and make each draggable
             editCommentBlockButton.addEventListener('click', event => {
-                $('.drag', "#" + 'CG' + tempNum).each(function(){
+                $('.drag', "#" + commentGroupDiv.id).each(function(){
                     makeDraggable(this);
                 });
             });
@@ -247,7 +249,6 @@ function displayAllComments(){
             outerCommentGroup.append(editCommentBlockButton);
             makeDivDroppable(commentGroupDiv);
         }   
-        uniqueCommentGroupID++;            
     })    
 }
 
