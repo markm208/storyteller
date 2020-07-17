@@ -156,7 +156,9 @@ function setupEventListeners()
             const commentButtonRectangle = document.querySelector('#linkCommentButton').getBoundingClientRect();
             toastDiv.style.top = commentButtonRectangle.y + 20 +'px';
             toastDiv.style.left = commentButtonRectangle.left + 'px';
+            
             $('#URL-Toast').toast('show');
+            $('#URL').focus();
         }
     });
 
@@ -172,6 +174,8 @@ function setupEventListeners()
             
             //creates the link
             document.execCommand('createLink', null, URLInput);
+
+            windowSelection.removeAllRanges();
 
             $('#URL')[0].innerHTML = "";
         }
