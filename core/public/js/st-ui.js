@@ -259,14 +259,14 @@ function makeDraggable(param, dropFolder){
     })    
 }
 
-function createCommentCard(commentObject, currentComment, commentCount)
+function createCommentCard(commentObject, currentComment, commentCount, i)
 {
     const cardHeader = document.createElement('div');
     cardHeader.classList.add('card-header', 'text-muted', 'text-left', 'p-0');
     cardHeader.innerHTML = currentComment++ + '/' + commentCount;
     
     const cardBody = document.createElement('div');
-    cardBody.classList.add('card-body');
+    cardBody.classList.add('card-body', 'text-left');
     cardBody.innerHTML = commentObject.commentText;
 
     let cardFinal = document.createElement('div');
@@ -373,7 +373,7 @@ function createCommentCard(commentObject, currentComment, commentCount)
     cardFinal.prepend(cardHeader);
     finalDiv.append(cardFinal);
 
-    return finalDiv;
+    return {cardObject: finalDiv, count: currentComment};
     
 }
 

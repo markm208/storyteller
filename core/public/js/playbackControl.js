@@ -172,7 +172,7 @@ function displayAllComments(){
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
 
-    let commentCount = 0;
+    let commentCount = -2; // because the title and description do not count
     let currentComment = 1;    
 
     //convert all string keys into numbers for proper sorting of comment sequence
@@ -203,7 +203,9 @@ function displayAllComments(){
 
             const commentObject = commentBlock[i];
 
-            const commentCard = createCommentCard(commentObject, currentComment, commentCount);
+            const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
+            const commentCard = returnObject.cardObject;
+            currentComment = returnObject.count;
 
             //add a tick mark to the slider for the comment group ---DOESN'T WORK
             var tickmarkObject = document.getElementById('tickmarks');
