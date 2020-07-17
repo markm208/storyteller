@@ -285,6 +285,19 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         {
             addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
         }
+
+        //if there is some highlighted code
+        if(commentObject.selectedCodeBlocks.length > 0) {
+            //if the highlighted code is not in the active editor
+            if(playbackData.activeEditorFileId !== commentObject.selectedCodeBlocks[0].fileId) {
+                //bring the file with the highlighted text to the front by simulating a click
+                const fileIdTab = document.getElementById(`${commentObject.selectedCodeBlocks[0].fileId}-tab`);
+                fileIdTab.click();
+                
+                //record the active editor
+                playbackData.activeEditorFileId = commentObject.selectedCodeBlocks[0].fileId;
+            }
+        }
     });
 
     let carousel = createCarousel();
