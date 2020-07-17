@@ -23,6 +23,16 @@ async function initializePlayback()
         playbackData.events = results[0];
         playbackData.comments = results[1];
 
+        if (!playbackData.comments['ev--1'])
+        {
+            const newTitle = createCommentObject('TITLE', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
+            const newDescription = createCommentObject('DESCRIPTION', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
+
+            playbackData.comments['ev--1'] = [];
+            playbackData.comments['ev--1'].push(newTitle);
+            playbackData.comments['ev--1'].push(newDescription);
+        }
+
         //displays all comments
         displayAllComments();
 
@@ -37,6 +47,20 @@ async function initializePlayback()
     } 
 }
 
+function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs)
+{
+    const comment = {
+        commentText,
+        timestamp: new Date().getTime(),
+        displayCommentEvent: dspEvent,
+        selectedCodeBlocks: selectedCode,            
+        imageURLs: imgURLs,
+        videoURLs: vidURLs,
+        audioURLs: audioURLs
+    };    
+
+    return comment;
+}
 
 function setupEventListeners()
 {
@@ -227,15 +251,7 @@ function setupEventListeners()
             }
           
             //create an object that has all of the comment info
-            const comment = {
-                commentText,
-                timestamp: new Date().getTime(),
-                displayCommentEvent: commentEvent,
-                selectedCodeBlocks: rangeArray,            
-                imageURLs: currentImageOrder,
-                videoURLs: currentVideoOrder,
-                audioURLs: currentAudioOrder
-            };        
+            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder)
 
             //determine if any comments already exist for this event 
             //if so add the new comment
