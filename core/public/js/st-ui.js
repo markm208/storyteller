@@ -258,3 +258,126 @@ function makeDraggable(param, dropFolder){
         param.classList.remove('dragging');
     })    
 }
+
+function createCommentCard(commentObject, currentComment, commentCount, i)
+{
+    const cardHeader = document.createElement('div');
+    cardHeader.classList.add('card-header', 'text-muted', 'text-left', 'p-0');
+    cardHeader.innerHTML = currentComment++ + '/' + commentCount;
+    
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body', 'text-left');
+    cardBody.innerHTML = commentObject.commentText;
+
+    let cardFinal = document.createElement('div');
+    cardFinal.classList.add('card', 'text-center');
+
+    //allows us to send a click event to this card in order to jump to it in the playback
+    cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
+
+    //if this is not here the play button does not work, because the card will have no functionality
+    cardFinal.addEventListener('click', function (e){ 
+        //step to the event this comment is at
+        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+
+        //add highlights for the comment
+        for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
+        {
+            addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
+        }
+    });
+
+    let carousel = createCarousel();
+    let temp;
+
+    if (commentObject.imageURLs.length > 1){  
+        // Get the modal
+        let modal = document.getElementById("imgExpandModal");
+
+        // Get the image and insert it inside the modal - use its "alt" text as a caption
+        let img = document.getElementById("myImg");
+        let modalImg = document.getElementById("imgToExpand");
+        //var captionText = document.getElementById("caption");
+
+        for (let j = 0; j < commentObject.imageURLs.length; j++){
+            addImageToCarousel(commentObject.imageURLs[j], carousel);
+            makeCarouselControls(carousel);
+
+            carousel.addEventListener('click', event =>{
+                //if the carousel is clicked on either the left or right button, dont trigger the enlarged image modal
+                if (!event.toElement.className.includes('carousel-control')){   
+                    //get the src of the current active image from the carousel that was clicked on                    
+                    let src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
+                    modal.style.display = "block";
+                    modalImg.src = src;
+                }
+            });
+
+            // Get the <span> element that closes the modal
+            let span = document.getElementsByClassName("modalClose")[0];
+
+            //close the modal
+            span.onclick = function() {
+                modalImg.removeAttribute('src');
+                modal.style.display = "none";
+            }
+            //add carousel
+            cardFinal.append(carousel);
+        }
+    }
+    //creates a carousel without controls to keep consistency among single images and images in carousels
+    else if (commentObject.imageURLs.length === 1){
+        addImageToCarousel(commentObject.imageURLs[0], carousel);
+
+        carousel.addEventListener('click',event => {
+            //add image to the modal
+            document.getElementById("imgExpandModal").style.display = "block";
+            document.getElementById("imgToExpand").src = commentObject.imageURLs[0];
+        })
+        //modal close button
+        document.getElementsByClassName("modalClose")[0].onclick = function() {
+            document.getElementById("imgToExpand").removeAttribute('src');
+            document.getElementById("imgExpandModal").style.display = "none";
+        }
+        cardFinal.append(carousel);
+    }         
+
+    for (let j = 0; j < commentObject.videoURLs.length; j++){
+        temp = createMediaControllerCommentVideoUI(commentObject.videoURLs[j], false, false);       
+        //add next media
+        cardFinal.append(temp.firstChild);
+        //file names added invisible in case we later want to see them when editing
+        temp.lastChild.style.display ='none';
+        cardFinal.append(temp.lastChild);     
+    }
+
+    for (let j = 0; j < commentObject.audioURLs.length; j++){
+        temp = createMediaControllerCommentAudioUI(commentObject.audioURLs[j], false, false); 
+        cardFinal.append(temp.firstChild);
+
+        //file names added invisible in case we later want to see them when editing
+        temp.lastChild.style.display ='none';
+        cardFinal.append(temp.lastChild);  
+    }
+
+    cardFinal.prepend(cardBody);
+    const finalDiv = document.createElement('div');
+    finalDiv.classList.add('commentBox');
+
+    finalDiv.addEventListener('click', function(e) {
+        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); 
+        for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++){
+            addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
+        }
+    });
+    cardFinal.prepend(cardHeader);
+    finalDiv.append(cardFinal);
+
+    return {cardObject: finalDiv, count: currentComment};
+    
+}
+
+function createTitleCard(titleInfo, descriptionInfo)
+{
+
+}

@@ -172,7 +172,7 @@ function displayAllComments(){
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
 
-    let commentCount = 0;
+    let commentCount = -2; // because the title and description do not count
     let currentComment = 1;    
 
     //convert all string keys into numbers for proper sorting of comment sequence
@@ -188,14 +188,24 @@ function displayAllComments(){
         const commentGroupDiv = document.createElement('div');
         commentGroupDiv.classList.add('border', 'commentGroupSpacing');
         
-        for (let i = 0; i < commentBlock.length; i++){
-            const commentCountHeader = document.createElement('div');
-            commentCountHeader.classList.add('card-header', 'small', 'text-muted', 'text-left', 'p-0');
-            commentCountHeader.innerHTML = currentComment++ + '/' + commentCount;
-            
-            const commentBody = document.createElement('div');
-            commentBody.classList.add('card-body');
-            commentBody.innerHTML = commentBlock[i].commentText;
+        let startingValue = 0;
+
+        if (`ev-${key}` === 'ev--1')
+        {
+            const titleInfo = commentBlock[0];
+            const descriptionInfo = commentBlock[1];
+            const titleCard = createTitleCard(titleInfo, descriptionInfo);
+
+            startingValue += 2;
+        }
+
+        for (let i = startingValue; i < commentBlock.length; i++){
+
+            const commentObject = commentBlock[i];
+
+            const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
+            const commentCard = returnObject.cardObject;
+            currentComment = returnObject.count;
 
             //add a tick mark to the slider for the comment group ---DOESN'T WORK
             var tickmarkObject = document.getElementById('tickmarks');
@@ -203,114 +213,8 @@ function displayAllComments(){
             newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
             newTick.classList.add("ui-slider-tick-mark");
             tickmarkObject.appendChild(newTick);
-          
-            const commentObject = commentBlock[i];
-                
-            let cardFinal = document.createElement('div');
-            cardFinal.classList.add('card', 'text-center');
 
-            //allows us to send a click event to this card in order to jump to it in the playback
-            cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
-
-            //if this is not here the play button does not work, because the card will have no functionality
-            cardFinal.addEventListener('click', function (e){ 
-                //step to the event this comment is at
-                step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
-
-                //add highlights for the comment
-                for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
-                {
-                    addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
-                }
-            });
-
-            let carousel = createCarousel();
-            let temp;
-
-            if (commentObject.imageURLs.length > 1){  
-                // Get the modal
-                let modal = document.getElementById("imgExpandModal");
-
-                // Get the image and insert it inside the modal - use its "alt" text as a caption
-                let img = document.getElementById("myImg");
-                let modalImg = document.getElementById("imgToExpand");
-                //var captionText = document.getElementById("caption");
-
-                for (let j = 0; j < commentObject.imageURLs.length; j++){
-                    addImageToCarousel(commentObject.imageURLs[j], carousel);
-                    makeCarouselControls(carousel);
-
-                    carousel.addEventListener('click', event =>{
-                        //if the carousel is clicked on either the left or right button, dont trigger the enlarged image modal
-                        if (!event.toElement.className.includes('carousel-control')){   
-                            //get the src of the current active image from the carousel that was clicked on                    
-                            let src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
-                            modal.style.display = "block";
-                            modalImg.src = src;
-                        }
-                    });
-    
-                    // Get the <span> element that closes the modal
-                    let span = document.getElementsByClassName("modalClose")[0];
-    
-                    //close the modal
-                    span.onclick = function() {
-                        modalImg.removeAttribute('src');
-                        modal.style.display = "none";
-                    }
-                    //add carousel
-                    cardFinal.append(carousel);
-                }
-            }
-            //creates a carousel without controls to keep consistency among single images and images in carousels
-            else if (commentObject.imageURLs.length === 1){
-                addImageToCarousel(commentObject.imageURLs[0], carousel);
-
-                carousel.addEventListener('click',event => {
-                    //add image to the modal
-                    document.getElementById("imgExpandModal").style.display = "block";
-                    document.getElementById("imgToExpand").src = commentObject.imageURLs[0];
-                })
-                //modal close button
-                document.getElementsByClassName("modalClose")[0].onclick = function() {
-                    document.getElementById("imgToExpand").removeAttribute('src');
-                    document.getElementById("imgExpandModal").style.display = "none";
-                }
-                cardFinal.append(carousel);
-            }         
-
-            for (let j = 0; j < commentObject.videoURLs.length; j++){
-                temp = createMediaControllerCommentVideoUI(commentObject.videoURLs[j], false, false);       
-                //add next media
-                cardFinal.append(temp.firstChild);
-                //file names added invisible in case we later want to see them when editing
-                temp.lastChild.style.display ='none';
-                cardFinal.append(temp.lastChild);     
-            }
-
-            for (let j = 0; j < commentObject.audioURLs.length; j++){
-                temp = createMediaControllerCommentAudioUI(commentObject.audioURLs[j], false, false); 
-                cardFinal.append(temp.firstChild);
-
-                //file names added invisible in case we later want to see them when editing
-                temp.lastChild.style.display ='none';
-                cardFinal.append(temp.lastChild);  
-            }
-
-            cardFinal.prepend(commentBody);
-            const finalDiv = document.createElement('div');
-            finalDiv.classList.add('commentBox');
-
-            let comment = playbackData.comments[`ev-${key}`][i];
-            finalDiv.addEventListener('click', function(e) {
-                step(comment.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); 
-                for (let j = 0; j < comment.selectedCodeBlocks.length; j++){
-                    addHighlight(comment.selectedCodeBlocks[j].fileId, comment.selectedCodeBlocks[j].startRow, comment.selectedCodeBlocks[j].startColumn, comment.selectedCodeBlocks[j].endRow, comment.selectedCodeBlocks[j].endColumn);
-                }
-            });
-            cardFinal.prepend(commentCountHeader);
-            finalDiv.append(cardFinal);
-            commentGroupDiv.append(finalDiv);
+            commentGroupDiv.append(commentCard);
             commentsDiv.append(commentGroupDiv);
         }
     })    
