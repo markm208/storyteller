@@ -1,4 +1,4 @@
-const { title } = require("process");
+// const { title } = require("process");
 
 function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEventistener = true) {
     //create an image and add the required classes
@@ -425,7 +425,7 @@ function createTitleCard(titleInfo, descriptionInfo)
     titleCard.setAttribute('id', 'title-card');
 
     const cardHeader = document.createElement('div');
-    cardHeader.classList.add('card-header');
+    cardHeader.classList.add('card-header', 'text-center');
     cardHeader.innerHTML = titleInfo.commentText;
 
     const cardBody = document.createElement('div');

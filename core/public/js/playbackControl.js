@@ -230,9 +230,10 @@ function displayAllComments(){
             tickmarkObject.appendChild(newTick);
 
             commentGroupDiv.append(commentCard);
-            outerCommentGroup.append(commentGroupDiv);
-            commentsDiv.append(outerCommentGroup);
-        }     
+        }
+
+        outerCommentGroup.append(commentGroupDiv);
+        commentsDiv.append(outerCommentGroup);
 
         if (playbackData.isEditable && commentBlock.length > 1){
             let tempNum = uniqueCommentGroupID;

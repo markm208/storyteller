@@ -28,8 +28,8 @@ async function initializePlayback()
 
         if (!playbackData.comments['ev--1'])
         {
-            const newTitle = createCommentObject('TITLE', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
-            const newDescription = createCommentObject('DESCRIPTION', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
+            const newTitle = createCommentObject('Insert TITLE here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
+            const newDescription = createCommentObject('Insert DESCRIPTION here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
 
             playbackData.comments['ev--1'] = [];
             playbackData.comments['ev--1'].push(newTitle);
