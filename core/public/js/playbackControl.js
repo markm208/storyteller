@@ -200,7 +200,7 @@ function displayAllComments(){
         }
 
         //give each commentGroup a unique id 
-        commentGroupDiv.setAttribute('id','CG' + uniqueCommentGroupID++);
+        commentGroupDiv.setAttribute('id','CG' + uniqueCommentGroupID);
         
         //create an outer group to hold the edit button
         //this keeps the dragging of cards from changing the position of the button
@@ -233,22 +233,54 @@ function displayAllComments(){
         }     
 
         if (playbackData.isEditable && commentBlock.length > 1){
+            let tempNum = uniqueCommentGroupID;
 
+            //create the edit Comment button
             const editCommentBlockButton = document.createElement('button');
             editCommentBlockButton.classList.add("btn", "btn-outline-dark", "btn-sm");
             editCommentBlockButton.appendChild(document.createTextNode('Edit Comment Block'));
+            editCommentBlockButton.setAttribute("id", "edit" + uniqueCommentGroupID);
 
             //go to every card marked 'drag' in the div where editCommentBlockButton was clicked, and make each draggable
             editCommentBlockButton.addEventListener('click', event => {
+                toggleEditAcceptButtons("edit", tempNum);
                 $('.drag', "#" + commentGroupDiv.id).each(function(){
                     makeDraggable(this);
                 });
             });
 
+            //create the accept changes button
+            const acceptChangesButton = document.createElement('button');
+            acceptChangesButton.classList.add("button", "btn-outline-danger", "btn-sm");
+            acceptChangesButton.appendChild(document.createTextNode("Accept Changes"));
+            acceptChangesButton.setAttribute("id", "accept" + uniqueCommentGroupID);
+            //initially hidden
+            acceptChangesButton.setAttribute("style", "display:none");
+
+            acceptChangesButton.addEventListener('click', event => {
+                toggleEditAcceptButtons("accept", tempNum);
+                //TODO write this function
+            });
+
             outerCommentGroup.setAttribute('style', 'text-align: right');
             outerCommentGroup.append(editCommentBlockButton);
+            outerCommentGroup.append(acceptChangesButton);
+
             makeDivDroppable(commentGroupDiv);
+            uniqueCommentGroupID++;
         }   
     })    
+}
+
+//determines which button is currently displayed, and switches to the other 
+function toggleEditAcceptButtons(currentButtonType, id){
+    if (currentButtonType === "edit"){
+        $('#' + "edit" + id)[0].style.display = "none";
+        $('#' + "accept" + id)[0].removeAttribute("style");
+    }
+    else if (currentButtonType === "accept"){
+        $('#' + "accept" + id)[0].style.display = "none";
+        $('#' + "edit" + id)[0].removeAttribute("style");
+    }
 }
 
