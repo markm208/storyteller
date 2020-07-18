@@ -266,7 +266,7 @@ function displayAllComments(){
             outerCommentGroup.append(editCommentBlockButton);
             outerCommentGroup.append(acceptChangesButton);
 
-            makeDivDroppable(commentGroupDiv);
+            makeDivDroppable(commentGroupDiv, false);
             uniqueCommentGroupID++;
         }   
     })    
