@@ -196,6 +196,8 @@ function displayAllComments(){
             const descriptionInfo = commentBlock[1];
             const titleCard = createTitleCard(titleInfo, descriptionInfo);
 
+            commentGroupDiv.append(titleCard);
+
             startingValue += 2;
         }
 

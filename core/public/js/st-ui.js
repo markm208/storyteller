@@ -1,3 +1,5 @@
+const { title } = require("process");
+
 function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEventistener = true) {
     //create an image and add the required classes
     const newImg = document.createElement('img');
@@ -418,7 +420,25 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
 function createTitleCard(titleInfo, descriptionInfo)
 {
 
+    const titleCard = document.createElement('div');
+    titleCard.classList.add('card');
+    titleCard.setAttribute('id', 'title-card');
+
+    const cardHeader = document.createElement('div');
+    cardHeader.classList.add('card-header');
+    cardHeader.innerHTML = titleInfo.commentText;
+
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body', 'text-left');
     
+    const bodyParagraph = document.createElement('p');
+    bodyParagraph.innerHTML = descriptionInfo.commentText;
+
+    cardBody.append(bodyParagraph);
+    titleCard.append(cardHeader);
+    titleCard.append(cardBody);
+
+    return titleCard;
 
 }
 
