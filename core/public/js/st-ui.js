@@ -110,7 +110,7 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     return cardDiv;
 }
 
-function addCancelButtonToImage(image, src, panelToDeleteFrom){
+function addCancelButtonToImage(image, panelToDeleteFrom){
     let imageDiv = document.createElement('div');
     imageDiv.classList.add('image-div')
     let button = document.createElement('button');
@@ -147,7 +147,7 @@ function addCancelButtonToImage(image, src, panelToDeleteFrom){
     panelToDeleteFrom.append(imageDiv);
 }
 
-function addCancelButtonToCard(card, src, panelToDeleteFrom){
+function addCancelButtonToCard(card, panelToDeleteFrom){
     let button = document.createElement('button');
     button.classList.add('close');
     button.setAttribute('aria-label', 'close');
