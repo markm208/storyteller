@@ -259,9 +259,14 @@ function makeDraggable(param){
     })    
 }
 
-function makeDivDroppable(div){
+function makeDivDroppable(div, useID = true){
+    //fixes firefox specific issue where images moved open a new tab
+    document.body.ondrop = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
 
-    const divDrop = $('#' + div.id)[0];
+    const divDrop = useID ? $('#' + div.id)[0] : div;
     divDrop.addEventListener('dragover', event => {
         const draggable = divDrop.querySelector('.dragging');
         

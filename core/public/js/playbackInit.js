@@ -402,24 +402,8 @@ function setupEventListeners()
             commentToLoad.dispatchEvent(commentClickEvent);
         }    
     });
-    
-    
-    const videoDrop = document.querySelector('.video-preview');
-    videoDrop.addEventListener('dragover', event => {
-        //determining if the item currently being dragged originated in the video-preview div
-        const draggable = videoDrop.querySelector('.dragging');
-        if (draggable !== null){
-            event.preventDefault();
-            const afterElement = getDragAfterElement(videoDrop, event.clientY);
-            if (afterElement === null){
-                videoDrop.appendChild(draggable);
-            }
-            else{
-                videoDrop.insertBefore(draggable, afterElement);
-            }            
-        }        
-    });
 
+    //make the 3 media preview folders droppable
     const imageDrop = document.querySelector('.image-preview');
     imageDrop.addEventListener('dragover', event => {
         //prevents image from opening in new tab in Firefox
@@ -440,21 +424,8 @@ function setupEventListeners()
             }            
         }        
     });
-
-    const audioDrop = document.querySelector('.audio-preview');
-    audioDrop.addEventListener('dragover', event => {
-        const draggable = audioDrop.querySelector('.dragging');
-        if (draggable !== null){
-            event.preventDefault();
-            const afterElement = getDragAfterElement(audioDrop, event.clientY);
-            if (afterElement === null){
-                audioDrop.appendChild(draggable);
-            }
-            else{
-                audioDrop.insertBefore(draggable, afterElement);
-            }            
-        }    
-    });   
+    makeDivDroppable($('.video-preview')[0], false);
+    makeDivDroppable($('.audio-preview')[0], false);
 
 }
 
