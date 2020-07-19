@@ -196,6 +196,8 @@ function displayAllComments(){
             const descriptionInfo = commentBlock[1];
             const titleCard = createTitleCard(titleInfo, descriptionInfo);
 
+            commentGroupDiv.append(titleCard);
+
             startingValue += 2;
         }
 
@@ -233,9 +235,11 @@ function displayAllComments(){
             newTick.classList.add("ui-slider-tick-mark");
             tickmarkObject.appendChild(newTick);
 
-            outerCommentGroup.append(commentGroupDiv);
-            commentsDiv.append(outerCommentGroup);
-        }     
+            commentGroupDiv.append(commentCard);
+        }
+
+        outerCommentGroup.append(commentGroupDiv);
+        commentsDiv.append(outerCommentGroup);
 
         //determine if the editCommentBlockButton should be displayed
         const atEventNegOne = `ev-${key}` === 'ev--1';
@@ -333,6 +337,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
     }
 
     //TODO remove comment from server
+    //TODO remove black border if no comment group left
   });
 
   const addMediaButton = document.createElement("button");
