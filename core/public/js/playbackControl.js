@@ -209,6 +209,7 @@ function displayAllComments(){
         let outerCommentGroup = document.createElement('div');
         outerCommentGroup.classList.add('commentGroupSpacing');
 
+        let uniqueNumBackup = uniqueCommentGroupID;
         for (let i = startingValue; i < commentBlock.length; i++){
 
             const commentObject = commentBlock[i];
@@ -218,14 +219,14 @@ function displayAllComments(){
             currentComment = returnObject.count;
 
             commentGroupDiv.append(commentCard);
-            let tempNum = uniqueCommentGroupID;
+            
 
 
             if (playbackData.isEditable){
                //gives each card a class to later access it
                commentCard.classList.add('drag');
 
-               addEditButtonsToCard(commentCard, commentObject.displayCommentEvent.id ,returnObject.commentID,commentBlock, tempNum);
+               addEditButtonsToCard(commentCard, commentObject.displayCommentEvent.id ,returnObject.commentID,commentBlock, uniqueNumBackup);
             }
 
             //add a tick mark to the slider for the comment group ---DOESN'T WORK
@@ -254,7 +255,7 @@ function displayAllComments(){
 
             //go to every card marked 'drag' in the div where editCommentBlockButton was clicked, and make each draggable
             editCommentBlockButton.addEventListener('click', event => {
-                toggleEditAcceptButtons("edit", tempNum);
+                toggleEditAcceptButtons("edit", uniqueNumBackup);
                 $('.drag', "#" + commentGroupDiv.id).each(function(){
                     makeDraggable(this);
                 });
@@ -269,7 +270,7 @@ function displayAllComments(){
             acceptChangesButton.setAttribute("style", "display:none");
 
             acceptChangesButton.addEventListener('click', event => {
-                toggleEditAcceptButtons("accept", tempNum);
+                toggleEditAcceptButtons("accept", uniqueNumBackup);
                 //TODO write this function
             });
 
