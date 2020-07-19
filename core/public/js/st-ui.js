@@ -110,15 +110,22 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     return cardDiv;
 }
 
-function addCancelButtonToImage(image, panelToDeleteFrom){
-    let imageDiv = document.createElement('div');
-    imageDiv.classList.add('image-div')
+function createXButtonForCloseOrCancel(popUpMessage = ""){
     let button = document.createElement('button');
-    button.classList.add('close', 'imageCancelButton');
+    button.classList.add('close');
     button.setAttribute('aria-label', 'close');
     button.innerHTML ='&times;';
     button.style.color = 'red';
-    button.setAttribute('title',"Remove image from comment");
+    button.setAttribute('title', popUpMessage);
+    return button;
+}
+
+function addCancelButtonToImage(image, panelToDeleteFrom){
+    let imageDiv = document.createElement('div');
+    imageDiv.classList.add('image-div')
+
+    let button = createXButtonForCloseOrCancel("Remove image from comment");
+    button.classList.add('imageCancelButton');
 
     button.addEventListener('click', event =>{
         panelToDeleteFrom.removeChild(imageDiv);
@@ -148,12 +155,8 @@ function addCancelButtonToImage(image, panelToDeleteFrom){
 }
 
 function addCancelButtonToCard(card, panelToDeleteFrom){
-    let button = document.createElement('button');
-    button.classList.add('close');
-    button.setAttribute('aria-label', 'close');
-    button.innerHTML ='&times;';
-    button.style.color = 'red';
-    button.setAttribute('title',"Remove media from comment");
+    let button = createXButtonForCloseOrCancel("Remove media from comment");
+
     //removes the selected media from the preview and from the stored list of selected media
     button.addEventListener("click",event =>{
         panelToDeleteFrom.removeChild(card);
@@ -317,7 +320,10 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
             if(playbackData.activeEditorFileId !== commentObject.selectedCodeBlocks[0].fileId) {
                 //bring the file with the highlighted text to the front by simulating a click
                 const fileIdTab = document.getElementById(`${commentObject.selectedCodeBlocks[0].fileId}-tab`);
-                fileIdTab.click();
+                if (fileIdTab !== null){
+                    fileIdTab.click();
+                }
+                
                 
                 //record the active editor
                 playbackData.activeEditorFileId = commentObject.selectedCodeBlocks[0].fileId;
@@ -411,7 +417,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardFinal.prepend(cardHeader);
     finalDiv.append(cardFinal);
 
-    return {cardObject: finalDiv, count: currentComment};
+    return {cardObject: finalDiv, count: currentComment, commentID: commentObject.id};
     
 }
 

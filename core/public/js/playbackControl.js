@@ -215,9 +215,15 @@ function displayAllComments(){
             const commentCard = returnObject.cardObject;
             currentComment = returnObject.count;
 
+            commentGroupDiv.append(commentCard);
+            let tempNum = uniqueCommentGroupID;
+
+
             if (playbackData.isEditable){
                //gives each card a class to later access it
                commentCard.classList.add('drag');
+
+               addEditButtonsToCard(commentCard, commentObject.displayCommentEvent.id ,returnObject.commentID,commentBlock, tempNum);
             }
 
             //add a tick mark to the slider for the comment group ---DOESN'T WORK
@@ -227,14 +233,15 @@ function displayAllComments(){
             newTick.classList.add("ui-slider-tick-mark");
             tickmarkObject.appendChild(newTick);
 
-            commentGroupDiv.append(commentCard);
             outerCommentGroup.append(commentGroupDiv);
             commentsDiv.append(outerCommentGroup);
         }     
 
-        if (playbackData.isEditable && commentBlock.length > 1){
-            let tempNum = uniqueCommentGroupID;
-
+        //determine if the editCommentBlockButton should be displayed
+        const atEventNegOne = `ev-${key}` === 'ev--1';
+        const displayEditCommentButton = (commentBlock.length > 3 && atEventNegOne) || (commentBlock.length > 1 && !atEventNegOne)  ? true : false;
+        if (playbackData.isEditable && displayEditCommentButton){
+            
             //create the edit Comment button
             const editCommentBlockButton = document.createElement('button');
             editCommentBlockButton.classList.add("btn", "btn-outline-dark", "btn-sm");
@@ -282,5 +289,65 @@ function toggleEditAcceptButtons(currentButtonType, id){
         $('#' + "accept" + id)[0].style.display = "none";
         $('#' + "edit" + id)[0].removeAttribute("style");
     }
+}
+
+function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumber){
+
+
+  const header = card.querySelector(".card-header");
+
+  const buttonGroup = document.createElement("div");
+  buttonGroup.classList.add("btn-group");
+  buttonGroup.setAttribute("style", "float:right");
+
+  
+  const deleteButton = document.createElement("button");
+  //deleteButton.classList.add("text-muted");
+  deleteButton.setAttribute("title", "Remove comment");
+  deleteButton.setAttribute("style", "border:none");
+  deleteButton.style.backgroundColor = "transparent";
+  deleteButton.style.color = "red";
+  //deleteButton.setAttribute("id", "delete" + uniqueIDNumber);
+  deleteButton.appendChild(document.createTextNode('x'));
+
+  let comment;
+  let indexToDelete;
+  for (let i = 0; i < playbackData.comments[eventID].length; i++){
+    if (playbackData.comments[eventID][i].id === commentID){
+      comment = playbackData.comments[eventID][i];
+      indexToDelete = i;
+      break;
+    }
+  }
+
+  deleteButton.addEventListener('click', event => {
+    card.remove();
+
+    commentBlock.splice(indexToDelete,1); 
+
+    const atEventNegOne = eventID === 'ev--1';
+    const displayEditCommentButton = (commentBlock.length > 3 && atEventNegOne) || (commentBlock.length > 1 && !atEventNegOne)  ? true : false;
+    if (!displayEditCommentButton){
+        //remove the edit button if there aren't enough comments in the comment block left
+        $('#' + "edit" + uniqueNumber).remove();
+    }
+
+    //TODO remove comment from server
+  });
+
+  const addMediaButton = document.createElement("button");
+  addMediaButton.setAttribute("title", "Add media to comment");
+  addMediaButton.setAttribute("style", "border:none");
+  addMediaButton.style.backgroundColor = "transparent";
+  addMediaButton.appendChild(document.createTextNode('+'));
+
+  buttonGroup.append(addMediaButton);
+  buttonGroup.append(deleteButton);
+
+  header.append(buttonGroup);
+
+
+
+
 }
 
