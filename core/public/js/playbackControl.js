@@ -297,49 +297,53 @@ function toggleEditAcceptButtons(currentButtonType, id){
 }
 
 function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumber){
-
-
+  //find the card header in the card to add the buttons to  
   const header = card.querySelector(".card-header");
 
   const buttonGroup = document.createElement("div");
   buttonGroup.classList.add("btn-group");
   buttonGroup.setAttribute("style", "float:right");
-
   
   const deleteButton = document.createElement("button");
-  //deleteButton.classList.add("text-muted");
   deleteButton.setAttribute("title", "Remove comment");
   deleteButton.setAttribute("style", "border:none");
   deleteButton.style.backgroundColor = "transparent";
   deleteButton.style.color = "red";
-  //deleteButton.setAttribute("id", "delete" + uniqueIDNumber);
-  deleteButton.appendChild(document.createTextNode('x'));
-
-  let comment;
-  let indexToDelete;
-  for (let i = 0; i < playbackData.comments[eventID].length; i++){
-    if (playbackData.comments[eventID][i].id === commentID){
-      comment = playbackData.comments[eventID][i];
-      indexToDelete = i;
-      break;
-    }
-  }
+  deleteButton.appendChild(document.createTextNode('x'));  
 
   deleteButton.addEventListener('click', event => {
-    card.remove();
+        let comment;
+        //find the comment object associated with the card being deleted
+        for (let indexToDelete = 0; indexToDelete < playbackData.comments[eventID].length; indexToDelete++){
+            if (playbackData.comments[eventID][indexToDelete].id === commentID){
+                comment = playbackData.comments[eventID][indexToDelete];  
 
-    commentBlock.splice(indexToDelete,1); 
+                //remove the comment from the commentBlock
+                commentBlock.splice(indexToDelete,1);               
+                break;
+            }
+        }
 
-    const atEventNegOne = eventID === 'ev--1';
-    const displayEditCommentButton = (commentBlock.length > 3 && atEventNegOne) || (commentBlock.length > 1 && !atEventNegOne)  ? true : false;
-    if (!displayEditCommentButton){
-        //remove the edit button if there aren't enough comments in the comment block left
-        $('#' + "edit" + uniqueNumber).remove();
-    }
+        const atEventNegOne = eventID === 'ev--1';
+        const displayEditCommentButton = (commentBlock.length > 3 && atEventNegOne) || (commentBlock.length > 1 && !atEventNegOne);
 
-    //TODO remove comment from server
-    //TODO remove black border if no comment group left
-  });
+
+        if (!displayEditCommentButton){
+            //remove the edit button if there aren't enough comments in the comment block left
+            $('#' + "edit" + uniqueNumber).remove();
+        }
+        
+        if (!commentBlock.length){
+            //if there are no comments left in the commentBlock, remove the block from it's parent div and delete the block from playbackData
+            card.parentElement.parentElement.remove();
+            delete playbackData.comments[eventID];
+        }
+        else{
+            //if there are other comments left in the commentBlock, only remove the deleted comment
+            card.remove();
+        }
+        //TODO remove comment from server
+    });
 
   const addMediaButton = document.createElement("button");
   addMediaButton.setAttribute("title", "Add media to comment");
@@ -351,9 +355,5 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
   buttonGroup.append(deleteButton);
 
   header.append(buttonGroup);
-
-
-
-
 }
 
