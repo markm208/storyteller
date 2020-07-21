@@ -260,7 +260,7 @@ function displayAllComments(){
             editCommentBlockButton.addEventListener('click', event => {        
                 const firstHeader =  $('.commentCount', "#" + commentGroupDiv.id)[0].firstChild.data;
                 denominator = firstHeader.substr(firstHeader.indexOf('/') + 1);
-                currentCommentNumber = Number(denominator) - commentBlock.length + 1;
+                currentCommentNumber = atEventNegOne ? Number(denominator) - commentBlock.length : Number(denominator) - commentBlock.length;
         
                 $('.drag', "#" + commentGroupDiv.id).each(function(){
                     makeDraggable(this);
@@ -424,6 +424,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
   editCommentButton.appendChild(document.createTextNode('Edit Comment'));
   editCommentButton.addEventListener('click', event => {
 
+    document.getElementById("viewCommentsTab").classList.add("disabled");
 
     const addCommentButton =  document.getElementById("addCommentButton");
     const updateCommentButton = document.getElementById("UpdateCommentButton");
@@ -489,14 +490,16 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
 
         updateCommentButton.style.display='none';
         cancelUpdateButton.style.display='none';
+        document.getElementById("viewCommentsTab").classList.remove("disabled");
 
         document.getElementById("viewCommentsTab").click();
+
     });
 
     updateCommentButton.addEventListener('click' , event => {
         updateComment(commentObject);
-        document.getElementById("viewCommentsTab").click();
 
+        cancelUpdateButton.click();
     })
   });
 
