@@ -472,6 +472,30 @@ async function sendCommentToServer(comment){
     }    
 }
 
+//send the comment object to the server
+async function updateCommentPositionOnServer(commentPositionObject){
+    try {
+        const fetchConfigData = {
+            method: 'PUT',
+            body: JSON.stringify(commentPositionObject), 
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        const response = await fetch('/commentPosition', fetchConfigData);
+
+        //check the response
+        if(response.ok) {
+           console.log('Success');
+        } else {
+            console.log('Error with the response data');
+        }
+        
+    } catch (error) {
+        console.log('Error with the Position Change');
+    }    
+}
+
 function doDrag(event){    
     const wrapper = dragBar.closest('.wrapper');
     const boxA = wrapper.querySelector('.box');

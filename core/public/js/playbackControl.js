@@ -225,6 +225,7 @@ function displayAllComments(){
             if (playbackData.isEditable){
                //gives each card a class to later access it
                commentCard.classList.add('drag');
+               commentCard.setAttribute('id',commentObject.id );
 
                addEditButtonsToCard(commentCard, commentObject.displayCommentEvent.id ,returnObject.commentID,commentBlock, uniqueNumBackup);
             }
@@ -254,11 +255,11 @@ function displayAllComments(){
             editCommentBlockButton.setAttribute("id", "edit" + uniqueCommentGroupID);
 
             //go to every card marked 'drag' in the div where editCommentBlockButton was clicked, and make each draggable
-            editCommentBlockButton.addEventListener('click', event => {
-                toggleEditAcceptButtons("edit", uniqueNumBackup);
+            editCommentBlockButton.addEventListener('click', event => {                
                 $('.drag', "#" + commentGroupDiv.id).each(function(){
                     makeDraggable(this);
                 });
+                toggleEditAcceptButtons("edit", uniqueNumBackup);
             });
 
             //create the accept changes button
@@ -270,8 +271,57 @@ function displayAllComments(){
             acceptChangesButton.setAttribute("style", "display:none");
 
             acceptChangesButton.addEventListener('click', event => {
+                //create an array of only the draggable elements in the parent div of the acceptChanges button
+                //these will isolate only the comment cards
+                let allDraggedCards = event.currentTarget.parentElement.getElementsByClassName("dragged");
+                let allDraggableCards = [...event.currentTarget.parentElement.getElementsByClassName("draggable")];
+
+
+                let draggedElementIds = [];
+                let draggableElementIds = [];
+                //isolate the ids from the dragged list and remove the dragged status
+                while (allDraggedCards[0]){                    
+                    draggedElementIds.push(allDraggedCards[0].id);
+                    allDraggedCards[0].classList.remove("dragged");
+                }
+
+                if (draggedElementIds.length){
+                    //isolate the ids from the list of draggable elements
+                    while (allDraggableCards[0]){
+                        draggableElementIds.push(allDraggableCards[0].id);
+                        allDraggableCards.shift();
+                    }
+                }             
+
+                for (let i = 0; i < draggedElementIds.length; i++){                    
+                    const commentPositionObject = {};
+                    commentPositionObject.oldCommentPosition = (function() {
+                        //find the original position of the comment 
+                        for (let j = key === -1 ? 2 : 0; j < playbackData.comments['ev-' + key].length; j++){
+                            if (playbackData.comments['ev-' + key][j].id === draggedElementIds[i]){
+                               return j;                                
+                            }
+                        }
+                    })();
+
+                    commentPositionObject.newCommentPosition = key === -1 ?  draggableElementIds.indexOf(draggedElementIds[i]) + 2 : draggableElementIds.indexOf(draggedElementIds[i]);
+                    commentPositionObject.eventId = commentBlock[i].displayCommentEvent.id;
+
+                    //get the element that has moved
+                    const element = playbackData.comments['ev-' + key][commentPositionObject.oldCommentPosition];
+
+                    //update playbackData with the changes
+                    playbackData.comments['ev-' + key].splice(commentPositionObject.oldCommentPosition, 1);
+                    playbackData.comments['ev-' + key].splice(commentPositionObject.newCommentPosition, 0, element);
+
+                    //update the server with the changes
+                    updateCommentPositionOnServer(commentPositionObject);                    
+                }
+
+                $('.drag', "#" + commentGroupDiv.id).each(function(){
+                    makeunDraggable(this);
+                });
                 toggleEditAcceptButtons("accept", uniqueNumBackup);
-                //TODO write this function
             });
 
             outerCommentGroup.setAttribute('style', 'text-align: right');
@@ -279,8 +329,9 @@ function displayAllComments(){
             outerCommentGroup.append(acceptChangesButton);
 
             makeDivDroppable(commentGroupDiv, false);
-            uniqueCommentGroupID++;
         }   
+        uniqueCommentGroupID++;
+
     })    
 }
 

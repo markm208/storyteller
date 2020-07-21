@@ -261,7 +261,13 @@ function makeDraggable(param){
 
     param.addEventListener('dragend', () => {
         param.classList.remove('dragging');
+        param.classList.add('dragged');
     })    
+}
+
+function makeunDraggable(param){
+    param.removeAttribute('draggable');
+    param.classList.remove('draggable');
 }
 
 function makeDivDroppable(div, useID = true){

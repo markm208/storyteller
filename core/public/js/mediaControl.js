@@ -48,7 +48,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
 
         //create the preview cards and add them to the preview div
         let imageCard = createMediaControllerCommentImageUI(src , false, false);
-        makeDraggable(imageCard, imagePreviewDiv);
+        makeDraggable(imageCard);
 
         addCancelButtonToImage(imageCard, imagePreviewDiv);
 
@@ -65,7 +65,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         //create the preview cards and add them to the preview div
         let videoCard = createMediaControllerCommentVideoUI(src , false, false); 
 
-        makeDraggable(videoCard, videoPreviewDiv);
+        makeDraggable(videoCard);
 
 
         //add cancel button to the top of the preview card
@@ -86,7 +86,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         //create the preview cards and add them to the preview div
         let audioCard = createMediaControllerCommentAudioUI(src, false, false);
 
-        makeDraggable(audioCard, audioPreviewDiv);
+        makeDraggable(audioCard);
 
         //add cancel button to the top of the preview card
         addCancelButtonToCard(audioCard, audioPreviewDiv);
