@@ -496,6 +496,30 @@ async function updateCommentPositionOnServer(commentPositionObject){
     }    
 }
 
+//delete a comment from the server
+async function deleteCommentFromServer(comment){
+    try {
+        const fetchConfigData = {
+            method: 'DELETE',
+            body: JSON.stringify(comment), 
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        const response = await fetch('/comment', fetchConfigData);
+
+        //check the response
+        if(response.ok) {
+           console.log('Success');
+        } else {
+            console.log('Error with the response data');
+        }
+        
+    } catch (error) {
+        console.log('Error with the Deletion');
+    }    
+}
+
 function doDrag(event){    
     const wrapper = dragBar.closest('.wrapper');
     const boxA = wrapper.querySelector('.box');

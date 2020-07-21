@@ -370,6 +370,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
                 comment = playbackData.comments[eventID][indexToDelete];  
 
                 //remove the comment from the commentBlock
+                playbackData;
                 commentBlock.splice(indexToDelete,1);               
                 break;
             }
@@ -393,7 +394,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             //if there are other comments left in the commentBlock, only remove the deleted comment
             card.remove();
         }
-        //TODO remove comment from server
+        deleteCommentFromServer(comment);
     });
 
   const addMediaButton = document.createElement("button");
