@@ -526,6 +526,33 @@ async function deleteCommentFromServer(comment){
     }    
 }
 
+//send the comment object to the server
+async function updateCommentOnServer(commentObject){
+    let newComment;
+    try {
+        const fetchConfigData = {
+            method: 'PUT',
+            body: JSON.stringify(commentObject), 
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        const response = await fetch('/comment', fetchConfigData);
+
+        //check the response
+        if(response.ok) {
+            newComment = await response.json();
+            console.log('Success');
+        } else {
+            console.log('Error with the response data');
+        }
+        
+    } catch (error) {
+        console.log('Error with the Comment Change');
+    } 
+    return newComment;   
+}
+
 function doDrag(event){    
     const wrapper = dragBar.closest('.wrapper');
     const boxA = wrapper.querySelector('.box');
@@ -556,4 +583,101 @@ function stopDrag(event){
 //disables mouse selection of text
 function disableSelect(event) {
     event.preventDefault();
+}
+
+async function updateComment(commentObject){
+    const textCommentTextArea = document.querySelector('#textCommentTextArea');
+
+    //getting all video files in order
+    const videoFiles = document.getElementsByClassName('video-preview')[0].children;
+    const currentVideoOrder = [];
+    for (let i = 0; i < videoFiles.length; i++){
+        if (videoFiles[i].classList.contains("card") ){
+            currentVideoOrder.push(videoFiles[i].firstChild.firstChild.getAttribute("src"));
+        }
+    }
+
+    //getting all audio files in order
+    const audioFiles = document.getElementsByClassName('audio-preview')[0].children;
+    const currentAudioOrder = [];
+    for (let i = 0; i < audioFiles.length; i++){
+        if (audioFiles[i].classList.contains("card") ){
+            currentAudioOrder.push(audioFiles[i].firstChild.firstChild.getAttribute("src"));
+        }
+    }
+
+    //getting all image files in order
+    const imageFiles = document.getElementsByClassName('image-preview')[0].children;
+    const currentImageOrder = [];
+    for (let i = 0; i < imageFiles.length; i++){
+        if (imageFiles[i].classList.contains("image-div") ){
+            currentImageOrder.push(imageFiles[i].firstChild.getAttribute("src"));
+        }
+    }
+
+    //get all text and html from the comment text box
+    const commentText = textCommentTextArea.innerHTML;
+
+    //get the active editor
+    const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+    //get any selected text 
+    const ranges = editor.getSession().getSelection().getAllRanges();
+
+    let rangeArray = [];
+    for (let i = 0; i < ranges.length; i++){
+        let rangeObj = {};
+        rangeObj.fileId = playbackData.activeEditorFileId,
+        rangeObj.selectedText = editor.getSession().getTextRange(ranges[i]),
+        rangeObj.startRow = ranges[i].start.row
+        rangeObj.startColumn = ranges[i].start.column;
+        rangeObj.endRow = ranges[i].end.row;
+        rangeObj.endColumn = ranges[i].end.column;
+        rangeArray.push(rangeObj);
+    }  
+   
+    //if there was a comment, or at least one media file
+    if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length)
+    {     
+      
+        //create an object that has all of the comment info
+        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder)
+
+        comment.id = commentObject.id;
+
+        //determine if any comments already exist for this event 
+        //if so add the new comment
+        //if not create a new array for the comments then add the comments
+        if (!playbackData.comments[comment.displayCommentEvent.id]){
+            playbackData.comments[comment.displayCommentEvent.id] = [];
+        }
+
+        //send comment to server and recieve back a full comment with id and developerGroup
+        const newComment = await updateCommentOnServer(comment);        
+
+
+        for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
+            if (playbackData.comments[newComment.displayCommentEvent.id][i].id === newComment.id){
+                const index = newComment.displayCommentEvent.id === -1 ? i + 2 : i;
+                playbackData.comments[newComment.displayCommentEvent.id].splice(index , 1, newComment);
+                break;
+            }
+        }
+
+        //clear out the text area
+        textCommentTextArea.innerHTML = '';
+    
+
+        //display a newly added comment on the current event
+        displayAllComments();
+      
+        //reset the comment previews
+        $('.audio-preview')[0].style.display='none';
+        $('.audio-preview')[0].innerHTML = '';
+        $('.video-preview')[0].style.display='none';
+        $('.video-preview')[0].innerHTML = '';
+        $('.image-preview')[0].style.display='none';
+        $('.image-preview')[0].innerHTML = '';
+    }
+
 }

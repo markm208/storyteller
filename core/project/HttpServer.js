@@ -318,8 +318,8 @@ class HttpServer {
         app.put('/comment', (req, res) => {
             //update a comment
             const comment = req.body;
-            this.projectManager.commentManager.updateComment(comment);
-            res.sendStatus(200);
+            const newComment = this.projectManager.commentManager.updateComment(comment);
+            res.json(newComment);
         });
         
         app.put('/commentPosition', (req, res) => {

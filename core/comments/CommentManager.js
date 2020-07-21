@@ -95,7 +95,7 @@ class CommentManager extends FileBackedCollection {
                     const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.id);
                     //update the comment
                     allCommentsForAnEvent[i] = updatedComment;
-                    break;
+                    return updatedComment;
                 }
             }
         }

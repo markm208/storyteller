@@ -227,7 +227,7 @@ function displayAllComments(){
                commentCard.classList.add('drag');
                commentCard.setAttribute('id',commentObject.id );
 
-               addEditButtonsToCard(commentCard, commentObject.displayCommentEvent.id ,returnObject.commentID,commentBlock, uniqueNumBackup);
+               addEditButtonsToCard(commentCard, commentObject.displayCommentEvent.id ,returnObject.commentID,commentBlock, uniqueNumBackup, commentObject);
             }
 
             //add a tick mark to the slider for the comment group ---DOESN'T WORK
@@ -347,7 +347,7 @@ function toggleEditAcceptButtons(currentButtonType, id){
     }
 }
 
-function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumber){
+function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumber, commentObject){
   //find the card header in the card to add the buttons to  
   const header = card.querySelector(".card-header");
 
@@ -397,15 +397,97 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
         deleteCommentFromServer(comment);
     });
 
-  const addMediaButton = document.createElement("button");
-  addMediaButton.setAttribute("title", "Add media to comment");
-  addMediaButton.setAttribute("style", "border:none");
-  addMediaButton.style.backgroundColor = "transparent";
-  addMediaButton.appendChild(document.createTextNode('+'));
-
-  buttonGroup.append(addMediaButton);
   buttonGroup.append(deleteButton);
 
   header.append(buttonGroup);
+
+
+  const editCommentButton = document.createElement("button");
+  editCommentButton.addEventListener('click', event => {
+
+
+    const addCommentButton =  document.getElementById("addCommentButton");
+    const updateCommentButton = document.getElementById("UpdateCommentButton");
+    const cancelUpdateButton = document.getElementById("CancelUpdateButton");
+    addCommentButton.style.display = "none";
+    updateCommentButton.removeAttribute("style");
+    cancelUpdateButton.removeAttribute("style");
+
+    document.getElementById("addCommentTab").click();
+    
+    const textArea = document.getElementById("textCommentTextArea");
+    textArea.innerHTML = commentObject.commentText;
+
+    const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
+    const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
+    const videoPreviewDiv = document.getElementsByClassName("video-preview")[0];
+
+    if (commentObject.imageURLs.length){
+        for (let i = 0; i < commentObject.imageURLs.length; i++){
+            const imageCard = createMediaControllerCommentImageUI(commentObject.imageURLs[i], false, false);
+            makeDraggable(imageCard);
+    
+            addCancelButtonToImage(imageCard,imagePreviewDiv );
+        }
+        imagePreviewDiv.removeAttribute("style");
+
+    }
+
+    if (commentObject.audioURLs.length){
+        for (let i = 0; i < commentObject.audioURLs.length; i++){
+            const audioCard = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false);
+            makeDraggable(audioCard);
+            addCancelButtonToCard(audioCard, audioPreviewDiv);
+            audioPreviewDiv.append(audioCard);
+        }
+        audioPreviewDiv.removeAttribute("style");
+    }
+
+    if (commentObject.videoURLs.length){
+        for (let i = 0; i < commentObject.videoURLs.length; i++){
+            const videoCard = createMediaControllerCommentVideoUI(commentObject.videoURLs[i], false, false);
+            makeDraggable(videoCard);
+            addCancelButtonToCard(videoCard, videoPreviewDiv);
+            videoPreviewDiv.append(videoCard);
+        }
+        videoPreviewDiv.removeAttribute("style");
+    }
+
+    cancelUpdateButton.addEventListener('click', event => {
+
+        //reset the comment previews
+        audioPreviewDiv.style.display='none';
+        audioPreviewDiv.innerHTML = '';
+        videoPreviewDiv.style.display='none';
+        videoPreviewDiv.innerHTML = '';
+        imagePreviewDiv.style.display='none';
+        imagePreviewDiv.innerHTML = '';
+
+        textArea.innerHTML = "";
+
+        addCommentButton.removeAttribute("style");
+        updateCommentButton.style.display='none';
+        cancelUpdateButton.style.display='none';
+
+        document.getElementById("viewCommentsTab").click();
+    });
+
+    updateCommentButton.addEventListener('click' , event => {
+        updateComment(commentObject);
+        document.getElementById("viewCommentsTab").click();
+
+    })
+  });
+
+  
+
+
+
+  const cardFooter = document.createElement("div");
+  cardFooter.classList.add("card-footer");
+
+  cardFooter.append(editCommentButton);
+  card.append(cardFooter);
+
 }
 
