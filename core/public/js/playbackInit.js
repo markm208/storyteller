@@ -656,10 +656,9 @@ async function updateComment(commentObject){
         const newComment = await updateCommentOnServer(comment);        
 
 
-        for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
+        for (let i = newComment.displayCommentEvent.id === -1 ? 2 : 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
             if (playbackData.comments[newComment.displayCommentEvent.id][i].id === newComment.id){
-                const index = newComment.displayCommentEvent.id === -1 ? i + 2 : i;
-                playbackData.comments[newComment.displayCommentEvent.id].splice(index , 1, newComment);
+                playbackData.comments[newComment.displayCommentEvent.id].splice(i , 1, newComment);
                 break;
             }
         }

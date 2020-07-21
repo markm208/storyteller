@@ -298,8 +298,8 @@ function makeDivDroppable(div, useID = true){
 function createCommentCard(commentObject, currentComment, commentCount, i)
 {
     const cardHeader = document.createElement('div');
-    cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'p-0');
-    cardHeader.innerHTML = currentComment++ + '/' + commentCount;
+    cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'p-0', "commentCount");
+    cardHeader.innerText = currentComment++ + '/' + commentCount;
     
     const cardBody = document.createElement('div');
     cardBody.classList.add('card-body', 'text-left');

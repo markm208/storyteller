@@ -250,15 +250,25 @@ function displayAllComments(){
             
             //create the edit Comment button
             const editCommentBlockButton = document.createElement('button');
-            editCommentBlockButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+            editCommentBlockButton.classList.add("btn", "btn-outline-primary", "btn-sm");
             editCommentBlockButton.appendChild(document.createTextNode('Edit Comment Block'));
             editCommentBlockButton.setAttribute("id", "edit" + uniqueCommentGroupID);
 
+            let denominator;
+            let currentCommentNumber;
             //go to every card marked 'drag' in the div where editCommentBlockButton was clicked, and make each draggable
-            editCommentBlockButton.addEventListener('click', event => {                
+            editCommentBlockButton.addEventListener('click', event => {        
+                const firstHeader =  $('.commentCount', "#" + commentGroupDiv.id)[0].firstChild.data;
+                denominator = firstHeader.substr(firstHeader.indexOf('/') + 1);
+                currentCommentNumber = Number(denominator) - commentBlock.length + 1;
+        
                 $('.drag', "#" + commentGroupDiv.id).each(function(){
                     makeDraggable(this);
                 });
+                $('.deleteComment', "#" + commentGroupDiv.id).each(function(){
+                   this.style.display = "block";
+                });
+
                 toggleEditAcceptButtons("edit", uniqueNumBackup);
             });
 
@@ -271,6 +281,12 @@ function displayAllComments(){
             acceptChangesButton.setAttribute("style", "display:none");
 
             acceptChangesButton.addEventListener('click', event => {
+                let headers = $('.commentCount', "#" + commentGroupDiv.id);
+                for (let i = 0; i < headers.length; i++){
+                    headers[i].firstChild.data = currentCommentNumber++ + '/' + denominator;
+                    headers[i].getElementsByClassName("deleteComment")[0].style.display = "none";
+                }
+
                 //create an array of only the draggable elements in the parent div of the acceptChanges button
                 //these will isolate only the comment cards
                 let allDraggedCards = event.currentTarget.parentElement.getElementsByClassName("dragged");
@@ -352,7 +368,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
   const header = card.querySelector(".card-header");
 
   const buttonGroup = document.createElement("div");
-  buttonGroup.classList.add("btn-group");
+  //buttonGroup.classList.add("btn-group");
   buttonGroup.setAttribute("style", "float:right");
   
   const deleteButton = document.createElement("button");
@@ -360,6 +376,8 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
   deleteButton.setAttribute("style", "border:none");
   deleteButton.style.backgroundColor = "transparent";
   deleteButton.style.color = "red";
+  deleteButton.style.display = "none";
+  deleteButton.classList.add("deleteComment");
   deleteButton.appendChild(document.createTextNode('x'));  
 
   deleteButton.addEventListener('click', event => {
@@ -370,7 +388,6 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
                 comment = playbackData.comments[eventID][indexToDelete];  
 
                 //remove the comment from the commentBlock
-                playbackData;
                 commentBlock.splice(indexToDelete,1);               
                 break;
             }
@@ -403,6 +420,8 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
 
 
   const editCommentButton = document.createElement("button");
+  editCommentButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+  editCommentButton.appendChild(document.createTextNode('Edit Comment'));
   editCommentButton.addEventListener('click', event => {
 
 
@@ -466,6 +485,8 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
         textArea.innerHTML = "";
 
         addCommentButton.removeAttribute("style");
+
+
         updateCommentButton.style.display='none';
         cancelUpdateButton.style.display='none';
 
@@ -484,7 +505,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
 
 
   const cardFooter = document.createElement("div");
-  cardFooter.classList.add("card-footer");
+  cardFooter.classList.add("card-footer", "small", "p-0");
 
   cardFooter.append(editCommentButton);
   card.append(cardFooter);
