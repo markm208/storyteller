@@ -311,8 +311,8 @@ class HttpServer {
             //add a comment            
             const comment = req.body;            
             comment['developerGroupId'] = this.projectManager.developerManager.currentDeveloperGroupId;
-            this.projectManager.commentManager.addComment(comment);
-            res.sendStatus(200);
+            const newComment = this.projectManager.commentManager.addComment(comment);
+            res.json(newComment);
         });
 
         app.put('/comment', (req, res) => {

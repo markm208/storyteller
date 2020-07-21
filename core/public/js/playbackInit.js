@@ -191,7 +191,7 @@ function setupEventListeners()
         $('#URL')[0].innerHTML = "";
     };
 
-    document.querySelector('#addCommentButton').addEventListener('click', event =>{        
+    document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
         
         const textCommentTextArea = document.querySelector('#textCommentTextArea');
 
@@ -269,12 +269,15 @@ function setupEventListeners()
             if (!playbackData.comments[commentEvent.id]){
                 playbackData.comments[commentEvent.id] = [];
             }
-            playbackData.comments[commentEvent.id].push(comment);
+
+            //send comment to server and recieve back a full comment with id and developerGroup
+            const newComment = await sendCommentToServer(comment);        
+
+            playbackData.comments[commentEvent.id].push(newComment);
             
             //clear out the text area
             textCommentTextArea.innerHTML = '';
         
-            sendCommentToServer(comment);        
 
             //display a newly added comment on the current event
             displayAllComments();
@@ -448,8 +451,9 @@ function getDragAfterElement(container, y){
     },{offset: Number.NEGATIVE_INFINITY}).element
 }
 
-//send the comment object to the server
+//send the comment object to the server and recieve a complete comment back with id and developerGroup
 async function sendCommentToServer(comment){
+    let newComment;
     try {
         const fetchConfigData = {
             method: 'POST',
@@ -459,10 +463,11 @@ async function sendCommentToServer(comment){
             }
         };
         const response = await fetch('/comment', fetchConfigData);
-
+        
         //check the response
         if(response.ok) {
-           console.log('Success');
+            newComment = await response.json();
+            console.log('Success');
         } else {
             console.log('Error with the response data');
         }
@@ -470,6 +475,7 @@ async function sendCommentToServer(comment){
     } catch (error) {
         console.log('Error with the POST');
     }    
+    return newComment;
 }
 
 //send the comment object to the server

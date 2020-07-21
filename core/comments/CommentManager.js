@@ -75,6 +75,7 @@ class CommentManager extends FileBackedCollection {
         } 
         //store the comment in the array
         this.comments[commentData.displayCommentEvent.id].push(newComment);
+        return newComment;
     }
 
     /*
