@@ -467,6 +467,42 @@ function createTitleCard(titleInfo, descriptionInfo)
     cardHeader.classList.add('card-header', 'text-center');
     cardHeader.innerHTML = titleInfo.commentText;
 
+    const titleFooter = document.createElement("div");
+    titleFooter.classList.add("card-footer","small", "p-0");
+
+    const editTitleButton = document.createElement('button');
+    const acceptChangesToTitleButton = document.createElement("button");
+
+
+    editTitleButton.addEventListener('click', event => {
+        cardHeader.setAttribute("contenteditable", "true");
+
+        editTitleButton.style.display = "none"
+        acceptChangesToTitleButton.style.display = "block";
+    })
+
+    editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    editTitleButton.appendChild(document.createTextNode('Edit Title'));
+
+    acceptChangesToTitleButton.style.display = "none";
+
+    acceptChangesToTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    acceptChangesToTitleButton.appendChild(document.createTextNode('Accept Changes'));
+
+    acceptChangesToTitleButton.addEventListener('click', event => {
+        const titleData = cardHeader.innerHTML;
+        titleInfo.commentText = titleData;
+        updateTitle(titleInfo);
+
+        acceptChangesToTitleButton.style.display = "none";
+        editTitleButton.style.display = "block";
+
+    })
+
+    titleFooter.append(acceptChangesToTitleButton);
+    titleFooter.append(editTitleButton);
+
+
     const cardBody = document.createElement('div');
     cardBody.classList.add('card-body', 'text-left');
     
@@ -476,10 +512,12 @@ function createTitleCard(titleInfo, descriptionInfo)
     cardBody.append(bodyParagraph);
     titleCard.append(cardHeader);
     titleCard.append(cardBody);
+    titleCard.append(titleFooter);
 
     return titleCard;
 
 }
+
 
 function updateAllCommentHeaderCounts(){
     const drag = document.getElementsByClassName("drag");

@@ -712,3 +712,8 @@ async function updateComment(commentObject){
     }
 
 }
+
+
+function updateTitle(titleObject){
+    updateCommentOnServer(titleObject);
+}
