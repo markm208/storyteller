@@ -251,7 +251,9 @@ function makeCarouselControls(carousel){
     carousel.append(left);
 }
 
-function makeDraggable(param){
+function makeDraggable(param, dragObject){
+
+
     param.setAttribute('draggable', 'true');
     param.classList.add('draggable');
 
@@ -260,8 +262,49 @@ function makeDraggable(param){
     })
 
     param.addEventListener('dragend', () => {
+        if (dragObject !== undefined){
+            //get all numbers needed using the header information
+            const startingPostionInDiv = param.getElementsByClassName("card-header")[0].firstChild.data;
+            const numerator = startingPostionInDiv.substr(0, startingPostionInDiv.indexOf('/'));
+            const denominator = startingPostionInDiv.substr(startingPostionInDiv.indexOf('/') + 1);
+            const startingPos = dragObject.atEventNegOne ? Number(numerator) + 2 : Number(numerator);
+            let currentHeaderNumber = dragObject.atEventNegOne ? Number(denominator) - dragObject.commentBlock.length : Number(denominator) - dragObject.commentBlock.length + 1;
+            const startIndex = dragObject.atEventNegOne ? Number(numerator) + 1 : Number(numerator) - dragObject.commentBlock.length;
+
+            //get the comment object
+            const comment = playbackData.comments["ev-" + dragObject.key][startIndex];
+
+            let allDraggableCards = [...event.currentTarget.parentElement.getElementsByClassName("draggable")];
+
+            //determine the new position of the dragged card
+            let newCommentPosition;
+            for (newCommentPosition = 0; newCommentPosition < allDraggableCards.length; newCommentPosition++){
+                if (allDraggableCards[newCommentPosition].id === comment.id){
+                    break;
+                }
+            }
+
+            const commentPositionObject = {                
+                eventId: dragObject.commentBlock[startIndex].displayCommentEvent.id,
+                oldCommentPosition: startIndex,
+                newCommentPosition: dragObject.atEventNegOne ? newCommentPosition + 2 : newCommentPosition
+            };
+
+            //update playbackData with the changes
+            playbackData.comments['ev-' + dragObject.key].splice(startIndex, 1);
+            playbackData.comments['ev-' + dragObject.key].splice(commentPositionObject.newCommentPosition, 0, comment);
+
+            //update the server with the changes
+            updateCommentPositionOnServer(commentPositionObject);  
+
+            //update header numbers
+            const allHeaders = param.parentElement.getElementsByClassName("commentCount");
+            for (let i = 0; i < allHeaders.length; i++){
+                allHeaders[i].firstChild.data = currentHeaderNumber++ + '/' + denominator;
+            }
+        }
+  
         param.classList.remove('dragging');
-        param.classList.add('dragged');
     })    
 }
 
