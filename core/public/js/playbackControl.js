@@ -285,7 +285,14 @@ function displayAllComments(){
                 $('.drag', "#" + commentGroupDiv.id).each(function(){
                     makeunDraggable(this);
                 });
+ 
+                //changes the accept button back to edit
                 toggleEditAcceptButtons("accept", uniqueNumBackup);
+
+                //hides the delete comment buttons
+                $('.deleteComment', "#" + commentGroupDiv.id).each(function(){
+                    this.style.display = "none";
+                });
             });
 
             outerCommentGroup.setAttribute('style', 'text-align: right');
