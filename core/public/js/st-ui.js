@@ -473,6 +473,8 @@ function createTitleCard(titleInfo, descriptionInfo)
     const editTitleButton = document.createElement('button');
     const acceptChangesToTitleButton = document.createElement("button");
 
+    const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
+
 
     editTitleButton.addEventListener('click', event => {
         cardHeader.setAttribute("contenteditable", "true");
@@ -498,9 +500,10 @@ function createTitleCard(titleInfo, descriptionInfo)
         editTitleButton.style.display = "block";
 
     })
-
+    
     titleFooter.append(acceptChangesToTitleButton);
     titleFooter.append(editTitleButton);
+    titleFooter.append(editDescriptionButton);
 
 
     const cardBody = document.createElement('div');
