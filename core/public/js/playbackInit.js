@@ -24,6 +24,7 @@ async function initializePlayback()
 
         playbackData.events = results[0];
         playbackData.comments = results[1];
+        playbackData.numEvents = playbackData.events.length;
         playbackData.isEditable = results[2].editable;
 
         if (!playbackData.comments['ev--1'])
@@ -39,20 +40,25 @@ async function initializePlayback()
             sendCommentToServer(newDescription);
         }
 
+        console.log(playbackData.comments);
+
         //displays all comments
         displayAllComments();
 
-        console.log(playbackData.comments);
-        playbackData.numEvents = playbackData.events.length;
+        //Sets up the event listeners for html elements on the page
         setupEventListeners();
 
         //grab any existing media from the server and display it in the media control modal
         initImageGallery();
+
+        console.log('Success Initializing Playback');
+
     } catch(err) {
         console.log(`Error retrieving data`);
     } 
 }
 
+// Puts together a full comment object to be pushed to the server
 function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs)
 {
     const comment = {
@@ -97,9 +103,7 @@ function setupEventListeners()
 
     //add event handler to listen for changes to the slider
     playbackSlider.addEventListener('input', event => {
-        //DEBUG
-        // console.log(`slide: ${playbackSlider.value}`);
-        
+
         //take the slider value and subtract the next event's position
         step(Number(playbackSlider.value) - playbackData.nextEventPosition);
     });
@@ -149,7 +153,7 @@ function setupEventListeners()
 
         //check to make sure there is selected text and it is in the textArea
         if ((selectedText.anchorNode.parentElement.parentElement.id === 'textCommentTextArea' || selectedText.containsNode(textArea)) && selectedTextString){
-            const toastDiv = $('#URL-Toast')[0]; 
+            const toastDiv = document.getElementById('URL-Toast'); 
 
             //removes style="display: none"
             toastDiv.removeAttribute('style');
@@ -163,15 +167,19 @@ function setupEventListeners()
             toastDiv.style.top = commentButtonRectangle.y + 20 +'px';
             toastDiv.style.left = commentButtonRectangle.left + 'px';
             
-            $('#URL-Toast').toast('show');
-            $('#URL').focus();
+            //show and focus the toast
+            toastDiv.toast('show');
+            document.getElementById('URL').focus();
         }
     });
 
+    //event listener for when the toast to add a link is confirmed
     document.querySelector('#URL-Confirm').addEventListener('click', event => {
-        const URLInput = $('#URL')[0].innerText; 
+        const URLInput = document.getElementById('URL').innerText;
         if (URLInput){
-            $('#URL-Toast').toast('hide');
+
+            //hide the toast
+            document.getElementById('URL-Toast').toast('hide');
             const windowSelection = window.getSelection();
 
             //restores the original selection
@@ -182,18 +190,19 @@ function setupEventListeners()
             document.execCommand('createLink', null, URLInput);
 
             windowSelection.removeAllRanges();
-
-            $('#URL')[0].innerHTML = "";
+            //clear the toast for next use
+            URLInput.innerHTML = "";
         }
     });  
 
     document.querySelector('#URL-Close').onclick = function(){
-        $('#URL')[0].innerHTML = "";
+        //cancel. so clear the toast
+        document.getElementById('URL').innerHTML = "";
     };
 
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
         
-        const textCommentTextArea = document.querySelector('#textCommentTextArea');
+        const textCommentTextArea = document.getElementById('textCommentTextArea');
 
         //getting all video files in order
         const videoFiles = document.getElementsByClassName('video-preview')[0].children;
@@ -251,6 +260,7 @@ function setupEventListeners()
 
             let commentEvent;
 
+            //accounts for comments at event -1
             if (eventIndex >= 0)
             {
                 commentEvent = playbackData.events[eventIndex];
@@ -311,17 +321,37 @@ function setupEventListeners()
        
         let keyPressed = e.key;
         let shiftPressed = e.shiftKey;
+        let ctrlPressed = e.ctrlKey;
        
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
             {
-                step(1);
+                if (ctrlPressed)
+                {
+                    //ctrl right is jump to end of playback
+                    step(playbackData.events.length - playbackData.nextEventPosition);
+                }
+                else
+                {
+                    //right arrow steps forward one event
+                    step(1);
+                }
             }
+            
         }
         else if (keyPressed === 'ArrowLeft'){
             if (!shiftPressed)
             {
-                step(-1);
+                if (ctrlPressed)
+                {
+                    //ctrl left is jump to the beginning of the playback
+                    step(-playbackData.nextEventPosition);
+                }
+                else
+                {
+                    //left arrow steps back one event
+                    step(-1);
+                }
             }
         }
         else if (keyPressed === '>')
