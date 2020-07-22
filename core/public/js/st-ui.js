@@ -463,6 +463,11 @@ function createTitleCard(titleInfo, descriptionInfo)
     titleCard.classList.add('card');
     titleCard.setAttribute('id', 'title-card');
 
+    titleCard.addEventListener('click', function (e){ 
+        //step to the event this comment is at
+        step(descriptionInfo.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+    });
+
     const cardHeader = document.createElement('div');
     cardHeader.classList.add('card-header', 'text-center');
     cardHeader.innerHTML = titleInfo.commentText;
@@ -479,7 +484,8 @@ function createTitleCard(titleInfo, descriptionInfo)
     editTitleButton.addEventListener('click', event => {
         cardHeader.setAttribute("contenteditable", "true");
 
-        editTitleButton.style.display = "none"
+        editTitleButton.style.display = "none";
+        editDescriptionButton.style.display = 'none';
         acceptChangesToTitleButton.style.display = "block";
     })
 
@@ -494,9 +500,13 @@ function createTitleCard(titleInfo, descriptionInfo)
     acceptChangesToTitleButton.addEventListener('click', event => {
         const titleData = cardHeader.innerHTML;
         titleInfo.commentText = titleData;
+        
         updateTitle(titleInfo);
 
+        cardHeader.setAttribute("contenteditable", "false");
+
         acceptChangesToTitleButton.style.display = "none";
+        editDescriptionButton.style.display = 'block';
         editTitleButton.style.display = "block";
 
     })
