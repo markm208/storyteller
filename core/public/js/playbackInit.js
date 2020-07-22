@@ -32,12 +32,13 @@ async function initializePlayback()
             const newTitle = createCommentObject('Insert TITLE here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
             const newDescription = createCommentObject('Insert DESCRIPTION here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
 
-            playbackData.comments['ev--1'] = [];
-            playbackData.comments['ev--1'].push(newTitle);
-            playbackData.comments['ev--1'].push(newDescription);
+            const titleFromServer = sendCommentToServer(newTitle);
+            const descrFromServer = sendCommentToServer(newDescription);
 
-            sendCommentToServer(newTitle);
-            sendCommentToServer(newDescription);
+            playbackData.comments['ev--1'] = [];
+            playbackData.comments['ev--1'].push(titleFromServer);
+            playbackData.comments['ev--1'].push(descrFromServer);
+
         }
 
         console.log(playbackData.comments);
@@ -337,7 +338,10 @@ function setupEventListeners()
                     step(1);
                 }
             }
-            
+            else
+            {
+                playPauseButton.click();
+            }
         }
         else if (keyPressed === 'ArrowLeft'){
             if (!shiftPressed)
@@ -353,6 +357,10 @@ function setupEventListeners()
                     step(-1);
                 }
             }
+            else
+            {
+                jumpToPreviousComment();
+            }
         }
         else if (keyPressed === '>')
         {
@@ -360,42 +368,7 @@ function setupEventListeners()
         }
         else if (keyPressed === '<')
         {
-            //find next event that has a comment
-            let targetEvent = -1;
-            let commentPositions = Object.keys(playbackData.comments);
-            for (let i = playbackData.nextEventPosition-2; i >= 0; i--)
-            {
-                
-                for (let j = 0; j < commentPositions.length; j++)
-                {
-                    if (playbackData.events[i].id === commentPositions[j])
-                    {
-                        targetEvent = playbackData.events[i].id;
-                        break;
-                    }
-                }
-
-                if (targetEvent != -1)
-                    break;
-            }
-
-            if (targetEvent < 0)
-            {
-                targetEvent = 0;
-
-                clearHighlights();
-                step(targetEvent - playbackData.nextEventPosition + 1);
-            }
-            else{
-
-                const commentClickEvent = new MouseEvent('click',{
-
-                });
-                let commentToLoad = document.getElementById(`${targetEvent}-0`);
-
-                commentToLoad.dispatchEvent(commentClickEvent);
-            }
-            //console.log(`currentEvent = ${playbackData.nextEventPosition-1}, targetevent = ${targetEvent}`);
+            jumpToPreviousComment();
         }
     });
 
@@ -462,6 +435,46 @@ function setupEventListeners()
     makeDivDroppable($('.video-preview')[0], false);
     makeDivDroppable($('.audio-preview')[0], false);
 
+}
+
+function jumpToPreviousComment()
+{
+               //find next event that has a comment
+    let targetEvent = -1;
+    let commentPositions = Object.keys(playbackData.comments);
+    for (let i = playbackData.nextEventPosition-2; i >= 0; i--)
+    {
+        
+        for (let j = 0; j < commentPositions.length; j++)
+        {
+            if (playbackData.events[i].id === commentPositions[j])
+            {
+                targetEvent = playbackData.events[i].id;
+                break;
+            }
+        }
+
+        if (targetEvent != -1)
+            break;
+    }
+
+    if (targetEvent < 0)
+    {
+        targetEvent = 0;
+
+        clearHighlights();
+        step(targetEvent - playbackData.nextEventPosition + 1);
+    }
+    else{
+
+        const commentClickEvent = new MouseEvent('click',{
+
+        });
+        let commentToLoad = document.getElementById(`${targetEvent}-0`);
+
+        commentToLoad.dispatchEvent(commentClickEvent);
+    }
+    //console.log(`currentEvent = ${playbackData.nextEventPosition-1}, targetevent = ${targetEvent}`);
 }
 
 function getDragAfterElement(container, y){
