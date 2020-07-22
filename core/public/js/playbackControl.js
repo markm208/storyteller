@@ -348,7 +348,6 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
 
         //remove the accept button if there are no more comments but leave the title and description
         if (eventID === "ev--1" && commentBlock.length < 3){
-            //remove the edit button if there aren't enough comments in the comment block left
             $('#' + "accept" + uniqueNumber).remove();
         }
 

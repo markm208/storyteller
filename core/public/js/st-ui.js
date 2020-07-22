@@ -271,13 +271,8 @@ function makeDraggable(param, key){
             const allDraggableCards = [...event.currentTarget.parentElement.getElementsByClassName("draggable")];
 
             //find the new position of the dragged card in the array of draggable elements
-            let newCommentPosition;
-            for (newCommentPosition = 0; newCommentPosition < allDraggableCards.length; newCommentPosition++){
-                if (allDraggableCards[newCommentPosition].id === comment.id){
-                    break;
-                }
-            }
-
+            const newCommentPosition = allDraggableCards.findIndex(item => item.id === comment.id);
+  
             const commentPositionObject = {                
                 eventId: comment.displayCommentEvent.id,
                 oldCommentPosition,
@@ -290,7 +285,7 @@ function makeDraggable(param, key){
 
             //update the server with the changes
             updateCommentPositionOnServer(commentPositionObject);  
-            
+
             updateAllCommentHeaderCounts();
         }  
         param.classList.remove('dragging');
