@@ -244,7 +244,9 @@ function displayAllComments(){
         commentsDiv.append(outerCommentGroup);
 
         const atEventNegOne = `ev-${key}` === 'ev--1';
-        if (playbackData.isEditable){
+
+        const displayEditCommentButton = (atEventNegOne && commentBlock.length > 2) || !atEventNegOne;
+        if (playbackData.isEditable && displayEditCommentButton){
             
             //create the edit Comment button
             const editCommentBlockButton = document.createElement('button');
@@ -343,9 +345,15 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
                 break;
             }
         }
-        
+
+        //remove the accept button if there are no more comments but leave the title and description
+        if (eventID === "ev--1" && commentBlock.length < 3){
+            //remove the edit button if there aren't enough comments in the comment block left
+            $('#' + "accept" + uniqueNumber).remove();
+        }
+
+        //if there are no comments left in the commentBlock, remove the block from it's parent div and delete the block from playbackData
         if (!commentBlock.length){
-            //if there are no comments left in the commentBlock, remove the block from it's parent div and delete the block from playbackData
             card.parentElement.parentElement.remove();
             delete playbackData.comments[eventID];
         }
