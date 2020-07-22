@@ -290,6 +290,8 @@ function setupEventListeners()
             $('.image-preview')[0].style.display='none';
             $('.image-preview')[0].innerHTML = '';
         }
+        updateAllCommentHeaderCounts();
+
     });
 
     document.getElementById('dragBar').addEventListener('mousedown', function (e){  

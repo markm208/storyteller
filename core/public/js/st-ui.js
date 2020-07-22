@@ -261,15 +261,17 @@ function makeDraggable(param, dragObject){
         param.classList.add('dragging');
     })
 
-    param.addEventListener('dragend', () => {
-        if (dragObject !== undefined){
-            //get all numbers needed using the header information
-            const startingPostionInDiv = param.getElementsByClassName("card-header")[0].firstChild.data;
-            const numerator = startingPostionInDiv.substr(0, startingPostionInDiv.indexOf('/'));
-            const denominator = startingPostionInDiv.substr(startingPostionInDiv.indexOf('/') + 1);
-            const startingPos = dragObject.atEventNegOne ? Number(numerator) + 2 : Number(numerator);
-            let currentHeaderNumber = dragObject.atEventNegOne ? Number(denominator) - dragObject.commentBlock.length : Number(denominator) - dragObject.commentBlock.length + 1;
-            const startIndex = dragObject.atEventNegOne ? Number(numerator) + 1 : Number(numerator) - dragObject.commentBlock.length;
+    param.addEventListener('dragend', () => {       
+        if (dragObject !== undefined){            
+            const commendID = document.getElementsByClassName("dragging")[0].id;
+
+            const startIndex = (function (){
+                for (let i = dragObject.atEventNegOne ? 2 : 0; i < playbackData.comments["ev-" + dragObject.key].length; i++){
+                    if (playbackData.comments["ev-" + dragObject.key][i].id === commendID){
+                        return i;
+                    }
+                }
+            })();
 
             //get the comment object
             const comment = playbackData.comments["ev-" + dragObject.key][startIndex];
@@ -297,13 +299,8 @@ function makeDraggable(param, dragObject){
             //update the server with the changes
             updateCommentPositionOnServer(commentPositionObject);  
 
-            //update header numbers
-            const allHeaders = param.parentElement.getElementsByClassName("commentCount");
-            for (let i = 0; i < allHeaders.length; i++){
-                allHeaders[i].firstChild.data = currentHeaderNumber++ + '/' + denominator;
-            }
-        }
-  
+            updateAllCommentHeaderCounts();
+        }  
         param.classList.remove('dragging');
     })    
 }
@@ -497,3 +494,10 @@ function createTitleCard(titleInfo, descriptionInfo)
 
 }
 
+function updateAllCommentHeaderCounts(){
+    const drag = document.getElementsByClassName("drag");
+    let currentCommentNumber = 1;
+    for (let i = 0; i < drag.length; i++){
+        drag[i].getElementsByClassName("card-header")[0].firstChild.data = currentCommentNumber++ + "/" + drag.length;
+    }    
+}

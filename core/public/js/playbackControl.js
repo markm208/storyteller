@@ -303,6 +303,7 @@ function displayAllComments(){
         }   
         uniqueCommentGroupID++;
     })    
+    updateAllCommentHeaderCounts();
 }
 
 //determines which button is currently displayed, and switches to the other 
@@ -366,6 +367,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             card.remove();
         }
         deleteCommentFromServer(comment);
+        updateAllCommentHeaderCounts();
     });
 
   buttonGroup.append(deleteButton);
