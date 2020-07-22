@@ -243,10 +243,8 @@ function displayAllComments(){
         outerCommentGroup.append(commentGroupDiv);
         commentsDiv.append(outerCommentGroup);
 
-        //determine if the editCommentBlockButton should be displayed
         const atEventNegOne = `ev-${key}` === 'ev--1';
-        const displayEditCommentButton = (commentBlock.length > 3 && atEventNegOne) || (commentBlock.length > 1 && !atEventNegOne)  ? true : false;
-        if (playbackData.isEditable && displayEditCommentButton){
+        if (playbackData.isEditable){
             
             //create the edit Comment button
             const editCommentBlockButton = document.createElement('button');
@@ -256,15 +254,13 @@ function displayAllComments(){
 
             //go to every card marked 'drag' in the div where editCommentBlockButton was clicked, and make each draggable
             editCommentBlockButton.addEventListener('click', event => {  
-                //for each element with class "drag", make draggable          
-                $('.drag', "#" + commentGroupDiv.id).each(function(){
-                    const dragObject = {
-                        atEventNegOne,
-                        commentBlock,
-                        key
-                    }
-                    makeDraggable(this, dragObject);
-                });
+                //for each element with class "drag", make draggable as long as there is more than 1 comment in the comment block   
+                if ((atEventNegOne && commentBlock.length > 3 ) || (!atEventNegOne && commentBlock.length > 1)){
+                    $('.drag', "#" + commentGroupDiv.id).each(function(){                    
+                        makeDraggable(this, key);
+                    });
+                }
+
                 $('.deleteComment', "#" + commentGroupDiv.id).each(function(){
                    this.style.display = "block";
                 });
@@ -275,7 +271,7 @@ function displayAllComments(){
             //create the accept changes button
             const acceptChangesButton = document.createElement('button');
             acceptChangesButton.classList.add("button", "btn-outline-danger", "btn-sm");
-            acceptChangesButton.appendChild(document.createTextNode("Accept Changes"));
+            acceptChangesButton.appendChild(document.createTextNode("Accept Changes")); //TODO change this text to something better
             acceptChangesButton.setAttribute("id", "accept" + uniqueCommentGroupID);
             //initially hidden
             acceptChangesButton.setAttribute("style", "display:none");
@@ -346,15 +342,6 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
                 commentBlock.splice(indexToDelete,1);               
                 break;
             }
-        }
-
-        const atEventNegOne = eventID === 'ev--1';
-        const displayEditCommentButton = (commentBlock.length > 3 && atEventNegOne) || (commentBlock.length > 1 && !atEventNegOne);
-
-
-        if (!displayEditCommentButton){
-            //remove the edit button if there aren't enough comments in the comment block left
-            $('#' + "edit" + uniqueNumber).remove();
         }
         
         if (!commentBlock.length){

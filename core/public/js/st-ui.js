@@ -251,9 +251,7 @@ function makeCarouselControls(carousel){
     carousel.append(left);
 }
 
-function makeDraggable(param, dragObject){
-
-
+function makeDraggable(param, key){
     param.setAttribute('draggable', 'true');
     param.classList.add('draggable');
 
@@ -262,23 +260,17 @@ function makeDraggable(param, dragObject){
     })
 
     param.addEventListener('dragend', () => {       
-        if (dragObject !== undefined){            
-            const commendID = document.getElementsByClassName("dragging")[0].id;
-
-            const startIndex = (function (){
-                for (let i = dragObject.atEventNegOne ? 2 : 0; i < playbackData.comments["ev-" + dragObject.key].length; i++){
-                    if (playbackData.comments["ev-" + dragObject.key][i].id === commendID){
-                        return i;
-                    }
-                }
-            })();
+        if (key !== undefined){           
+            //get the original index of the comment
+            const oldCommentPosition = playbackData.comments["ev-" + key].findIndex(item => item.id === param.id);
 
             //get the comment object
-            const comment = playbackData.comments["ev-" + dragObject.key][startIndex];
+            const comment = playbackData.comments["ev-" + key][oldCommentPosition];
 
-            let allDraggableCards = [...event.currentTarget.parentElement.getElementsByClassName("draggable")];
+            //get an array of all draggable elements in the event target div
+            const allDraggableCards = [...event.currentTarget.parentElement.getElementsByClassName("draggable")];
 
-            //determine the new position of the dragged card
+            //find the new position of the dragged card in the array of draggable elements
             let newCommentPosition;
             for (newCommentPosition = 0; newCommentPosition < allDraggableCards.length; newCommentPosition++){
                 if (allDraggableCards[newCommentPosition].id === comment.id){
@@ -287,18 +279,18 @@ function makeDraggable(param, dragObject){
             }
 
             const commentPositionObject = {                
-                eventId: dragObject.commentBlock[startIndex].displayCommentEvent.id,
-                oldCommentPosition: startIndex,
-                newCommentPosition: dragObject.atEventNegOne ? newCommentPosition + 2 : newCommentPosition
+                eventId: comment.displayCommentEvent.id,
+                oldCommentPosition,
+                newCommentPosition: key === -1 ? newCommentPosition + 2 : newCommentPosition
             };
 
             //update playbackData with the changes
-            playbackData.comments['ev-' + dragObject.key].splice(startIndex, 1);
-            playbackData.comments['ev-' + dragObject.key].splice(commentPositionObject.newCommentPosition, 0, comment);
+            playbackData.comments['ev-' + key].splice(oldCommentPosition, 1);
+            playbackData.comments['ev-' + key].splice(commentPositionObject.newCommentPosition, 0, comment);
 
             //update the server with the changes
             updateCommentPositionOnServer(commentPositionObject);  
-
+            
             updateAllCommentHeaderCounts();
         }  
         param.classList.remove('dragging');
@@ -496,8 +488,7 @@ function createTitleCard(titleInfo, descriptionInfo)
 
 function updateAllCommentHeaderCounts(){
     const drag = document.getElementsByClassName("drag");
-    let currentCommentNumber = 1;
     for (let i = 0; i < drag.length; i++){
-        drag[i].getElementsByClassName("card-header")[0].firstChild.data = currentCommentNumber++ + "/" + drag.length;
+        drag[i].getElementsByClassName("card-header")[0].firstChild.data = i + 1 + "/" + drag.length;
     }    
 }
