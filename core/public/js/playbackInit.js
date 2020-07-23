@@ -109,24 +109,6 @@ function setupEventListeners()
         step(Number(playbackSlider.value) - playbackData.nextEventPosition);
     });
 
-    //focus in the comment text area
-    document.querySelector('#textCommentTextArea').addEventListener('focus', event => {
-        //if the default text is in the comment area
-        if(event.target.innerHTML.trim() === 'Comment text') {
-            //empty out the comment area
-            event.target.classList.remove('st-comment-placeholder');
-            event.target.innerHTML = '';
-        }
-    });
-    //losing focus in the comment text area
-    document.querySelector('#textCommentTextArea').addEventListener('blur', event => {
-        //if there isn't anything from the user in the comment area
-        if(event.target.innerHTML.trim() === '') {
-            //put the placeholder back
-            event.target.classList.add('st-comment-placeholder');
-            event.target.innerHTML = 'Comment text';
-        }
-    });
     //bold button
     document.querySelector('#boldCommentButton').addEventListener('click', event => {
         //make the selected text bold
@@ -204,7 +186,7 @@ function setupEventListeners()
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
         
         const textCommentTextArea = document.getElementById('textCommentTextArea');
-
+        
         //getting all video files in order
         const videoFiles = document.getElementsByClassName('video-preview')[0].children;
         const currentVideoOrder = [];
@@ -285,24 +267,37 @@ function setupEventListeners()
             const newComment = await sendCommentToServer(comment);        
 
             playbackData.comments[commentEvent.id].push(newComment);
-            
-            //clear out the text area
-            textCommentTextArea.innerHTML = '';
-        
-
             //display a newly added comment on the current event
             displayAllComments();
-          
-            //reset the comment previews
-            $('.audio-preview')[0].style.display='none';
-            $('.audio-preview')[0].innerHTML = '';
-            $('.video-preview')[0].style.display='none';
-            $('.video-preview')[0].innerHTML = '';
-            $('.image-preview')[0].style.display='none';
-            $('.image-preview')[0].innerHTML = '';
+            updateAllCommentHeaderCounts();
+            document.getElementById("CancelUpdateButton").click();
         }
-        updateAllCommentHeaderCounts();
+    });
 
+    document.getElementById("CancelUpdateButton").addEventListener('click', event => {
+
+
+        const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
+        const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
+        const videoPreviewDiv = document.getElementsByClassName("video-preview")[0];
+        //reset the comment previews
+        audioPreviewDiv.style.display='none';
+        audioPreviewDiv.innerHTML = '';
+        videoPreviewDiv.style.display='none';
+        videoPreviewDiv.innerHTML = '';
+        imagePreviewDiv.style.display='none';
+        imagePreviewDiv.innerHTML = '';
+
+        //clear out the text area
+        textCommentTextArea.innerHTML = '';
+
+        document.getElementById("addCommentButton").removeAttribute("style");
+
+
+        document.getElementById("UpdateCommentButton").style.display='none';
+        document.getElementById("viewCommentsTab").classList.remove("disabled");
+
+        document.getElementById("viewCommentsTab").click();      
     });
 
     document.getElementById('dragBar').addEventListener('mousedown', function (e){  
@@ -435,11 +430,17 @@ function setupEventListeners()
     makeDivDroppable($('.video-preview')[0], false);
     makeDivDroppable($('.audio-preview')[0], false);
 
+    document.getElementById("mainAddCommentButton").addEventListener('click', event => {        
+        document.getElementById("addCommentTab").click();
+        document.getElementById('textCommentTextArea').focus();
+        document.getElementById("viewCommentsTab").classList.add("disabled");
+    });
+
 }
 
 function jumpToPreviousComment()
 {
-               //find next event that has a comment
+    //find next event that has a comment
     let targetEvent = -1;
     let commentPositions = Object.keys(playbackData.comments);
     for (let i = playbackData.nextEventPosition-2; i >= 0; i--)

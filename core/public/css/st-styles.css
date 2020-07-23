@@ -227,9 +227,12 @@
 .slider {
     height: 40px;
 }
-.st-comment-placeholder {
-    color: grey
+
+.storytellerCommentEditable:empty:before{ 
+    content:attr(data-ph);
+    color: grey;
 }
+
 .storytellerCommentEditable {
     min-height: 200px;
     overflow: auto;
@@ -275,5 +278,4 @@ resize: none;
     /* Use flexbox */
     display: flex;
 }
-
 
