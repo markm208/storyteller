@@ -1,5 +1,3 @@
-// const { title } = require("process");
-
 function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEventistener = true) {
     //create an image and add the required classes
     const newImg = document.createElement('img');
@@ -456,9 +454,11 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     
 }
 
+//Creates the title and description card in the ViewCommentsTab
 function createTitleCard(titleInfo, descriptionInfo)
 {
 
+    //create the encompassing card object
     const titleCard = document.createElement('div');
     titleCard.classList.add('card');
     titleCard.setAttribute('id', 'title-card');
@@ -468,10 +468,56 @@ function createTitleCard(titleInfo, descriptionInfo)
         step(descriptionInfo.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
     });
 
+    //create the header for the title card which holds the title text
     const cardHeader = document.createElement('div');
     cardHeader.classList.add('card-header', 'text-center');
     cardHeader.innerHTML = titleInfo.commentText;
 
+    //create the body for the card which holds the description text
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body', 'text-left');
+    
+    const bodyParagraph = document.createElement('p');
+    bodyParagraph.innerHTML = descriptionInfo.commentText;
+
+    cardBody.append(bodyParagraph);
+
+    //create any media in the description
+    if (descriptionInfo.imageURLs.length > 0)
+    {
+        let carousel = createCarousel();
+        for (let i = 0; i < descriptionInfo.imageURLs.length; i++)
+        {
+            addImageToCarousel(descriptionInfo.imageURLs[i], carousel);
+        }
+
+        if (descriptionInfo.imageURLs.length > 1)
+        {
+            makeCarouselControls(carousel);
+        }
+
+        titleCard.append(carousel);
+    }
+
+    for (let i = 0; i < descriptionInfo.videoURLs.length; i++){
+        let videoElement = createMediaControllerCommentVideoUI(descriptionInfo.videoURLs[i], false, false);       
+        //add next media
+        titleCard.append(videoElement.firstChild);
+        //file names added invisible in case we later want to see them when editing
+        videoElement.lastChild.style.display ='none';
+        titleCard.append(videoElement.lastChild);     
+    }
+
+    for (let i = 0; i < descriptionInfo.audioURLs.length; i++){
+        let audioElement = createMediaControllerCommentAudioUI(descriptionInfo.audioURLs[i], false, false); 
+        titleCard.append(audioElement.firstChild);
+
+        //file names added invisible in case we later want to see them when editing
+        audioElement.lastChild.style.display ='none';
+        titleCard.append(audioElement.lastChild);  
+    }
+
+    //Create the card footer which holds the edit buttons
     const titleFooter = document.createElement("div");
     titleFooter.classList.add("card-footer","small", "p-0");
 
@@ -479,7 +525,6 @@ function createTitleCard(titleInfo, descriptionInfo)
     const acceptChangesToTitleButton = document.createElement("button");
 
     const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
-
 
     editTitleButton.addEventListener('click', event => {
         cardHeader.setAttribute("contenteditable", "true");
@@ -515,17 +560,10 @@ function createTitleCard(titleInfo, descriptionInfo)
     titleFooter.append(editTitleButton);
     titleFooter.append(editDescriptionButton);
 
-
-    const cardBody = document.createElement('div');
-    cardBody.classList.add('card-body', 'text-left');
-    
-    const bodyParagraph = document.createElement('p');
-    bodyParagraph.innerHTML = descriptionInfo.commentText;
-
-    cardBody.append(bodyParagraph);
-    titleCard.append(cardHeader);
-    titleCard.append(cardBody);
+    //assemble the pieces of the card
     titleCard.append(titleFooter);
+    titleCard.prepend(cardBody);
+    titleCard.prepend(cardHeader);
 
     return titleCard;
 
