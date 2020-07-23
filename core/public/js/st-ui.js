@@ -541,10 +541,9 @@ function createEditCommentButton(commentObject, buttonText){
   
       const addCommentButton =  document.getElementById("addCommentButton");
       const updateCommentButton = document.getElementById("UpdateCommentButton");
-      const cancelUpdateButton = document.getElementById("CancelUpdateButton");
       addCommentButton.style.display = "none";
       updateCommentButton.removeAttribute("style");
-      cancelUpdateButton.removeAttribute("style");
+      //cancelUpdateButton.removeAttribute("style");
   
       document.getElementById("addCommentTab").click();
       
@@ -561,10 +560,10 @@ function createEditCommentButton(commentObject, buttonText){
               makeDraggable(imageCard);
       
               addCancelButtonToImage(imageCard,imagePreviewDiv );
-          }
+            }
           imagePreviewDiv.removeAttribute("style");
   
-      }
+        }
   
       if (commentObject.audioURLs.length){
           for (let i = 0; i < commentObject.audioURLs.length; i++){
@@ -574,7 +573,7 @@ function createEditCommentButton(commentObject, buttonText){
               audioPreviewDiv.append(audioCard);
           }
           audioPreviewDiv.removeAttribute("style");
-      }
+        }
   
       if (commentObject.videoURLs.length){
           for (let i = 0; i < commentObject.videoURLs.length; i++){
@@ -584,36 +583,14 @@ function createEditCommentButton(commentObject, buttonText){
               videoPreviewDiv.append(videoCard);
           }
           videoPreviewDiv.removeAttribute("style");
-      }
+        }
   
-      cancelUpdateButton.addEventListener('click', event => {
-  
-          //reset the comment previews
-          audioPreviewDiv.style.display='none';
-          audioPreviewDiv.innerHTML = '';
-          videoPreviewDiv.style.display='none';
-          videoPreviewDiv.innerHTML = '';
-          imagePreviewDiv.style.display='none';
-          imagePreviewDiv.innerHTML = '';
-  
-          textArea.innerHTML = "";
-  
-          addCommentButton.removeAttribute("style");
-  
-  
-          updateCommentButton.style.display='none';
-          cancelUpdateButton.style.display='none';
-          document.getElementById("viewCommentsTab").classList.remove("disabled");
-  
-          document.getElementById("viewCommentsTab").click();
-  
-      });
-  
-      updateCommentButton.addEventListener('click' , event => {
-          updateComment(commentObject);
-  
-          cancelUpdateButton.click();
-      })
+
+        updateCommentButton.addEventListener('click' , event => {
+            updateComment(commentObject);
+
+            document.getElementById("CancelUpdateButton").click();
+        })
     });
     return editCommentButton;
 }
