@@ -207,11 +207,10 @@ function addImageToCarousel(src, carousel){
     captionDiv.classList.add('carousel-caption', 'd-none', 'd-md-block');
     captionDiv.append(captionText);
 
-    imgDiv.classList.add('carousel-item');
-
     img.src = src;
     img.classList.add('d-block','w-100');
 
+    imgDiv.classList.add('carousel-item');
     imgDiv.append(img);
     imgDiv.append(captionDiv);
 
@@ -219,11 +218,14 @@ function addImageToCarousel(src, carousel){
 
     const allCaptions = carousel.getElementsByClassName('carousel-caption');
 
-    //updates all captions with the right counts
-    for (let i = 0; i < allCaptions.length; i++){
-        allCaptions[i].textContent = i + 1 + '/' + allCaptions.length;
+    //prevents "1/1" from being displayed on single image carousels
+    if (allCaptions.length > 1){
+        //updates all captions with the right counts
+        for (let i = 0; i < allCaptions.length; i++){
+            allCaptions[i].textContent = i + 1 + '/' + allCaptions.length;
+        }        
     }
-    
+
     //sets an image active if none are
     if (!carousel.firstChild.firstChild.classList.value.includes("active")){
         carousel.firstChild.firstChild.classList.add('active');
