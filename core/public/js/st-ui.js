@@ -185,25 +185,45 @@ function addCancelButtonToCard(card, panelToDeleteFrom){
 let currentCarousel = 0;
 
 function createCarousel(){
-    let carouselOuter = document.createElement('div');
+    const carouselOuter = document.createElement('div');
  
     carouselOuter.setAttribute('id', 'mycarousel' + currentCarousel++);
     carouselOuter.setAttribute('data-ride', 'carousel');
     carouselOuter.setAttribute('data-interval','false');
+    carouselOuter.setAttribute('keyboard', 'false');
     carouselOuter.classList.add('carousel','slide');
-    let carouselInner = document.createElement('div');
+    const carouselInner = document.createElement('div');
     carouselOuter.append(carouselInner);
     return carouselOuter;
 }
 
 function addImageToCarousel(src, carousel){
-    let img = document.createElement('img');
-    let imgDiv = document.createElement('div');
+
+    const img = document.createElement('img');
+    const imgDiv = document.createElement('div');
+    const captionDiv = document.createElement('div');
+    const captionText = document.createElement('h5');
+
+    captionDiv.classList.add('carousel-caption', 'd-none', 'd-md-block');
+    captionDiv.append(captionText);
+
     imgDiv.classList.add('carousel-item');
+
     img.src = src;
     img.classList.add('d-block','w-100');
+
     imgDiv.append(img);
+    imgDiv.append(captionDiv);
+
     carousel.firstChild.append(imgDiv);
+
+    const allCaptions = carousel.getElementsByClassName('carousel-caption');
+
+    //updates all captions with the right counts
+    for (let i = 0; i < allCaptions.length; i++){
+        allCaptions[i].textContent = i + 1 + '/' + allCaptions.length;
+    }
+    
     //sets an image active if none are
     if (!carousel.firstChild.firstChild.classList.value.includes("active")){
         carousel.firstChild.firstChild.classList.add('active');
