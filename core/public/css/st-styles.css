@@ -17,6 +17,13 @@
     
 }
 
+.carousel-control-prev,
+.carousel-control-next,
+.carousel-caption
+{    
+    mix-blend-mode: difference;    
+}
+
 .codePanel{
     width: 75vw;            
 }
@@ -38,7 +45,7 @@
 .commentGroupSpacing {
     margin-top: 10px;
     margin-bottom: 10px;
-    border-color: black;
+    border: thick solid #000000;
 }
 
 .comment-text {
@@ -252,9 +259,12 @@
 .slider {
     height: 40px;
 }
-.st-comment-placeholder {
-    color: grey
+
+.storytellerCommentEditable:empty:before{ 
+    content:attr(data-ph);
+    color: grey;
 }
+
 .storytellerCommentEditable {
     min-height: 200px;
     overflow: auto;
@@ -300,3 +310,4 @@ resize: none;
     /* Use flexbox */
     display: flex;
 }
+

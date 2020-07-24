@@ -73,37 +73,62 @@ function displayAllComments(){
     commentsDiv.innerHTML = '';
 
     let commentCount = -2; // because the title and description do not count
-    let currentComment = 1;
+    let currentComment = 1;    
 
     //convert all string keys into numbers for proper sorting of comment sequence
-    let keysArray = Object.keys(playbackData.comments);
+    let keysArray = Object.keys(playbackData.comments);  
     for (let i = 0; i < keysArray.length; i++){
         commentCount += playbackData.comments[keysArray[i]].length;
-        keysArray[i] = Number(keysArray[i].slice(3));
+        keysArray[i] = Number(keysArray[i].slice(3));        
     }
    
+    let uniqueCommentGroupID = 0;
     //sort by interger key and add each comment to the commentsDiv
     keysArray.sort((a,b)=> a - b).forEach(function(key){
         let commentBlock = playbackData.comments[`ev-${key}`];
         const commentGroupDiv = document.createElement('div');
-        commentGroupDiv.classList.add('border', 'commentGroupSpacing');
         
-        let startingValue = 0;
+        let startingValue = 0;        
 
         if (`ev-${key}` === 'ev--1')
         {
             const titleInfo = commentBlock[0];
             const descriptionInfo = commentBlock[1];
             const titleCard = createTitleCard(titleInfo, descriptionInfo);
+
+            commentGroupDiv.append(titleCard);
+
             startingValue += 2;
         }
 
+        //give each commentGroup a unique id 
+        commentGroupDiv.setAttribute('id','CG' + uniqueCommentGroupID);
+        
+        //create an outer group to hold the edit button
+        //this keeps the dragging of cards from changing the position of the button
+        let outerCommentGroup = document.createElement('div');
+        outerCommentGroup.classList.add('commentGroupSpacing');
+
+        let uniqueNumBackup = uniqueCommentGroupID;
         for (let i = startingValue; i < commentBlock.length; i++){
+
             const commentObject = commentBlock[i];
 
             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
             const commentCard = returnObject.cardObject;
             currentComment = returnObject.count;
+
+            commentGroupDiv.append(commentCard);
+            
+
+
+            if (playbackData.isEditable){
+               //gives each card a class to later access it
+               commentCard.classList.add('drag');
+               commentCard.setAttribute('id',commentObject.id );
+
+               addEditButtonsToCard(commentCard, commentObject.displayCommentEvent.id ,returnObject.commentID,commentBlock, uniqueNumBackup, commentObject);
+            }
 
             //add a tick mark to the slider for the comment group ---DOESN'T WORK
             var tickmarkObject = document.getElementById('tickmarks');
@@ -113,10 +138,196 @@ function displayAllComments(){
             tickmarkObject.appendChild(newTick);
 
             commentGroupDiv.append(commentCard);
-            commentsDiv.append(commentGroupDiv);
         }
+
+        outerCommentGroup.append(commentGroupDiv);
+        commentsDiv.append(outerCommentGroup);
+
+        const atEventNegOne = `ev-${key}` === 'ev--1';
+
+        const displayEditCommentButton = (atEventNegOne && commentBlock.length > 2) || !atEventNegOne;
+        if (playbackData.isEditable && displayEditCommentButton){
+            
+            //create the edit Comment button
+            const editCommentBlockButton = document.createElement('button');
+            editCommentBlockButton.classList.add("btn", "btn-outline-primary", "btn-sm");
+            editCommentBlockButton.appendChild(document.createTextNode('Edit Comment Block'));
+            editCommentBlockButton.setAttribute("id", "edit" + uniqueCommentGroupID);
+
+            //go to every card marked 'drag' in the div where editCommentBlockButton was clicked, and make each draggable
+            editCommentBlockButton.addEventListener('click', event => {  
+                //for each element with class "drag", make draggable as long as there is more than 1 comment in the comment block   
+                if ((atEventNegOne && commentBlock.length > 3 ) || (!atEventNegOne && commentBlock.length > 1)){
+                    $('.drag', "#" + commentGroupDiv.id).each(function(){                    
+                        makeDraggable(this, key);
+                    });
+                }
+
+                $('.deleteComment', "#" + commentGroupDiv.id).each(function(){
+                   this.style.display = "block";
+                });
+
+                toggleEditAcceptButtons("edit", uniqueNumBackup);
+            });
+
+            //create the accept changes button
+            const acceptChangesButton = document.createElement('button');
+            acceptChangesButton.classList.add("button", "btn-outline-danger", "btn-sm");
+            acceptChangesButton.appendChild(document.createTextNode("Accept Changes")); //TODO change this text to something better
+            acceptChangesButton.setAttribute("id", "accept" + uniqueCommentGroupID);
+            //initially hidden
+            acceptChangesButton.setAttribute("style", "display:none");
+
+            acceptChangesButton.addEventListener('click', event => {           
+                //make each draggable element undraggable
+                $('.drag', "#" + commentGroupDiv.id).each(function(){
+                    makeunDraggable(this);
+                });
+ 
+                //changes the accept button back to edit
+                toggleEditAcceptButtons("accept", uniqueNumBackup);
+
+                //hides the delete comment buttons
+                $('.deleteComment', "#" + commentGroupDiv.id).each(function(){
+                    this.style.display = "none";
+                });
+            });
+
+            outerCommentGroup.setAttribute('style', 'text-align: right');
+            outerCommentGroup.append(editCommentBlockButton);
+            outerCommentGroup.append(acceptChangesButton);
+
+            makeDivDroppable(commentGroupDiv, false);
+        }   
+        uniqueCommentGroupID++;
     })    
+    updateAllCommentHeaderCounts();
 }
+
+//determines which button is currently displayed, and switches to the other 
+function toggleEditAcceptButtons(currentButtonType, id){
+    if (currentButtonType === "edit"){
+        $('#' + "edit" + id)[0].style.display = "none";
+        $('#' + "accept" + id)[0].removeAttribute("style");
+    }
+    else if (currentButtonType === "accept"){
+        $('#' + "accept" + id)[0].style.display = "none";
+        $('#' + "edit" + id)[0].removeAttribute("style");
+    }
+}
+
+function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumber, commentObject){
+  //find the card header in the card to add the buttons to  
+  const header = card.querySelector(".card-header");
+
+  const buttonGroup = document.createElement("div");
+  //buttonGroup.classList.add("btn-group");
+  buttonGroup.setAttribute("style", "float:right");
+  
+  const deleteButton = document.createElement("button");
+  deleteButton.setAttribute("title", "Remove comment");
+  deleteButton.setAttribute("style", "border:none");
+  deleteButton.style.backgroundColor = "transparent";
+  deleteButton.style.color = "red";
+  deleteButton.style.display = "none";
+  deleteButton.classList.add("deleteComment");
+  deleteButton.appendChild(document.createTextNode('x'));  
+
+  deleteButton.addEventListener('click', event => {
+        let comment;
+        //find the comment object associated with the card being deleted
+        for (let indexToDelete = 0; indexToDelete < playbackData.comments[eventID].length; indexToDelete++){
+            if (playbackData.comments[eventID][indexToDelete].id === commentID){
+                comment = playbackData.comments[eventID][indexToDelete];  
+
+                //remove the comment from the commentBlock
+                commentBlock.splice(indexToDelete,1);               
+                break;
+            }
+        }
+
+        //remove the accept button if there are no more comments but leave the title and description
+        if (eventID === "ev--1" && commentBlock.length < 3){
+            $('#' + "accept" + uniqueNumber).remove();
+        }
+
+        //if there are no comments left in the commentBlock, remove the block from it's parent div and delete the block from playbackData
+        if (!commentBlock.length){
+            card.parentElement.parentElement.remove();
+            delete playbackData.comments[eventID];
+        }
+        else{
+            //if there are other comments left in the commentBlock, only remove the deleted comment
+            card.remove();
+        }
+        deleteCommentFromServer(comment);
+        updateAllCommentHeaderCounts();
+    });
+
+  buttonGroup.append(deleteButton);
+
+  header.append(buttonGroup);
+
+  const editCommentButton = createEditCommentButton(commentObject, "Edit Comment");
+
+  const cardFooter = document.createElement("div");
+  cardFooter.classList.add("card-footer", "small", "p-0");
+
+
+  cardFooter.append(editCommentButton);
+  card.append(cardFooter);
+
+}
+
+// function displayAllComments(){
+//     //clear comments Div before displaying any comments
+//     commentsDiv.innerHTML = '';
+
+//     let commentCount = -2; // because the title and description do not count
+//     let currentComment = 1;
+
+//     //convert all string keys into numbers for proper sorting of comment sequence
+//     let keysArray = Object.keys(playbackData.comments);
+//     for (let i = 0; i < keysArray.length; i++){
+//         commentCount += playbackData.comments[keysArray[i]].length;
+//         keysArray[i] = Number(keysArray[i].slice(3));
+//     }
+   
+//     //sort by interger key and add each comment to the commentsDiv
+//     keysArray.sort((a,b)=> a - b).forEach(function(key){
+//         let commentBlock = playbackData.comments[`ev-${key}`];
+//         const commentGroupDiv = document.createElement('div');
+//         commentGroupDiv.classList.add('border', 'commentGroupSpacing');
+        
+//         let startingValue = 0;
+
+//         if (`ev-${key}` === 'ev--1')
+//         {
+//             const titleInfo = commentBlock[0];
+//             const descriptionInfo = commentBlock[1];
+//             const titleCard = createTitleCard(titleInfo, descriptionInfo);
+//             startingValue += 2;
+//         }
+
+//         for (let i = startingValue; i < commentBlock.length; i++){
+//             const commentObject = commentBlock[i];
+
+//             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
+//             const commentCard = returnObject.cardObject;
+//             currentComment = returnObject.count;
+
+//             //add a tick mark to the slider for the comment group ---DOESN'T WORK
+//             var tickmarkObject = document.getElementById('tickmarks');
+//             const newTick = document.createElement('option');
+//             newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
+//             newTick.classList.add("ui-slider-tick-mark");
+//             tickmarkObject.appendChild(newTick);
+
+//             commentGroupDiv.append(commentCard);
+//             commentsDiv.append(commentGroupDiv);
+//         }
+//     })    
+// }
 /*
  * Creates an image.
  */
@@ -235,18 +446,23 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     }
     return cardDiv;
 }
-/*
- * Adds a cancel button to an image to delete.
- */
-function addCancelButtonToImage(image, src, panelToDeleteFrom){
-    let imageDiv = document.createElement('div');
-    imageDiv.classList.add('image-div')
+
+function createXButtonForCloseOrCancel(popUpMessage = ""){
     let button = document.createElement('button');
-    button.classList.add('close', 'imageCancelButton');
+    button.classList.add('close');
     button.setAttribute('aria-label', 'close');
     button.innerHTML ='&times;';
-    button.style.color = 'red'; //TODO use a css class instead 
-    button.setAttribute('title','Remove image from comment');
+    button.style.color = 'red';
+    button.setAttribute('title', popUpMessage);
+    return button;
+}
+
+function addCancelButtonToImage(image, panelToDeleteFrom){
+    let imageDiv = document.createElement('div');
+    imageDiv.classList.add('image-div')
+
+    let button = createXButtonForCloseOrCancel("Remove image from comment");
+    button.classList.add('imageCancelButton');
 
     button.addEventListener('click', event =>{
         panelToDeleteFrom.removeChild(imageDiv);
@@ -274,16 +490,10 @@ function addCancelButtonToImage(image, src, panelToDeleteFrom){
     imageDiv.append(button);
     panelToDeleteFrom.append(imageDiv);
 }
-/*
- * Adds a cancel button to a card to delete.
- */
-function addCancelButtonToCard(card, src, panelToDeleteFrom){
-    let button = document.createElement('button');
-    button.classList.add('close');
-    button.setAttribute('aria-label', 'close');
-    button.innerHTML ='&times;';
-    button.style.color = 'red'; //TODO use a css class instead
-    button.setAttribute('title','Remove media from comment');
+
+function addCancelButtonToCard(card, panelToDeleteFrom){
+    let button = createXButtonForCloseOrCancel("Remove media from comment");
+
     //removes the selected media from the preview and from the stored list of selected media
     button.addEventListener('click',event =>{
         panelToDeleteFrom.removeChild(card);
@@ -315,13 +525,14 @@ let currentCarousel = 0;
  *
  */
 function createCarousel(){
-    let carouselOuter = document.createElement('div');
+    const carouselOuter = document.createElement('div');
  
     carouselOuter.setAttribute('id', 'mycarousel' + currentCarousel++);
     carouselOuter.setAttribute('data-ride', 'carousel');
     carouselOuter.setAttribute('data-interval','false');
+    carouselOuter.setAttribute('keyboard', 'false');
     carouselOuter.classList.add('carousel','slide');
-    let carouselInner = document.createElement('div');
+    const carouselInner = document.createElement('div');
     carouselOuter.append(carouselInner);
     return carouselOuter;
 }
@@ -329,13 +540,34 @@ function createCarousel(){
  *
  */
 function addImageToCarousel(src, carousel){
-    let img = document.createElement('img');
-    let imgDiv = document.createElement('div');
-    imgDiv.classList.add('carousel-item');
+
+    const img = document.createElement('img');
+    const imgDiv = document.createElement('div');
+    const captionDiv = document.createElement('div');
+    const captionText = document.createElement('h5');
+
+    captionDiv.classList.add('carousel-caption', 'd-none', 'd-md-block');
+    captionDiv.append(captionText);
+
     img.src = src;
     img.classList.add('d-block','w-100');
+
+    imgDiv.classList.add('carousel-item');
     imgDiv.append(img);
+    imgDiv.append(captionDiv);
+
     carousel.firstChild.append(imgDiv);
+
+    const allCaptions = carousel.getElementsByClassName('carousel-caption');
+
+    //prevents "1/1" from being displayed on single image carousels
+    if (allCaptions.length > 1){
+        //updates all captions with the right counts
+        for (let i = 0; i < allCaptions.length; i++){
+            allCaptions[i].textContent = i + 1 + '/' + allCaptions.length;
+        }        
+    }
+
     //sets an image active if none are
     if (!carousel.firstChild.firstChild.classList.value.includes('active')){
         carousel.firstChild.firstChild.classList.add('active');
@@ -382,10 +614,8 @@ function makeCarouselControls(carousel){
     carousel.append(right);
     carousel.append(left);
 }
-/*
- *
- */
-function makeDraggable(param, dropFolder){
+
+function makeDraggable(param, key){
     param.setAttribute('draggable', 'true');
     param.classList.add('draggable');
 
@@ -393,18 +623,74 @@ function makeDraggable(param, dropFolder){
         param.classList.add('dragging');
     })
 
-    param.addEventListener('dragend', () => {
+    param.addEventListener('dragend', () => {       
+        if (key !== undefined){           
+            //get the original index of the comment
+            const oldCommentPosition = playbackData.comments["ev-" + key].findIndex(item => item.id === param.id);
+
+            //get the comment object
+            const comment = playbackData.comments["ev-" + key][oldCommentPosition];
+
+            //get an array of all draggable elements in the event target div
+            const allDraggableCards = [...event.currentTarget.parentElement.getElementsByClassName("draggable")];
+
+            //find the new position of the dragged card in the array of draggable elements
+            const newCommentPosition = allDraggableCards.findIndex(item => item.id === comment.id);
+  
+            const commentPositionObject = {                
+                eventId: comment.displayCommentEvent.id,
+                oldCommentPosition,
+                newCommentPosition: key === -1 ? newCommentPosition + 2 : newCommentPosition
+            };
+
+            //update playbackData with the changes
+            playbackData.comments['ev-' + key].splice(oldCommentPosition, 1);
+            playbackData.comments['ev-' + key].splice(commentPositionObject.newCommentPosition, 0, comment);
+
+            //update the server with the changes
+            updateCommentPositionOnServer(commentPositionObject);  
+
+            updateAllCommentHeaderCounts();
+        }  
         param.classList.remove('dragging');
     })    
 }
-/*
- *
- */
+
+function makeunDraggable(param){
+    param.removeAttribute('draggable');
+    param.classList.remove('draggable');
+}
+
+function makeDivDroppable(div, useID = true){
+    //fixes firefox specific issue where images moved open a new tab
+    document.body.ondrop = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    const divDrop = useID ? $('#' + div.id)[0] : div;
+    divDrop.addEventListener('dragover', event => {
+        const draggable = divDrop.querySelector('.dragging');
+        
+        //make sure the item being dragged originated in the droppable div
+        if (draggable !== null){
+            event.preventDefault();
+            const afterElement = getDragAfterElement(divDrop, event.clientY);
+            if (afterElement === null){
+                divDrop.appendChild(draggable);
+            }
+            else{
+                divDrop.insertBefore(draggable, afterElement);
+            }            
+        }    
+    });   
+}
+
 function createCommentCard(commentObject, currentComment, commentCount, i)
 {
     const cardHeader = document.createElement('div');
-    cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'p-0');
-    cardHeader.innerHTML = currentComment++ + '/' + commentCount;
+    cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'p-0', "commentCount");
+    cardHeader.innerText = currentComment++ + '/' + commentCount;
     
     const cardBody = document.createElement('div');
     cardBody.classList.add('card-body', 'text-left');
@@ -525,16 +811,122 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardFinal.prepend(cardHeader);
     finalDiv.append(cardFinal);
 
-    return {cardObject: finalDiv, count: currentComment};
+    return {cardObject: finalDiv, count: currentComment, commentID: commentObject.id};
     
 }
-/*
- *
- */
+
+//Creates the title and description card in the ViewCommentsTab
 function createTitleCard(titleInfo, descriptionInfo)
 {
 
+    //create the encompassing card object
+    const titleCard = document.createElement('div');
+    titleCard.classList.add('card');
+    titleCard.setAttribute('id', 'title-card');
+
+    titleCard.addEventListener('click', function (e){ 
+        //step to the event this comment is at
+        step(descriptionInfo.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+    });
+
+    //create the header for the title card which holds the title text
+    const cardHeader = document.createElement('div');
+    cardHeader.classList.add('card-header', 'text-center');
+    cardHeader.innerHTML = titleInfo.commentText;
+
+    //create the body for the card which holds the description text
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body', 'text-left');
     
+    const bodyParagraph = document.createElement('p');
+    bodyParagraph.innerHTML = descriptionInfo.commentText;
+
+    cardBody.append(bodyParagraph);
+
+    //create any media in the description
+    if (descriptionInfo.imageURLs.length > 0)
+    {
+        let carousel = createCarousel();
+        for (let i = 0; i < descriptionInfo.imageURLs.length; i++)
+        {
+            addImageToCarousel(descriptionInfo.imageURLs[i], carousel);
+        }
+
+        if (descriptionInfo.imageURLs.length > 1)
+        {
+            makeCarouselControls(carousel);
+        }
+
+        titleCard.append(carousel);
+    }
+
+    for (let i = 0; i < descriptionInfo.videoURLs.length; i++){
+        let videoElement = createMediaControllerCommentVideoUI(descriptionInfo.videoURLs[i], false, false);       
+        //add next media
+        titleCard.append(videoElement.firstChild);
+        //file names added invisible in case we later want to see them when editing
+        videoElement.lastChild.style.display ='none';
+        titleCard.append(videoElement.lastChild);     
+    }
+
+    for (let i = 0; i < descriptionInfo.audioURLs.length; i++){
+        let audioElement = createMediaControllerCommentAudioUI(descriptionInfo.audioURLs[i], false, false); 
+        titleCard.append(audioElement.firstChild);
+
+        //file names added invisible in case we later want to see them when editing
+        audioElement.lastChild.style.display ='none';
+        titleCard.append(audioElement.lastChild);  
+    }
+
+    //Create the card footer which holds the edit buttons
+    const titleFooter = document.createElement("div");
+    titleFooter.classList.add("card-footer","small", "p-0");
+
+    const editTitleButton = document.createElement('button');
+    const acceptChangesToTitleButton = document.createElement("button");
+
+    const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
+
+    editTitleButton.addEventListener('click', event => {
+        cardHeader.setAttribute("contenteditable", "true");
+
+        editTitleButton.style.display = "none";
+        editDescriptionButton.style.display = 'none';
+        acceptChangesToTitleButton.style.display = "block";
+    })
+
+    editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    editTitleButton.appendChild(document.createTextNode('Edit Title'));
+
+    acceptChangesToTitleButton.style.display = "none";
+
+    acceptChangesToTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    acceptChangesToTitleButton.appendChild(document.createTextNode('Accept Changes'));
+
+    acceptChangesToTitleButton.addEventListener('click', event => {
+        const titleData = cardHeader.innerHTML;
+        titleInfo.commentText = titleData;
+        
+        updateTitle(titleInfo);
+
+        cardHeader.setAttribute("contenteditable", "false");
+
+        acceptChangesToTitleButton.style.display = "none";
+        editDescriptionButton.style.display = 'block';
+        editTitleButton.style.display = "block";
+
+    })
+    
+    titleFooter.append(acceptChangesToTitleButton);
+    titleFooter.append(editTitleButton);
+    titleFooter.append(editDescriptionButton);
+
+    //assemble the pieces of the card
+    titleCard.append(titleFooter);
+    titleCard.prepend(cardBody);
+    titleCard.prepend(cardHeader);
+
+    return titleCard;
 
 }
 /*
@@ -1186,4 +1578,75 @@ function clearHighlightChangedFiles() {
     for(let i = 0;i < allUpdatedFileElements.length;i++) {
         allUpdatedFileElements[i].classList.remove('fileUpdated');
     }
+
+function createEditCommentButton(commentObject, buttonText){
+    const editCommentButton = document.createElement("button");
+    editCommentButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    editCommentButton.appendChild(document.createTextNode(buttonText));
+    editCommentButton.addEventListener('click', event => {
+  
+      document.getElementById("viewCommentsTab").classList.add("disabled");
+  
+      const addCommentButton =  document.getElementById("addCommentButton");
+      const updateCommentButton = document.getElementById("UpdateCommentButton");
+      addCommentButton.style.display = "none";
+      updateCommentButton.removeAttribute("style");
+      //cancelUpdateButton.removeAttribute("style");
+  
+      document.getElementById("addCommentTab").click();
+      
+      const textArea = document.getElementById("textCommentTextArea");
+      textArea.innerHTML = commentObject.commentText;
+  
+      const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
+      const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
+      const videoPreviewDiv = document.getElementsByClassName("video-preview")[0];
+  
+      if (commentObject.imageURLs.length){
+          for (let i = 0; i < commentObject.imageURLs.length; i++){
+              const imageCard = createMediaControllerCommentImageUI(commentObject.imageURLs[i], false, false);
+              makeDraggable(imageCard);
+      
+              addCancelButtonToImage(imageCard,imagePreviewDiv );
+            }
+          imagePreviewDiv.removeAttribute("style");
+  
+        }
+  
+      if (commentObject.audioURLs.length){
+          for (let i = 0; i < commentObject.audioURLs.length; i++){
+              const audioCard = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false);
+              makeDraggable(audioCard);
+              addCancelButtonToCard(audioCard, audioPreviewDiv);
+              audioPreviewDiv.append(audioCard);
+          }
+          audioPreviewDiv.removeAttribute("style");
+        }
+  
+      if (commentObject.videoURLs.length){
+          for (let i = 0; i < commentObject.videoURLs.length; i++){
+              const videoCard = createMediaControllerCommentVideoUI(commentObject.videoURLs[i], false, false);
+              makeDraggable(videoCard);
+              addCancelButtonToCard(videoCard, videoPreviewDiv);
+              videoPreviewDiv.append(videoCard);
+          }
+          videoPreviewDiv.removeAttribute("style");
+        }
+  
+
+        updateCommentButton.addEventListener('click' , event => {
+            updateComment(commentObject);
+
+            document.getElementById("CancelUpdateButton").click();
+        })
+    });
+    return editCommentButton;
+}
+
+
+function updateAllCommentHeaderCounts(){
+    const drag = document.getElementsByClassName("drag");
+    for (let i = 0; i < drag.length; i++){
+        drag[i].getElementsByClassName("card-header")[0].firstChild.data = i + 1 + "/" + drag.length;
+    }    
 }

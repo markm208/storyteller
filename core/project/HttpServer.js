@@ -303,19 +303,23 @@ class HttpServer {
             res.json(this.projectManager.commentManager.comments);
         });
 
+        app.get('/editComment', (req, res) => {
+            res.json({editable: true});
+        });
+
         app.post('/comment', (req, res) => {
             //add a comment            
             const comment = req.body;            
             comment['developerGroupId'] = this.projectManager.developerManager.currentDeveloperGroupId;
-            this.projectManager.commentManager.addComment(comment);
-            res.sendStatus(200);
+            const newComment = this.projectManager.commentManager.addComment(comment);
+            res.json(newComment);
         });
 
         app.put('/comment', (req, res) => {
             //update a comment
             const comment = req.body;
-            this.projectManager.commentManager.updateComment(comment);
-            res.sendStatus(200);
+            const newComment = this.projectManager.commentManager.updateComment(comment);
+            res.json(newComment);
         });
         
         app.put('/commentPosition', (req, res) => {

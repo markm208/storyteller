@@ -17,7 +17,7 @@
     <body>
         <div class="wrapper">
             <div class="box">
-                <legend>Comments</legend>
+                <!-- <legend>Comments</legend> -->
                 <div class="tab">
                     <ul class="nav nav-tabs" id="commentTab">
                         <li class="nav-item">
@@ -25,21 +25,29 @@
                                 id="viewCommentsTab">View Comments</a>
                         </li>
     
-                        <li class="nav-item">
-                            <a class="nav-link" href="#addCommentPanel" role="tab" data-toggle="tab"
+                        <li class="nav-item" style="display:none">
+                            <a class="nav-link" href="#addCommentPanel" role="tab" data-toggle="tab" 
                                 id="addCommentTab">Add Comment</a>
                         </li>
-    
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="#fsViewPanel" role="tab" data-toggle="tab" 
+                                id="fsViewTabTab">File System View</a>
+                        </li>
+
                     </ul>
                 </div>
                 <div class="tab-content" id="commentTabContent">
-                    <div id="ViewCommentPanel" class="tab-pane commentsDivScroll active">
-                        View comment tab
+                    <div id="ViewCommentPanel" class="tab-pane active">
+                        <div id="commentContentDiv" class="commentsDivScroll">
+                        </div>
+                        <button id="mainAddCommentButton" class="btn btn-success" type="button" style="float: right;">Add New Comment</button>
                     </div>
+
     
                     <div id="addCommentPanel" class="tab-pane commentsDivScroll">
                         <div class="form-group">
-                            <div id="textCommentTextArea" contenteditable="true" class="form-control storytellerCommentEditable st-comment-placeholder">Comment text</div>
+                            <div id="textCommentTextArea" contenteditable="true" class="form-control storytellerCommentEditable" data-ph="Comment Text"></div>
                             <div class="input-group input-group-sm mb-3">
                                 <div class="input-group-prepend">
                                     <button id="boldCommentButton" class="btn btn-outline-secondary" type="button" style="font-weight: bold;">B</button>
@@ -55,11 +63,17 @@
                             <div class="video-preview commentBox border hidden" style="display:none;"><h5>Videos</h5></div>
                             <div class="audio-preview commentBox border hidden" style="display:none;"><h5>Audios</h5></div>
                         </div>
+                        <button id="CancelUpdateButton" class="btn btn-danger" >Cancel</button>
                         <button id="addCommentButton" class="btn btn-success">Add Comment</button>
+                        <button id="UpdateCommentButton" class="btn btn-success" style="display: none;">Update Comment</button>
+                    </div>
+
+                    <div id="fsViewPanel" class="tab-pane commentsDivScroll">
                         <ul id="playbackViewOfFileSystem" class="playbackViewFileOrDirList">
                         </ul>
                     </div>
                 </div>
+
             </div>
             <div class="dragBar" id="dragBar"></div>
             <div id="codePanel" class="codePanel">
@@ -203,7 +217,9 @@
             //holds the currently viewed fileId
             currentFileId: null,
             //the position of the event to play next in the forward direction
-            nextEventPosition: 0,   
+            nextEventPosition: 0,  
+            //whether or not edits are allowed to be made to comments 
+            isEditable: false 
         };
 
         const emptyEditor = createAceEditor('playbackWindow', '','' );    
@@ -211,7 +227,7 @@
         //import the Range type from ace (don't use the built in browser Range type)
         const AceRange = ace.require('ace/range').Range;
 
-        const commentsDiv = document.getElementById('ViewCommentPanel');
+        const commentsDiv = document.getElementById('commentContentDiv');
 
         //indicates whether the change can from the textarea not editing in ace
         let changeOutsideEditor = false;
