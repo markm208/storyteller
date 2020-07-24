@@ -1578,6 +1578,7 @@ function clearHighlightChangedFiles() {
     for(let i = 0;i < allUpdatedFileElements.length;i++) {
         allUpdatedFileElements[i].classList.remove('fileUpdated');
     }
+}
 
 function createEditCommentButton(commentObject, buttonText){
     const editCommentButton = document.createElement("button");

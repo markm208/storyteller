@@ -193,9 +193,7 @@ function deleteDirectoryEventReverse(nextEvent) {
     //show all of the tabs in the deleted directory after they have been marked as NOT deleted
     const allFilesInDir = getFilesFromADirectory(nextEvent.directoryId);
     for(let i = 0;i < allFilesInDir.length;i++) {
-        if(allFilesInDir[i].isDeleted === false) {
-            showFileTab(allFilesInDir[i].fileId);
-        }
+        showFileTab(allFilesInDir[i].fileId);
     }
 }
 
