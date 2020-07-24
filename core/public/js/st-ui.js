@@ -375,7 +375,21 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
     const newVideo = document.createElement('video');
     newVideo.setAttribute('src', srcPath);
     newVideo.setAttribute('controls', '');
-    newVideo.setAttribute('preload', 'metadata');
+    newVideo.setAttribute('preload', 'metadata');   
+
+    //when a video is played, pause any other media that is playing
+    newVideo.onplay = function(){
+        pauseMedia();
+        newVideo.classList.add("playing");
+    }
+ 
+    newVideo.onpause = function(){
+        newVideo.classList.remove("playing");
+    }
+ 
+    newVideo.onended = function(){
+        newVideo.classList.remove("playing");
+    }
 
     if (returnWithEventistener){
         newVideo.classList.add('mediaVideo');
@@ -405,6 +419,9 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
 
     return cardDiv;
 }
+
+
+
 /*
  * Creates an audio.
  */
@@ -429,6 +446,19 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     newAudio.setAttribute('src', srcPath);
     newAudio.setAttribute('controls', '');
     newAudio.setAttribute('preload', 'metadata');
+
+    newAudio.onplay = function(){
+        pauseMedia();
+        newAudio.classList.add("playing");
+    }
+
+    newAudio.onpause = function(){
+        newAudio.classList.remove("playing");
+    }
+
+    newAudio.onended = function(){
+        newAudio.classList.remove("playing");
+    }
 
     if (returnWithEventistener){
         newAudio.classList.add('mediaAudio');
@@ -457,6 +487,15 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
         cardDiv.classList.toggle('mediaSelected')});
     }
     return cardDiv;
+}
+
+function pauseMedia(){
+    const playing = document.getElementsByClassName('playing');
+ 
+    if (playing.length){
+        playing[0].pause();
+        playing[0].classList.remove('playing');
+    }
 }
 
 function createXButtonForCloseOrCancel(popUpMessage = ""){
@@ -1596,57 +1635,58 @@ function createEditCommentButton(commentObject, buttonText){
     editCommentButton.classList.add("btn", "btn-outline-dark", "btn-sm");
     editCommentButton.appendChild(document.createTextNode(buttonText));
     editCommentButton.addEventListener('click', event => {
-  
-      document.getElementById("viewCommentsTab").classList.add("disabled");
-  
-      const addCommentButton =  document.getElementById("addCommentButton");
-      const updateCommentButton = document.getElementById("UpdateCommentButton");
-      addCommentButton.style.display = "none";
-      updateCommentButton.removeAttribute("style");
-      //cancelUpdateButton.removeAttribute("style");
-  
-      document.getElementById("addCommentTab").click();
-      
-      const textArea = document.getElementById("textCommentTextArea");
-      textArea.innerHTML = commentObject.commentText;
-  
-      const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
-      const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
-      const videoPreviewDiv = document.getElementsByClassName("video-preview")[0];
-  
-      if (commentObject.imageURLs.length){
-          for (let i = 0; i < commentObject.imageURLs.length; i++){
-              const imageCard = createMediaControllerCommentImageUI(commentObject.imageURLs[i], false, false);
-              makeDraggable(imageCard);
-      
-              addCancelButtonToImage(imageCard,imagePreviewDiv );
+        pauseMedia();
+        document.getElementById("viewCommentsTab").classList.add("disabled");
+    
+        const addCommentButton =  document.getElementById("addCommentButton");
+        const updateCommentButton = document.getElementById("UpdateCommentButton");
+        addCommentButton.style.display = "none";
+        updateCommentButton.removeAttribute("style");
+        //cancelUpdateButton.removeAttribute("style");
+    
+        document.getElementById("addCommentTab").click();
+        
+        const textArea = document.getElementById("textCommentTextArea");
+        textArea.innerHTML = commentObject.commentText;
+    
+        const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
+        const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
+        const videoPreviewDiv = document.getElementsByClassName("video-preview")[0];
+    
+        if (commentObject.imageURLs.length){
+            for (let i = 0; i < commentObject.imageURLs.length; i++){
+                const imageCard = createMediaControllerCommentImageUI(commentObject.imageURLs[i], false, false);
+                makeDraggable(imageCard);
+        
+                addCancelButtonToImage(imageCard,imagePreviewDiv );
+                }
+            imagePreviewDiv.removeAttribute("style");
+    
+        }
+    
+        if (commentObject.audioURLs.length){
+            for (let i = 0; i < commentObject.audioURLs.length; i++){
+                const audioCard = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false);
+                makeDraggable(audioCard);
+                addCancelButtonToCard(audioCard, audioPreviewDiv);
+                audioPreviewDiv.append(audioCard);
             }
-          imagePreviewDiv.removeAttribute("style");
-  
+            audioPreviewDiv.removeAttribute("style");
         }
-  
-      if (commentObject.audioURLs.length){
-          for (let i = 0; i < commentObject.audioURLs.length; i++){
-              const audioCard = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false);
-              makeDraggable(audioCard);
-              addCancelButtonToCard(audioCard, audioPreviewDiv);
-              audioPreviewDiv.append(audioCard);
-          }
-          audioPreviewDiv.removeAttribute("style");
-        }
-  
-      if (commentObject.videoURLs.length){
-          for (let i = 0; i < commentObject.videoURLs.length; i++){
+    
+        if (commentObject.videoURLs.length){
+            for (let i = 0; i < commentObject.videoURLs.length; i++){
               const videoCard = createMediaControllerCommentVideoUI(commentObject.videoURLs[i], false, false);
               makeDraggable(videoCard);
               addCancelButtonToCard(videoCard, videoPreviewDiv);
               videoPreviewDiv.append(videoCard);
-          }
+            }
           videoPreviewDiv.removeAttribute("style");
         }
   
 
         updateCommentButton.addEventListener('click' , event => {
+            pauseMedia();
             updateComment(commentObject);
 
             document.getElementById("CancelUpdateButton").click();

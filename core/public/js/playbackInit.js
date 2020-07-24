@@ -434,6 +434,7 @@ function setupEventListeners()
         document.getElementById("addCommentTab").click();
         document.getElementById('textCommentTextArea').focus();
         document.getElementById("viewCommentsTab").classList.add("disabled");
+        pauseMedia();
     });
 
 }

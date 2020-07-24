@@ -30,9 +30,11 @@ async function initImageGallery() {
 document.getElementById('addMediaButton').addEventListener('click', event => {
     //show the media control modal (using jquery)
     $('#mediaControlModal').modal('show');
+    pauseMedia();
 });
 
 document.getElementById('addMediaToCommentButton').addEventListener('click', event => {
+    pauseMedia();
     //get the selected urls to add to the comment
     const selectedImageURLs = [];
     const selectedImageElements = document.getElementsByClassName('mediaImage mediaSelected');  
