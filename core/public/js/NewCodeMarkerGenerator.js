@@ -11,6 +11,17 @@ class NewCodeMarkerGenerator {
     }
 
     /*
+     * Handles create/rename/move file.
+     */
+    touchFile(fileEvent) {
+        //if there is not a file marker for this file
+        if(!this.newCodeFileMarkers[fileEvent.fileId]) {
+            //create a new file marker
+            this.newCodeFileMarkers[fileEvent.fileId] = new NewCodeFileMarker();
+        }
+    }
+
+    /*
      * Handles an insert into a file.
      */
     insert(insertEvent) {
@@ -52,6 +63,9 @@ class NewCodeMarkerGenerator {
         return allNewCodeMarkers;
     }
 
+    /*
+     * Returns an object with all of the line numbers where new code was added.
+     */
     getAllInsertLineNumbers() {
         //a collection of all the line numbers with inserts since the last pause point
         const allInsertLineNumbers = {};
@@ -63,7 +77,9 @@ class NewCodeMarkerGenerator {
 
         return allInsertLineNumbers;
     }
-    
+    /*
+     * Returns an object with all of the line numbers where new code was deleted.
+     */
     getAllDeleteLineNumbers() {
         //a collection of all the line numbers with deletes since the last pause point
         const allDeleteLineNumbers = {};
@@ -74,5 +90,12 @@ class NewCodeMarkerGenerator {
         }
 
         return allDeleteLineNumbers;
+    }
+
+    /*
+     * Returns all the file ids that were touched.
+     */
+    getAllChangedFileIds() {
+        return Object.keys(this.newCodeFileMarkers);
     }
 }

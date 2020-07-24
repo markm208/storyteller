@@ -1,9 +1,10 @@
 function step(numSteps) {
-    //clear any existing comment and new code highlights
+    //clear any existing highlights
     clearHighlights();
     clearNewCodeHighlights();
     clearInsertLineNumbers();
     clearDeleteLineNumbers();
+    clearHighlightChangedFiles();
 
     //move forward
     if(numSteps > 0) {
@@ -19,16 +20,21 @@ function step(numSteps) {
     } //else- no need to move at all
 
 }
-
+/*
+ * Handles moving forward through some events.
+ */
 function stepForward(numSteps) {
     //if there is room to move in the forward direction
     if(playbackData.nextEventPosition < playbackData.numEvents) {
         //holds the next event to animate
         let nextEvent;
         
-        //the id of the file to make active
-        let activeFileId = 'no-file-id';
-        
+        //the id of the file and dir to make active
+        let activeFileId;
+        let activeDirId;
+        //the line number to scroll to
+        let activeLineNumber;
+
         //timing for debug purposes
         //const t0 = performance.now();
 
@@ -40,40 +46,95 @@ function stepForward(numSteps) {
             //grab the next event to animate
             nextEvent = playbackData.events[playbackData.nextEventPosition];
 
+            //reset the active file and dir ids (update them based on the next event)
+            activeFileId = 'no-file-id';
+            activeLineNumber = 0;
+            activeDirId = 'no-dir-id';
+
             //check the event type and call the corresponding function for that event type
             switch (nextEvent.type)
             {
                 case 'INSERT':
-                //set the active file
-                activeFileId = nextEvent.fileId;
-                //mark the new code
-                newCodeMarkers.insert(nextEvent);
-                //call the insertEvent function found in playbackEventFunctions.js
-                insertEvent(nextEvent);
-                break;
+                    //set the active file and line number
+                    activeFileId = nextEvent.fileId;
+                    activeLineNumber = nextEvent.lineNumber;
+                    //mark the new code
+                    newCodeMarkers.insert(nextEvent);
+                    //handle the latest event
+                    insertEvent(nextEvent);
+                    break;
 
                 case 'DELETE':
-                //set the active file
-                activeFileId = nextEvent.fileId;
-                //mark the new code
-                newCodeMarkers.delete(nextEvent);
-                //call the deleteEvent function found in playbackEventFunctions.js
-                deleteEvent(nextEvent);
-                break;
+                    //set the active file and line number
+                    activeFileId = nextEvent.fileId;
+                    activeLineNumber = nextEvent.lineNumber;
+                    //mark the new code
+                    newCodeMarkers.delete(nextEvent);
+                    //handle the latest event
+                    deleteEvent(nextEvent);
+                    break;
 
                 case 'CREATE FILE':
-                //set the active file
-                activeFileId = nextEvent.fileId;
-                //call the createFileEvent function found in playbackEventFunctions.js
-                createFileEvent(nextEvent);
-                break;
+                    //set the active file
+                    activeFileId = nextEvent.fileId;
+                    //mark the new file
+                    newCodeMarkers.touchFile(nextEvent);
+                    //handle the latest event
+                    createFileEvent(nextEvent);
+                    break;
 
                 case 'DELETE FILE':
-                //set the active file
-                activeFileId = 'no-file-id';
-                //call the deleteFileEventFunction found in playbackEventFunctions.js
-                deleteFileEvent(nextEvent);
-                break;
+                    //set the active dir to be the one where the delete happened
+                    activeDirId = nextEvent.parentDirectoryId;
+                    //handle the latest event
+                    deleteFileEvent(nextEvent);
+                    break;
+
+                case 'RENAME FILE':
+                    //set the active file
+                    activeFileId = nextEvent.fileId;
+                    //mark the new file
+                    newCodeMarkers.touchFile(nextEvent);
+                    //handle the latest event
+                    renameFileEvent(nextEvent);
+                    break;
+
+                case 'MOVE FILE':
+                    //set the active file
+                    activeFileId = nextEvent.fileId;
+                    //mark the new file
+                    newCodeMarkers.touchFile(nextEvent);
+                    //handle the latest event
+                    moveFileEvent(nextEvent);
+                    break;
+
+                case 'CREATE DIRECTORY':
+                    //set the active dir
+                    activeDirId = nextEvent.directoryId;
+                    //handle the latest event
+                    createDirectoryEvent(nextEvent);
+                    break;
+
+                case 'DELETE DIRECTORY':
+                    //set the active dir to be the one where the delete happened
+                    activeDirId = nextEvent.parentDirectoryId;
+                    //handle the latest event
+                    deleteDirectoryEvent(nextEvent);
+                    break;
+
+                case 'RENAME DIRECTORY':
+                    //set the active dir
+                    activeDirId = nextEvent.directoryId;
+                    //handle the latest event
+                    renameDirectoryEvent(nextEvent);
+                    break;
+
+                case 'MOVE DIRECTORY':
+                    //set the active dir
+                    activeDirId = nextEvent.directoryId;
+                    //handle the latest event
+                    moveDirectoryEvent(nextEvent);
+                    break;
             }
             
             //move the next event
@@ -87,17 +148,26 @@ function stepForward(numSteps) {
 
         //make the correct editor active
         addFocusToTab(activeFileId);
+        scrollToLine(activeFileId, activeLineNumber);
 
         //highlight the new code
         highlightNewCode(newCodeMarkers.getAllNewCodeMarkers());
         highlightInsertLineNumbers(newCodeMarkers.getAllInsertLineNumbers());
         highlightDeleteLineNumbers(newCodeMarkers.getAllDeleteLineNumbers());
+        //tabs and fs view
+        highlightChangedFiles(newCodeMarkers.getAllChangedFileIds());
         
+        //highlight latest file and dir
+        //addActiveFileStyling(activeFileId);
+        //addActiveDirectoryStyling(activeDirId);
+
         //const t1 = performance.now();
         //console.log(`step forward took: ${t1-t0} ms`);
     }
 }
-
+/*
+ * Handles moving backward through some events.
+ */
 function stepBackward(numSteps) {
     //if there is room to move backwards
     if(playbackData.nextEventPosition > 0) {
@@ -121,32 +191,73 @@ function stepBackward(numSteps) {
             switch (nextEvent.type)
             {
                 case 'INSERT':
-                //set the active file
-                activeFileId = nextEvent.fileId;
-                //call the deleteEvent function found in playbackEventFunctions.js
-                deleteEvent(nextEvent);
-                break;
+                    //set the active file
+                    activeFileId = nextEvent.fileId;
+                    //inverse operation
+                    insertEventReverse(nextEvent);
+                    break;
 
                 case 'DELETE':
-                //set the active file
-                activeFileId = nextEvent.fileId;
-                //call the insertEvent function found in playbackEventFunctions.js
-                insertEvent(nextEvent);
-                break;
+                    //set the active file
+                    activeFileId = nextEvent.fileId;
+                    //inverse operation
+                    deleteEventReverse(nextEvent);
+                    break;
 
                 case 'CREATE FILE':
-                //set the active file
-                activeFileId = 'no-file-id';
-                //call the deleteFileEvent function found in playbackEventFunctions.js
-                deleteFileEvent(nextEvent);
-                break;
+                    //set the active file
+                    activeFileId = 'no-file-id';
+                    //inverse operation
+                    createFileEventReverse(nextEvent);
+                    break;
 
                 case 'DELETE FILE':
-                //set the active file
-                activeFileId = nextEvent.fileId;
-                //call the deleteFileEventFunction found in playbackEventFunctions.js
-                createFileEvent(nextEvent);
-                break;
+                    //set the active file
+                    activeFileId = nextEvent.fileId;
+                    //inverse operation
+                    deleteFileEventReverse(nextEvent);
+                    break;
+
+                case 'RENAME FILE':
+                    //set the active file
+                    activeFileId = nextEvent.fileId;
+                    renameFileEventReverse(nextEvent);
+                    break;
+
+                case 'MOVE FILE':
+                    //set the active file
+                    activeFileId = nextEvent.fileId;
+                    //inverse operation
+                    moveFileEventReverse(nextEvent);
+                    break;
+
+                case 'CREATE DIRECTORY':
+                    //set the active file
+                    activeFileId = 'no-file-id';
+                    //inverse operation
+                    createDirectoryEventReverse(nextEvent);
+                    break;
+
+                case 'DELETE DIRECTORY':
+                    //set the active file
+                    activeFileId = 'no-file-id';
+                    //inverse operation
+                    deleteDirectoryEventReverse(nextEvent);
+                    break;
+
+                case 'RENAME DIRECTORY':
+                    //set the active file
+                    activeFileId = 'no-file-id';
+                    //inverse operation
+                    renameDirectoryEventReverse(nextEvent);
+                    break;
+
+                case 'MOVE DIRECTORY':
+                    //set the active file
+                    activeFileId = 'no-file-id';
+                    //inverse operation
+                    moveDirectoryEventReverse(nextEvent);
+                    break;
             }
 
             //move to the previous event
@@ -167,56 +278,3 @@ function stepBackward(numSteps) {
         playbackData.nextEventPosition++;
     }
 }
-
-function displayAllComments(){
-    //clear comments Div before displaying any comments
-    commentsDiv.innerHTML = '';
-
-    let commentCount = -2; // because the title and description do not count
-    let currentComment = 1;    
-
-    //convert all string keys into numbers for proper sorting of comment sequence
-    let keysArray = Object.keys(playbackData.comments);  
-    for (let i = 0; i < keysArray.length; i++){
-        commentCount += playbackData.comments[keysArray[i]].length;
-        keysArray[i] = Number(keysArray[i].slice(3));        
-    }
-   
-    //sort by interger key and add each comment to the commentsDiv
-    keysArray.sort((a,b)=> a - b).forEach(function(key){
-        let commentBlock = playbackData.comments[`ev-${key}`];
-        const commentGroupDiv = document.createElement('div');
-        commentGroupDiv.classList.add('border', 'commentGroupSpacing');
-        
-        let startingValue = 0;
-
-        if (`ev-${key}` === 'ev--1')
-        {
-            const titleInfo = commentBlock[0];
-            const descriptionInfo = commentBlock[1];
-            const titleCard = createTitleCard(titleInfo, descriptionInfo);
-
-            startingValue += 2;
-        }
-
-        for (let i = startingValue; i < commentBlock.length; i++){
-
-            const commentObject = commentBlock[i];
-
-            const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
-            const commentCard = returnObject.cardObject;
-            currentComment = returnObject.count;
-
-            //add a tick mark to the slider for the comment group ---DOESN'T WORK
-            var tickmarkObject = document.getElementById('tickmarks');
-            const newTick = document.createElement('option');
-            newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
-            newTick.classList.add("ui-slider-tick-mark");
-            tickmarkObject.appendChild(newTick);
-
-            commentGroupDiv.append(commentCard);
-            commentsDiv.append(commentGroupDiv);
-        }
-    })    
-}
-

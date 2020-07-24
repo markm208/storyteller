@@ -377,7 +377,7 @@ class ProjectManager extends FileBackedCollection {
             const timestamp = new Date().getTime();
             const devGroupId = this.developerManager.currentDeveloperGroupId;
             const branchId = this.branchId;
-            this.eventManager.insertRenameDirectoryEvent(timestamp, devGroupId, branchId, oldDirObj.id, newNormalizedDirPath, oldNormalizedDirPath);
+            this.eventManager.insertRenameDirectoryEvent(timestamp, devGroupId, branchId, oldDirObj.id, oldDirObj.parentDirectoryId, newNormalizedDirPath, oldNormalizedDirPath);
         } //else- this dir should be ignored because the user requested it in /st-ignore.json
     }
     /*
@@ -411,7 +411,7 @@ class ProjectManager extends FileBackedCollection {
             const timestamp = new Date().getTime();
             const devGroupId = this.developerManager.currentDeveloperGroupId;
             const branchId = this.branchId;
-            this.eventManager.insertRenameFileEvent(timestamp, devGroupId, branchId, oldFileObj.id, newNormalizedFilePath, oldNormalizedFilePath);
+            this.eventManager.insertRenameFileEvent(timestamp, devGroupId, branchId, oldFileObj.id, oldFileObj.parentDirectoryId, newNormalizedFilePath, oldNormalizedFilePath);
         } //else- this file should be ignored because the user requested it in /st-ignore.json
     }
     /*

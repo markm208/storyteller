@@ -1,3 +1,6 @@
+.activeFileOrDirectory {
+    font-weight: bold;
+}
 
 .box {
     border-radius: 5px;
@@ -91,6 +94,19 @@
 
 .draggable.dragging{
     opacity: 0.5;
+}
+
+.fileLink {
+    color: black;
+}
+.fileUpdated::before {
+    content: '\2B57';
+}
+.hiddenDirectory {
+    display: none;
+}
+.hiddenFile {
+    display: none;
 }
 
 .highlight {
@@ -213,9 +229,18 @@
 
 .newCodeHighlight {
     position:absolute;
-    z-index:20; /* place in a layer above anything with a lower z-index */
-    background-color:white;
+    z-index:10; /* place in a layer above anything with a lower z-index */
+    background-color:rgb(150, 194, 219);
     opacity: 20%;
+}
+
+/* .playbackDirNameLabel {
+    margin-left: -1px;
+} */
+
+.playbackViewFileOrDirList
+{
+    list-style-type: none;
 }
 
 .playbackWindow {

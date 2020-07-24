@@ -293,7 +293,7 @@ class EventManager extends FileBackedCollection {
     /*
      * Creates a 'RENAME FILE' event.
      */
-    insertRenameFileEvent(timestamp, createdByDevGroupId, branchId, fileId, newFilePath, oldFilePath) {
+    insertRenameFileEvent(timestamp, createdByDevGroupId, branchId, fileId, parentDirectoryId, newFilePath, oldFilePath) {
         //create an event id
         const eventId = this.generateId();
         
@@ -303,6 +303,7 @@ class EventManager extends FileBackedCollection {
         //add specific properties
         renameFileEvent['type'] = 'RENAME FILE';
         renameFileEvent['fileId'] = fileId;
+        renameFileEvent['parentDirectoryId'] = parentDirectoryId;
         renameFileEvent['newFilePath'] = newFilePath;
         renameFileEvent['oldFilePath'] = oldFilePath;
         
@@ -375,7 +376,7 @@ class EventManager extends FileBackedCollection {
     /*
      * Creates a 'RENAME DIRECTORY' event.
      */
-    insertRenameDirectoryEvent(timestamp, createdByDevGroupId, branchId, dirId, newDirPath, oldDirPath) {
+    insertRenameDirectoryEvent(timestamp, createdByDevGroupId, branchId, dirId, parentDirectoryId, newDirPath, oldDirPath) {
         //create an event id
         const eventId = this.generateId();
         
@@ -385,6 +386,7 @@ class EventManager extends FileBackedCollection {
         //add specific properties
         renameDirectoryEvent['type'] = 'RENAME DIRECTORY';
         renameDirectoryEvent['directoryId'] = dirId;
+        renameDirectoryEvent['parentDirectoryId'] = parentDirectoryId;
         renameDirectoryEvent['newDirectoryPath'] = newDirPath;
         renameDirectoryEvent['oldDirectoryPath'] = oldDirPath;
 

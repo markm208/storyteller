@@ -9,7 +9,9 @@ function setEditorMode(thisEditor, filePath){
     //sets the passed Ace editor to the correct mode
     thisEditor.session.setMode(mode);
 }
-
+/*
+ * Creates an Ace editor
+ */
 function createAceEditor(codeDiv, filePath, fileId)
 {
     //creates a new Ace editor pointing to the passed codeDiv
@@ -32,7 +34,15 @@ function createAceEditor(codeDiv, filePath, fileId)
 
     return playbackData.editors[fileId];
 }
-
+/* 
+ * Cleans up ace editor.
+ */
+function destroyAceEditor(fileId) {
+    //clean up
+    playbackData.editors[fileId].destroy();
+    //remove the editor
+    delete playbackData.editors[fileId];
+}
 /*
 * Create a highlight (ace calls these 'markers')
 */
@@ -206,5 +216,10 @@ function clearDeleteLineNumbers() {
             }
         }
         delete playbackData.deleteGutterHighlights[fileId];
+    }
+}
+function scrollToLine(fileId, lineNumber) {
+    if(playbackData.editors[fileId]) {
+        playbackData.editors[fileId].scrollToLine(lineNumber, true, true);
     }
 }
