@@ -362,7 +362,7 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
     //create a card with a body and a footer
     const cardDiv = document.createElement('div');
     //create two bootstrap classes and a st class
-    cardDiv.classList.add('card', 'text-center','mediaVideoCard');  
+    cardDiv.classList.add('card', 'text-center', 'mediaVideoCard');  
 
     //card body
     const cardBody = document.createElement('div');
@@ -376,7 +376,13 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
     newVideo.setAttribute('src', srcPath);
     newVideo.setAttribute('controls', '');
     newVideo.setAttribute('preload', 'metadata');
-    newVideo.classList.add('mediaVideo');
+
+    if (returnWithEventistener){
+        newVideo.classList.add('mediaVideo');
+    }        
+    else{
+        newVideo.classList.add('mediaResizable');
+    }       
    
     //add all the pieces together
     cardBody.append(newVideo);
@@ -423,7 +429,13 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     newAudio.setAttribute('src', srcPath);
     newAudio.setAttribute('controls', '');
     newAudio.setAttribute('preload', 'metadata');
-    newAudio.classList.add('mediaAudio');
+
+    if (returnWithEventistener){
+        newAudio.classList.add('mediaAudio');
+    }
+    else{
+        newAudio.classList.add('mediaResizable');
+    }
     newAudio.style.height = 40 + 'px';
 
 
@@ -525,13 +537,12 @@ let currentCarousel = 0;
  *
  */
 function createCarousel(){
-    const carouselOuter = document.createElement('div');
- 
+    const carouselOuter = document.createElement('div'); 
     carouselOuter.setAttribute('id', 'mycarousel' + currentCarousel++);
-    carouselOuter.setAttribute('data-ride', 'carousel');
     carouselOuter.setAttribute('data-interval','false');
-    carouselOuter.setAttribute('keyboard', 'false');
+    carouselOuter.setAttribute('data-keyboard', 'false');
     carouselOuter.classList.add('carousel','slide');
+
     const carouselInner = document.createElement('div');
     carouselOuter.append(carouselInner);
     return carouselOuter;
