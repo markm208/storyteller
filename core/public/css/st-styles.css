@@ -206,7 +206,7 @@
  }
 
  .mediaResizable{
-    width: 100%;
+    width: 90%;
  }
 
 .mediaAudio {
@@ -262,6 +262,25 @@
 
 .slider {
     height: 40px;
+}
+
+.speedButton{
+    color: black;
+    background: transparent;
+    padding: 0;
+    background: whitesmoke;
+}
+
+.speedButton:hover,.speedButton:focus,.speedButton:active{
+    background: lightgrey;
+    background-color: lightgray;
+    outline: none !important;
+    box-shadow: none;
+}
+
+.speedGroup{
+    position: absolute;
+    float: right;    
 }
 
 .storytellerCommentEditable:empty:before{ 
@@ -323,6 +342,7 @@ or if they'd prefer the page stay the same size as they scroll through the carou
     overflow: hidden;
     width: 100%;
     }
+    
     .carousel-item img {
     width: 100%;
     }
