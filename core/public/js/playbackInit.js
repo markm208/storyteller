@@ -19,8 +19,7 @@ async function initializePlayback()
             playbackInfo[0].json(),
             playbackInfo[1].json(),
             playbackInfo[2].json()
-        ]);
-       
+        ]);       
 
         playbackData.events = results[0];
         playbackData.comments = results[1];
@@ -201,7 +200,7 @@ function setupEventListeners()
         const currentAudioOrder = [];
         for (let i = 0; i < audioFiles.length; i++){
             if (audioFiles[i].classList.contains("card") ){
-                currentAudioOrder.push(audioFiles[i].firstChild.firstChild.getAttribute("src"));
+                currentAudioOrder.push(audioFiles[i].querySelector('[src]').src);
             }
         }
 
@@ -650,7 +649,7 @@ async function updateComment(commentObject){
     const currentAudioOrder = [];
     for (let i = 0; i < audioFiles.length; i++){
         if (audioFiles[i].classList.contains("card") ){
-            currentAudioOrder.push(audioFiles[i].firstChild.firstChild.getAttribute("src"));
+            currentAudioOrder.push(audioFiles[i].querySelector('[src]').src);
         }
     }
 

@@ -206,7 +206,7 @@
  }
 
  .mediaResizable{
-    width: 90%;
+    width: 95%;
  }
 
 .mediaAudio {
@@ -314,6 +314,10 @@
 resize: none;
 }
 
+.textLeft{
+    text-align: left !important;
+}
+
 .ui-slider-tick-mark {
     display: inline-block;
     position: absolute;
@@ -347,3 +351,5 @@ A second test to see if this is the preferred way to handle images in a carousel
     height: 100%;
     object-fit: contain;
 }
+
+

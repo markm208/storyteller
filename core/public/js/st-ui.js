@@ -432,6 +432,8 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     //card body
     const cardBody = document.createElement('div');
     cardBody.classList.add('card-body');
+ 
+
     cardBody.style.height = 75 +'px';
     //card footer
     const cardFooter = document.createElement('div');
@@ -485,6 +487,7 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     }
     else{
         newAudio.classList.add('mediaResizable');
+        cardBody.classList.add("textLeft");
     }
 
     newAudio.style.height = 40 + 'px';
