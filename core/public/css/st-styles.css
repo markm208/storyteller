@@ -335,14 +335,15 @@ resize: none;
 }
 
 
-/* A test to see if people want to see the whole image even it means the page resizing to accommodate that while they scroll through images,
-or if they'd prefer the page stay the same size as they scroll through the carousel  */
-.carousel-item {
-    height: 300px;
+/*
+A second test to see if this is the preferred way to handle images in a carousel */
+.carousel-item{
+    width: 100%; 
+    height: 500px;
     overflow: hidden;
+}
+.carousel-item img{
     width: 100%;
-    }
-    
-    .carousel-item img {
-    width: 100%;
-    }
+    height: 100%;
+    object-fit: contain;
+}
