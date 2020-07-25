@@ -62,7 +62,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         const videoPreviewDiv = $(".video-preview")[0];
         $("div.video-preview").show();
 
-        const src = selectedVideoElements[0].querySelector('[src]').src;
+        const src = selectedVideoElements[0].querySelector('[src]').getAttribute('src');
 
         //create the preview cards and add them to the preview div
         let videoCard = createMediaControllerCommentVideoUI(src , false, false); 
@@ -84,7 +84,7 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         $("div.audio-preview").show();
 
 
-        const src = selectedAudioElements[0].querySelector('[src]').src; 
+        const src = selectedAudioElements[0].querySelector('[src]').getAttribute('src'); 
 
         //create the preview cards and add them to the preview div
         let audioCard = createMediaControllerCommentAudioUI(src, false, false);
@@ -312,7 +312,7 @@ async function deleteSelectedVideos() {
         for(let i = 0;i < selectedVideos.length;i++) {
             //get the src from the nested card and add it to the array of paths to send to the 
             //server to delete from the public dir
-            const filePath = selectedVideos[i].querySelector('[src]').src;
+            const filePath = selectedVideos[i].querySelector('[src]').getAttribute('src');
             filePaths.push(filePath);
         }
 

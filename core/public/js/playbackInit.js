@@ -200,7 +200,7 @@ function setupEventListeners()
         const currentAudioOrder = [];
         for (let i = 0; i < audioFiles.length; i++){
             if (audioFiles[i].classList.contains("card") ){
-                currentAudioOrder.push(audioFiles[i].querySelector('[src]').src);
+                currentAudioOrder.push(audioFiles[i].querySelector('[src]').getAttribute("src"));
             }
         }
 
@@ -436,7 +436,6 @@ function setupEventListeners()
         document.getElementById("viewCommentsTab").classList.add("disabled");
         pauseMedia();
     });
-
 }
 
 function jumpToPreviousComment()
@@ -649,7 +648,7 @@ async function updateComment(commentObject){
     const currentAudioOrder = [];
     for (let i = 0; i < audioFiles.length; i++){
         if (audioFiles[i].classList.contains("card") ){
-            currentAudioOrder.push(audioFiles[i].querySelector('[src]').src);
+            currentAudioOrder.push(audioFiles[i].querySelector('[src]').getAttribute("src"));
         }
     }
 
