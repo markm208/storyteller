@@ -343,7 +343,7 @@ resize: none;
 A second test to see if this is the preferred way to handle images in a carousel */
 .carousel-item{
     width: 100%; 
-    height: 500px;
+    height: 350px;
     overflow: hidden;
 }
 .carousel-item img{

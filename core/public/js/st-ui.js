@@ -816,7 +816,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
 
             carousel.addEventListener('click', event =>{
                 //if the carousel is clicked on either the left or right button, dont trigger the enlarged image modal
-                if (!event.toElement.className.includes('carousel-control')){   
+                if (!event.target.className.includes('carousel-control')){   
                     //get the src of the current active image from the carousel that was clicked on                    
                     let src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
                     modal.style.display = 'block';
