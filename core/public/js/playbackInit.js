@@ -191,7 +191,7 @@ function setupEventListeners()
         const currentVideoOrder = [];
         for (let i = 0; i < videoFiles.length; i++){
             if (videoFiles[i].classList.contains("card") ){
-                currentVideoOrder.push(videoFiles[i].firstChild.firstChild.getAttribute("src"));
+                currentVideoOrder.push(videoFiles[i].querySelector('[src]').getAttribute("src"));
             }
         }
 
@@ -209,7 +209,7 @@ function setupEventListeners()
         const currentImageOrder = [];
         for (let i = 0; i < imageFiles.length; i++){
             if (imageFiles[i].classList.contains("image-div") ){
-                currentImageOrder.push(imageFiles[i].firstChild.getAttribute("src"));
+                currentImageOrder.push(imageFiles[i].querySelector('[src]').getAttribute("src"));
             }
         }
 
@@ -639,7 +639,7 @@ async function updateComment(commentObject){
     const currentVideoOrder = [];
     for (let i = 0; i < videoFiles.length; i++){
         if (videoFiles[i].classList.contains("card") ){
-            currentVideoOrder.push(videoFiles[i].firstChild.firstChild.getAttribute("src"));
+            currentVideoOrder.push(videoFiles[i].querySelector('[src]').getAttribute("src"));
         }
     }
 
@@ -657,7 +657,7 @@ async function updateComment(commentObject){
     const currentImageOrder = [];
     for (let i = 0; i < imageFiles.length; i++){
         if (imageFiles[i].classList.contains("image-div") ){
-            currentImageOrder.push(imageFiles[i].firstChild.getAttribute("src"));
+            currentImageOrder.push(imageFiles[i].querySelector('[src]').getAttribute("src"));
         }
     }
 
