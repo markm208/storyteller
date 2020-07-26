@@ -80,11 +80,10 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
         selectedVideoElements[0].classList.remove('mediaSelected');
     }
     while(selectedAudioElements[0]) {
-        let audioPreviewDiv = $(".audio-preview")[0];
-        $("div.audio-preview").show();
+         let audioPreviewDiv = $(".audio-preview")[0];
+         $("div.audio-preview").show();
 
-
-        const src = selectedAudioElements[0].querySelector('[src]').getAttribute('src'); 
+        const src = selectedAudioElements[0].querySelector('[src]').getAttribute('src');
 
         //create the preview cards and add them to the preview div
         let audioCard = createMediaControllerCommentAudioUI(src, false, false);
@@ -312,7 +311,7 @@ async function deleteSelectedVideos() {
         for(let i = 0;i < selectedVideos.length;i++) {
             //get the src from the nested card and add it to the array of paths to send to the 
             //server to delete from the public dir
-            const filePath = selectedVideos[i].querySelector('[src]').getAttribute('src');
+            const filePath = selectedVideos[i].querySelector('[src*="/media/videos"]').getAttribute('src');
             filePaths.push(filePath);
         }
 
@@ -349,7 +348,8 @@ async function deleteSelectedAudios() {
         for(let i = 0;i < selectedAudios.length;i++) {
             //get the src from the nested card and add it to the array of paths to send to the 
             //server to delete from the public dir
-            const filePath = selectedAudios[i].children[0].children[0].getAttribute('src'); //TODO query for this
+            const filePath = selectedAudios[i].querySelector('[src*="/media/audios"]').getAttribute('src');
+            filePaths.push(filePath);
         }
 
         //delete to the server

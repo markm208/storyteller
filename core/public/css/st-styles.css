@@ -2,6 +2,11 @@
     font-weight: bold;
 }
 
+.body
+{
+    width: fit-content;
+}
+
 .box {
     border-radius: 5px;
 
@@ -13,8 +18,7 @@
 }
 
 .btn:hover{
-    border: 1px solid Grey;
-    
+    border: 1px solid Grey;    
 }
 
 .carousel-control-prev,
@@ -24,8 +28,20 @@
     mix-blend-mode: difference;    
 }
 
+.carousel-item{
+    width: 100%; 
+    height: 350px;
+    overflow: hidden;
+}
+
+.carousel-item img{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .codePanel{
-    width: 75vw;            
+    width: 74vw;            
 }
 
 .commentBox {
@@ -337,19 +353,4 @@ resize: none;
     /* Use flexbox */
     display: flex;
 }
-
-
-/*
-A second test to see if this is the preferred way to handle images in a carousel */
-.carousel-item{
-    width: 100%; 
-    height: 350px;
-    overflow: hidden;
-}
-.carousel-item img{
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
 
