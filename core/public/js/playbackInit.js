@@ -10,7 +10,9 @@ async function initializePlayback()
         const playbackInfo = await Promise.all([
             fetch('/event'),
             fetch('/comment'),
-            fetch('/editComment')
+            fetch('/playbackEditable'),
+            fetch('/developer'),
+            fetch('/developerGroup')
 
         ]);
         
@@ -18,13 +20,17 @@ async function initializePlayback()
         const results = await Promise.all([
             playbackInfo[0].json(),
             playbackInfo[1].json(),
-            playbackInfo[2].json()
+            playbackInfo[2].json(),
+            playbackInfo[3].json(),
+            playbackInfo[4].json()
         ]);       
 
         playbackData.events = results[0];
         playbackData.comments = results[1];
         playbackData.numEvents = playbackData.events.length;
         playbackData.isEditable = results[2].editable;
+        playbackData.developers = results[3];
+        playbackData.developerGroups = results[4];
 
         if (!playbackData.comments['ev--1'])
         {
@@ -435,6 +441,15 @@ function setupEventListeners()
         document.getElementById('textCommentTextArea').focus();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         pauseMedia();
+    });
+    document.getElementById("saveCodeOnlyButton").addEventListener('click', event => {
+        console.log('Code only');
+    });
+    document.getElementById("saveCodeAndHistoryButton").addEventListener('click', event => {
+        console.log('Code and history');
+    });
+    document.getElementById("saveCodeAtCommentsButton").addEventListener('click', event => {
+        console.log('Code and history at comments');
     });
 }
 

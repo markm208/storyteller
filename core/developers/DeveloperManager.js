@@ -22,8 +22,8 @@ class DeveloperManager extends FileBackedCollection {
             this.read();
         } else { //no json file exists
             //create a system developer and an anonymous developer
-            this.systemDeveloper = new Developer('Storyteller System', '');
-            this.anonymousDeveloper = new Developer('Anonymous Developer', '');
+            this.systemDeveloper = new Developer('Storyteller System', 'system@ourcodestories.com');
+            this.anonymousDeveloper = new Developer('Anonymous Developer', 'anon@ourcodestories.com');
 
             //create a system and anon dev group
             this.systemDeveloperGroup = new DeveloperGroup();
@@ -75,8 +75,8 @@ class DeveloperManager extends FileBackedCollection {
 
         //store the data from the file back into this object
         //the objects have lost their types so I copy the objects into new instances of the classes
-        this.systemDeveloper = new Developer(anObject.systemDeveloper.userName, anObject.systemDeveloper.email, anObject.systemDeveloper.id);
-        this.anonymousDeveloper = new Developer(anObject.anonymousDeveloper.userName, anObject.anonymousDeveloper.email, anObject.anonymousDeveloper.id);
+        this.systemDeveloper = new Developer(anObject.systemDeveloper.userName, anObject.systemDeveloper.email, anObject.systemDeveloper.avatarURL, anObject.systemDeveloper.id);
+        this.anonymousDeveloper = new Developer(anObject.anonymousDeveloper.userName, anObject.anonymousDeveloper.email, anObject.anonymousDeveloper.avatarURL, anObject.anonymousDeveloper.id);
         this.systemDeveloperGroup = new DeveloperGroup(anObject.systemDeveloperGroup.id, anObject.systemDeveloperGroup.memberIds);
         this.anonymousDeveloperGroup = new DeveloperGroup(anObject.anonymousDeveloperGroup.id, anObject.anonymousDeveloperGroup.memberIds);
 
@@ -93,7 +93,7 @@ class DeveloperManager extends FileBackedCollection {
             //get the dev data
             const dev = this.allDevelopers[devId];
             //create the Developer object
-            this.allDevelopers[devId] = new Developer(dev.userName, dev.email, dev.id);
+            this.allDevelopers[devId] = new Developer(dev.userName, dev.email, dev.avatarURL, dev.id);
         }
 
         //go through and make all of the objects true developer groups
@@ -115,7 +115,7 @@ class DeveloperManager extends FileBackedCollection {
     createNewDeveloper(userName, email) {
         //trim the strings
         userName = userName.trim();
-        email = email.trim();
+        email = email.toLowerCase().trim();
 
         //if the user name doesn't already exist
         if(this.getDeveloperByUserName(userName) === null) {

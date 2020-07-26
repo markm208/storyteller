@@ -34,6 +34,8 @@ function stepForward(numSteps) {
         let activeDirId;
         //the line number to scroll to
         let activeLineNumber;
+        //current developer group id
+        let currentDeveloperGroupId;
 
         //timing for debug purposes
         //const t0 = performance.now();
@@ -45,6 +47,8 @@ function stepForward(numSteps) {
         for(let i = 0;i < numSteps;i++) {
             //grab the next event to animate
             nextEvent = playbackData.events[playbackData.nextEventPosition];
+            //set the current developer group
+            currentDeveloperGroupId = nextEvent.createdByDevGroupId;
 
             //reset the active file and dir ids (update them based on the next event)
             activeFileId = 'no-file-id';
@@ -157,6 +161,11 @@ function stepForward(numSteps) {
         //tabs and fs view
         highlightChangedFiles(newCodeMarkers.getAllChangedFileIds());
         
+        //update the current dev group avatars
+        updateCurrentDeveloperGroupAvatars(currentDeveloperGroupId);
+        //store the latest dev group id
+        playbackData.currentDeveloperGroupId = currentDeveloperGroupId;
+
         //highlight latest file and dir
         //addActiveFileStyling(activeFileId);
         //addActiveDirectoryStyling(activeDirId);
@@ -176,7 +185,9 @@ function stepBackward(numSteps) {
 
         //the id of the file to make active
         let activeFileId = 'no-file-id';
-        
+        //current developer group id
+        let currentDeveloperGroupId;
+
         //to account for the fact that nextEventPosition always 
         //refers to the next event to animate in the forward 
         //direction I move it back by one position
@@ -186,6 +197,8 @@ function stepBackward(numSteps) {
         for(let i = 0;i < numSteps;i++) {
             //grab the next event to de-animate
             nextEvent = playbackData.events[playbackData.nextEventPosition];
+            //set the current developer group
+            currentDeveloperGroupId = nextEvent.createdByDevGroupId;
 
             //check the event type and call the corresponding function for that event type
             switch (nextEvent.type)
@@ -272,6 +285,11 @@ function stepBackward(numSteps) {
         //make the correct editor active
         addFocusToTab(activeFileId);
 
+        //update the current dev group avatars
+        updateCurrentDeveloperGroupAvatars(currentDeveloperGroupId);
+        //store the latest dev group id
+        playbackData.currentDeveloperGroupId = currentDeveloperGroupId;
+        
         //after moving backwards, account for the fact that this
         //always refers to the next index to animate in the forward
         //direction

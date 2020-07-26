@@ -69,6 +69,16 @@
                     </div>
 
                     <div id="fsViewPanel" class="tab-pane commentsDivScroll">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Download
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <a id="saveCodeOnlyButton" class="dropdown-item" href="#">Code only up to this point</a>
+                                <a id="saveCodeAndHistoryButton" class="dropdown-item" href="#">Code and history up to this point</a>
+                                <a id="saveCodeAtCommentsButton" class="dropdown-item" href="#">Code and history at comment points only</a>
+                            </div>
+                        </div>
                         <ul id="playbackViewOfFileSystem" class="playbackViewFileOrDirList">
                         </ul>
                     </div>
@@ -101,7 +111,8 @@
                         <input type="range" id="playbackSlider" min="0" max="0" value="0" class="custom-range slider" list="tickmarks"/>
                         <button id="stepBackOne" class="btn" onclick="this.blur();"><i class="fa fa-chevron-left"></i></button>
                         <button id="stepForwardOne" class="btn" onclick="this.blur();"><i class="fa fa-chevron-right"></i></button>
-
+                        <div id="currentDevsDiv" class="currentDevs">
+                        </div>
                         <datalist id="tickmarks" class="data-list-style">
                             <option value="10" class="ui-slider-tick-mark"></option>
                         </datalist>
@@ -199,7 +210,6 @@
     <script src="/js/NewCodeFileMarker.js"></script>
     <script src="/js/NewCodeMarkerGenerator.js"></script>
     <script src="/js/st-ui.js"></script>
-    <script src="/js/ext/md5.min.js"></script> <!-- md5 https://github.com/blueimp/JavaScript-MD5 https://en.gravatar.com/site/implement/hash/ https://en.gravatar.com/site/implement/images/-->
     <script src="/js/ext/jszip.min.js"></script> <!-- jszip https://stuk.github.io/jszip/ -->
 
     <script>
@@ -219,7 +229,10 @@
             //the position of the event to play next in the forward direction
             nextEventPosition: 0,  
             //whether or not edits are allowed to be made to comments 
-            isEditable: false 
+            isEditable: false ,
+            developers: {}, //all developers 
+            developerGroups: {}, //all developer groups
+            currentDeveloperGroupId: null, //the id of the current developer group
         };
 
         const emptyEditor = createAceEditor('playbackWindow', '','' );    

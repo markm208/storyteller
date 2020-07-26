@@ -303,7 +303,7 @@ class HttpServer {
             res.json(this.projectManager.commentManager.comments);
         });
 
-        app.get('/editComment', (req, res) => {
+        app.get('/playbackEditable', (req, res) => {
             res.json({editable: true});
         });
 

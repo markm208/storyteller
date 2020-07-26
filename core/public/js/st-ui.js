@@ -763,7 +763,17 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
 {
     const cardHeader = document.createElement('div');
     cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'p-0', "commentCount");
-    cardHeader.innerText = currentComment++ + '/' + commentCount;
+    //get the developers who authored the comment
+    const commentAuthorGroup = getDevelopersInADevGroup(commentObject.developerGroupId);
+    //create a div to hold the author info
+    const commentAuthorsDiv = getDevImages(commentAuthorGroup, 50);
+    //create a span to display how far along in the comments this one is
+    const progressSpan = document.createElement('span');
+    progressSpan.innerText = currentComment++ + '/' + commentCount;
+    
+    //add the author images and the progress in comments
+    cardHeader.append(commentAuthorsDiv);
+    cardHeader.append(progressSpan);
     
     const cardBody = document.createElement('div');
     cardBody.classList.add('card-body', 'text-left');
@@ -1726,3 +1736,51 @@ function updateAllCommentHeaderCounts(){
     }    
 }
 
+function getDevelopersInADevGroup(devGroupId) {
+    //dev objects in the developer group
+    const devs = [];
+    //get the dev group object
+    const developerGroup = playbackData.developerGroups[devGroupId];
+    //if the dev group was found
+    if(developerGroup) {
+        //get the members of the dev group
+        const devIds = developerGroup.memberIds;
+        for(let i = 0;i < devIds.length;i++) {
+            const dev = playbackData.developers[devIds[i]];
+            if(dev) {
+                devs.push(dev);
+            }
+        }
+    }
+    return devs;
+}
+function getDevImages(devs, sizeInPixels) {
+    const allDevImages = document.createElement('div');
+    allDevImages.classList.add('devImages');
+
+    for(let i = 0;i < devs.length;i++) {
+        const dev = devs[i];
+        const developerImage = document.createElement('img');
+        developerImage.setAttribute('src', `${dev.avatarURL}?s=${sizeInPixels}&d=identicon`);
+        developerImage.classList.add('devImage');
+        developerImage.classList.add('rounded-circle');
+        developerImage.classList.add('img-thumbnail');
+        developerImage.title = `${dev.userName} ${dev.email}`;
+        allDevImages.append(developerImage);
+    }
+    return allDevImages;
+}
+function updateCurrentDeveloperGroupAvatars(devGroupId) {
+    //if this is a different developer group than the currently recognized one
+    if(playbackData.currentDeveloperGroupId !== devGroupId) {
+        //get the developers in the group
+        const activeDevs = getDevelopersInADevGroup(devGroupId);
+        
+        //get the div that holds the active devs
+        const currentDevsDiv = document.getElementById('currentDevsDiv');
+        
+        //remove the old images and add new ones 50px height
+        currentDevsDiv.innerHTML = '';
+        currentDevsDiv.append(getDevImages(activeDevs, 50));
+    }
+}
