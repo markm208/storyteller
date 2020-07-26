@@ -393,9 +393,11 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
     else{
         newVideo.classList.add('mediaResizable');
     }       
+
+    const speedControlDiv = createSpeedControlButtonDivForMedia(newVideo);
    
     //add all the pieces together
-    cardBody.append(newVideo);
+    cardBody.append(speedControlDiv);
     cardFooter.append(fileName);
     cardDiv.append(cardBody);
     cardDiv.append(cardFooter);
@@ -456,32 +458,7 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
         newAudio.classList.remove("playing");
     })    
 
-    const buttonGroup = document.createElement("div");
-    buttonGroup.classList.add("btn-group-vertical", "speedGroup");
-
-    const speedUpButton = document.createElement("button");
-    speedUpButton.classList.add("btn", "btn-sm",'speedButton', 'rounded-pill');
-    speedUpButton.appendChild(document.createTextNode('1.5x'));
-
-    speedUpButton.addEventListener('click', event => {
-        newAudio.playbackRate = 1.5;
-    });
-
-    const defaultSpeedButton = document.createElement("button");
-    defaultSpeedButton.classList.add("btn",  "btn-sm", 'speedButton', 'rounded-pill');
-    defaultSpeedButton.appendChild(document.createTextNode('1.0x'));
-
-    defaultSpeedButton.addEventListener('click', event => {
-       newAudio.playbackRate = 1;
-    });
-
-    buttonGroup.append(defaultSpeedButton);
-    buttonGroup.append(speedUpButton);
-
-    const outerSpeedDiv = document.createElement("div");
-    outerSpeedDiv.append(newAudio);
-    outerSpeedDiv.append(buttonGroup);
-
+    
     if (returnWithEventistener){
         newAudio.classList.add('mediaAudio');
     }
@@ -492,8 +469,10 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
 
     newAudio.style.height = 40 + 'px';
 
+    const speedControlDiv = createSpeedControlButtonDivForMedia(newAudio);
+
     //add all the pieces together
-    cardBody.append(outerSpeedDiv);
+    cardBody.append(speedControlDiv);
     cardFooter.append(fileName);
     cardDiv.append(cardBody);
     cardDiv.append(cardFooter);
@@ -519,6 +498,37 @@ function pauseMedia(){
         playing[0].pause();
         playing[0].classList.remove('playing');
     }
+}
+
+/*creates and returns a div holding buttons for '1.0x' and '1.5x' playback speed */
+function createSpeedControlButtonDivForMedia(media){
+    const buttonGroup = document.createElement("div");
+    buttonGroup.classList.add("btn-group-vertical", "speedGroup");
+
+    const speedUpButton = document.createElement("button");
+    speedUpButton.classList.add("btn", "btn-sm",'speedButton', 'rounded-pill');
+    speedUpButton.appendChild(document.createTextNode('1.5x'));
+
+    speedUpButton.addEventListener('click', event => {
+        media.playbackRate = 1.5;
+    });
+
+    const defaultSpeedButton = document.createElement("button");
+    defaultSpeedButton.classList.add("btn",  "btn-sm", 'speedButton', 'rounded-pill');
+    defaultSpeedButton.appendChild(document.createTextNode('1.0x'));
+
+    defaultSpeedButton.addEventListener('click', event => {
+        media.playbackRate = 1;
+    });
+
+    buttonGroup.append(defaultSpeedButton);
+    buttonGroup.append(speedUpButton);
+
+    const outerSpeedDiv = document.createElement("div");
+    outerSpeedDiv.append(media);
+    outerSpeedDiv.append(buttonGroup);
+
+    return outerSpeedDiv;
 }
 
 function createXButtonForCloseOrCancel(popUpMessage = ""){
