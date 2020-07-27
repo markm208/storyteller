@@ -300,6 +300,7 @@ function setupEventListeners()
 
 
         document.getElementById("UpdateCommentButton").style.display='none';
+        document.getElementById("fsViewTabTab").classList.remove("disabled");
         document.getElementById("viewCommentsTab").classList.remove("disabled");
 
         document.getElementById("viewCommentsTab").click();      
@@ -331,7 +332,7 @@ function setupEventListeners()
                 if (ctrlPressed)
                 {
                     //ctrl right is jump to end of playback
-                    step(playbackData.events.length - playbackData.nextEventPosition);
+                    playPauseButton.click();
                 }
                 else
                 {
@@ -341,7 +342,10 @@ function setupEventListeners()
             }
             else
             {
-                playPauseButton.click();
+                if (ctrlPressed)
+                {
+                    step(playbackData.events.length - playbackData.nextEventPosition);
+                }
             }
         }
         else if (keyPressed === 'ArrowLeft'){
@@ -350,7 +354,7 @@ function setupEventListeners()
                 if (ctrlPressed)
                 {
                     //ctrl left is jump to the beginning of the playback
-                    step(-playbackData.nextEventPosition);
+                    jumpToPreviousComment();
                 }
                 else
                 {
@@ -360,56 +364,73 @@ function setupEventListeners()
             }
             else
             {
-                jumpToPreviousComment();
+                if (ctrlPressed)
+                {
+                    step(-playbackData.nextEventPosition);
+                }
             }
         }
-        else if (keyPressed === '>')
-        {
-            playPauseButton.click();
-        }
-        else if (keyPressed === '<')
-        {
-            jumpToPreviousComment();
-        }
+
     });
 
     const playPauseInterval = null;
     playPauseButton.addEventListener('click', event =>{
-        //find next event that has a comment
-        let targetEvent = -1;
-        let commentPositions = Object.keys(playbackData.comments);
-        for (let i = playbackData.nextEventPosition; i < playbackData.events.length; i++)
-        {
-            
-            for (let j = 0; j < commentPositions.length; j++)
-            {
-                if (playbackData.events[i].id === commentPositions[j])
-                {
-                    targetEvent = playbackData.events[i].id;
-                    break;
-                }
-            }
 
-            if (targetEvent != -1)
-                break;
-        }
+        const activeComment = document.getElementsByClassName("activeComment");
+        const allCommentCards = [...document.getElementsByClassName("commentCard")];
 
-        if (targetEvent < 0)
-        {
-            targetEvent = playbackData.events[playbackData.events.length-1].eventSequenceNumber;
-            
-            clearHighlights();
-            step(targetEvent - playbackData.nextEventPosition + 1);
+        if (!activeComment.length){
+            //if no comment is active, make the first one active
+            allCommentCards[0].click();
         }
         else{
+            //otherwise find the active comment and make the next one active
+            const commentIndex = allCommentCards.indexOf(activeComment[0]);
+            if (commentIndex < allCommentCards.length - 1){
+                allCommentCards[commentIndex + 1].click();
+            }
+        }
+        //scroll to the active comment
+        document.getElementById("commentContentDiv").scrollTop = activeComment[0].offsetTop - 100;
 
-            const commentClickEvent = new MouseEvent('click',{
 
-            });
-            let commentToLoad = document.getElementById(`${targetEvent}-0`);
 
-            commentToLoad.dispatchEvent(commentClickEvent);
-        }    
+
+        // //find next event that has a comment
+        // let targetEvent = -1;
+        // let commentPositions = Object.keys(playbackData.comments);
+        // for (let i = playbackData.nextEventPosition; i < playbackData.events.length; i++)
+        // {
+            
+        //     for (let j = 0; j < commentPositions.length; j++)
+        //     {
+        //         if (playbackData.events[i].id === commentPositions[j])
+        //         {
+        //             targetEvent = playbackData.events[i].id;
+        //             break;
+        //         }
+        //     }
+
+        //     if (targetEvent != -1)
+        //         break;
+        // }
+
+        // if (targetEvent < 0)
+        // {
+        //     targetEvent = playbackData.events[playbackData.events.length-1].eventSequenceNumber;
+            
+        //     clearHighlights();
+        //     step(targetEvent - playbackData.nextEventPosition + 1);
+        // }
+        // else{
+
+        //     const commentClickEvent = new MouseEvent('click',{
+
+        //     });
+        //     let commentToLoad = document.getElementById(`${targetEvent}-0`);
+
+        //     commentToLoad.dispatchEvent(commentClickEvent);
+        // }    
     });
 
     //make the 3 media preview folders droppable
@@ -440,6 +461,7 @@ function setupEventListeners()
         document.getElementById("addCommentTab").click();
         document.getElementById('textCommentTextArea').focus();
         document.getElementById("viewCommentsTab").classList.add("disabled");
+        document.getElementById("fsViewTabTab").classList.add("disabled");
         pauseMedia();
     });
     document.getElementById("saveCodeOnlyButton").addEventListener('click', event => {

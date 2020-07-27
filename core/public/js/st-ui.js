@@ -790,13 +790,27 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardBody.innerHTML = commentObject.commentText;
 
     let cardFinal = document.createElement('div');
-    cardFinal.classList.add('card', 'text-center');
+    cardFinal.classList.add('card', 'text-center', 'commentCard');
 
     //allows us to send a click event to this card in order to jump to it in the playback
     cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
 
     //if this is not here the play button does not work, because the card will have no functionality
     cardFinal.addEventListener('click', function (e){ 
+
+        //handle which comment and which comment group is currently active
+        const activeComment = document.getElementsByClassName("activeComment");
+        if (activeComment.length){
+            //commentGroupSpacing is a class that is only in commentGroups
+            //this will bring us to the active comments group
+            activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
+
+            activeComment[0].classList.remove("activeComment");
+        }
+        cardFinal.classList.add("activeComment");
+        cardFinal.closest(".commentGroupSpacing").classList.add("activeGroup");
+
+
         //step to the event this comment is at
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
@@ -1680,11 +1694,14 @@ function createEditCommentButton(commentObject, buttonText){
     editCommentButton.addEventListener('click', event => {
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
+        document.getElementById("fsViewTabTab").classList.add("disabled");
 
         //reselect in ace all highlighted code from the original comment
         for (let i = 0; i < commentObject.selectedCodeBlocks.length; i++){
+            const selectedBlock = commentObject.selectedCodeBlocks[i];
+
             //create a new ace range object from the comments highlighted code
-            let newRange = new ace.Range(commentObject.selectedCodeBlocks[i].startRow, commentObject.selectedCodeBlocks[i].startColumn, commentObject.selectedCodeBlocks[i].endRow, commentObject.selectedCodeBlocks[i].endColumn);           
+            const newRange = new ace.Range(selectedBlock.startRow, selectedBlock.startColumn, selectedBlock.endRow, selectedBlock.endColumn);           
             
             //get the current active editor
             const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
@@ -1754,7 +1771,7 @@ function createEditCommentButton(commentObject, buttonText){
 function updateAllCommentHeaderCounts(){
     const drag = document.getElementsByClassName("drag");
     for (let i = 0; i < drag.length; i++){
-        drag[i].getElementsByClassName("card-header")[0].firstChild.data = i + 1 + "/" + drag.length;
+        drag[i].getElementsByClassName("card-header")[0].firstChild.data = i + 1 + "/" + drag.length;       
     }    
 }
 
