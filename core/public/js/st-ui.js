@@ -1680,6 +1680,18 @@ function createEditCommentButton(commentObject, buttonText){
     editCommentButton.addEventListener('click', event => {
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
+
+        //reselect in ace all highlighted code from the original comment
+        for (let i = 0; i < commentObject.selectedCodeBlocks.length; i++){
+            //create a new ace range object from the comments highlighted code
+            let newRange = new ace.Range(commentObject.selectedCodeBlocks[i].startRow, commentObject.selectedCodeBlocks[i].startColumn, commentObject.selectedCodeBlocks[i].endRow, commentObject.selectedCodeBlocks[i].endColumn);           
+            
+            //get the current active editor
+            const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+            //select in ace the comments highlighted code
+            editor.getSession().selection.addRange(newRange);          
+        };
     
         const addCommentButton =  document.getElementById("addCommentButton");
         const updateCommentButton = document.getElementById("UpdateCommentButton");
