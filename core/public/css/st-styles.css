@@ -341,6 +341,14 @@ resize: none;
     text-align: left !important;
 }
 
+.titleCardBodyStyle {
+    background-color: rgb(219, 219, 219);
+}
+
+.titleCardHeaderStyle {
+    background-color: rgb(174, 186, 206);
+}
+
 .ui-slider-tick-mark {
     display: inline-block;
     position: absolute;

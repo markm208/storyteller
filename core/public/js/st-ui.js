@@ -92,13 +92,12 @@ function displayAllComments(){
 
         if (`ev-${key}` === 'ev--1')
         {
-            const titleInfo = commentBlock[0];
             const descriptionInfo = commentBlock[1];
-            const titleCard = createTitleCard(titleInfo, descriptionInfo);
+            const titleCard = createTitleCard(descriptionInfo);
 
             commentGroupDiv.append(titleCard);
 
-            startingValue += 2;
+            startingValue += 1;
         }
 
         //give each commentGroup a unique id 
@@ -923,7 +922,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
 }
 
 //Creates the title and description card in the ViewCommentsTab
-function createTitleCard(titleInfo, descriptionInfo)
+function createTitleCard(descriptionInfo)
 {
 
     //create the encompassing card object
@@ -938,12 +937,12 @@ function createTitleCard(titleInfo, descriptionInfo)
 
     //create the header for the title card which holds the title text
     const cardHeader = document.createElement('div');
-    cardHeader.classList.add('card-header', 'text-center');
-    cardHeader.innerHTML = titleInfo.commentText;
+    cardHeader.classList.add('card-header', 'text-center', 'titleCardHeaderStyle');
+    cardHeader.innerHTML = 'Description';
 
     //create the body for the card which holds the description text
     const cardBody = document.createElement('div');
-    cardBody.classList.add('card-body', 'text-left');
+    cardBody.classList.add('card-body', 'text-left', 'titleCardBodyStyle');
     
     const bodyParagraph = document.createElement('p');
     bodyParagraph.innerHTML = descriptionInfo.commentText;
@@ -986,50 +985,23 @@ function createTitleCard(titleInfo, descriptionInfo)
     }
 
     //Create the card footer which holds the edit buttons
-    const titleFooter = document.createElement("div");
-    titleFooter.classList.add("card-footer","small", "p-0");
-
-    const editTitleButton = document.createElement('button');
-    const acceptChangesToTitleButton = document.createElement("button");
+    const descriptionFooter = document.createElement("div");
+    descriptionFooter.classList.add("card-footer","small", "p-0");
 
     const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
 
-    editTitleButton.addEventListener('click', event => {
-        cardHeader.setAttribute("contenteditable", "true");
+    // editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    // editTitleButton.appendChild(document.createTextNode('Edit Title'));
 
-        editTitleButton.style.display = "none";
-        editDescriptionButton.style.display = 'none';
-        acceptChangesToTitleButton.style.display = "block";
-    })
+    // acceptChangesToTitleButton.style.display = "none";
 
-    editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
-    editTitleButton.appendChild(document.createTextNode('Edit Title'));
+    // acceptChangesToTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    // acceptChangesToTitleButton.appendChild(document.createTextNode('Accept Changes'));
 
-    acceptChangesToTitleButton.style.display = "none";
-
-    acceptChangesToTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
-    acceptChangesToTitleButton.appendChild(document.createTextNode('Accept Changes'));
-
-    acceptChangesToTitleButton.addEventListener('click', event => {
-        const titleData = cardHeader.innerHTML;
-        titleInfo.commentText = titleData;
-        
-        updateTitle(titleInfo);
-
-        cardHeader.setAttribute("contenteditable", "false");
-
-        acceptChangesToTitleButton.style.display = "none";
-        editDescriptionButton.style.display = 'block';
-        editTitleButton.style.display = "block";
-
-    })
-    
-    titleFooter.append(acceptChangesToTitleButton);
-    titleFooter.append(editTitleButton);
-    titleFooter.append(editDescriptionButton);
+    descriptionFooter.append(editDescriptionButton);
 
     //assemble the pieces of the card
-    titleCard.append(titleFooter);
+    titleCard.append(descriptionFooter);
     titleCard.prepend(cardBody);
     titleCard.prepend(cardHeader);
 

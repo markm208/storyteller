@@ -12,7 +12,8 @@ async function initializePlayback()
             fetch('/comment'),
             fetch('/playbackEditable'),
             fetch('/developer'),
-            fetch('/developerGroup')
+            fetch('/developerGroup'),
+            fetch('/project')
 
         ]);
         
@@ -22,7 +23,8 @@ async function initializePlayback()
             playbackInfo[1].json(),
             playbackInfo[2].json(),
             playbackInfo[3].json(),
-            playbackInfo[4].json()
+            playbackInfo[4].json(),
+            playbackInfo[5].json()
         ]);       
 
         playbackData.events = results[0];
@@ -31,17 +33,15 @@ async function initializePlayback()
         playbackData.isEditable = results[2].editable;
         playbackData.developers = results[3];
         playbackData.developerGroups = results[4];
+        playbackData.playbackTitle = results[5].title;
 
         if (!playbackData.comments['ev--1'])
         {
-            const newTitle = createCommentObject('Insert TITLE here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
             const newDescription = createCommentObject('Insert DESCRIPTION here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
 
-            const titleFromServer = sendCommentToServer(newTitle);
             const descrFromServer = sendCommentToServer(newDescription);
 
             playbackData.comments['ev--1'] = [];
-            playbackData.comments['ev--1'].push(titleFromServer);
             playbackData.comments['ev--1'].push(descrFromServer);
 
         }
@@ -105,13 +105,41 @@ function setupEventListeners()
         step(1);
     });
 
-
-
     //add event handler to listen for changes to the slider
     playbackSlider.addEventListener('input', event => {
 
         //take the slider value and subtract the next event's position
         step(Number(playbackSlider.value) - playbackData.nextEventPosition);
+    });
+
+    const playbackTitleDiv = document.getElementById('playbackTitleDiv');
+    playbackTitleDiv.innerHTML = playbackData.playbackTitle;
+    const editTitleButton = document.getElementById('editTitleButton');
+
+    editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+
+    const acceptTitleChanges = document.getElementById('acceptTitleChanges');
+    acceptTitleChanges.classList.add("btn", "btn-outline-dark", "btn-sm");
+    acceptTitleChanges.style.display = "none";
+
+    editTitleButton.addEventListener('click', event => {
+        playbackTitleDiv.setAttribute("contenteditable", "true");
+
+        editTitleButton.style.display = "none";
+        acceptTitleChanges.style.display = "block";
+    });
+
+    acceptTitleChanges.addEventListener('click', event => {
+        const titleData = playbackTitleDiv.innerHTML;
+        playbackData.playbackTitle = titleData;
+        
+        updateTitle(titleData);
+
+        playbackTitleDiv.setAttribute("contenteditable", "false");
+
+        acceptTitleChanges.style.display = "none";
+        editTitleButton.style.display = "block";
+
     });
 
     //bold button
@@ -636,6 +664,30 @@ async function updateCommentOnServer(commentObject){
     return newComment;   
 }
 
+//send the comment object to the server
+async function updateTitleOnServer(newTitle){
+    try {
+        const fetchConfigData = {
+            method: 'PUT',
+            body: JSON.stringify({title: newTitle}), 
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        const response = await fetch('/project', fetchConfigData);
+
+        //check the response
+        if(response.ok) {
+            console.log('Success');
+        } else {
+            console.log('Error with the response data');
+        }
+        
+    } catch (error) {
+        console.log('Error with the Comment Change');
+    }   
+}
+
 function doDrag(event){    
     const wrapper = dragBar.closest('.wrapper');
     const boxA = wrapper.querySelector('.box');
@@ -765,6 +817,6 @@ async function updateComment(commentObject){
 }
 
 
-function updateTitle(titleObject){
-    updateCommentOnServer(titleObject);
+function updateTitle(newTitle){
+    updateTitleOnServer(newTitle);
 }
