@@ -332,7 +332,7 @@ function setupEventListeners()
                 if (ctrlPressed)
                 {
                     //ctrl right is jump to end of playback
-                    step(playbackData.events.length - playbackData.nextEventPosition);
+                    playPauseButton.click();
                 }
                 else
                 {
@@ -342,7 +342,10 @@ function setupEventListeners()
             }
             else
             {
-                playPauseButton.click();
+                if (ctrlPressed)
+                {
+                    step(playbackData.events.length - playbackData.nextEventPosition);
+                }
             }
         }
         else if (keyPressed === 'ArrowLeft'){
@@ -351,7 +354,7 @@ function setupEventListeners()
                 if (ctrlPressed)
                 {
                     //ctrl left is jump to the beginning of the playback
-                    step(-playbackData.nextEventPosition);
+                    jumpToPreviousComment();
                 }
                 else
                 {
@@ -361,17 +364,13 @@ function setupEventListeners()
             }
             else
             {
-                jumpToPreviousComment();
+                if (ctrlPressed)
+                {
+                    step(-playbackData.nextEventPosition);
+                }
             }
         }
-        else if (keyPressed === '>')
-        {
-            playPauseButton.click();
-        }
-        else if (keyPressed === '<')
-        {
-            jumpToPreviousComment();
-        }
+
     });
 
     const playPauseInterval = null;
