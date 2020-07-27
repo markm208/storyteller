@@ -797,6 +797,20 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
 
     //if this is not here the play button does not work, because the card will have no functionality
     cardFinal.addEventListener('click', function (e){ 
+
+        //handle which comment and which comment group is currently active
+        const activeComment = document.getElementsByClassName("activeComment");
+        if (activeComment.length){
+            //commentGroupSpacing is a class that is only in commentGroups
+            //this will bring us to the active comments group
+            activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
+            
+            activeComment[0].classList.remove("activeComment");
+        }
+        cardFinal.classList.add("activeComment");
+        cardFinal.closest(".commentGroupSpacing").classList.add("activeGroup");
+
+
         //step to the event this comment is at
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
