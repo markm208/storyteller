@@ -790,7 +790,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardBody.innerHTML = commentObject.commentText;
 
     let cardFinal = document.createElement('div');
-    cardFinal.classList.add('card', 'text-center');
+    cardFinal.classList.add('card', 'text-center', 'commentCard');
 
     //allows us to send a click event to this card in order to jump to it in the playback
     cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
@@ -804,7 +804,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
             //commentGroupSpacing is a class that is only in commentGroups
             //this will bring us to the active comments group
             activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
-            
+
             activeComment[0].classList.remove("activeComment");
         }
         cardFinal.classList.add("activeComment");

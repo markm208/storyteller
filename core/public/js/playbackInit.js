@@ -375,41 +375,62 @@ function setupEventListeners()
 
     const playPauseInterval = null;
     playPauseButton.addEventListener('click', event =>{
-        //find next event that has a comment
-        let targetEvent = -1;
-        let commentPositions = Object.keys(playbackData.comments);
-        for (let i = playbackData.nextEventPosition; i < playbackData.events.length; i++)
-        {
-            
-            for (let j = 0; j < commentPositions.length; j++)
-            {
-                if (playbackData.events[i].id === commentPositions[j])
-                {
-                    targetEvent = playbackData.events[i].id;
-                    break;
-                }
-            }
 
-            if (targetEvent != -1)
-                break;
-        }
+        const activeComment = document.getElementsByClassName("activeComment");
+        const allCommentCards = [...document.getElementsByClassName("commentCard")];
 
-        if (targetEvent < 0)
-        {
-            targetEvent = playbackData.events[playbackData.events.length-1].eventSequenceNumber;
-            
-            clearHighlights();
-            step(targetEvent - playbackData.nextEventPosition + 1);
+        if (!activeComment.length){
+            //if no comment is active, make the first one active
+            allCommentCards[0].click();
         }
         else{
+            //otherwise find the active comment and make the next one active
+            const commentIndex = allCommentCards.indexOf(activeComment[0]);
+            if (commentIndex < allCommentCards.length - 1){
+                allCommentCards[commentIndex + 1].click();
+            }
+        }
+        //scroll to the active comment
+        document.getElementById("commentContentDiv").scrollTop = activeComment[0].offsetTop - 100;
 
-            const commentClickEvent = new MouseEvent('click',{
 
-            });
-            let commentToLoad = document.getElementById(`${targetEvent}-0`);
 
-            commentToLoad.dispatchEvent(commentClickEvent);
-        }    
+
+        // //find next event that has a comment
+        // let targetEvent = -1;
+        // let commentPositions = Object.keys(playbackData.comments);
+        // for (let i = playbackData.nextEventPosition; i < playbackData.events.length; i++)
+        // {
+            
+        //     for (let j = 0; j < commentPositions.length; j++)
+        //     {
+        //         if (playbackData.events[i].id === commentPositions[j])
+        //         {
+        //             targetEvent = playbackData.events[i].id;
+        //             break;
+        //         }
+        //     }
+
+        //     if (targetEvent != -1)
+        //         break;
+        // }
+
+        // if (targetEvent < 0)
+        // {
+        //     targetEvent = playbackData.events[playbackData.events.length-1].eventSequenceNumber;
+            
+        //     clearHighlights();
+        //     step(targetEvent - playbackData.nextEventPosition + 1);
+        // }
+        // else{
+
+        //     const commentClickEvent = new MouseEvent('click',{
+
+        //     });
+        //     let commentToLoad = document.getElementById(`${targetEvent}-0`);
+
+        //     commentToLoad.dispatchEvent(commentClickEvent);
+        // }    
     });
 
     //make the 3 media preview folders droppable
