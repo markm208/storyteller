@@ -300,6 +300,7 @@ function setupEventListeners()
 
 
         document.getElementById("UpdateCommentButton").style.display='none';
+        document.getElementById("fsViewTabTab").classList.remove("disabled");
         document.getElementById("viewCommentsTab").classList.remove("disabled");
 
         document.getElementById("viewCommentsTab").click();      
@@ -440,6 +441,7 @@ function setupEventListeners()
         document.getElementById("addCommentTab").click();
         document.getElementById('textCommentTextArea').focus();
         document.getElementById("viewCommentsTab").classList.add("disabled");
+        document.getElementById("fsViewTabTab").classList.add("disabled");
         pauseMedia();
     });
     document.getElementById("saveCodeOnlyButton").addEventListener('click', event => {
