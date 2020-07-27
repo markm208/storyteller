@@ -51,6 +51,10 @@
     margin-bottom: 20px;
 }
 
+.commentCount{
+    text-align: right !important;
+}
+
 .commentsDivScroll{
     overflow-y: scroll;
     height: 84vh;
@@ -92,6 +96,10 @@
 .deleteOnLine {
     font-style: italic;
     color: red;
+}
+
+.devImage{
+    float: left;
 }
 
 .dragBar {
@@ -353,4 +361,3 @@ resize: none;
     /* Use flexbox */
     display: flex;
 }
-
