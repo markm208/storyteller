@@ -380,6 +380,10 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
     //when a video is played, pause any other media that is playing
     newVideo.onplay = function(){
         pauseMedia();
+
+        //make the comment the video is in active
+        newVideo.closest(".commentCard").click();
+
         newVideo.classList.add("playing");
     };
  
@@ -450,6 +454,10 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     //pause any media that is playing
     newAudio.onplay = function(){
         pauseMedia();
+
+        //make the comment the audio is in active
+        newAudio.closest(".commentCard").click();
+        
         newAudio.classList.add("playing");
     }
 
