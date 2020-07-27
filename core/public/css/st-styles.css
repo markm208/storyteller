@@ -283,6 +283,10 @@
     /* overflow-y: scroll; */
 }
 
+.progressSpan {
+    margin-right: 8px;
+}
+
 .slider {
     height: 40px;
 }

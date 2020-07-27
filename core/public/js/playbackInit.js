@@ -777,7 +777,8 @@ async function updateComment(commentObject){
       
         //create an object that has all of the comment info
         const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder)
-
+        //add the developer group id to the comment object and its id
+        comment.developerGroupId = commentObject.developerGroupId;
         comment.id = commentObject.id;
 
         //determine if any comments already exist for this event 
