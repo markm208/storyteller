@@ -92,7 +92,7 @@ function displayAllComments(){
 
         if (`ev-${key}` === 'ev--1')
         {
-            const descriptionInfo = commentBlock[1];
+            const descriptionInfo = commentBlock[0];
             const titleCard = createTitleCard(descriptionInfo);
 
             commentGroupDiv.append(titleCard);
