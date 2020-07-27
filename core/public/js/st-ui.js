@@ -779,6 +779,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     const commentAuthorsDiv = getDevImages(commentAuthorGroup, 50);
     //create a span to display how far along in the comments this one is
     const progressSpan = document.createElement('span');
+    progressSpan.classList.add('progressSpan');
     progressSpan.innerText = currentComment++ + '/' + commentCount;
     
     //add the author images and the progress in comments
