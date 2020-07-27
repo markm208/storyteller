@@ -72,7 +72,7 @@ function displayAllComments(){
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
 
-    let commentCount = -2; // because the title and description do not count
+    let commentCount = -1; // because the title and description do not count
     let currentComment = 1;    
 
     //convert all string keys into numbers for proper sorting of comment sequence
