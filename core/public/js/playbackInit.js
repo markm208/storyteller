@@ -87,7 +87,7 @@ function setupEventListeners()
     const stepForwardOne = document.getElementById("stepForwardOne");
     const playbackSlider = document.getElementById("playbackSlider");
     const playPauseButton = document.getElementById("playPauseButton");
-    
+
     const topBar = document.getElementById('top-bar');
 
     //Get references to the tabs and where the tabs get their content
@@ -116,45 +116,38 @@ function setupEventListeners()
     //Setup the title buttons and data
     const playbackTitleDiv = document.getElementById('playbackTitleDiv');
     playbackTitleDiv.innerHTML = playbackData.playbackTitle;
+    const editTitleButton = document.getElementById('editTitleButton');
 
-    if (playbackData.isEditable)
-    {
-        const editTitleButton = document.createElement('button');
-        editTitleButton.setAttribute('id', 'editTitleButton');
-        editTitleButton.style.border = 'none';
-        editTitleButton.innerHTML = 'edit title';
-        editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
 
-        const acceptTitleChanges = document.createElement('button')
-        acceptTitleChanges.classList.add("btn", "btn-outline-dark", "btn-sm");
+    const acceptTitleChanges = document.getElementById('acceptTitleChanges');
+    acceptTitleChanges.classList.add("btn", "btn-outline-dark", "btn-sm");
+    acceptTitleChanges.style.display = "none";
+
+    editTitleButton.addEventListener('click', event => {
+        playbackTitleDiv.setAttribute("contenteditable", "true");
+
+        editTitleButton.style.display = "none";
+        acceptTitleChanges.style.display = "inline-block";
+    });
+
+    acceptTitleChanges.addEventListener('click', event => {
+        const titleData = playbackTitleDiv.innerHTML;
+        playbackData.playbackTitle = titleData;
+        
+        updateTitle(titleData);
+
+        playbackTitleDiv.setAttribute("contenteditable", "false");
+
         acceptTitleChanges.style.display = "none";
-        acceptTitleChanges.setAttribute('id', 'acceptTitleChanges');
-        acceptTitleChanges.style.border = 'none';
-        acceptTitleChanges.innerHTML = 'accept changes';
+        editTitleButton.style.display = "inline-block";
 
-        editTitleButton.addEventListener('click', event => {
-            playbackTitleDiv.setAttribute("contenteditable", "true");
+    });
 
-            editTitleButton.style.display = "none";
-            acceptTitleChanges.style.display = "inline-block";
-        });
-
-        acceptTitleChanges.addEventListener('click', event => {
-            const titleData = playbackTitleDiv.innerHTML;
-            playbackData.playbackTitle = titleData;
-            
-            updateTitle(titleData);
-
-            playbackTitleDiv.setAttribute("contenteditable", "false");
-
-            acceptTitleChanges.style.display = "none";
-            editTitleButton.style.display = "inline-block";
-
-        });
-
-        topBar.appendChild(editTitleButton);
-        topBar.appendChild(acceptTitleChanges);
-
+    if (!playbackData.isEditable)
+    {
+        editTitleButton.style.display = 'none';
+        acceptTitleChanges.style.display = 'none';
     }
 
     //bold button
