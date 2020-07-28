@@ -112,6 +112,7 @@ function setupEventListeners()
         step(Number(playbackSlider.value) - playbackData.nextEventPosition);
     });
 
+    //Setup the title buttons and data
     const playbackTitleDiv = document.getElementById('playbackTitleDiv');
     playbackTitleDiv.innerHTML = playbackData.playbackTitle;
     const editTitleButton = document.getElementById('editTitleButton');
@@ -126,7 +127,7 @@ function setupEventListeners()
         playbackTitleDiv.setAttribute("contenteditable", "true");
 
         editTitleButton.style.display = "none";
-        acceptTitleChanges.style.display = "block";
+        acceptTitleChanges.style.display = "inline-block";
     });
 
     acceptTitleChanges.addEventListener('click', event => {
@@ -138,7 +139,7 @@ function setupEventListeners()
         playbackTitleDiv.setAttribute("contenteditable", "false");
 
         acceptTitleChanges.style.display = "none";
-        editTitleButton.style.display = "block";
+        editTitleButton.style.display = "inline-block";
 
     });
 

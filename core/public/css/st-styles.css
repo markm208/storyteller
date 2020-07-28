@@ -44,6 +44,15 @@
     width: 74vw;            
 }
 
+.commentBlockBackground {
+    background-color: rgb(218, 224, 228);
+    padding-bottom: 1px;
+}
+
+.commentBlockPadding {
+    padding-top: 1px;
+}
+
 .commentBox {
     margin-top: 20px;
     margin-left: 20px;
@@ -55,9 +64,17 @@
     text-align: right !important;
 }
 
+.commentCardBodyColor {
+    background-color: rgb(247, 247, 247);
+}
+
+.commentCardHeaderColor {
+    background-color: rgb(219, 219, 219);
+}
+
 .commentsDivScroll{
     overflow-y: scroll;
-    height: 84vh;
+    height: 82vh;
     word-wrap: break-word;
     width: 23.9vw;
 }
@@ -350,6 +367,10 @@ resize: none;
 }
 
 .titleCardHeaderStyle {
+    background-color: rgb(174, 186, 206);
+}
+
+.top-bar {
     background-color: rgb(174, 186, 206);
 }
 

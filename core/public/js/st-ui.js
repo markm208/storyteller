@@ -87,7 +87,8 @@ function displayAllComments(){
     keysArray.sort((a,b)=> a - b).forEach(function(key){
         let commentBlock = playbackData.comments[`ev-${key}`];
         const commentGroupDiv = document.createElement('div');
-        
+        commentGroupDiv.classList.add('commentBlockBackground');
+
         let startingValue = 0;        
 
         if (`ev-${key}` === 'ev--1')
@@ -98,6 +99,10 @@ function displayAllComments(){
             commentGroupDiv.append(titleCard);
 
             startingValue += 1;
+        }
+        else
+        {
+            commentGroupDiv.classList.add('commentBlockPadding');
         }
 
         //give each commentGroup a unique id 
@@ -779,7 +784,7 @@ function makeDivDroppable(div, useID = true){
 function createCommentCard(commentObject, currentComment, commentCount, i)
 {
     const cardHeader = document.createElement('div');
-    cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'p-0', "commentCount");
+    cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'commentCardHeaderColor', 'p-0', "commentCount");
     //get the developers who authored the comment
     const commentAuthorGroup = getDevelopersInADevGroup(commentObject.developerGroupId);
     //create a div to hold the author info
@@ -794,7 +799,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardHeader.append(progressSpan);
     
     const cardBody = document.createElement('div');
-    cardBody.classList.add('card-body', 'text-left');
+    cardBody.classList.add('card-body', 'text-left', 'commentCardBodyColor');
     cardBody.innerHTML = commentObject.commentText;
 
     let cardFinal = document.createElement('div');
@@ -1671,6 +1676,7 @@ function clearHighlightChangedFiles() {
 function createEditCommentButton(commentObject, buttonText){
     const editCommentButton = document.createElement("button");
     editCommentButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    editCommentButton.style.border = 'none';
     editCommentButton.appendChild(document.createTextNode(buttonText));
     editCommentButton.addEventListener('click', event => {
         pauseMedia();
