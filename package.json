@@ -21,13 +21,13 @@
     "contributes": {
         "commands": [
             {
-                "command": "storyteller.startTrackingProject",
-                "title": "Start Tracking This Project",
+                "command": "storyteller.startStoryteller",
+                "title": "Start Tracking This Folder",
                 "category": "Storyteller"
             },
             {
-                "command": "storyteller.stopTrackingProject",
-                "title": "Stop Tracking This Project",
+                "command": "storyteller.stopStoryteller",
+                "title": "Stop Tracking This Folder",
                 "category": "Storyteller"
             },
             {
