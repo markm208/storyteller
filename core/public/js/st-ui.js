@@ -155,6 +155,7 @@ function displayAllComments(){
             //create the edit Comment button
             const editCommentBlockButton = document.createElement('button');
             editCommentBlockButton.classList.add("btn", "btn-outline-primary", "btn-sm");
+            editCommentBlockButton.style.border = 'none';
             editCommentBlockButton.appendChild(document.createTextNode('Edit Comment Block'));
             editCommentBlockButton.setAttribute("id", "edit" + uniqueCommentGroupID);
 

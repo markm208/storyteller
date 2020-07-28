@@ -2,6 +2,10 @@
     font-weight: bold;
 }
 
+.addCommentButton {
+    background-color: rgb(0, 90, 255);
+}
+
 .body
 {
     width: fit-content;
@@ -45,7 +49,7 @@
 }
 
 .commentBlockBackground {
-    background-color: rgb(218, 224, 228);
+    background-color: rgb(208, 214, 228);
     padding-bottom: 1px;
 }
 
@@ -65,11 +69,11 @@
 }
 
 .commentCardBodyColor {
-    background-color: rgb(247, 247, 247);
+    background-color: rgb(222, 224, 238);
 }
 
 .commentCardHeaderColor {
-    background-color: rgb(219, 219, 219);
+    background-color: rgb(143, 173, 207);
 }
 
 .commentsDivScroll{
@@ -363,15 +367,15 @@ resize: none;
 }
 
 .titleCardBodyStyle {
-    background-color: rgb(219, 219, 219);
+    background-color: rgb(206, 213, 255); /*rgb(174, 186, 206);*/
 }
 
 .titleCardHeaderStyle {
-    background-color: rgb(174, 186, 206);
+    background-color: rgb(112, 169, 255);
 }
 
 .top-bar {
-    background-color: rgb(174, 186, 206);
+    background-color: rgb(112, 169, 255);
 }
 
 .ui-slider-tick-mark {
