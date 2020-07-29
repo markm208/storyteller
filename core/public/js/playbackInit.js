@@ -39,7 +39,7 @@ async function initializePlayback()
         {
             const newDescription = createCommentObject('Insert DESCRIPTION here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
 
-            const descrFromServer = sendCommentToServer(newDescription);
+            const descrFromServer = await sendCommentToServer(newDescription);
 
             playbackData.comments['ev--1'] = [];
             playbackData.comments['ev--1'].push(descrFromServer);
@@ -88,6 +88,7 @@ function setupEventListeners()
     const playbackSlider = document.getElementById("playbackSlider");
     const playPauseButton = document.getElementById("playPauseButton");
 
+    const topBar = document.getElementById('top-bar');
 
     //Get references to the tabs and where the tabs get their content
     const tabsList = document.getElementById('tabsList');
@@ -142,6 +143,12 @@ function setupEventListeners()
         editTitleButton.style.display = "inline-block";
 
     });
+
+    if (!playbackData.isEditable)
+    {
+        editTitleButton.style.display = 'none';
+        acceptTitleChanges.style.display = 'none';
+    }
 
     //bold button
     document.querySelector('#boldCommentButton').addEventListener('click', event => {
