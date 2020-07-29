@@ -180,6 +180,8 @@ function stepForward(numSteps) {
 function stepBackward(numSteps) {
     //if there is room to move backwards
     if(playbackData.nextEventPosition > 0) {
+        removeActiveCommentAndGroup();
+
         //holds the next event to animate
         let nextEvent;
 

@@ -811,6 +811,9 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
 
     //if this is not here the play button does not work, because the card will have no functionality
     cardFinal.addEventListener('click', function (e){ 
+        
+        //step to the event this comment is at
+        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
         //handle which comment and which comment group is currently active
         const activeComment = document.getElementsByClassName("activeComment");
@@ -823,10 +826,6 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         }
         cardFinal.classList.add("activeComment");
         cardFinal.closest(".commentGroupSpacing").classList.add("activeGroup");
-
-
-        //step to the event this comment is at
-        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
         //add highlights for the comment
         for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
@@ -1809,5 +1808,12 @@ function updateCurrentDeveloperGroupAvatars(devGroupId) {
         //remove the old images and add new ones 50px height
         currentDevsDiv.innerHTML = '';
         currentDevsDiv.append(getDevImages(activeDevs, 50));
+    }
+}
+
+function removeActiveCommentAndGroup(){
+    if (document.getElementsByClassName('activeComment')[0]){
+        document.getElementsByClassName('activeComment')[0].classList.remove('activeComment');
+        document.getElementsByClassName('activeGroup')[0].classList.remove('activeGroup');
     }
 }
