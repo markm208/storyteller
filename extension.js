@@ -2,6 +2,7 @@ const vscode = require('vscode');
 const spawn = require('child_process').spawn;
 const path = require('path');
 const fs = require('fs');
+const JSZip = require('jszip');
 
 //main interface with the storyteller server
 const ProjectManager = require('./core/project/ProjectManager');
@@ -56,7 +57,8 @@ function activate(context) {
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.createNewDeveloper', createNewDeveloper));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.addDevelopersToActiveGroup', addDevelopersToActiveGroup));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.removeDevelopersFromActiveGroup', removeDevelopersFromActiveGroup));
-    
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipProject', zipProject));
+
     //if there is an open workspace then attempt to open storyteller without requiring user interaction
     if(vscode.workspace.workspaceFolders) {
         //path to the hidden .storyteller dir in every storyteller project 
@@ -1180,6 +1182,88 @@ function getCurrentSelectionEvents() {
                     clipboardData.eventIds.push(selectedEvents[j].id);
                 }
             }
+        }
+    }
+}
+/*
+ * Used to create a zip file of a project. These can be shared with others
+ * who have the extension installed.
+ */
+async function zipProject() {
+    //if st is active
+    if(isStorytellerCurrentlyActive) {
+        //prompt for where to store the zip file
+        let zipStorageFolders = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            defaultUri: vscode.workspace.workspaceFolders[0].uri,
+            openLabel: 'Save st.zip',
+            title: 'Choose a folder to store the Storyteller zip'
+        });
+
+        //if there was a selected location
+        if(zipStorageFolders.length > 0) {
+            //create an instance of jszip
+            const zip = new JSZip();
+
+            //get the path to the open project and the hidden st directory
+            const projectDirPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+            //recursively add files to the zip
+            zipProjectHelper(projectDirPath, zip);
+
+            //create and save the zip in the .storyteller dir
+            zip.generateNodeStream({
+                streamFiles: true,
+                compression: 'DEFLATE',
+                compressionOptions: {
+                    level: 9
+                }
+            }).pipe(fs.createWriteStream(path.join(zipStorageFolders[0].fsPath, 'st.zip'))).on('finish', function () {
+                //notify user that the zip is complete
+                vscode.window.showInformationMessage(`A new zip file, st.zip, has been added to the ${zipStorageFolders[0].fsPath} directory. You can share this file with others.`);
+            });
+        }
+    }
+}
+/*
+ * Helper that recursively moves through the file system
+ */
+function zipProjectHelper(dirPath, zip) {
+    //get all of the files and dirs in the passed in directory
+    const allFilesAndDirs = fs.readdirSync(dirPath);
+
+    //go through the contents of the dir
+    for (let i = 0; i < allFilesAndDirs.length; i++) {
+        //get the full path to the file or directory
+        const fullPathToFileOrDir = path.join(dirPath, allFilesAndDirs[i]);
+
+        //get some stats about the file/dir
+        const stats = fs.statSync(fullPathToFileOrDir);
+
+        //if this is a file
+        if(stats.isFile()) {
+            //get a normalized path to the file
+            let normalizedFilePath = projectManager.pathHelper.normalizeFilePath(fullPathToFileOrDir);
+            //jszip does not like leading / so remove it
+            normalizedFilePath = normalizedFilePath.substr(1);
+
+            //read the contents of the file
+            const fileContents = fs.readFileSync(fullPathToFileOrDir, 'utf8');
+            
+            //add the file to the zip
+            zip.file(normalizedFilePath, fileContents);
+        } else if(stats.isDirectory()) {
+            //get a normalized path to the dir
+            let normalizedDirectoryPath = projectManager.pathHelper.normalizeDirPath(fullPathToFileOrDir);
+            //jszip does not like leading / so remove it
+            normalizedDirectoryPath = normalizedDirectoryPath.substr(1);
+            //add the folder to the zip (for empty dirs)
+            zip.folder(normalizedDirectoryPath);
+
+            //recurse and add the files in the dir to the zip
+            zipProjectHelper(fullPathToFileOrDir, zip);
         }
     }
 }
