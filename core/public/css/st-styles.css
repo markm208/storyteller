@@ -83,7 +83,7 @@
 
 .commentsDivScroll{
     overflow-y: scroll;
-    height: 82vh;
+    height: 80vh;
     word-wrap: break-word;
     width: 23.9vw;
 }
@@ -390,6 +390,7 @@ resize: none;
 
 .top-bar {
     background-color: rgb(112, 169, 255);
+    padding: 5px;
 }
 
 .ui-slider-tick-mark {
