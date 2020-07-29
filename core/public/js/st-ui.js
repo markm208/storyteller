@@ -1818,3 +1818,4 @@ function removeActiveCommentAndGroup(){
         document.getElementsByClassName('activeGroup')[0].classList.remove('activeGroup');
     }
 }
+

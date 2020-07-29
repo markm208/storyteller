@@ -171,7 +171,11 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button id="deleteMediaButton" type="button" class="btn btn-outline-danger btn-sm mr-auto">Delete selected media</button>
+                        <!-- <button id="deleteMediaButton" type="button" class="btn btn-outline-danger btn-sm mr-auto">Delete selected media</button> -->
+
+                        <a id="deleteMediaButton" tabindex="0" class="btn btn-outline-danger btn-sm mr-auto" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="Alert!" 
+                        data-content="The selected media exists in 1 or more comments and must be removed from the comment/s before being deleted from the server">Delete selected media</a>
+
                         <button id="addMediaToCommentButton" type="button" class="btn btn-primary">Add to Comment</button>
                     </div>
                 </div>
