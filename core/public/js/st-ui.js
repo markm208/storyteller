@@ -1759,7 +1759,7 @@ function createEditCommentButton(commentObject, buttonText){
 function updateAllCommentHeaderCounts(){
     const drag = document.getElementsByClassName("drag");
     for (let i = 0; i < drag.length; i++){
-        drag[i].getElementsByClassName("card-header")[0].firstChild.data = i + 1 + "/" + drag.length;       
+       drag[i].getElementsByClassName("card-header")[0].getElementsByClassName("progressSpan")[0].firstChild.data = i + 1 + "/" + drag.length;       
     }    
 }
 
