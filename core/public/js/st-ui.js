@@ -548,10 +548,9 @@ function createSpeedControlButtonDivForMedia(media){
 
 function createXButtonForCloseOrCancel(popUpMessage = ""){
     let button = document.createElement('button');
-    button.classList.add('close');
+    button.classList.add('close', 'mediaCancelButton');
     button.setAttribute('aria-label', 'close');
     button.innerHTML ='&times;';
-    button.style.color = 'red';
     button.setAttribute('title', popUpMessage);
     return button;
 }
@@ -614,7 +613,7 @@ function addCancelButtonToCard(card, panelToDeleteFrom){
         }
 
     });
-    card.firstChild.append(button);
+    card.closest(".card").prepend(button);
 }
 
 //TODO global???
