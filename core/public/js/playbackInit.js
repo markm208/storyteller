@@ -485,13 +485,13 @@ function setupEventListeners()
         pauseMedia();
     });
     document.getElementById("saveCodeOnlyButton").addEventListener('click', event => {
-        console.log('Code only');
+        zipAndDownloadCodeOnly();
     });
     document.getElementById("saveCodeAndHistoryButton").addEventListener('click', event => {
-        console.log('Code and history');
+        zipAndDownloadCodeWithHistory();
     });
     document.getElementById("saveCodeAtCommentsButton").addEventListener('click', event => {
-        console.log('Code and history at comments');
+        zipAndDownloadCodeOnlyWithHistoryAtComments();
     });
 }
 
