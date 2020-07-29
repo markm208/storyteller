@@ -192,7 +192,7 @@ function setupEventListeners()
             toastDiv.style.left = commentButtonRectangle.left + 'px';
             
             //show and focus the toast
-            toastDiv.toast('show');
+            $('.toast').toast('show');
             document.getElementById('URL').focus();
         }
     });
@@ -203,7 +203,7 @@ function setupEventListeners()
         if (URLInput){
 
             //hide the toast
-            document.getElementById('URL-Toast').toast('hide');
+            $('.toast').toast('hide');
             const windowSelection = window.getSelection();
 
             //restores the original selection
@@ -497,42 +497,47 @@ function setupEventListeners()
 
 function jumpToPreviousComment()
 {
-    //find next event that has a comment
-    let targetEvent = -1;
-    let commentPositions = Object.keys(playbackData.comments);
-    for (let i = playbackData.nextEventPosition-2; i >= 0; i--)
-    {
-        
-        for (let j = 0; j < commentPositions.length; j++)
-        {
-            if (playbackData.events[i].id === commentPositions[j])
-            {
-                targetEvent = playbackData.events[i].id;
-                break;
-            }
-        }
+    //generate a list of all commentCards
+    const allCommentCards = [...document.getElementsByClassName("commentCard")];
 
-        if (targetEvent != -1)
-            break;
+    //get the currently selected card, if any
+    const selectedComment = document.getElementsByClassName("activeComment")[0];
+
+    let eventNum = Number(playbackSlider.value) - 1;
+    let commentBlock;
+
+    //try to find the commentBlock of the event. if one does not exist, try to find the comment block of the next event that has one
+    while (!commentBlock && eventNum >= 0){
+        commentBlock = playbackData.comments["ev-" + eventNum--];
     }
+    
+    let activeComment;
 
-    if (targetEvent < 0)
-    {
-        targetEvent = 0;
-
-        clearHighlights();
-        step(targetEvent - playbackData.nextEventPosition + 1);
+    //if no comment is selected
+    if (commentBlock && !selectedComment){
+        const eventId = commentBlock[0].displayCommentEvent.id;
+        const indexOfSelected = allCommentCards.reverse().findIndex(item => item.id.includes(eventId));
+        activeComment = allCommentCards[indexOfSelected];     
     }
+    //if a comment was selected
+    else if (commentBlock && selectedComment){
+        //find the current active card, and make the previous one active
+        const index = allCommentCards.findIndex(item => item.classList.contains('activeComment'));;
+        activeComment = allCommentCards[index - 1];
+    }                
+
+    if (activeComment){
+        activeComment.click();
+
+        //scroll to the active comment
+        document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;
+    }
+    //if activeComment hasn't been assigned, then no comment was found at, or forward of the slider position
+    //step to the last event and unselect any selected comment
     else{
-
-        const commentClickEvent = new MouseEvent('click',{
-
-        });
-        let commentToLoad = document.getElementById(`${targetEvent}-0`);
-
-        commentToLoad.dispatchEvent(commentClickEvent);
-    }
-    //console.log(`currentEvent = ${playbackData.nextEventPosition-1}, targetevent = ${targetEvent}`);
+        step(-playbackData.nextEventPosition);
+        removeActiveCommentAndGroup();            
+    }      
 }
 
 function getDragAfterElement(container, y){
