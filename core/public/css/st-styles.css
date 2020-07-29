@@ -234,6 +234,11 @@
     margin-bottom: 0px;
 }
 
+.mediaCancelButton{
+    color: red;
+    text-align: right;
+}
+
 .mediaGallery {
     padding: 5px;
     margin: 3px 5px 25px 5px;
@@ -406,5 +411,3 @@ resize: none;
     /* Use flexbox */
     display: flex;
 }
-
-
