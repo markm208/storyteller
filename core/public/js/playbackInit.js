@@ -697,6 +697,7 @@ function doDrag(event){
         $('#codePanel').css('width', screen.width - pointerRelativeXpos);
         commentsDiv.style.width = event.pageX + 'px';
         addCommentPanel.style.width = event.pageX + 'px';
+        document.getElementById("fsViewPanel").style.width = event.pageX + 'px';
     }
 }
 
