@@ -192,7 +192,7 @@ function setupEventListeners()
             toastDiv.style.left = commentButtonRectangle.left + 'px';
             
             //show and focus the toast
-            toastDiv.toast('show');
+            $('.toast').toast('show');
             document.getElementById('URL').focus();
         }
     });
@@ -203,7 +203,7 @@ function setupEventListeners()
         if (URLInput){
 
             //hide the toast
-            document.getElementById('URL-Toast').toast('hide');
+            $('.toast').toast('hide');
             const windowSelection = window.getSelection();
 
             //restores the original selection
