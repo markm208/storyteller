@@ -2,6 +2,11 @@
     font-weight: bold;
 }
 
+.activeComment,
+.activeGroup{
+    border: solid thin #007bff;
+}
+
 .addCommentButton {
     background-color: rgb(0, 90, 255);
 }
@@ -127,6 +132,7 @@
     padding: 0;
     cursor: ew-resize;
     flex: 0 0 auto;
+
 }
 
 .dragBar::before {
@@ -136,7 +142,8 @@
     height: 100%;
     /* background: gray; */
     margin: 0 auto;
-    border-left: 2px dotted #444;
+    border-left: solid 1px  #aaa;
+    
 }
 
 .draggable{
@@ -251,6 +258,7 @@
 
  .mediaResizable{
     width: 95%;
+    max-height: 300px;
  }
 
 .mediaAudio {
@@ -317,6 +325,7 @@
     background: transparent;
     padding: 0;
     background: whitesmoke;
+    border: none;
 }
 
 .speedButton:hover,.speedButton:focus,.speedButton:active{
@@ -398,10 +407,4 @@ resize: none;
     display: flex;
 }
 
-.activeComment{
-    border: solid;
-}
 
-.activeGroup{
-    border: solid;
-}

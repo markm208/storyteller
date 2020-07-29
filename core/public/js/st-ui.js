@@ -386,9 +386,10 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
     newVideo.onplay = function(){
         pauseMedia();
 
-        //make the comment the video is in active
-        newVideo.closest(".commentCard").click();
-
+        if (newVideo.closest(".commentCard")){
+            //make the comment the video is in active
+            newVideo.closest(".commentCard").click();
+        }
         newVideo.classList.add("playing");
     };
  
@@ -460,9 +461,10 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     newAudio.onplay = function(){
         pauseMedia();
 
-        //make the comment the audio is in active
-        newAudio.closest(".commentCard").click();
-        
+        if (newAudio.closest(".commentCard")){
+            //make the comment the audio is in active
+            newAudio.closest(".commentCard").click();
+        }        
         newAudio.classList.add("playing");
     }
 
@@ -519,7 +521,7 @@ function createSpeedControlButtonDivForMedia(media){
     buttonGroup.classList.add("btn-group-vertical", "speedGroup");
 
     const speedUpButton = document.createElement("button");
-    speedUpButton.classList.add("btn", "btn-sm",'speedButton', 'rounded-pill');
+    speedUpButton.classList.add("btn", "btn-sm",'speedButton');
     speedUpButton.appendChild(document.createTextNode('1.5x'));
 
     speedUpButton.addEventListener('click', event => {
@@ -527,7 +529,7 @@ function createSpeedControlButtonDivForMedia(media){
     });
 
     const defaultSpeedButton = document.createElement("button");
-    defaultSpeedButton.classList.add("btn",  "btn-sm", 'speedButton', 'rounded-pill');
+    defaultSpeedButton.classList.add("btn",  "btn-sm", 'speedButton');
     defaultSpeedButton.appendChild(document.createTextNode('1.0x'));
 
     defaultSpeedButton.addEventListener('click', event => {
