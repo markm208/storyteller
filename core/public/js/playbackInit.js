@@ -34,6 +34,7 @@ async function initializePlayback()
         playbackData.developers = results[3];
         playbackData.developerGroups = results[4];
         playbackData.playbackTitle = results[5].title;
+        playbackData.branchId = results[5].branchId;
 
         if (!playbackData.comments['ev--1'])
         {

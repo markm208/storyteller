@@ -53,19 +53,7 @@ function addCodeToZip(zip) {
     }
 }
 /*
- *
- */
-function zipAndDownloadCodeWithHistory() {
-
-}
-/*
- *
- */
-function zipAndDownloadCodeOnlyWithHistoryAtComments() {
-
-}
-/*
- *
+ * Causes a zip file to be downloaded.
  */
 async function downloadZip(zip) {
     //get the current date/time
@@ -82,29 +70,130 @@ async function downloadZip(zip) {
             level: 9
         }
     });
+
+    //create a downloadable blob
+    const blob = new Blob([blobbedZip], {type: 'application/zip'});
+    //create a url that holds the zip
+    const url = window.URL.createObjectURL(blob);
+
     //create a temp invisible anchor and add it to the page
     const a = document.createElement('a');
     document.body.appendChild(a);
     a.setAttribute('style', 'display: none');
 
-    //create a downloadable blob
-    const blob = new Blob([blobbedZip], {type: 'application/zip'});
-
-    //create a url that holds the zip
-    const url = window.URL.createObjectURL(blob);
-
     //assign the new with zip data url to the anchor
     a.href = url;
-
     //add a name to the zip
     a.download = zipFileName;
-
     //simulate a click of the button
     a.click();
 
     //clean up the resources for the url
     window.URL.revokeObjectURL(url);
-    
     //remove the anchor
     a.remove();
+}
+/*
+ *
+ */
+function zipAndDownloadCodeWithHistory() {
+    //create a new zip
+    const zip = new JSZip();
+    //add only the code to the zip
+    addCodeToZip(zip);
+    //add the data required to make this a storyeller project
+    addStorytellerProjectHistoryToZip(zip);
+    //cause the zip to be downloaded
+    downloadZip(zip);
+}
+/*
+ * Adds the required data to make this zip a true storyteller project that can 
+ * added to. 
+ */
+function addStorytellerProjectHistoryToZip(zip) {
+    //add the required directories for a storyteller project
+    zip.folder('.storyteller');
+    zip.folder('.storyteller/.tmp');
+    zip.folder('.storyteller/comments');
+    zip.folder('.storyteller/devs');
+    zip.folder('.storyteller/events');
+    zip.folder('.storyteller/events/intermediate');
+    zip.folder('.storyteller/fs');
+    zip.folder('.storyteller/project');
+    zip.folder('.storyteller/public');
+    zip.folder('.storyteller/public/css');
+    zip.folder('.storyteller/public/js');
+    zip.folder('.storyteller/public/js/ext');
+    zip.folder('.storyteller/public/media');
+    zip.folder('.storyteller/public/media/audios');
+    zip.folder('.storyteller/public/media/images');
+    zip.folder('.storyteller/public/media/videos');
+
+    const stData = {
+        comments: {},
+        devGroups: {},
+        devs: {},
+        events: [],
+        files: {},
+        dirs: {},
+        project: {
+            title: '',
+            branchId: ''
+        }
+    };
+
+    //move through the events up to the pause point and collect only the data
+    //that has been used so far
+    collectDataAboutEvents(stData);
+
+    //get the comments up to this point in the playback and store in the comments dir
+    //get the devs up to this point in the playback and store in the devs dir
+    //get the events up to this point in the playback and store in the events dir
+    //get the fs data up to this point in the playback and store in the fs dir
+    //get the project data up to this point in the playback and store in the project dir
+    //get the js code and store in the js dir
+    //get the media up to this point in the playback and store in the media dir
+}
+function collectDataAboutEvents(stData) {
+    //start at the beginning and move until the pause point in the playback
+    for(let i = 0;i < playbackData.nextEventPosition;i++) {
+        //grab the next event
+        nextEvent = playbackData.events[i];
+
+        //is there a comment associated with this event
+        if(playbackData.comments[nextEvent.id]) {
+            //store the comment to be added to the zip
+            stData.comments[nextEvent.id] = playbackData.comments[nextEvent.id];
+        }
+        
+        //if this is a new dev group
+        if(!stData.devGroups[nextEvent.developerGroupId]) {
+            //store the dev group
+            stData.devGroups[nextEvent.developerGroupId] = playbackData.developerGroups[nextEvent.developerGroupId];
+        }
+
+        //add the event
+        stData.events.push(nextEvent);
+
+        //TODO files and dirs
+    }
+
+    //now add all of the developers in the dev groups collected so far
+    const devGroupIds = Object.keys(stData.devGroups);
+    for(let devGroupId in devGroupIds) {
+        const memberIds = stData.devGroups[devGroupId].memberIds;
+        for(let memberId in memberIds) {
+            stData.devs[memberId] = playbackData.developers[memberId];
+        }
+    }
+
+    //store the project title and branch id
+    stData.project.title = playbackData.title;
+    stData.project.branchId = playbackData.branchId; //TODO change this for every new download???
+}
+/*
+ *
+ */
+function zipAndDownloadCodeOnlyWithHistoryAtComments() {
+
 }
