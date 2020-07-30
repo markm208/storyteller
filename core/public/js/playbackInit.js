@@ -421,7 +421,10 @@ function setupEventListeners()
 
         //try to find the commentBlock of the event. if one does not exist, try to find the comment block of the next event that has one
         while (!commentBlock && eventNum < playbackData.numEvents){
-            commentBlock = playbackData.comments["ev-" + eventNum++];
+            commentBlock = playbackData.comments["ev-" + eventNum];
+            if (eventNum++ === -1 && commentBlock.length === 1){
+                commentBlock = null;
+            }
         }
         
         let activeComment;
