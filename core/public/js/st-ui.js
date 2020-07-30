@@ -107,11 +107,25 @@ function displayAllComments(){
 
         //give each commentGroup a unique id 
         commentGroupDiv.setAttribute('id','CG' + uniqueCommentGroupID);
+
+
         
         //create an outer group to hold the edit button
         //this keeps the dragging of cards from changing the position of the button
-        let outerCommentGroup = document.createElement('div');
+        const outerCommentGroup = document.createElement('div');
         outerCommentGroup.classList.add('commentGroupSpacing');
+
+        outerCommentGroup.addEventListener('click', event => {
+            //the eventListener should not work when a child of outerCommentGroup is clicked
+            if (!event.currentTarget.classList.contains("commentGroupSpacing")) {
+              return;
+            }
+
+            //if the active comment is not in this comment group, make the first comment in this div active
+            if (!outerCommentGroup.classList.contains("activeGroup")){
+                outerCommentGroup.getElementsByClassName("commentCard")[0].click();
+            }
+        });
 
         let uniqueNumBackup = uniqueCommentGroupID;
         for (let i = startingValue; i < commentBlock.length; i++){
@@ -1818,3 +1832,4 @@ function removeActiveCommentAndGroup(){
         document.getElementsByClassName('activeGroup')[0].classList.remove('activeGroup');
     }
 }
+

@@ -83,7 +83,7 @@ function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidUR
 
 function setupEventListeners()
 {
-     //get the controls
+    //get the controls
     const stepBackOne = document.getElementById("stepBackOne");
     const stepForwardOne = document.getElementById("stepForwardOne");
     const playbackSlider = document.getElementById("playbackSlider");
@@ -493,6 +493,13 @@ function setupEventListeners()
     });
     document.getElementById("saveCodeAtCommentsButton").addEventListener('click', event => {
         zipAndDownloadCodeOnlyWithHistoryAtComments();
+    });
+
+    $('#deleteMediaButton').popover('disable')
+
+
+    $('#deleteMediaButton').on("hidden.bs.popover", function(e){
+        $('#deleteMediaButton').popover("disable");
     });
 }
 

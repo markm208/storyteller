@@ -104,12 +104,25 @@ document.getElementById('addMediaToCommentButton').addEventListener('click', eve
 });
 
 document.getElementById('deleteMediaButton').addEventListener('click', async event => {
+
     //delete any selected images
-    deleteSelectedImages();
+    const allImagesDeleted = await deleteSelectedImages();
+
     //delete any selected videos
-    deleteSelectedVideos();
+    const allVideosDeleted =  await deleteSelectedVideos();
+
     //delete any selected audios
-    deleteSelectedAudios();
+    const allAudiosDeleted = await deleteSelectedAudios();
+
+    //if one ore more of any of the types of media was in a comment when the user attemped to delete it from the server
+    if (!allImagesDeleted || !allVideosDeleted || !allAudiosDeleted){
+       $('#deleteMediaButton').popover('enable');
+
+       $('#deleteMediaButton').popover('show');
+
+       $('.popover-header').css('background-color', 'red');
+    }
+    
 });
 
 document.getElementById('addImageButton').addEventListener('change', async event => {
@@ -271,11 +284,26 @@ async function deleteSelectedImages() {
 
         //find all of the images that are selected
         const selectedImages = document.getElementsByClassName('mediaImage mediaSelected');
+
+        const imagesInComments = [...document.getElementsByClassName('carousel-item')];
+        let noConflict = true;
+        let imagesRemoved =[];
+
         for(let i = 0;i < selectedImages.length;i++) {
             //get the src and add it to the array of paths to send to the 
             //server to delete from the public dir
             const filePath = selectedImages[i].getAttribute('src');
-            filePaths.push(filePath);
+
+            //if the filePath does not match an images src that is currently in a comment
+            if (imagesInComments.findIndex(image => image.getElementsByTagName('img')[0].getAttribute('src') === filePath) === -1){
+                filePaths.push(filePath);
+                imagesRemoved.push(selectedImages[i]);
+            }
+            else{
+                noConflict = false;
+            }
+
+            
         }
 
         //delete to the server
@@ -291,9 +319,11 @@ async function deleteSelectedImages() {
         //check the response
         if(response.ok) {
             //remove the images
-            while(selectedImages[0]) {
-                selectedImages[0].parentNode.removeChild(selectedImages[0]);
+            while(imagesRemoved[0]) {
+                imagesRemoved[0].parentNode.removeChild(imagesRemoved[0]);
+                imagesRemoved.shift();
             }
+            return noConflict;
         } else {
             console.log('Error with the response data');
         }
@@ -308,11 +338,24 @@ async function deleteSelectedVideos() {
 
         //find all of the videos that are selected
         const selectedVideos = document.getElementsByClassName('mediaVideoCard mediaSelected');
+
+        const videosInComments = [...document.getElementById("commentContentDiv").querySelectorAll('.mediaResizable[src*="/media/video"]')];
+        let videosRemoved = [];
+        let noConflict = true;
+
         for(let i = 0;i < selectedVideos.length;i++) {
             //get the src from the nested card and add it to the array of paths to send to the 
             //server to delete from the public dir
             const filePath = selectedVideos[i].querySelector('[src*="/media/videos"]').getAttribute('src');
-            filePaths.push(filePath);
+
+            //if the filePath does not match a videos src that is currently in a comment
+            if (videosInComments.findIndex(video => video.getAttribute('src') === filePath) === -1){
+                filePaths.push(filePath);
+                videosRemoved.push(selectedVideos[i]);
+            }
+            else{
+                noConflict = false;
+            }
         }
 
         //delete to the server
@@ -328,9 +371,11 @@ async function deleteSelectedVideos() {
         //check the response
         if(response.ok) {
             //remove the videos
-            while(selectedVideos[0]) {
-                selectedVideos[0].parentNode.removeChild(selectedVideos[0]);
+            while(videosRemoved[0]) {
+                videosRemoved[0].parentNode.removeChild(videosRemoved[0]);
+                videosRemoved.shift();
             }
+            return noConflict;
         } else {
             console.log('Error with the response data');
         }
@@ -345,11 +390,26 @@ async function deleteSelectedAudios() {
 
         //find all of the audios that are selected
         const selectedAudios = document.getElementsByClassName('mediaAudioCard mediaSelected');
+
+        const audiosInComments = [...document.getElementById("commentContentDiv").querySelectorAll('.mediaResizable[src*="/media/audio"]')];
+
+        let audiosRemoved = [];
+        let noConflict = true;
+
         for(let i = 0;i < selectedAudios.length;i++) {
             //get the src from the nested card and add it to the array of paths to send to the 
             //server to delete from the public dir
             const filePath = selectedAudios[i].querySelector('[src*="/media/audios"]').getAttribute('src');
-            filePaths.push(filePath);
+
+            //if the filePath does not match an audio src that is currently in a comment
+            if (audiosInComments.findIndex(audio => audio.getAttribute('src') === filePath) === -1){
+                filePaths.push(filePath);
+                audiosRemoved.push(selectedAudios[i]);
+            }
+            else{
+                noConflict = false;
+            }
+
         }
 
         //delete to the server
@@ -365,9 +425,11 @@ async function deleteSelectedAudios() {
         //check the response
         if(response.ok) {
             //remove the audios
-            while(selectedAudios[0]) {
-                selectedAudios[0].parentNode.removeChild(selectedAudios[0]);
+            while(audiosRemoved[0]) {
+                audiosRemoved[0].parentNode.removeChild(audiosRemoved[0]);
+                audiosRemoved.shift();
             }
+            return noConflict;
         } else {
             console.log('Error with the response data');
         }
