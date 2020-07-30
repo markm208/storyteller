@@ -356,8 +356,6 @@ async function deleteSelectedVideos() {
             else{
                 noConflict = false;
             }
-
-            //filePaths.push(filePath);
         }
 
         //delete to the server
