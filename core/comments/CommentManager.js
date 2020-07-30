@@ -14,11 +14,30 @@ class CommentManager extends FileBackedCollection {
         //init the base class
         super(storytellerDirPath, 'comments', 'comments.json');
 
+        //create full paths to the media directories
+        this.pathToMediaDir = path.join(this.fullPathToParentDir, 'media');
+        this.pathToImagesDir = path.join(this.fullPathToParentDir, 'media', 'images');
+        this.pathToVideosDir = path.join(this.fullPathToParentDir, 'media', 'videos');
+        this.pathToAudiosDir = path.join(this.fullPathToParentDir, 'media', 'audios');
+        this.pathToTempDir = path.join(this.fullPathToParentDir, 'media', '.tmp');
+
+        //create web paths to the media directories to return relative urls of media
+        this.webPathToImagesDir = path.posix.join(path.posix.sep, 'media', 'images');
+        this.webPathToVideosDir = path.posix.join(path.posix.sep, 'media', 'videos');
+        this.webPathToAudiosDir = path.posix.join(path.posix.sep, 'media', 'audios');
+
         //if the json file exists
         if(this.fileExists()) {
             //read the data from the file and load the comment info
             this.read();
         } else { //no json file exists
+            //make the media directory with subdirs for images, videos, and audio files
+            fs.mkdirSync(this.pathToMediaDir, {recursive: true});
+            fs.mkdirSync(this.pathToImagesDir, {recursive: true});
+            fs.mkdirSync(this.pathToVideosDir, {recursive: true});
+            fs.mkdirSync(this.pathToAudiosDir, {recursive: true});
+            fs.mkdirSync(this.pathToTempDir, {recursive: true});
+
             //init an object to hold comments
             this.comments = {};
             this.write();
