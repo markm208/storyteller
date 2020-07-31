@@ -821,6 +821,11 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     let cardFinal = document.createElement('div');
     cardFinal.classList.add('card', 'text-center', 'commentCard');
 
+    cardFinal.setAttribute("data-commentEventid", commentObject.displayCommentEvent.id);
+    cardFinal.setAttribute("data-commentid", commentObject.id);
+
+
+
     //allows us to send a click event to this card in order to jump to it in the playback
     cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
 
@@ -966,8 +971,9 @@ function createTitleCard(descriptionInfo)
 
     //create the header for the title card which holds the title text
     const cardHeader = document.createElement('div');
+    cardHeader.setAttribute('id', 'descriptionHeader');
     cardHeader.classList.add('card-header', 'text-center', 'titleCardHeaderStyle');
-    cardHeader.innerHTML = 'Description';
+    cardHeader.innerHTML = playbackData.playbackTitle;
 
     //create the body for the card which holds the description text
     const cardBody = document.createElement('div');
@@ -1694,6 +1700,9 @@ function createEditCommentButton(commentObject, buttonText){
     editCommentButton.style.border = 'none';
     editCommentButton.appendChild(document.createTextNode(buttonText));
     editCommentButton.addEventListener('click', event => {
+
+        event.target.closest(".drag").querySelector(".commentCard").click();        
+
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
@@ -1761,7 +1770,7 @@ function createEditCommentButton(commentObject, buttonText){
 
         updateCommentButton.addEventListener('click' , event => {
             pauseMedia();
-            updateComment(commentObject);
+            updateComment();
 
             document.getElementById("CancelUpdateButton").click();
         })

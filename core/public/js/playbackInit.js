@@ -133,10 +133,15 @@ function setupEventListeners()
     });
 
     acceptTitleChanges.addEventListener('click', event => {
+
         const titleData = playbackTitleDiv.innerHTML;
-        playbackData.playbackTitle = titleData;
-        
+
         updateTitle(titleData);
+
+        playbackData.playbackTitle = titleData;
+
+        const titleCardHeader = document.getElementById('descriptionHeader');
+        titleCardHeader.innerHTML = playbackData.playbackTitle;
 
         playbackTitleDiv.setAttribute("contenteditable", "false");
 
@@ -354,7 +359,7 @@ function setupEventListeners()
     //detects key presses 
     document.addEventListener('keydown', function(e){    
 
-        if (e.target.id === 'textCommentTextArea'){
+        if (e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv'){
             //prevent keyboard presses within the comment textbox from triggering actions 
             return;
         }
@@ -729,8 +734,16 @@ function disableSelect(event) {
     event.preventDefault();
 }
 
-async function updateComment(commentObject){
+async function updateComment(){
     const textCommentTextArea = document.querySelector('#textCommentTextArea');
+
+    const activeComment = document.getElementsByClassName("activeComment")[0];
+    const eventId = activeComment.getAttribute("data-commentEventid");
+    const commentId = activeComment.getAttribute("data-commentid");
+
+    const commentGroup = playbackData.comments[eventId];
+    const index = commentGroup.findIndex(item => item.id === commentId);
+    const commentObject = commentGroup[index];
 
     //getting all video files in order
     const videoFiles = document.getElementsByClassName('video-preview')[0].children;
