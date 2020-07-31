@@ -1701,8 +1701,8 @@ function createEditCommentButton(commentObject, buttonText){
     editCommentButton.appendChild(document.createTextNode(buttonText));
     editCommentButton.addEventListener('click', event => {
 
-        event.currentTarget.parentElement.parentElement.querySelector(".commentCard").click();
-        
+        event.target.closest(".drag").querySelector(".commentCard").click();        
+
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
