@@ -733,8 +733,16 @@ function disableSelect(event) {
     event.preventDefault();
 }
 
-async function updateComment(commentObject){
+async function updateComment(){
     const textCommentTextArea = document.querySelector('#textCommentTextArea');
+
+    const activeComment = document.getElementsByClassName("activeComment")[0];
+    const eventId = activeComment.getAttribute("data-commentEventid");
+    const commentId = activeComment.getAttribute("data-commentid");
+
+    const commentGroup = playbackData.comments[eventId];
+    const index = commentGroup.findIndex(item => item.id === commentId);
+    const commentObject = commentGroup[index];
 
     //getting all video files in order
     const videoFiles = document.getElementsByClassName('video-preview')[0].children;
