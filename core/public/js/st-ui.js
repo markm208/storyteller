@@ -1700,6 +1700,9 @@ function createEditCommentButton(commentObject, buttonText){
     editCommentButton.style.border = 'none';
     editCommentButton.appendChild(document.createTextNode(buttonText));
     editCommentButton.addEventListener('click', event => {
+
+        event.currentTarget.parentElement.parentElement.querySelector(".commentCard").click();
+        
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
@@ -1767,7 +1770,7 @@ function createEditCommentButton(commentObject, buttonText){
 
         updateCommentButton.addEventListener('click' , event => {
             pauseMedia();
-            updateComment(commentObject);
+            updateComment();
 
             document.getElementById("CancelUpdateButton").click();
         })
