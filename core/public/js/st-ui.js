@@ -966,8 +966,9 @@ function createTitleCard(descriptionInfo)
 
     //create the header for the title card which holds the title text
     const cardHeader = document.createElement('div');
+    cardHeader.setAttribute('id', 'descriptionHeader');
     cardHeader.classList.add('card-header', 'text-center', 'titleCardHeaderStyle');
-    cardHeader.innerHTML = 'Description';
+    cardHeader.innerHTML = playbackData.playbackTitle;
 
     //create the body for the card which holds the description text
     const cardBody = document.createElement('div');
