@@ -358,7 +358,7 @@ function setupEventListeners()
     //detects key presses 
     document.addEventListener('keydown', function(e){    
 
-        if (e.target.id === 'textCommentTextArea'){
+        if (e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv'){
             //prevent keyboard presses within the comment textbox from triggering actions 
             return;
         }
