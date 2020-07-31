@@ -132,15 +132,10 @@ function setupEventListeners()
     });
 
     acceptTitleChanges.addEventListener('click', event => {
-
         const titleData = playbackTitleDiv.innerHTML;
-
-        updateTitle(titleData);
-
         playbackData.playbackTitle = titleData;
-
-        const titleCardHeader = document.getElementById('descriptionHeader');
-        titleCardHeader.innerHTML = playbackData.playbackTitle;
+        
+        updateTitle(titleData);
 
         playbackTitleDiv.setAttribute("contenteditable", "false");
 
