@@ -821,6 +821,11 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     let cardFinal = document.createElement('div');
     cardFinal.classList.add('card', 'text-center', 'commentCard');
 
+    cardFinal.setAttribute("data-commentEventid", commentObject.displayCommentEvent.id);
+    cardFinal.setAttribute("data-commentid", commentObject.id);
+
+
+
     //allows us to send a click event to this card in order to jump to it in the playback
     cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
 
