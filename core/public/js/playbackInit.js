@@ -198,7 +198,9 @@ function setupEventListeners()
             toastDiv.style.left = commentButtonRectangle.left + 'px';
             
             //show and focus the toast
-            $('.toast').toast('show');
+            //$('.toast').toast('show');
+            $('#URL-Toast').toast('show');
+            
             document.getElementById('URL').focus();
         }
     });
@@ -497,8 +499,12 @@ function setupEventListeners()
         zipAndDownloadCodeOnly();
     });
     document.getElementById("saveCodeAndHistoryButton").addEventListener('click', event => {
-        zipAndDownloadCodeWithHistory();
+        zipAndDownloadCodeWithHistory(false);
     });
+    document.getElementById("saveCodeAndHistoryButtonWithComments").addEventListener('click', event => {
+        zipAndDownloadCodeWithHistory(true);
+    });
+    
     document.getElementById("saveCodeAtCommentsButton").addEventListener('click', event => {
         zipAndDownloadCodeOnlyWithHistoryAtComments();
     });
