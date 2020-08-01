@@ -123,7 +123,9 @@ function displayAllComments(){
 
             //if the active comment is not in this comment group, make the first comment in this div active
             if (!outerCommentGroup.classList.contains("activeGroup")){
-                outerCommentGroup.getElementsByClassName("commentCard")[0].click();
+                if (outerCommentGroup.getElementsByClassName("commentCard")[0]){
+                    outerCommentGroup.getElementsByClassName("commentCard")[0].click();
+                }
             }
         });
 
@@ -1701,7 +1703,10 @@ function createEditCommentButton(commentObject, buttonText){
     editCommentButton.appendChild(document.createTextNode(buttonText));
     editCommentButton.addEventListener('click', event => {
 
-        event.target.closest(".drag").querySelector(".commentCard").click();        
+        if (event.target.closest(".drag")){
+            event.target.closest(".drag").querySelector(".commentCard").click();
+        }
+               
 
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
