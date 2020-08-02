@@ -31,7 +31,7 @@ function addCodeToZip(zip) {
         for(let i = 0;i < allDirs.length;i++) {
             //get the dir path (JSZip doesn't like the leading / in paths so remove it)
             const dir = allDirs[i];
-            const dirPath = dir.directoryPath.substr(1);
+            const dirPath = dir.directoryPath.substring(1);
             //add an entry for the dir (this is to preserve empty dirs)
             zip.folder(dirPath);
         }
@@ -47,7 +47,7 @@ function addCodeToZip(zip) {
             
             //get the file path and the text in the editor and add the file to the zip
             const fileContents = editor.getSession().getValue();
-            const filePath = file.filePath.substr(1);
+            const filePath = file.filePath.substring(1);
             zip.file(filePath, fileContents);
         }
     }
@@ -204,11 +204,11 @@ function collectDataAboutEvents(stData) {
             storeCommentData(playbackData.comments[nextEvent.id], nextEvent.id, stData);
         }
         
-        //if this is a new dev group
+        //if this is a new dev group add it and all the devs in the group
         if(!stData.devGroups[nextEvent.createdByDevGroupId]) {
-            //store the dev group
-            stData.devGroups[nextEvent.createdByDevGroupId] = playbackData.developerGroups[nextEvent.createdByDevGroupId];
+            storeDevData(nextEvent.createdByDevGroupId, stData)
         }
+
         //the latest event's dev group id to set the current dev group 
         stData.latestDevGroupId = nextEvent.createdByDevGroupId;
 
@@ -219,22 +219,27 @@ function collectDataAboutEvents(stData) {
         stData.events.push(nextEvent);
     }
 
-    //now add all of the developers in the dev groups collected so far
-    for(let devGroupId in stData.devGroups) {
-        const memberIds = stData.devGroups[devGroupId].memberIds;
-        for(let i = 0;i < memberIds.length;i++) {
-            const memberId = memberIds[i];
+    //store the project title and branch id
+    stData.project.title = playbackData.playbackTitle;
+    stData.project.branchId = playbackData.branchId; //TODO change this for every new download???
+}
+/*
+ * Stores info about a dev group and devs that are encountered.
+ */
+function storeDevData(devGroupId, stData) {
+    //get the dev group
+    const newDevGroup = playbackData.developerGroups[devGroupId];
+    //store the dev group
+    stData.devGroups[devGroupId] = newDevGroup;
+
+    //add the members of the new group if they are not already present
+    const memberIds = newDevGroup.memberIds;
+    for(let i = 0;i < memberIds.length;i++) {
+        const memberId = memberIds[i];
+        if(!stData.devs[memberId]) {
             stData.devs[memberId] = playbackData.developers[memberId];
         }
     }
-
-    //store the project title and branch id
-    stData.project.title = playbackData.title;
-    stData.project.branchId = playbackData.branchId; //TODO change this for every new download???
-    
-    //store the project data
-    stData.project.title = playbackData.playbackTitle;
-    stData.project.branchId = playbackData.branchId;
 }
 /*
  * Update the file system based on the event.
@@ -293,20 +298,13 @@ function updateFileSystem(nextEvent, stData) {
         //remove the path to id mapping
         delete stData.pathToDirIdMap[nextEvent.directoryPath];
     } else if(nextEvent.type === 'RENAME DIRECTORY') {
-        //update the directory's path
-        stData.allDirs[nextEvent.directoryId].currentPath = nextEvent.newDirectoryPath;
-        //adjust the path to id mapping
-        const directoryId = stData.pathToDirIdMap[nextEvent.oldDirectoryPath];
-        stData.pathToDirIdMap[nextEvent.newDirectoryPath] = directoryId;
-        delete stData.pathToDirIdMap[nextEvent.oldDirectoryPath];
+        //adjust the path to id mappings and the current paths of the files/dirs affected by the dir rename
+        updateFileAndDirPaths(stData, nextEvent.oldDirectoryPath, nextEvent.newDirectoryPath);
     } else if(nextEvent.type === 'MOVE DIRECTORY') {
-        //update the directory's path
-        stData.allDirs[nextEvent.directoryId].currentPath = nextEvent.newDirectoryPath;
+        //update the directory's parent dir id
         stData.allDirs[nextEvent.directoryId].parentDirectoryId = nextEvent.newParentDirectoryId;
-        //adjust the path to id mapping
-        const directoryId = stData.pathToDirIdMap[nextEvent.oldDirectoryPath];
-        stData.pathToDirIdMap[nextEvent.newDirectoryPath] = directoryId;
-        delete stData.pathToDirIdMap[nextEvent.oldDirectoryPath];
+        //adjust the path to id mappings and the current paths of the files/dirs affected by the dir move
+        updateFileAndDirPaths(stData, nextEvent.oldDirectoryPath, nextEvent.newDirectoryPath);
     } else if(nextEvent.type === 'INSERT') {
         //insert the character
         addInsertEventByPos(stData.textFileContents[nextEvent.fileId], nextEvent.id, nextEvent.character, nextEvent.lineNumber - 1, nextEvent.column - 1);
@@ -315,7 +313,61 @@ function updateFileSystem(nextEvent, stData) {
         removeInsertEventByPos(stData.textFileContents[nextEvent.fileId], nextEvent.lineNumber - 1, nextEvent.column - 1);
     }
 }
+/*
+ * Updates the current paths in allFiles and allDirs and values in the path to 
+ * id mapping objects when a dir is moved or renamed.
+ */
+function updateFileAndDirPaths(stData, oldDirectoryPath, newDirectoryPath) {
+    //path to id mapping
+    //update all of the files that have the moved/renamed dir as part of the path
+    for(let filePath in stData.pathToFileIdMap) {
+        //if the file is somewhere within the old dir
+        if(filePath.startsWith(oldDirectoryPath)) {
+            //create a new path with the old dir path replaced with the new one
+            const newFilePath = `${newDirectoryPath}${filePath.substring(oldDirectoryPath.length)}`;
+            //add a new entry and remove the old one
+            const fileId = stData.pathToFileIdMap[filePath];
+            stData.pathToFileIdMap[newFilePath] = fileId;
+            delete stData.pathToFileIdMap[filePath];
+        }
+    }
+    //update all of the subdirectories that have the moved/renamed dir as part of the path
+    for(let dirPath in stData.pathToDirIdMap) {
+        //if the dir is somewhere within the old dir
+        if(dirPath.startsWith(oldDirectoryPath)) {
+            //create a new path with the old dir path replaced with the new one
+            const newDirPath = `${newDirectoryPath}${dirPath.substring(oldDirectoryPath.length)}`;
+            //add a new entry and remove the old one
+            const dirId = stData.pathToDirIdMap[dirPath];
+            stData.pathToDirIdMap[newDirPath] = dirId;
+            delete stData.pathToDirIdMap[dirPath];
+        }
+    }
 
+    //all files/dirs
+    //update all of the current paths
+    for(let fileId in stData.allFiles) {
+        //get the file and its current path
+        const file = stData.allFiles[fileId];
+        const filePath = file.currentPath;
+        //if the file is somewhere within the old dir
+        if(filePath.startsWith(oldDirectoryPath)) {
+            //replace the old current path with a new one
+            file.currentPath = `${newDirectoryPath}${filePath.substring(oldDirectoryPath.length)}`;
+        }
+    }
+    //update all of the current paths
+    for(let dirId in stData.allDirs) {
+        //get the dir and its current path
+        const dir = stData.allDirs[dirId];
+        const dirPath = dir.currentPath;
+        //if the dir is somewhere within the old dir
+        if(dirPath.startsWith(oldDirectoryPath)) {
+            //replace the old current path with a new one
+            dir.currentPath = `${newDirectoryPath}${dirPath.substring(oldDirectoryPath.length)}`;
+        }
+    }
+}
 /*
  * Adds the comment data.
  */
