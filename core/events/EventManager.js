@@ -447,7 +447,7 @@ class EventManager extends FileBackedCollection {
                 bulkInserts.push(insertTextEvent);
 
                 //insert the character in the text file state
-                file.addInsertEventByPos(eventId, newText, row, col);
+                file.addInsertEventByPos(eventId, insertTextEvent['character'], row, col);
 
                 //if this code character was a newline
                 if(newText === '\n' || newText === '\r\n') {
@@ -489,7 +489,7 @@ class EventManager extends FileBackedCollection {
             const insertEventBeingDeleted = file.getEvent(row, col);
             
             //if a windows newline is being removed
-            if(insertEventBeingDeleted.character === '\r\n') {
+            if(insertEventBeingDeleted.character === 'CR-LF') {
                 //the editor will have an extra character (it counts \r and \n 
                 //as two separate characters whereas we store it in a single event)
                 //remove the extra character

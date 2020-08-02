@@ -2,13 +2,13 @@
  * Insert the new character into the Ace editor at the correct position.
  */
 function insertEvent(nextEvent) {
-    //If the character is not a '\n' NEWLINE or '\t' TAB
+    //If the character is not a '\n' (NEWLINE), \r\n (CR-LF) or '\t' (TAB)
     if(nextEvent.character.length === 1) {
         //get the Ace editor that the insert will go into and insert at the row/column of the event
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, nextEvent.character);
     }    
-    //If the character is a '\n', insert a new line 
-    else if (nextEvent.character === 'NEWLINE') {
+    //If the character is a '\n' or '\r\n', insert a new line 
+    else if (nextEvent.character === 'NEWLINE' || nextEvent.character === 'CR-LF') {
         //get the Ace editor the new line will go into and insert at the row/column of the event
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, '\n');
     }
@@ -30,7 +30,7 @@ function insertEventReverse(nextEvent) {
  * Deletes the character from the Ace editor at the correct position.
  */
 function deleteEvent(nextEvent) {
-    if (nextEvent.character === 'NEWLINE') {
+    if (nextEvent.character === 'NEWLINE' || nextEvent.character === 'CR-LF') {
         //create a new AceRange from the end of the starting line to the beginning of the next line
         //remove characters in that range from the Ace editor
         playbackData.editors[nextEvent.fileId].getSession().remove(new AceRange(nextEvent.lineNumber-1, nextEvent.column-1,nextEvent.lineNumber, 0));

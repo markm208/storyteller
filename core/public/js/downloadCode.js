@@ -155,8 +155,11 @@ async function addStorytellerProjectHistoryToZip(zip, withComments) {
         devs: {},
         latestDevGroupId: '',
         events: [],
-        files: {},
-        dirs: {},
+        allFiles: {},
+        textFileContents: {},
+        allDirs: {},
+        pathToFileIdMap: {},
+        pathToDirIdMap: {},
         project: {
             title: '',
             branchId: ''
@@ -170,23 +173,25 @@ async function addStorytellerProjectHistoryToZip(zip, withComments) {
     //get the comments up to this point in the playback and store in the comments dir
     await createCommentsFile(stData, zip, withComments);
 
-    //get the media up to this point in the playback and store in the media dir
-    //await createCommentMedia(stData, zip);
-
     //get the devs up to this point in the playback and store in the devs dir
     createDevsFile(stData, zip);
     
-    //get the events up to this point in the playback and store in the events dir
     //get the fs data up to this point in the playback and store in the fs dir
+    createFSFile(stData, zip);
+
+    //get the events up to this point in the playback and store in the events dir
+    createEventsFile(stData, zip);
+    
     //get the project data up to this point in the playback and store in the project dir
+    createProjectFile(stData, zip);
 }
 /*
  * March through the events from the beginning until the pause point and collect
  * information from the events. 
  */
 function collectDataAboutEvents(stData) {
-    //store the description comment
-    stData.comments['ev--1'] = playbackData.comments['ev--1'];
+    //store the description comment block
+    storeCommentData(playbackData.comments['ev--1'], 'ev--1', stData);
 
     //start at the beginning and move until the pause point in the playback
     for(let i = 0;i < playbackData.nextEventPosition;i++) {
@@ -195,23 +200,8 @@ function collectDataAboutEvents(stData) {
 
         //is there a comment associated with this event
         if(playbackData.comments[nextEvent.id]) {
-            const comments = playbackData.comments[nextEvent.id];
-            //store the comment to be added to the zip
-            stData.comments[nextEvent.id] = comments;
-            //collect the media URLs from the comments
-            for(let i = 0;i < comments.length;i++) {
-                const comment = comments[i];
-                //store the media URLs in the comments (use an object so there are no repeats)
-                if(comment.imageURLs.length > 0) {
-                    comment.imageURLs.forEach(imageURL => stData.commentImageURLs[imageURL] = imageURL);
-                }
-                if(comment.videoURLs.length > 0) {
-                    comment.videoURLs.forEach(videoURL => stData.commentVideoURLs[videoURL] = videoURL);
-                }
-                if(comment.audioURLs.length > 0) {
-                    comment.audioURLs.forEach(audioURL => stData.commentAudioURLs[audioURL] = audioURL);
-                }
-            }
+            //add the comment data to the st data
+            storeCommentData(playbackData.comments[nextEvent.id], nextEvent.id, stData);
         }
         
         //if this is a new dev group
@@ -222,10 +212,11 @@ function collectDataAboutEvents(stData) {
         //the latest event's dev group id to set the current dev group 
         stData.latestDevGroupId = nextEvent.createdByDevGroupId;
 
+        //update the fs 
+        updateFileSystem(nextEvent, stData);
+
         //add the event
         stData.events.push(nextEvent);
-
-        //TODO files and dirs
     }
 
     //now add all of the developers in the dev groups collected so far
@@ -240,6 +231,111 @@ function collectDataAboutEvents(stData) {
     //store the project title and branch id
     stData.project.title = playbackData.title;
     stData.project.branchId = playbackData.branchId; //TODO change this for every new download???
+    
+    //store the project data
+    stData.project.title = playbackData.playbackTitle;
+    stData.project.branchId = playbackData.branchId;
+}
+/*
+ * Update the file system based on the event.
+ */
+function updateFileSystem(nextEvent, stData) {
+    if(nextEvent.type === 'CREATE FILE') {
+        //add an entry for the file
+        stData.allFiles[nextEvent.fileId] = {
+            parentDirectoryId: nextEvent.parentDirectoryId,
+            currentPath: nextEvent.filePath,
+            isDeleted: 'false',
+            id: nextEvent.fileId,
+            lastModifiedDate: nextEvent.timestamp,
+            textFileInsertEvents: []
+        };
+        //create an entry for the path to id map
+        stData.pathToFileIdMap[nextEvent.filePath] = nextEvent.fileId;
+
+        //add an entry for the file contents
+        stData.textFileContents[nextEvent.fileId] = []; 
+    } else if(nextEvent.type === 'DELETE FILE') {
+        //mark the file as deleted
+        stData.allFiles[nextEvent.fileId].isDeleted = 'true';
+        //remove the path to id mapping
+        delete stData.pathToFileIdMap[nextEvent.filePath];
+        //remove the file contents
+        delete stData.textFileContents[nextEvent.fileId];
+    } else if(nextEvent.type === 'RENAME FILE') {
+        //update the file's path
+        stData.allFiles[nextEvent.fileId].currentPath = nextEvent.newFilePath;
+        //adjust the path to id mapping
+        const fileId = stData.pathToFileIdMap[nextEvent.oldFilePath];
+        stData.pathToFileIdMap[nextEvent.newFilePath] = fileId;
+        delete stData.pathToFileIdMap[nextEvent.oldFilePath];
+    } else if(nextEvent.type === 'MOVE FILE') {
+        //update the file's path
+        stData.allFiles[nextEvent.fileId].currentPath = nextEvent.newFilePath;
+        stData.allFiles[nextEvent.fileId].parentDirectoryId = nextEvent.newParentDirectoryId;
+        //adjust the path to id mapping
+        const fileId = stData.pathToFileIdMap[nextEvent.oldFilePath];
+        stData.pathToFileIdMap[nextEvent.newFilePath] = fileId;
+        delete stData.pathToFileIdMap[nextEvent.oldFilePath];
+    } else if(nextEvent.type === 'CREATE DIRECTORY') {
+        //add an entry for the directory
+        stData.allDirs[nextEvent.directoryId] = {
+            parentDirectoryId: nextEvent.parentDirectoryId,
+            currentPath: nextEvent.directoryPath,
+            isDeleted: 'false',
+            id: nextEvent.directoryId
+        };
+        //create an entry for the path to id map
+        stData.pathToDirIdMap[nextEvent.directoryPath] = nextEvent.directoryId;
+    } else if(nextEvent.type === 'DELETE DIRECTORY') {
+        //mark the directory as deleted
+        stData.allDirs[nextEvent.directoryId].isDeleted = 'true';
+        //remove the path to id mapping
+        delete stData.pathToDirIdMap[nextEvent.directoryPath];
+    } else if(nextEvent.type === 'RENAME DIRECTORY') {
+        //update the directory's path
+        stData.allDirs[nextEvent.directoryId].currentPath = nextEvent.newDirectoryPath;
+        //adjust the path to id mapping
+        const directoryId = stData.pathToDirIdMap[nextEvent.oldDirectoryPath];
+        stData.pathToDirIdMap[nextEvent.newDirectoryPath] = directoryId;
+        delete stData.pathToDirIdMap[nextEvent.oldDirectoryPath];
+    } else if(nextEvent.type === 'MOVE DIRECTORY') {
+        //update the directory's path
+        stData.allDirs[nextEvent.directoryId].currentPath = nextEvent.newDirectoryPath;
+        stData.allDirs[nextEvent.directoryId].parentDirectoryId = nextEvent.newParentDirectoryId;
+        //adjust the path to id mapping
+        const directoryId = stData.pathToDirIdMap[nextEvent.oldDirectoryPath];
+        stData.pathToDirIdMap[nextEvent.newDirectoryPath] = directoryId;
+        delete stData.pathToDirIdMap[nextEvent.oldDirectoryPath];
+    } else if(nextEvent.type === 'INSERT') {
+        //insert the character
+        addInsertEventByPos(stData.textFileContents[nextEvent.fileId], nextEvent.id, nextEvent.character, nextEvent.lineNumber - 1, nextEvent.column - 1);
+    } else if(nextEvent.type === 'DELETE') {
+        //remove the character
+        removeInsertEventByPos(stData.textFileContents[nextEvent.fileId], nextEvent.lineNumber - 1, nextEvent.column - 1);
+    }
+}
+
+/*
+ * Adds the comment data.
+ */
+function storeCommentData(comments, eventId, stData) {
+    //store the comment to be added to the zip
+    stData.comments[eventId] = comments;
+    //collect the media URLs from the comments
+    for(let i = 0;i < comments.length;i++) {
+        const comment = comments[i];
+        //store the media URLs in the comments (use an object so there are no repeats)
+        if(comment.imageURLs.length > 0) {
+            comment.imageURLs.forEach(imageURL => stData.commentImageURLs[imageURL] = imageURL);
+        }
+        if(comment.videoURLs.length > 0) {
+            comment.videoURLs.forEach(videoURL => stData.commentVideoURLs[videoURL] = videoURL);
+        }
+        if(comment.audioURLs.length > 0) {
+            comment.audioURLs.forEach(audioURL => stData.commentAudioURLs[audioURL] = audioURL);
+        }
+    }
 }
 /*
  * Create the comments.json file in the zip.
@@ -281,6 +377,49 @@ function createDevsFile(stData, zip) {
     zip.file('.storyteller/devs/devs.json', JSON.stringify(devsObject));
 }
 /*
+ * Create the fs file.
+ */
+function createFSFile(stData, zip) {
+    Object.values(stData.allFiles).forEach(file => {
+        file['textFileInsertEvents'] = stData.textFileContents[file.id];
+    });
+
+    const fsObject = {
+        allFiles: stData.allFiles,
+        allDirs: stData.allDirs,
+        pathToFileIdMap: stData.pathToFileIdMap,
+        pathToDirIdMap: stData.pathToDirIdMap,
+        fileAutoGeneratedId: Object.keys(stData.pathToFileIdMap).length,
+        directoryAutoGeneratedId: Object.keys(stData.pathToDirIdMap).length
+    };
+
+    //add the fs data to the zip
+    zip.file('.storyteller/fs/filesAndDirs.json', JSON.stringify(fsObject));
+}
+/*
+ * Create the events file.
+ */
+function createEventsFile(stData, zip) {
+    const eventsObject = {
+        events: stData.events,
+        eventAutoGeneratedId: stData.events.length 
+    };
+
+    //add the event data to the zip
+    zip.file('.storyteller/events/events.json', JSON.stringify(eventsObject));
+}
+/*
+ * Create the project file.
+ */
+function createProjectFile(stData, zip) {
+    const projectObject = {
+        title: stData.project.title,
+        branchId: stData.project.branchId
+    };
+    //add the event data to the zip
+    zip.file('.storyteller/project/project.json', JSON.stringify(projectObject));
+}
+/*
  * Fetch each media element and store it in the zip
  */
 async function createCommentMedia(commentMediaURLs, zip) {
@@ -292,51 +431,95 @@ async function createCommentMedia(commentMediaURLs, zip) {
     for(let i = 0;i < mediaBlobs.length;i++) {
         zip.file(`.storyteller/comments${commentMediaURLs[i]}`, mediaBlobs[i]);
     }
-
-    
-
-
-    // //get the unique web urls of the images in the comments so far
-    // const commentImageURLs = Object.keys(stData.commentImageURLs);
-    
-    // //fetch the images and turn them into blobs
-    // const imageResults = await Promise.all(commentImageURLs.map(url => fetch(url)));
-    // const imageBlobs = await Promise.all(imageResults.map(imageResult => imageResult.blob()));
-
-    // //add the blobs to the zip
-    // for(let i = 0;i < imageBlobs.length;i++) {
-    //     zip.file(`.storyteller/comments${commentImageURLs[i]}`, imageBlobs[i]);
-    // }
-
-
-    // //get the unique web urls of the videos in the comments so far
-    // const commentVideoURLs = Object.keys(stData.commentVideoURLs);
-
-    // //fetch the videos and turn them into blobs
-    // const videoResults = await Promise.all(commentVideoURLs.map(url => fetch(url)));
-    // const videBlobs = await Promise.all(videoResults.map(videoResult => videoResult.blob()));
-
-    // //add the blobs to the zip
-    // for(let i = 0;i < videBlobs.length;i++) {
-    //     zip.file(`.storyteller/comments${commentVideoURLs[i]}`, videBlobs[i]);
-    // }
-    
-    // //get the unique web urls of the audios in the comments so far
-    // const commentAudioURLs = Object.keys(stData.commentAudioURLs);
-
-    // //fetch the audios and turn them into blobs
-    // const audioResults = await Promise.all(commentAudioURLs.map(url => fetch(url)));
-    // const audioBlobs = await Promise.all(audioResults.map(audioResult => audioResult.blob()));
-
-    // //add the blobs to the zip
-    // for(let i = 0;i < audioBlobs.length;i++) {
-    //     zip.file(`.storyteller/comments${commentAudioURLs[i]}`, audioBlobs[i]);
-    // }
-
 }
 /*
  *
  */
 function zipAndDownloadCodeOnlyWithHistoryAtComments() {
 
+}
+
+/*
+ * Creates a minimal insert event and adds it in its correct position in 
+ * the file. 
+ */
+function addInsertEventByPos(textFileInsertEvents, eventId, eventCharacter, row, col) {
+    //create a minimal insert event from the full event
+    const event = {
+        id: eventId,
+        character: eventCharacter
+    };
+        
+    //if this is the first insert on a new row (underneath the current last row)
+    if(row === textFileInsertEvents.length) { 
+        //create a new row at the bottom with the new event
+        textFileInsertEvents.push([event]);
+    } else { //the insert is in an existing row
+        //insert somewhere in the middle
+        textFileInsertEvents[row].splice(col, 0, event);
+    }
+    
+    //if the new character was a newline character
+    if(eventCharacter === 'NEWLINE' || eventCharacter === 'CR-LF') {
+        //get the rest of the line after the newline character
+        const restOfLine = textFileInsertEvents[row].splice(col + 1, textFileInsertEvents[row].length - col);
+        
+        //add a new row that the newline created with the end of the current line
+        textFileInsertEvents.splice(row + 1, 0, restOfLine); 
+    }
+}
+
+/*
+ * Removes a minimal event from the 2D collection when something is 
+ * deleted.
+ */
+function removeInsertEventByPos(textFileInsertEvents, row, col) {
+    //if we are removing a newline character
+    if(textFileInsertEvents[row][col].character === 'NEWLINE' || textFileInsertEvents[row][col].character === 'CR-LF') {
+        //remove the newline character from its line
+        textFileInsertEvents[row].splice(col, 1);
+
+        //if there is a 'next' row, move all the elements up to this row
+        if(row + 1 < textFileInsertEvents.length) {
+            //get the next row (it may be an empty row)
+            const copyElements = textFileInsertEvents[row + 1].splice(0);
+
+            //add the elements to the current row
+            for(let i = 0;i < copyElements.length;i++) {
+                textFileInsertEvents[row].push(copyElements[i]);                
+            }
+            
+            //remove the row that we copied all of the elements over
+            textFileInsertEvents.splice(row + 1, 1);
+        } //else- this is the last row in the file- there is not another row after this one to copy over            
+    } else { //removing a non-newline
+        //remove the id
+        textFileInsertEvents[row].splice(col, 1);
+    }
+    
+    //if there is nothing left on the row
+    if(textFileInsertEvents[row].length === 0) {
+        //remove the row
+        textFileInsertEvents.splice(row, 1);
+    }
+}
+function getText(textFileInsertEvents) {
+    //text in the file
+    let text = '';
+
+    //go through the entire 2D array of events
+    for(let line = 0;line < textFileInsertEvents.length;line++) {
+        for(let column = 0;column < textFileInsertEvents[line].length;column++) {
+            if(textFileInsertEvents[line][column].character === 'NEWLINE' || textFileInsertEvents[line][column].character === 'CR-LF') {
+                text += '\n';
+            } else if(textFileInsertEvents[line][column].character === 'TAB') {
+                text += '\t';
+            } else {
+                //append the code character to a string
+                text += textFileInsertEvents[line][column].character;
+            }
+        }
+    }
+
+    return text;
 }

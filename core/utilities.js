@@ -33,8 +33,10 @@ function createRandomNumberBase62(numDigits) {
 function escapeSpecialCharacter(character) {
     let retVal = character;
     
-    if(character === '\n' || character === '\r\n') {
+    if(character === '\n') {
         retVal = 'NEWLINE';
+    } else if(character === '\r\n') {
+        retVal = 'CR-LF';
     } else if (character === '\t') {
         retVal = 'TAB';
     }
