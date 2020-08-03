@@ -373,44 +373,40 @@ function setupEventListeners()
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
             {
-                if (ctrlPressed)
-                {
-                    //ctrl right is jump to end of playback
-                    playPauseButton.click();
-                }
-                else
-                {
-                    //right arrow steps forward one event
-                    step(1);
-                }
+                //left and right arrow are step one
+                step(1);
             }
             else
             {
                 if (ctrlPressed)
                 {
+                    //shift + control is jump to beginning or end
                     step(playbackData.events.length - playbackData.nextEventPosition);
+                }
+                else
+                {
+                    //shift + left/right arrow is jump to next comment
+                    playPauseButton.click();
                 }
             }
         }
         else if (keyPressed === 'ArrowLeft'){
             if (!shiftPressed)
             {
-                if (ctrlPressed)
-                {
-                    //ctrl left is jump to the beginning of the playback
-                    jumpToPreviousComment();
-                }
-                else
-                {
-                    //left arrow steps back one event
-                    step(-1);
-                }
+                //left and right arrow are step one
+                step(-1);
             }
             else
             {
                 if (ctrlPressed)
                 {
+                    //shift + control is jump to beginning or end
                     step(-playbackData.nextEventPosition);
+                }
+                else
+                {
+                    //shift + left/right arrow is jump to next comment
+                    jumpToPreviousComment();
                 }
             }
         }
