@@ -2,7 +2,11 @@
     font-weight: bold;
 }
 
-.activeComment,
+.activeComment {
+    
+}
+
+.activeCommentBorder,
 .activeGroup{
     border: solid thin #007bff;
 }
