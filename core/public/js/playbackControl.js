@@ -19,6 +19,12 @@ function step(numSteps) {
         playbackSlider.value = playbackData.nextEventPosition;
     } //else- no need to move at all
 
+    //get the active editor
+    const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+    
+    //scroll to the cursor
+    const cursorPosition= editor.getCursorPosition();
+    editor.renderer.scrollCursorIntoView({row: cursorPosition.row, column: cursorPosition.column}, 0.5);
 }
 /*
  * Handles moving forward through some events.
@@ -173,6 +179,9 @@ function stepForward(numSteps) {
 
         //const t1 = performance.now();
         //console.log(`step forward took: ${t1-t0} ms`);
+    }
+    else{
+        stopAutomaticPlayback();
     }
 }
 /*

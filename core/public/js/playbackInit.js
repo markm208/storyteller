@@ -99,7 +99,7 @@ function setupEventListeners()
     const stepBackOne = document.getElementById("stepBackOne");
     const stepForwardOne = document.getElementById("stepForwardOne");
     const playbackSlider = document.getElementById("playbackSlider");
-    const playPauseButton = document.getElementById("playPauseButton");
+    const fastForwardButton = document.getElementById("fastForwardButton");
 
     const topBar = document.getElementById('top-bar');
 
@@ -113,10 +113,12 @@ function setupEventListeners()
     //add event handlers for clicking the buttons
     stepBackOne.addEventListener('click', event => {
         step(-1);
+        stopAutomaticPlayback();
     });
 
     stepForwardOne.addEventListener('click', event => {
         step(1);
+        stopAutomaticPlayback();
     });
 
     //add event handler to listen for changes to the slider
@@ -124,6 +126,7 @@ function setupEventListeners()
 
         //take the slider value and subtract the next event's position
         step(Number(playbackSlider.value) - playbackData.nextEventPosition);
+        stopAutomaticPlayback();
     });
 
     //Setup the title buttons and data
@@ -138,6 +141,7 @@ function setupEventListeners()
     acceptTitleChanges.style.display = "none";
 
     editTitleButton.addEventListener('click', event => {
+        stopAutomaticPlayback();
         playbackTitleDiv.setAttribute("contenteditable", "true");
 
         editTitleButton.style.display = "none";
@@ -245,7 +249,8 @@ function setupEventListeners()
     };
 
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
-        
+        stopAutomaticPlayback();
+
         const textCommentTextArea = document.getElementById('textCommentTextArea');
         
         //getting all video files in order
@@ -336,7 +341,7 @@ function setupEventListeners()
     });
 
     document.getElementById("CancelUpdateButton").addEventListener('click', event => {
-
+        stopAutomaticPlayback();
 
         const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
         const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
@@ -398,7 +403,7 @@ function setupEventListeners()
                 else
                 {
                     //shift + left/right arrow is jump to next comment
-                    playPauseButton.click();
+                    fastForwardButton.click();
                 }
             }
         }
@@ -425,7 +430,9 @@ function setupEventListeners()
 
     });
 
-    playPauseButton.addEventListener('click', event =>{
+    fastForwardButton.addEventListener('click', event =>{
+        stopAutomaticPlayback();
+
         //generate a list of all commentCards
         const allCommentCards = [...document.getElementsByClassName("commentCard")];
 
@@ -496,7 +503,9 @@ function setupEventListeners()
     makeDivDroppable($('.video-preview')[0], false);
     makeDivDroppable($('.audio-preview')[0], false);
 
-    document.getElementById("mainAddCommentButton").addEventListener('click', event => {        
+    document.getElementById("mainAddCommentButton").addEventListener('click', event => {     
+        stopAutomaticPlayback();
+           
         document.getElementById("addCommentTab").click();
         document.getElementById('textCommentTextArea').focus();
         document.getElementById("viewCommentsTab").classList.add("disabled");
@@ -523,6 +532,30 @@ function setupEventListeners()
     $('#deleteMediaButton').on("hidden.bs.popover", function(e){
         $('#deleteMediaButton').popover("disable");
     });
+
+    document.getElementById("continuousPlayButton").addEventListener('click', event => {
+        document.getElementById("continuousPlayButton").style.display = "none";
+        document.getElementById("pausePlayButton").style.display = "block";
+        playbackInterval = setInterval(function(){
+            step(1);
+            if (playbackData.comments["ev-" + playbackData.nextEventPosition]){
+                step(1);
+                stopAutomaticPlayback();
+            }
+        }, 100)
+    });
+
+    document.getElementById("pausePlayButton").addEventListener('click', event => {
+        stopAutomaticPlayback();
+    });
+    
+}
+
+
+function stopAutomaticPlayback(){
+    document.getElementById("continuousPlayButton").style.display = "block";
+    document.getElementById("pausePlayButton").style.display = "none";
+    clearInterval(playbackInterval);
 }
 
 function jumpToPreviousComment()

@@ -123,9 +123,11 @@
                 <!-- minimal controls -->
                 <div id="playbackControls"> 
                      <div class="d-flex">
-                        <button id="playPauseButton" class="btn" onclick="this.blur();"><img src="https://img.icons8.com/fluent/48/000000/play.png"/> </button>
+                        <button id="fastForwardButton" class="btn" onclick="this.blur();"><img src="https://img.icons8.com/fluent/48/000000/fast-forward.png"/> </button>
                         <input type="range" id="playbackSlider" min="0" max="0" value="0" class="custom-range slider" list="tickmarks"/>
                         <button id="stepBackOne" class="btn" onclick="this.blur();"><i class="fa fa-chevron-left"></i></button>
+                        <button id="continuousPlayButton" class="=btn" ><img src="https://img.icons8.com/fluent/24/000000/play.png"/></button>
+                        <button id="pausePlayButton" class="=btn" style="display:none;"><img src="https://img.icons8.com/fluent/24/000000/pause.png"/></button>
                         <button id="stepForwardOne" class="btn" onclick="this.blur();"><i class="fa fa-chevron-right"></i></button>
                         <div id="currentDevsDiv" class="currentDevs">
                         </div>
@@ -262,6 +264,8 @@
         const AceRange = ace.require('ace/range').Range;
 
         const commentsDiv = document.getElementById('commentContentDiv');
+
+        let playbackInterval = null;
 
         //indicates whether the change can from the textarea not editing in ace
         let changeOutsideEditor = false;
