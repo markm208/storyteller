@@ -116,13 +116,13 @@ async function downloadZip(zip) {
  * Recreates a storyteller project (with or without comments) and gives the 
  * user a link to a zip file to download.
  */
-async function zipAndDownloadCodeWithHistory(withComments) {
+async function zipCodeWithHistory(withComments) {
     //create a new zip
     const zip = new JSZip();
     //add only the code to the zip
     addCodeToZip(zip);
     //add the data required to make this a storyeller project
-    await addStorytellerProjectHistoryToZip(zip, withComments);
+    await addStorytellerProjectHistoryToZip(playbackData.events.slice(0, playbackData.nextEventPosition), zip, withComments);
     //cause the zip to be downloaded
     downloadZip(zip);
 }
@@ -130,7 +130,7 @@ async function zipAndDownloadCodeWithHistory(withComments) {
  * Adds the required data to make this zip a true storyteller project that can 
  * added to. 
  */
-async function addStorytellerProjectHistoryToZip(zip, withComments) {
+async function addStorytellerProjectHistoryToZip(events, zip, withComments) {
     //add the required directories for a storyteller project
     zip.folder('.storyteller');
     zip.folder('.storyteller/comments');
@@ -168,7 +168,7 @@ async function addStorytellerProjectHistoryToZip(zip, withComments) {
 
     //move through the events up to the pause point and collect only the data
     //that has been used so far
-    collectDataAboutEvents(stData);
+    collectDataAboutEvents(events, stData);
 
     //get the comments up to this point in the playback and store in the comments dir
     await createCommentsFile(stData, zip, withComments);
@@ -189,14 +189,14 @@ async function addStorytellerProjectHistoryToZip(zip, withComments) {
  * March through the events from the beginning until the pause point and collect
  * information from the events. 
  */
-function collectDataAboutEvents(stData) {
+function collectDataAboutEvents(events, stData) {
     //store the description comment block
     storeCommentData(playbackData.comments['ev--1'], 'ev--1', stData);
 
     //start at the beginning and move until the pause point in the playback
-    for(let i = 0;i < playbackData.nextEventPosition;i++) {
+    for(let i = 0;i < events.length;i++) {
         //grab the next event
-        nextEvent = playbackData.events[i];
+        nextEvent = events[i];
 
         //is there a comment associated with this event
         if(playbackData.comments[nextEvent.id]) {
@@ -487,10 +487,198 @@ async function createCommentMedia(commentMediaURLs, zip) {
 /*
  *
  */
-function zipAndDownloadCodeOnlyWithHistoryAtComments() {
+async function zipAtComments() {
+    //holds all of the events where some of the events from playbackData.events may be thrown out
+    const allEvents = [];
+    //holds the state of the files
+    const textFileContents = {};
+    const lineLengths = {};
+    //by file collection of fresh inserts
+    let freshInserts = {};
+    //groups of events in between comment points
+    let eventsBetweenComments = [];
 
+    //go through all of the events up to the pause point stopping at comments
+    for(let i = 0;i < playbackData.nextEventPosition;i++) {
+        //copy the event since it may be changed for the zip (don't want to mess up the current playback)
+        let nextEvent = Object.assign({}, playbackData.events[i]);
+
+        //capture all new inserts in this block
+        if(nextEvent.type === 'INSERT') {
+            //if this is the first fresh insert in a file
+            if(!freshInserts[nextEvent.fileId]) {
+                freshInserts[nextEvent.fileId] = {};
+            }
+            //store the fresh insert event 
+            freshInserts[nextEvent.fileId][nextEvent.id] = nextEvent;
+        } else if(nextEvent.type === 'DELETE') { 
+            //if a fresh insert has been deleted and there is no comment on this delete event
+            if(freshInserts[nextEvent.fileId][nextEvent.previousNeighborId] && !playbackData.comments[nextEvent.id]) {
+                //mark the previously encountered fresh insert event as deleted
+                freshInserts[nextEvent.fileId][nextEvent.previousNeighborId].isDeleted = true;
+                //mark this delete event as well since it won't be needed
+                nextEvent.isDeleted = true;
+            }
+        }
+        //add the event to the latest group
+        eventsBetweenComments.push(nextEvent);
+
+        //if there is a comment at this event
+        if(playbackData.comments[nextEvent.id] || i === (playbackData.nextEventPosition - 1)) {
+            //get only the events that were not inserted and then deleted in between comments
+            const noDeletedEvents = getEventsWithoutDeletes(eventsBetweenComments, freshInserts, textFileContents, lineLengths);
+            //add the (possibly) smaller set of (possibly altered) events to the group that will be written to the playback
+            noDeletedEvents.forEach(event => allEvents.push(event));
+
+            //reset these for the next group
+            freshInserts = {};
+            eventsBetweenComments = [];
+        } 
+    }
+
+    //create a new zip
+    const zip = new JSZip();
+    //add only the code to the zip
+    addCodeToZip(zip);
+    //add the data required to make this a storyeller project
+    await addStorytellerProjectHistoryToZip(allEvents, zip, true);
+    //cause the zip to be downloaded
+    downloadZip(zip);
+}
+/*
+ *
+ */
+function getEventsWithoutDeletes(eventsBetweenComments, freshInserts, textFileContents, lineLengths) {
+    //all events with the recently inserted and then deleted inserts removed
+    const minimalEvents = [];
+
+    //go through the events in between the comments
+    for(let i = 0;i < eventsBetweenComments.length;i++) {
+        const nextEvent = eventsBetweenComments[i];
+        //do not add events that were added and then deleted to the group to 
+        //write to the zip (inserts or deletes of recent inserts)
+        if(!nextEvent.isDeleted) {
+            minimalEvents.push(nextEvent);
+        }
+        //if a new file is being created
+        if(nextEvent.type === 'CREATE FILE') {
+            //create an entry for the new file- insert events and line lengths
+            textFileContents[nextEvent.fileId] = [];
+            lineLengths[nextEvent.fileId] = [];
+        } else if(nextEvent.type === 'INSERT') {
+            //insert the event
+            const minimalEvent = addInsertEventByPos(textFileContents[nextEvent.fileId], nextEvent.id, nextEvent.character, nextEvent.lineNumber - 1, nextEvent.column - 1);
+            
+            //if this is an insert that was deleted before the comment point
+            if(nextEvent.isDeleted) {
+                //mark the event as deleted
+                minimalEvent.isDeleted = true;
+            } /*else {
+                //if the insert's prev neighbor is deleted
+                if(freshInserts[nextEvent.fileId][nextEvent.previousNeighborId] && freshInserts[nextEvent.fileId][nextEvent.previousNeighborId].isDeleted) { */
+                    //adjust the previous neighbor, line number, and column
+                    adjustInsertEvent(nextEvent, textFileContents[nextEvent.fileId], lineLengths[nextEvent.fileId]);
+                /*}*/ 
+                if(lineLengths[nextEvent.fileId][nextEvent.lineNumber - 1]) {
+                    lineLengths[nextEvent.fileId][nextEvent.lineNumber - 1]++;
+                } else {
+                    lineLengths[nextEvent.fileId].push(1);
+                }
+            /*}*/
+        } else if(nextEvent.type === 'DELETE') {
+            //remove the insert
+            removeInsertEventByPos(textFileContents[nextEvent.fileId], nextEvent.lineNumber - 1, nextEvent.column - 1);
+
+            //update the line lengths
+            if(nextEvent.isDeleted === false) {
+                lineLengths[nextEvent.fileId][nextEvent.lineNumber - 1]--;
+            }
+
+            if(nextEvent.character === 'NEWLINE' || nextEvent.character === 'CR-LF') {
+                lineLengths[nextEvent.fileId][nextEvent.lineNumber - 1] += lineLengths[nextEvent.fileId][nextEvent.lineNumber];
+                lineLengths[nextEvent.fileId].splice(nextEvent.lineNumber, 1);
+            }
+        }
+    }
+
+    return minimalEvents;
+}
+/*
+ *
+ */
+function adjustInsertEvent(nextEvent, textFileInsertEvents, lineLengths) {
+    //get the position of the previous insert event that is not deleted
+    let position = moveBackAnEvent(nextEvent.lineNumber - 1, nextEvent.column - 1, textFileInsertEvents);
+    
+    //while we are not at the beginning of the file and there is a deleted insert
+    while(position.atBeginningOfFile === false && textFileInsertEvents[position.row][position.col].isDeleted) {
+        //move backward again
+        position = moveBackAnEvent(position.row, position.col, textFileInsertEvents);
+    }
+
+    //if we have moved back to the beginning of the file
+    if(position.atBeginningOfFile) {
+        //prev neighbor id of first character in a file
+        nextEvent.previousNeighborId = 'none';
+        nextEvent.lineNumber = 1;
+        nextEvent.column = 1;
+    } else {
+        //store the event id as the new previous neighbor
+        nextEvent.previousNeighborId = textFileInsertEvents[position.row][position.col].id;
+
+        adjustColumn(nextEvent, textFileInsertEvents[position.row]);
+        adjustRow(nextEvent, lineLengths);
+
+        //if its a newline
+        // if(textFileInsertEvents[position.row][position.col].character === 'NEWLINE' || textFileInsertEvents[position.row][position.col].character === 'CR-LF') {
+        //     nextEvent.lineNumber = position.row + 2;
+        //     nextEvent.column = 1;
+        // } else { //not a newline
+        //     nextEvent.lineNumber = position.row + 1;
+        //     nextEvent.column = position.col + 2;
+        // }
+    }
+}
+function adjustColumn(nextEvent, rowOfInserts) {
+    for(let i = nextEvent.column - 1;i >= 0;i--) {
+        if(rowOfInserts[i].isDeleted) {
+            nextEvent.column--;
+        }
+    }
+}
+function adjustRow(nextEvent, lineLengths) {
+    for(let i = nextEvent.lineNumber - 1;i >= 0;i--) {
+        if(lineLengths[i] === 0) {
+            nextEvent.lineNumber--;
+        }
+    }
 }
 
+/*
+ * Moves one event backwards in a file based on a row and col.
+ */
+function moveBackAnEvent(row, col, textFileInsertEvents) {
+    //if the current row and col are the at the beginning of the file
+    let atBeginningOfFile = false;
+
+    //if not at the beginning of a line
+    if(col > 0) {
+        //move back one event in the row
+        col--;
+    } else { //beginning of a line
+        //if not on the first line
+        if(row > 0) {
+            //move up a line
+            row--;
+            //go to the end of the previous line
+            col = textFileInsertEvents[row].length - 1;
+        } else { //row 0, col 0, no room to move backward
+            atBeginningOfFile = true;
+        }
+    }
+    //return info about the previous position
+    return {row, col, atBeginningOfFile};
+}
 /*
  * Creates a minimal insert event and adds it in its correct position in 
  * the file. 
@@ -519,6 +707,8 @@ function addInsertEventByPos(textFileInsertEvents, eventId, eventCharacter, row,
         //add a new row that the newline created with the end of the current line
         textFileInsertEvents.splice(row + 1, 0, restOfLine); 
     }
+
+    return event;
 }
 
 /*
@@ -555,6 +745,9 @@ function removeInsertEventByPos(textFileInsertEvents, row, col) {
         textFileInsertEvents.splice(row, 1);
     }
 }
+/*
+ * Get the text from the file.
+ */
 function getText(textFileInsertEvents) {
     //text in the file
     let text = '';
