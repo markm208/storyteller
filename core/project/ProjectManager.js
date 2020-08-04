@@ -57,7 +57,7 @@ class ProjectManager extends FileBackedCollection {
             this.write();
 
             //create the root dir, /
-            this.createDirectory(this.storytellerDirPath);
+            this.createDirectory(this.storytellerDirPath, false);
         }
 
         //create an http server to listen for editors and playbacks

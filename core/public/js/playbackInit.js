@@ -36,6 +36,18 @@ async function initializePlayback()
         playbackData.playbackTitle = results[5].title;
         playbackData.branchId = results[5].branchId;
 
+        //determines how many non-relevant events there are
+        for (let i = 0; i < playbackData.events.length; i++){
+            if (playbackData.events[i].permanentRelevance === "never relevant"){
+                playbackData.numNonRelevantEvents++;
+                step(1);
+            }
+            else{
+                break;
+            }
+        }
+
+
         if (!playbackData.comments['ev--1'])
         {
             const newDescription = createCommentObject('Insert DESCRIPTION here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
@@ -96,7 +108,7 @@ function setupEventListeners()
     const tabContent = document.getElementById('tabContent');
 
     playbackSlider.setAttribute('max', playbackData.numEvents);
-    playbackSlider.setAttribute('min', 0);
+    playbackSlider.setAttribute('min', playbackData.numNonRelevantEvents);
     
     //add event handlers for clicking the buttons
     stepBackOne.addEventListener('click', event => {

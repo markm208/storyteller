@@ -56,6 +56,7 @@ function stepForward(numSteps) {
             activeDirId = 'no-dir-id';
 
             //check the event type and call the corresponding function for that event type
+            
             switch (nextEvent.type)
             {
                 case 'INSERT':
@@ -179,7 +180,7 @@ function stepForward(numSteps) {
  */
 function stepBackward(numSteps) {
     //if there is room to move backwards
-    if(playbackData.nextEventPosition > 0) {
+    if(playbackData.nextEventPosition > playbackData.numNonRelevantEvents) {
         removeActiveCommentAndGroup();
 
         //holds the next event to animate
