@@ -271,6 +271,8 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     //if this is not here the play button does not work, because the card will have no functionality
     cardFinal.addEventListener('click', function (e){ 
         
+        stopAutomaticPlayback();
+
         //step to the event this comment is at
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
@@ -320,6 +322,9 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     finalDiv.classList.add('commentBox');
 
     finalDiv.addEventListener('click', function(e) {
+        
+        stopAutomaticPlayback();
+
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); 
         for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++){
             addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
