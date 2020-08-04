@@ -36,6 +36,18 @@ async function initializePlayback()
         playbackData.playbackTitle = results[5].title;
         playbackData.branchId = results[5].branchId;
 
+        //determines how many non-relevant events there are
+        for (let i = 0; i < playbackData.events.length; i++){
+            if (playbackData.events[i].permanentRelevance === "never relevant"){
+                playbackData.numNonRelevantEvents++;
+                step(1);
+            }
+            else{
+                break;
+            }
+        }
+
+
         if (!playbackData.comments['ev--1'])
         {
             const newDescription = createCommentObject('Insert DESCRIPTION here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
@@ -96,7 +108,7 @@ function setupEventListeners()
     const tabContent = document.getElementById('tabContent');
 
     playbackSlider.setAttribute('max', playbackData.numEvents);
-    playbackSlider.setAttribute('min', 0);
+    playbackSlider.setAttribute('min', playbackData.numNonRelevantEvents);
     
     //add event handlers for clicking the buttons
     stepBackOne.addEventListener('click', event => {
@@ -373,44 +385,40 @@ function setupEventListeners()
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
             {
-                if (ctrlPressed)
-                {
-                    //ctrl right is jump to end of playback
-                    playPauseButton.click();
-                }
-                else
-                {
-                    //right arrow steps forward one event
-                    step(1);
-                }
+                //left and right arrow are step one
+                step(1);
             }
             else
             {
                 if (ctrlPressed)
                 {
+                    //shift + control is jump to beginning or end
                     step(playbackData.events.length - playbackData.nextEventPosition);
+                }
+                else
+                {
+                    //shift + left/right arrow is jump to next comment
+                    playPauseButton.click();
                 }
             }
         }
         else if (keyPressed === 'ArrowLeft'){
             if (!shiftPressed)
             {
-                if (ctrlPressed)
-                {
-                    //ctrl left is jump to the beginning of the playback
-                    jumpToPreviousComment();
-                }
-                else
-                {
-                    //left arrow steps back one event
-                    step(-1);
-                }
+                //left and right arrow are step one
+                step(-1);
             }
             else
             {
                 if (ctrlPressed)
                 {
+                    //shift + control is jump to beginning or end
                     step(-playbackData.nextEventPosition);
+                }
+                else
+                {
+                    //shift + left/right arrow is jump to next comment
+                    jumpToPreviousComment();
                 }
             }
         }

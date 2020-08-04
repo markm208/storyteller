@@ -845,8 +845,10 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
             activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
 
             activeComment[0].classList.remove("activeComment");
+            activeComment[0].classList.remove("activeCommentBorder")
         }
         cardFinal.classList.add("activeComment");
+        cardFinal.classList.add("activeCommentBorder")
         cardFinal.closest(".commentGroupSpacing").classList.add("activeGroup");
 
         //add highlights for the comment
@@ -966,9 +968,25 @@ function createTitleCard(descriptionInfo)
     titleCard.classList.add('card');
     titleCard.setAttribute('id', 'title-card');
 
+    titleCard.setAttribute("data-commentEventid", descriptionInfo.displayCommentEvent.id);
+    titleCard.setAttribute("data-commentid", descriptionInfo.id);
+
     titleCard.addEventListener('click', function (e){ 
         //step to the event this comment is at
         step(descriptionInfo.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+
+        //handle which comment and which comment group is currently active
+        const activeComment = document.getElementsByClassName("activeComment");
+        if (activeComment.length){
+            //commentGroupSpacing is a class that is only in commentGroups
+            //this will bring us to the active comments group
+            activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
+
+            activeComment[0].classList.remove("activeComment");
+            activeComment[0].classList.remove("activeCommentBorder")
+        }
+        titleCard.classList.add("activeComment");
+        titleCard.closest(".commentGroupSpacing").classList.add("activeGroup");
     });
 
     //create the header for the title card which holds the title text
@@ -1843,6 +1861,7 @@ function updateCurrentDeveloperGroupAvatars(devGroupId) {
 function removeActiveCommentAndGroup(){
     if (document.getElementsByClassName('activeComment')[0]){
         document.getElementsByClassName('activeComment')[0].classList.remove('activeComment');
+        document.getElementsByClassName('activeCommentBorder')[0].classList.remove('activeCommentBorder');
         document.getElementsByClassName('activeGroup')[0].classList.remove('activeGroup');
     }
 }
