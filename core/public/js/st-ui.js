@@ -116,6 +116,8 @@ function displayAllComments(){
         outerCommentGroup.classList.add('commentGroupSpacing');
 
         outerCommentGroup.addEventListener('click', event => {
+            stopAutomaticPlayback();
+            
             //the eventListener should not work when a child of outerCommentGroup is clicked
             if (!event.currentTarget.classList.contains("commentGroupSpacing")) {
               return;
@@ -177,6 +179,8 @@ function displayAllComments(){
 
             //go to every card marked 'drag' in the div where editCommentBlockButton was clicked, and make each draggable
             editCommentBlockButton.addEventListener('click', event => {  
+                stopAutomaticPlayback();
+
                 //for each element with class "drag", make draggable as long as there is more than 1 comment in the comment block   
                 if ((atEventNegOne && commentBlock.length > 3 ) || (!atEventNegOne && commentBlock.length > 1)){
                     $('.drag', "#" + commentGroupDiv.id).each(function(){                    
@@ -833,7 +837,8 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
 
     //if this is not here the play button does not work, because the card will have no functionality
     cardFinal.addEventListener('click', function (e){ 
-        
+        stopAutomaticPlayback()
+
         //step to the event this comment is at
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
@@ -947,6 +952,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     finalDiv.classList.add('commentBox');
 
     finalDiv.addEventListener('click', function(e) {
+        stopAutomaticPlayback();
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); 
         for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++){
             addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
@@ -1128,6 +1134,8 @@ function createFileTab(fileId, filePath) {
 
     //switches currently active editor on tab switch
     newTabLinkTag.addEventListener('click', event => {
+        stopAutomaticPlayback();
+
         //make the tab active
         addFocusToTab(fileId);
         //fixes Ace bug where editors are not updated
@@ -1715,11 +1723,14 @@ function clearHighlightChangedFiles() {
 }
 
 function createEditCommentButton(commentObject, buttonText){
+    stopAutomaticPlayback();
+
     const editCommentButton = document.createElement("button");
     editCommentButton.classList.add("btn", "btn-outline-dark", "btn-sm");
     editCommentButton.style.border = 'none';
     editCommentButton.appendChild(document.createTextNode(buttonText));
     editCommentButton.addEventListener('click', event => {
+        stopAutomaticPlayback();
 
         if (event.target.closest(".drag")){
             event.target.closest(".drag").querySelector(".commentCard").click();

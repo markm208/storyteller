@@ -427,3 +427,10 @@ resize: none;
 #playbackSlider{
     margin-left: -2px;
 }
+
+
+#continuousPlayButton,
+#pausePlayButton{
+    border:none;
+    background: transparent;
+}
