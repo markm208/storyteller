@@ -23,7 +23,7 @@ function step(numSteps) {
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
     
     //scroll to the cursor
-    const cursorPosition= editor.getCursorPosition();
+    const cursorPosition = editor.getCursorPosition();
     editor.renderer.scrollCursorIntoView({row: cursorPosition.row, column: cursorPosition.column}, 0.5);
 }
 /*

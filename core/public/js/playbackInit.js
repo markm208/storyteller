@@ -505,7 +505,7 @@ function setupEventListeners()
 
     document.getElementById("mainAddCommentButton").addEventListener('click', event => {     
         stopAutomaticPlayback();
-           
+
         document.getElementById("addCommentTab").click();
         document.getElementById('textCommentTextArea').focus();
         document.getElementById("viewCommentsTab").classList.add("disabled");
@@ -538,11 +538,18 @@ function setupEventListeners()
         document.getElementById("pausePlayButton").style.display = "block";
         playbackInterval = setInterval(function(){
             step(1);
-            if (playbackData.comments["ev-" + playbackData.nextEventPosition]){
-                step(1);
+            if (playbackData.comments["ev-" + playbackData.nextEventPosition]){   
+                //get the comment card associated with the position             
+                const currentComment = document.querySelector(`[data-commenteventid="ev-${playbackData.nextEventPosition}"]`);
+
+                //make it active by clicking it and then scroll to it
+                currentComment.click();
+                document.getElementById("commentContentDiv").scrollTop = currentComment.offsetTop - 100;
+
+                //stop the automatic playback
                 stopAutomaticPlayback();
             }
-        }, 100)
+        }, 75)
     });
 
     document.getElementById("pausePlayButton").addEventListener('click', event => {
