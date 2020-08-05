@@ -477,14 +477,14 @@ function addMediaToCommentCard(cardObject, commentObject)
 function updateActiveComment(cardObject)
 {
     //handle which comment and which comment group is currently active
-    const activeComment = document.getElementsByClassName("activeComment");
+    let activeComment = document.getElementsByClassName("activeComment");
     if (activeComment.length){
         //commentGroupSpacing is a class that is only in commentGroups
         //this will bring us to the active comments group
         activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
 
-        activeComment[0].classList.remove("activeComment");
         activeComment[0].classList.remove("activeCommentBorder")
+        activeComment[0].classList.remove("activeComment");
     }
     cardObject.classList.add("activeComment");
     cardObject.closest(".commentGroupSpacing").classList.add("activeGroup");
