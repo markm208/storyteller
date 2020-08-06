@@ -569,7 +569,7 @@ function setupEventListeners()
         }
     })
 
-     document.getElementById("textBiggerButton").addEventListener('click', event => {
+    document.getElementById("textBiggerButton").addEventListener('click', event => {
         const editorKeys =  Object.keys(playbackData.editors);  
         
         for (let i = 0; i <editorKeys.length; i++){            
