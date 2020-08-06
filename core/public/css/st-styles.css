@@ -434,3 +434,12 @@ resize: none;
     border:none;
     background: transparent;
 }
+
+#helpButton{
+    background: transparent;
+    float: right;
+}
+
+.optionsGroup{
+    float: right;
+}

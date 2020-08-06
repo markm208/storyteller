@@ -19,6 +19,7 @@
         <span id="playbackTitleDiv" style="display: inline-block;">Title goes here</span>
         <button id="editTitleButton" style="border: none;">edit title</button>
         <button id="acceptTitleChanges" style="border: none;">accept changes</button>
+        <button id="helpButton" style="border: none;"><img src="https://img.icons8.com/cotton/30/000000/settings--v1.png"/></button>
     </div>
 
     <body class="body">
@@ -209,6 +210,44 @@
                 <div class="form-control" id="URL" contenteditable="true" > </div>
                  <button type="button" id ='URL-Confirm' class="float-right btn btn-outline-primary">Submit</button>
               </div>
+            </div>
+        </div>
+
+        <!-- Creating the options modal -->
+        <div id="optionsModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Playback Options</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                    <nav>
+                        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                            <a class="nav-item nav-link active" id="optionsTab" data-toggle="tab" href="#optionsTabContent" role="tab" aria-controls="nav-options" aria-selected="true">Options</a>
+                            <a class="nav-item nav-link" id="controlsTab" data-toggle="tab" href="#controlsTabContent" role="tab" aria-controls="nav-controls" aria-selected="false">Controls</a>
+                        </div>
+                    </nav>
+
+                        <div class="tab-content" id="optionsTabContent">
+                            <div class="tab-pane show active" id="optionsTabContent" role="tabpanel" aria-labelledby="options-tab">
+                                <div>
+                                    Change code window text size
+                                    <div class="btn-group optionsGroup" role="group" aria-label="Basic example">
+                                        <button id="textSmallerButton" class="btn btn-secondary" style="border: none;">Smaller</button>
+                                        <button id="textBiggerButton" class="btn btn-secondary" style="border: none;">Bigger</button>
+                                    </div>
+                                </div>                            
+                            </div>
+                            <div class="tab-pane" id="controlsTabContent" role="tabpanel" aria-labelledby="controls-tab">
+                            
+                            </div>
+                        </div>                        
+                    </div>                    
+                </div>
             </div>
         </div>
     <!-- Optional JavaScript -->

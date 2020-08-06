@@ -439,7 +439,7 @@ function setupEventListeners()
         //get the currently selected card, if any
         const selectedComment = document.getElementsByClassName("activeComment")[0];
 
-        let eventNum = Number(playbackSlider.value) - 1;
+        let eventNum = Number(playbackSlider.value) - 1; //TODO
         let commentBlock;
 
         //try to find the commentBlock of the event. if one does not exist, try to find the comment block of the next event that has one
@@ -555,6 +555,28 @@ function setupEventListeners()
     document.getElementById("pausePlayButton").addEventListener('click', event => {
         stopAutomaticPlayback();
     });
+
+    document.getElementById("helpButton").addEventListener('click', event => {
+        $('#optionsModal').modal('show')
+    })
+
+    document.getElementById("textSmallerButton").addEventListener('click', event => {
+        const editorKeys =  Object.keys(playbackData.editors);  
+        
+        for (let i = 0; i <editorKeys.length; i++){
+            const currentEditor = playbackData.editors[editorKeys[i]];
+            currentEditor.setFontSize(currentEditor.getFontSize() - 1);
+        }
+    })
+
+     document.getElementById("textBiggerButton").addEventListener('click', event => {
+        const editorKeys =  Object.keys(playbackData.editors);  
+        
+        for (let i = 0; i <editorKeys.length; i++){            
+            const currentEditor = playbackData.editors[editorKeys[i]];
+            currentEditor.setFontSize(currentEditor.getFontSize() + 1);
+        }
+    })
     
 }
 

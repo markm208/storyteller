@@ -243,7 +243,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     //get the developers who authored the comment
     const commentAuthorGroup = getDevelopersInADevGroup(commentObject.developerGroupId);
     //create a div to hold the author info
-    const commentAuthorsDiv = getDevImages(commentAuthorGroup, 50);
+    const commentAuthorsDiv = getDevImages(commentAuthorGroup, 20);
     //create a span to display how far along in the comments this one is
     const progressSpan = document.createElement('span');
     progressSpan.classList.add('progressSpan');
@@ -1817,7 +1817,7 @@ function updateCurrentDeveloperGroupAvatars(devGroupId) {
         
         //remove the old images and add new ones 50px height
         currentDevsDiv.innerHTML = '';
-        currentDevsDiv.append(getDevImages(activeDevs, 50));
+        currentDevsDiv.append(getDevImages(activeDevs, 20));
     }
 }
 
