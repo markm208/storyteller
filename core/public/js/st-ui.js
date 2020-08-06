@@ -588,6 +588,7 @@ function createCarousel(){
     carouselOuter.append(carouselInner);
     return carouselOuter;
 }
+
 /*
  *
  */
@@ -625,6 +626,7 @@ function addImageToCarousel(src, carousel){
         carousel.firstChild.firstChild.classList.add('active');
     }
 }
+
 /*
  *
  */
@@ -744,6 +746,10 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
 }
 
 /*
+ * CREATE THE UI ELEMENTS FOR MEDIA
+*/
+
+/*
  * Creates the ui representation of an image to be put inside of a comment
  */
 function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEventistener = true) {
@@ -768,6 +774,7 @@ function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEv
    
     return newImg;
 }
+
 /*
  * Creates the ui representation of a video to be put inside of a comment
  */
