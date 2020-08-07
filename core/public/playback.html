@@ -6,12 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
+        
+
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/st-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <a href="https://icons8.com/icon/GwYlS5m5Goz6/play"></a>
-
-   
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.0/nouislider.min.css" integrity="sha512-6JqGSqQ++AEggYltdgSse8pKG90U/5U0bbkZoa94uSDG/BhI5YpYcy2LyWPWjXu40lUVEgEKHZ/2hCrwQvbODw==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="css/st-styles.css">
     <title>Experimental Playback UI</title>
     </head>
     <div class="top-bar" id="top-bar">
@@ -19,6 +20,7 @@
         <span id="playbackTitleDiv" style="display: inline-block;">Title goes here</span>
         <button id="editTitleButton" style="border: none;">edit title</button>
         <button id="acceptTitleChanges" style="border: none;">accept changes</button>
+        <button id="helpButton" style="border: none;"><img src="https://img.icons8.com/cotton/30/000000/settings--v1.png"/></button>
     </div>
 
     <body class="body">
@@ -123,9 +125,12 @@
                 <!-- minimal controls -->
                 <div id="playbackControls"> 
                      <div class="d-flex">
-                        <button id="playPauseButton" class="btn" onclick="this.blur();"><img src="https://img.icons8.com/fluent/48/000000/play.png"/> </button>
+                        <button id="fastForwardButton" class="btn" onclick="this.blur();"><img src="https://img.icons8.com/fluent/48/000000/fast-forward.png"/> </button>
                         <input type="range" id="playbackSlider" min="0" max="0" value="0" class="custom-range slider" list="tickmarks"/>
+                        <div id="slider"></div>
                         <button id="stepBackOne" class="btn" onclick="this.blur();"><i class="fa fa-chevron-left"></i></button>
+                        <button id="continuousPlayButton" class="=btn" ><img src="https://img.icons8.com/fluent/24/000000/play.png"/></button>
+                        <button id="pausePlayButton" class="=btn" style="display:none;"><img src="https://img.icons8.com/fluent/24/000000/pause.png"/></button>
                         <button id="stepForwardOne" class="btn" onclick="this.blur();"><i class="fa fa-chevron-right"></i></button>
                         <div id="currentDevsDiv" class="currentDevs">
                         </div>
@@ -209,12 +214,58 @@
               </div>
             </div>
         </div>
+
+        <!-- Creating the options modal -->
+        <div id="optionsModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Playback Options</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                    <nav>
+                        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                            <a class="nav-item nav-link active" id="optionsTab" data-toggle="tab" href="#optionsTabContent" role="tab" aria-controls="nav-options" aria-selected="true">Options</a>
+                            <a class="nav-item nav-link" id="controlsTab" data-toggle="tab" href="#controlsTabContent" role="tab" aria-controls="nav-controls" aria-selected="false">Controls</a>
+                        </div>
+                    </nav>
+                    <!-- TODO make these buttons into a slider -->
+                        <div class="tab-content">
+                            <div class="tab-pane show active" id="optionsTabContent" role="tabpanel" aria-labelledby="options-tab">
+                                <div class="optionsGroup">
+                                    Change code window text size
+                                    <div class="btn-group buttonGroup" role="group">
+                                        <button id="textSmallerButton" class="btn btn-secondary" style="border: none;">Smaller</button>
+                                        <button id="textBiggerButton" class="btn btn-secondary" style="border: none;">Bigger</button>
+                                    </div>
+                                </div>      
+                                <div class="optionsGroup">
+                                    Change playback speed
+                                    <div class="btn-group buttonGroup" role="group">
+                                        <button id="playbackSpeedDown" class="btn btn-secondary" style="border: none;">Slower</button>
+                                        <button id="playbackSpeedUp" class="btn btn-secondary" style="border: none;">Faster</button>
+                                    </div>
+                                </div>                         
+                            </div>
+                            <div class="tab-pane" id="controlsTabContent" role="tabpanel" aria-labelledby="controls-tab">
+                            
+                            </div>
+                        </div>                        
+                    </div>                    
+                </div>
+            </div>
+        </div>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-   
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.0/nouislider.min.js" integrity="sha512-Bqlq3MLgvOWTzDmCDFKjX+ajhLgi/D8/TQwlbJaNea1mUcX7T3e3OgrRkWtvgpbSDaHgUCC4BqRSLNvPJhOskw==" crossorigin="anonymous"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.11/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.11/ext-modelist.js" type="text/javascript" charset="utf-8"></script>
    
@@ -253,7 +304,9 @@
             developerGroups: {}, //all developer groups
             currentDeveloperGroupId: null, //the id of the current developer group
             playbackTitle: '', //title of the playback
-            branchId: '' //the id of the project
+            branchId: '', //the id of the project
+            aceFontSize: 16, //font size of the ace editor window
+            playbackSpeedMS: 75 //playback speed when play button is pressed
         };
 
         const emptyEditor = createAceEditor('playbackWindow', '','' );    
@@ -262,6 +315,9 @@
         const AceRange = ace.require('ace/range').Range;
 
         const commentsDiv = document.getElementById('commentContentDiv');
+
+        //variable that will hold the ability to start/stop the automatic playing
+        let playbackInterval = null;
 
         //indicates whether the change can from the textarea not editing in ace
         let changeOutsideEditor = false;

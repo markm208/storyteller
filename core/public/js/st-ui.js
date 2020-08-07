@@ -65,7 +65,10 @@ function deleteEditor(fileId) {
     //delete the tab
     deleteFileTabRemove(fileId);
 }
-/*
+
+
+/* THIS SECTION RELATES TO DISPLAYING COMMENTS
+ *
  * Displays all the comments.
  */
 function displayAllComments(){
@@ -116,6 +119,8 @@ function displayAllComments(){
         outerCommentGroup.classList.add('commentGroupSpacing');
 
         outerCommentGroup.addEventListener('click', event => {
+            stopAutomaticPlayback();
+            
             //the eventListener should not work when a child of outerCommentGroup is clicked
             if (!event.currentTarget.classList.contains("commentGroupSpacing")) {
               return;
@@ -177,6 +182,8 @@ function displayAllComments(){
 
             //go to every card marked 'drag' in the div where editCommentBlockButton was clicked, and make each draggable
             editCommentBlockButton.addEventListener('click', event => {  
+                stopAutomaticPlayback();
+
                 //for each element with class "drag", make draggable as long as there is more than 1 comment in the comment block   
                 if ((atEventNegOne && commentBlock.length > 3 ) || (!atEventNegOne && commentBlock.length > 1)){
                     $('.drag', "#" + commentGroupDiv.id).each(function(){                    
@@ -225,6 +232,443 @@ function displayAllComments(){
     updateAllCommentHeaderCounts();
 }
 
+/* CREATE COMMENT CARD
+    Creates the ui cards for each comment in the playback
+    and adds them to the appropriate spot on the page
+*/
+function createCommentCard(commentObject, currentComment, commentCount, i)
+{
+    const cardHeader = document.createElement('div');
+    cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'commentCardHeaderColor', 'p-0', "commentCount");
+    //get the developers who authored the comment
+    const commentAuthorGroup = getDevelopersInADevGroup(commentObject.developerGroupId);
+    //create a div to hold the author info
+    const commentAuthorsDiv = getDevImages(commentAuthorGroup, 20);
+    //create a span to display how far along in the comments this one is
+    const progressSpan = document.createElement('span');
+    progressSpan.classList.add('progressSpan');
+    progressSpan.innerText = currentComment++ + '/' + commentCount;
+    
+    //add the author images and the progress in comments
+    cardHeader.append(commentAuthorsDiv);
+    cardHeader.append(progressSpan);
+    
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body', 'text-left', 'commentCardBodyColor');
+    cardBody.innerHTML = commentObject.commentText;
+
+    let cardFinal = createCardDiv(commentObject);
+    cardFinal.classList.add('text-center', 'commentCard');
+
+    //allows us to send a click event to this card in order to jump to it in the playback
+    cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
+
+    //if this is not here the play button does not work, because the card will have no functionality
+    cardFinal.addEventListener('click', function (e){ 
+        
+        stopAutomaticPlayback();
+
+        //step to the event this comment is at
+        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+
+        cardFinal = updateActiveComment(cardFinal);
+        cardFinal.classList.add("activeCommentBorder");
+
+        //add highlights for the comment
+        for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
+        {
+            addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
+        }
+
+        //if there is some highlighted code
+        if(commentObject.selectedCodeBlocks.length > 0) {
+            //if the highlighted code is not in the active editor
+            if(playbackData.activeEditorFileId !== commentObject.selectedCodeBlocks[0].fileId) {
+                //bring the file with the highlighted text to the front 
+                addFocusToTab(commentObject.selectedCodeBlocks[0].fileId);
+            }
+            //scroll to the first selected block
+            scrollToLine(commentObject.selectedCodeBlocks[0].fileId, commentObject.selectedCodeBlocks[0].startRow);
+        }
+    });
+
+    addMediaToCommentCard(cardFinal, commentObject);
+
+    cardFinal.prepend(cardBody);
+    const finalDiv = document.createElement('div');
+    finalDiv.classList.add('commentBox');
+
+    finalDiv.addEventListener('click', function(e) {
+        
+        stopAutomaticPlayback();
+
+        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); 
+        for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++){
+            addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
+        }
+    });
+    cardFinal.prepend(cardHeader);
+    finalDiv.append(cardFinal);
+
+    return {cardObject: finalDiv, count: currentComment, commentID: commentObject.id};
+    
+}
+
+/* CREATE TITLE CARD
+ * Creates the title and description card in the ViewCommentsTab
+*/
+function createTitleCard(descriptionInfo)
+{
+
+    //create the encompassing card object
+    let titleCard = createCardDiv(descriptionInfo);
+    titleCard.setAttribute('id', 'title-card');
+
+    titleCard.addEventListener('click', function (e){ 
+        //step to the event this comment is at
+        step(descriptionInfo.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+
+        titleCard = updateActiveComment(titleCard);
+    });
+
+    //create the header for the title card which holds the title text
+    const cardHeader = document.createElement('div');
+    cardHeader.setAttribute('id', 'descriptionHeader');
+    cardHeader.classList.add('card-header', 'text-center', 'titleCardHeaderStyle');
+    cardHeader.innerHTML = playbackData.playbackTitle;
+
+    //create the body for the card which holds the description text
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body', 'text-left', 'titleCardBodyStyle');
+    
+    const bodyParagraph = document.createElement('p');
+    bodyParagraph.innerHTML = descriptionInfo.commentText;
+
+    cardBody.append(bodyParagraph);
+
+    //create any media in the description
+    addMediaToCommentCard(titleCard, descriptionInfo)
+
+    //Create the card footer which holds the edit buttons
+    const descriptionFooter = document.createElement("div");
+    descriptionFooter.classList.add("card-footer","small", "p-0");
+
+    const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
+
+    descriptionFooter.append(editDescriptionButton);
+
+    //assemble the pieces of the card
+    titleCard.append(descriptionFooter);
+    titleCard.prepend(cardBody);
+    titleCard.prepend(cardHeader);
+
+    return titleCard;
+
+}
+
+
+/*
+ * Direct helper functions for creating the ui elements for comments 
+*/
+
+function createCardDiv(commentObject)
+{
+    const cardObject = document.createElement('div');
+    cardObject.classList.add('card');
+    
+    cardObject.setAttribute("data-commentEventid", commentObject.displayCommentEvent.id);
+    cardObject.setAttribute("data-commentid", commentObject.id);
+
+    return cardObject;
+}
+
+//Adds media to the comment cards
+function addMediaToCommentCard(cardObject, commentObject)
+{
+    let carousel = createCarousel();
+    let temp;
+
+    if (commentObject.imageURLs.length > 1){  
+        // Get the modal
+        let modal = document.getElementById('imgExpandModal');
+
+        // Get the image and insert it inside the modal - use its 'alt' text as a caption
+        let img = document.getElementById('myImg');
+        let modalImg = document.getElementById('imgToExpand');
+        //const captionText = document.getElementById('caption');
+
+        for (let j = 0; j < commentObject.imageURLs.length; j++){
+            addImageToCarousel(commentObject.imageURLs[j], carousel);
+            makeCarouselControls(carousel);
+
+            carousel.addEventListener('click', event =>{
+                //if the carousel is clicked on either the left or right button, dont trigger the enlarged image modal
+                if (!event.target.className.includes('carousel-control')){   
+                    //get the src of the current active image from the carousel that was clicked on                    
+                    let src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
+                    modal.style.display = 'block';
+                    modalImg.src = src;
+                }
+            });
+
+            // Get the <span> element that closes the modal
+            let span = document.getElementsByClassName('modalClose')[0];
+
+            //close the modal
+            span.onclick = function() {
+                modalImg.removeAttribute('src');
+                modal.style.display = 'none';
+            }
+            //add carousel
+            cardObject.append(carousel);
+        }
+    }
+    //creates a carousel without controls to keep consistency among single images and images in carousels
+    else if (commentObject.imageURLs.length === 1){
+        addImageToCarousel(commentObject.imageURLs[0], carousel);
+
+        carousel.addEventListener('click',event => {
+            //add image to the modal
+            document.getElementById('imgExpandModal').style.display = 'block';
+            document.getElementById('imgToExpand').src = commentObject.imageURLs[0];
+        })
+        //modal close button
+        document.getElementsByClassName('modalClose')[0].onclick = function() {
+            document.getElementById('imgToExpand').removeAttribute('src');
+            document.getElementById('imgExpandModal').style.display = 'none';
+        }
+        cardObject.append(carousel);
+    }
+    
+    for (let i = 0; i < commentObject.videoURLs.length; i++){
+        let videoElement = createMediaControllerCommentVideoUI(commentObject.videoURLs[i], false, false);       
+        //add next media
+        cardObject.append(videoElement.firstChild);
+        //file names added invisible in case we later want to see them when editing
+        videoElement.lastChild.style.display ='none';
+        cardObject.append(videoElement.lastChild);     
+    }
+
+    for (let i = 0; i < commentObject.audioURLs.length; i++){
+        let audioElement = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false); 
+        cardObject.append(audioElement.firstChild);
+
+        //file names added invisible in case we later want to see them when editing
+        audioElement.lastChild.style.display ='none';
+        cardObject.append(audioElement.lastChild);  
+    }
+}
+
+//used in the comment card event listeners to update the active comment
+function updateActiveComment(cardObject)
+{
+    //handle which comment and which comment group is currently active
+    let activeComment = document.getElementsByClassName("activeComment");
+    if (activeComment.length){
+        //commentGroupSpacing is a class that is only in commentGroups
+        //this will bring us to the active comments group
+        activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
+
+        activeComment[0].classList.remove("activeCommentBorder")
+        activeComment[0].classList.remove("activeComment");
+    }
+    cardObject.classList.add("activeComment");
+    cardObject.closest(".commentGroupSpacing").classList.add("activeGroup");
+
+    return cardObject;
+}
+//Creates the edit button at the bottom of each card
+function createEditCommentButton(commentObject, buttonText){
+    stopAutomaticPlayback();
+
+    const editCommentButton = document.createElement("button");
+    editCommentButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    editCommentButton.style.border = 'none';
+    editCommentButton.appendChild(document.createTextNode(buttonText));
+    editCommentButton.addEventListener('click', event => {
+        stopAutomaticPlayback();
+
+        if (event.target.closest(".drag")){
+            event.target.closest(".drag").querySelector(".commentCard").click();
+        }
+               
+
+        pauseMedia();
+        document.getElementById("viewCommentsTab").classList.add("disabled");
+        document.getElementById("fsViewTabTab").classList.add("disabled");
+
+        //reselect in ace all highlighted code from the original comment
+        for (let i = 0; i < commentObject.selectedCodeBlocks.length; i++){
+            const selectedBlock = commentObject.selectedCodeBlocks[i];
+
+            //create a new ace range object from the comments highlighted code
+            const newRange = new ace.Range(selectedBlock.startRow, selectedBlock.startColumn, selectedBlock.endRow, selectedBlock.endColumn);           
+            
+            //get the current active editor
+            const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+            //select in ace the comments highlighted code
+            editor.getSession().selection.addRange(newRange);          
+        };
+    
+        const addCommentButton =  document.getElementById("addCommentButton");
+        const updateCommentButton = document.getElementById("UpdateCommentButton");
+        addCommentButton.style.display = "none";
+        updateCommentButton.removeAttribute("style");
+        //cancelUpdateButton.removeAttribute("style");
+    
+        document.getElementById("addCommentTab").click();
+        
+        const textArea = document.getElementById("textCommentTextArea");
+        textArea.innerHTML = commentObject.commentText;
+    
+        const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
+        const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
+        const videoPreviewDiv = document.getElementsByClassName("video-preview")[0];
+    
+        if (commentObject.imageURLs.length){
+            for (let i = 0; i < commentObject.imageURLs.length; i++){
+                const imageCard = createMediaControllerCommentImageUI(commentObject.imageURLs[i], false, false);
+                makeDraggable(imageCard);
+        
+                addCancelButtonToImage(imageCard,imagePreviewDiv );
+                }
+            imagePreviewDiv.removeAttribute("style");
+    
+        }
+    
+        if (commentObject.audioURLs.length){
+            for (let i = 0; i < commentObject.audioURLs.length; i++){
+                const audioCard = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false);
+                makeDraggable(audioCard);
+                addCancelButtonToCard(audioCard, audioPreviewDiv);
+                audioPreviewDiv.append(audioCard);
+            }
+            audioPreviewDiv.removeAttribute("style");
+        }
+    
+        if (commentObject.videoURLs.length){
+            for (let i = 0; i < commentObject.videoURLs.length; i++){
+              const videoCard = createMediaControllerCommentVideoUI(commentObject.videoURLs[i], false, false);
+              makeDraggable(videoCard);
+              addCancelButtonToCard(videoCard, videoPreviewDiv);
+              videoPreviewDiv.append(videoCard);
+            }
+          videoPreviewDiv.removeAttribute("style");
+        }
+  
+
+        updateCommentButton.addEventListener('click' , event => {
+            pauseMedia();
+            updateComment();
+
+            document.getElementById("CancelUpdateButton").click();
+        })
+    });
+    return editCommentButton;
+}
+
+/*
+ * Carousel Functions
+*/
+
+//TODO global???
+//a number that is incremented with each carousel to keep ids unique
+let currentCarousel = 0;
+
+// CREATE CAROUSEL creates the image carousels for the comments
+function createCarousel(){
+    const carouselOuter = document.createElement('div'); 
+    carouselOuter.setAttribute('id', 'mycarousel' + currentCarousel++);
+    carouselOuter.setAttribute('data-interval','false');
+    carouselOuter.setAttribute('data-keyboard', 'false');
+    carouselOuter.classList.add('carousel','slide');
+
+    const carouselInner = document.createElement('div');
+    carouselOuter.append(carouselInner);
+    return carouselOuter;
+}
+
+/*
+ *
+ */
+function addImageToCarousel(src, carousel){
+
+    const img = document.createElement('img');
+    const imgDiv = document.createElement('div');
+    const captionDiv = document.createElement('div');
+    const captionText = document.createElement('h5');
+
+    captionDiv.classList.add('carousel-caption', 'd-none', 'd-md-block');
+    captionDiv.append(captionText);
+
+    img.src = src;
+    img.classList.add('d-block','w-100');
+
+    imgDiv.classList.add('carousel-item');
+    imgDiv.append(img);
+    imgDiv.append(captionDiv);
+
+    carousel.firstChild.append(imgDiv);
+
+    const allCaptions = carousel.getElementsByClassName('carousel-caption');
+
+    //prevents "1/1" from being displayed on single image carousels
+    if (allCaptions.length > 1){
+        //updates all captions with the right counts
+        for (let i = 0; i < allCaptions.length; i++){
+            allCaptions[i].textContent = i + 1 + '/' + allCaptions.length;
+        }        
+    }
+
+    //sets an image active if none are
+    if (!carousel.firstChild.firstChild.classList.value.includes('active')){
+        carousel.firstChild.firstChild.classList.add('active');
+    }
+}
+
+/*
+ *
+ */
+function makeCarouselControls(carousel){
+    let right = document.createElement('a');
+    let left = document.createElement('a');
+
+    right.classList.add('carousel-control-next');
+    left.classList.add('carousel-control-prev');
+
+    right.setAttribute('href','#' + carousel.id);
+    left.setAttribute('href','#' + carousel.id);
+
+    right.setAttribute('role','button');
+    right.setAttribute('data-slide','next');
+
+    left.setAttribute('role','button');
+    left.setAttribute('data-slide','prev');
+
+    let prevSpan = document.createElement('span');
+    prevSpan.classList.add('carousel-control-prev-icon');
+    prevSpan.setAttribute('aria-hidden', 'true');
+    let prevSRSpan = document.createElement('span');
+    prevSRSpan.innerHTML='Previous';
+    prevSRSpan.classList.add('sr-only');
+
+    let nextSpan = document.createElement('span');
+    nextSpan.classList.add('carousel-control-next-icon');
+    nextSpan.setAttribute('aria-hidden', 'true');
+    let nextSRSpan = document.createElement('span');
+    nextSRSpan.innerHTML='Next';
+    nextSRSpan.classList.add('sr-only');
+
+    right.append(nextSpan);
+    right.append(nextSRSpan);
+    left.append(prevSpan);
+    left.append(prevSRSpan);
+
+    carousel.append(right);
+    carousel.append(left);
+}
+
 //determines which button is currently displayed, and switches to the other 
 function toggleEditAcceptButtons(currentButtonType, id){
     if (currentButtonType === "edit"){
@@ -237,6 +681,7 @@ function toggleEditAcceptButtons(currentButtonType, id){
     }
 }
 
+//adds the edit buttons to the normal comments
 function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumber, commentObject){
   //find the card header in the card to add the buttons to  
   const header = card.querySelector(".card-header");
@@ -282,6 +727,11 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             card.remove();
         }
         deleteCommentFromServer(comment);
+
+        //rebuild the slider with the new comment pip
+        document.getElementById('slider').noUiSlider.destroy();
+        setUpSlider();
+        
         updateAllCommentHeaderCounts();
     });
 
@@ -300,57 +750,12 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
 
 }
 
-// function displayAllComments(){
-//     //clear comments Div before displaying any comments
-//     commentsDiv.innerHTML = '';
-
-//     let commentCount = -2; // because the title and description do not count
-//     let currentComment = 1;
-
-//     //convert all string keys into numbers for proper sorting of comment sequence
-//     let keysArray = Object.keys(playbackData.comments);
-//     for (let i = 0; i < keysArray.length; i++){
-//         commentCount += playbackData.comments[keysArray[i]].length;
-//         keysArray[i] = Number(keysArray[i].slice(3));
-//     }
-   
-//     //sort by interger key and add each comment to the commentsDiv
-//     keysArray.sort((a,b)=> a - b).forEach(function(key){
-//         let commentBlock = playbackData.comments[`ev-${key}`];
-//         const commentGroupDiv = document.createElement('div');
-//         commentGroupDiv.classList.add('border', 'commentGroupSpacing');
-        
-//         let startingValue = 0;
-
-//         if (`ev-${key}` === 'ev--1')
-//         {
-//             const titleInfo = commentBlock[0];
-//             const descriptionInfo = commentBlock[1];
-//             const titleCard = createTitleCard(titleInfo, descriptionInfo);
-//             startingValue += 2;
-//         }
-
-//         for (let i = startingValue; i < commentBlock.length; i++){
-//             const commentObject = commentBlock[i];
-
-//             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
-//             const commentCard = returnObject.cardObject;
-//             currentComment = returnObject.count;
-
-//             //add a tick mark to the slider for the comment group ---DOESN'T WORK
-//             var tickmarkObject = document.getElementById('tickmarks');
-//             const newTick = document.createElement('option');
-//             newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
-//             newTick.classList.add("ui-slider-tick-mark");
-//             tickmarkObject.appendChild(newTick);
-
-//             commentGroupDiv.append(commentCard);
-//             commentsDiv.append(commentGroupDiv);
-//         }
-//     })    
-// }
 /*
- * Creates an image.
+ * CREATE THE UI ELEMENTS FOR MEDIA
+*/
+
+/*
+ * Creates the ui representation of an image to be put inside of a comment
  */
 function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEventistener = true) {
     //create an image and add the required classes
@@ -374,8 +779,9 @@ function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEv
    
     return newImg;
 }
+
 /*
- * Creates a video.
+ * Creates the ui representation of a video to be put inside of a comment
  */
 function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEventistener = true){
     //filename of the video
@@ -444,10 +850,8 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
     return cardDiv;
 }
 
-
-
 /*
- * Creates an audio.
+ * Creates the ui representation of an audio element to be put inside of a comment
  */
 function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEventistener = true) {
     //filename of the audio
@@ -522,6 +926,7 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     return cardDiv;
 }
 
+//pauses any currently playing videos or audio
 function pauseMedia(){
     const playing = document.getElementsByClassName('playing');
  
@@ -632,102 +1037,6 @@ function addCancelButtonToCard(card, panelToDeleteFrom){
     card.closest(".card").prepend(button);
 }
 
-//TODO global???
-//a number that is incremented with each carousel to keep ids unique
-let currentCarousel = 0;
-/*
- *
- */
-function createCarousel(){
-    const carouselOuter = document.createElement('div'); 
-    carouselOuter.setAttribute('id', 'mycarousel' + currentCarousel++);
-    carouselOuter.setAttribute('data-interval','false');
-    carouselOuter.setAttribute('data-keyboard', 'false');
-    carouselOuter.classList.add('carousel','slide');
-
-    const carouselInner = document.createElement('div');
-    carouselOuter.append(carouselInner);
-    return carouselOuter;
-}
-/*
- *
- */
-function addImageToCarousel(src, carousel){
-
-    const img = document.createElement('img');
-    const imgDiv = document.createElement('div');
-    const captionDiv = document.createElement('div');
-    const captionText = document.createElement('h5');
-
-    captionDiv.classList.add('carousel-caption', 'd-none', 'd-md-block');
-    captionDiv.append(captionText);
-
-    img.src = src;
-    img.classList.add('d-block','w-100');
-
-    imgDiv.classList.add('carousel-item');
-    imgDiv.append(img);
-    imgDiv.append(captionDiv);
-
-    carousel.firstChild.append(imgDiv);
-
-    const allCaptions = carousel.getElementsByClassName('carousel-caption');
-
-    //prevents "1/1" from being displayed on single image carousels
-    if (allCaptions.length > 1){
-        //updates all captions with the right counts
-        for (let i = 0; i < allCaptions.length; i++){
-            allCaptions[i].textContent = i + 1 + '/' + allCaptions.length;
-        }        
-    }
-
-    //sets an image active if none are
-    if (!carousel.firstChild.firstChild.classList.value.includes('active')){
-        carousel.firstChild.firstChild.classList.add('active');
-    }
-}
-/*
- *
- */
-function makeCarouselControls(carousel){
-    let right = document.createElement('a');
-    let left = document.createElement('a');
-
-    right.classList.add('carousel-control-next');
-    left.classList.add('carousel-control-prev');
-
-    right.setAttribute('href','#' + carousel.id);
-    left.setAttribute('href','#' + carousel.id);
-
-    right.setAttribute('role','button');
-    right.setAttribute('data-slide','next');
-
-    left.setAttribute('role','button');
-    left.setAttribute('data-slide','prev');
-
-    let prevSpan = document.createElement('span');
-    prevSpan.classList.add('carousel-control-prev-icon');
-    prevSpan.setAttribute('aria-hidden', 'true');
-    let prevSRSpan = document.createElement('span');
-    prevSRSpan.innerHTML='Previous';
-    prevSRSpan.classList.add('sr-only');
-
-    let nextSpan = document.createElement('span');
-    nextSpan.classList.add('carousel-control-next-icon');
-    nextSpan.setAttribute('aria-hidden', 'true');
-    let nextSRSpan = document.createElement('span');
-    nextSRSpan.innerHTML='Next';
-    nextSRSpan.classList.add('sr-only');
-
-    right.append(nextSpan);
-    right.append(nextSRSpan);
-    left.append(prevSpan);
-    left.append(prevSRSpan);
-
-    carousel.append(right);
-    carousel.append(left);
-}
-
 function makeDraggable(param, key){
     param.setAttribute('draggable', 'true');
     param.classList.add('draggable');
@@ -799,270 +1108,6 @@ function makeDivDroppable(div, useID = true){
     });   
 }
 
-function createCommentCard(commentObject, currentComment, commentCount, i)
-{
-    const cardHeader = document.createElement('div');
-    cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'commentCardHeaderColor', 'p-0', "commentCount");
-    //get the developers who authored the comment
-    const commentAuthorGroup = getDevelopersInADevGroup(commentObject.developerGroupId);
-    //create a div to hold the author info
-    const commentAuthorsDiv = getDevImages(commentAuthorGroup, 50);
-    //create a span to display how far along in the comments this one is
-    const progressSpan = document.createElement('span');
-    progressSpan.classList.add('progressSpan');
-    progressSpan.innerText = currentComment++ + '/' + commentCount;
-    
-    //add the author images and the progress in comments
-    cardHeader.append(commentAuthorsDiv);
-    cardHeader.append(progressSpan);
-    
-    const cardBody = document.createElement('div');
-    cardBody.classList.add('card-body', 'text-left', 'commentCardBodyColor');
-    cardBody.innerHTML = commentObject.commentText;
-
-    let cardFinal = document.createElement('div');
-    cardFinal.classList.add('card', 'text-center', 'commentCard');
-
-    cardFinal.setAttribute("data-commentEventid", commentObject.displayCommentEvent.id);
-    cardFinal.setAttribute("data-commentid", commentObject.id);
-
-
-
-    //allows us to send a click event to this card in order to jump to it in the playback
-    cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
-
-    //if this is not here the play button does not work, because the card will have no functionality
-    cardFinal.addEventListener('click', function (e){ 
-        
-        //step to the event this comment is at
-        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
-
-        //handle which comment and which comment group is currently active
-        const activeComment = document.getElementsByClassName("activeComment");
-        if (activeComment.length){
-            //commentGroupSpacing is a class that is only in commentGroups
-            //this will bring us to the active comments group
-            activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
-
-            activeComment[0].classList.remove("activeComment");
-            activeComment[0].classList.remove("activeCommentBorder")
-        }
-        cardFinal.classList.add("activeComment");
-        cardFinal.classList.add("activeCommentBorder")
-        cardFinal.closest(".commentGroupSpacing").classList.add("activeGroup");
-
-        //add highlights for the comment
-        for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
-        {
-            addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
-        }
-
-        //if there is some highlighted code
-        if(commentObject.selectedCodeBlocks.length > 0) {
-            //if the highlighted code is not in the active editor
-            if(playbackData.activeEditorFileId !== commentObject.selectedCodeBlocks[0].fileId) {
-                //bring the file with the highlighted text to the front 
-                addFocusToTab(commentObject.selectedCodeBlocks[0].fileId);
-            }
-            //scroll to the first selected block
-            scrollToLine(commentObject.selectedCodeBlocks[0].fileId, commentObject.selectedCodeBlocks[0].startRow);
-        }
-    });
-
-    let carousel = createCarousel();
-    let temp;
-
-    if (commentObject.imageURLs.length > 1){  
-        // Get the modal
-        let modal = document.getElementById('imgExpandModal');
-
-        // Get the image and insert it inside the modal - use its 'alt' text as a caption
-        let img = document.getElementById('myImg');
-        let modalImg = document.getElementById('imgToExpand');
-        //const captionText = document.getElementById('caption');
-
-        for (let j = 0; j < commentObject.imageURLs.length; j++){
-            addImageToCarousel(commentObject.imageURLs[j], carousel);
-            makeCarouselControls(carousel);
-
-            carousel.addEventListener('click', event =>{
-                //if the carousel is clicked on either the left or right button, dont trigger the enlarged image modal
-                if (!event.target.className.includes('carousel-control')){   
-                    //get the src of the current active image from the carousel that was clicked on                    
-                    let src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
-                    modal.style.display = 'block';
-                    modalImg.src = src;
-                }
-            });
-
-            // Get the <span> element that closes the modal
-            let span = document.getElementsByClassName('modalClose')[0];
-
-            //close the modal
-            span.onclick = function() {
-                modalImg.removeAttribute('src');
-                modal.style.display = 'none';
-            }
-            //add carousel
-            cardFinal.append(carousel);
-        }
-    }
-    //creates a carousel without controls to keep consistency among single images and images in carousels
-    else if (commentObject.imageURLs.length === 1){
-        addImageToCarousel(commentObject.imageURLs[0], carousel);
-
-        carousel.addEventListener('click',event => {
-            //add image to the modal
-            document.getElementById('imgExpandModal').style.display = 'block';
-            document.getElementById('imgToExpand').src = commentObject.imageURLs[0];
-        })
-        //modal close button
-        document.getElementsByClassName('modalClose')[0].onclick = function() {
-            document.getElementById('imgToExpand').removeAttribute('src');
-            document.getElementById('imgExpandModal').style.display = 'none';
-        }
-        cardFinal.append(carousel);
-    }         
-
-    for (let j = 0; j < commentObject.videoURLs.length; j++){
-        temp = createMediaControllerCommentVideoUI(commentObject.videoURLs[j], false, false);       
-        //add next media
-        cardFinal.append(temp.firstChild);
-        //file names added invisible in case we later want to see them when editing
-        temp.lastChild.style.display ='none';
-        cardFinal.append(temp.lastChild);     
-    }
-
-    for (let j = 0; j < commentObject.audioURLs.length; j++){
-        temp = createMediaControllerCommentAudioUI(commentObject.audioURLs[j], false, false); 
-        cardFinal.append(temp.firstChild);
-
-        //file names added invisible in case we later want to see them when editing
-        temp.lastChild.style.display ='none';
-        cardFinal.append(temp.lastChild);  
-    }
-
-    cardFinal.prepend(cardBody);
-    const finalDiv = document.createElement('div');
-    finalDiv.classList.add('commentBox');
-
-    finalDiv.addEventListener('click', function(e) {
-        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); 
-        for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++){
-            addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
-        }
-    });
-    cardFinal.prepend(cardHeader);
-    finalDiv.append(cardFinal);
-
-    return {cardObject: finalDiv, count: currentComment, commentID: commentObject.id};
-    
-}
-
-//Creates the title and description card in the ViewCommentsTab
-function createTitleCard(descriptionInfo)
-{
-
-    //create the encompassing card object
-    const titleCard = document.createElement('div');
-    titleCard.classList.add('card');
-    titleCard.setAttribute('id', 'title-card');
-
-    titleCard.setAttribute("data-commentEventid", descriptionInfo.displayCommentEvent.id);
-    titleCard.setAttribute("data-commentid", descriptionInfo.id);
-
-    titleCard.addEventListener('click', function (e){ 
-        //step to the event this comment is at
-        step(descriptionInfo.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
-
-        //handle which comment and which comment group is currently active
-        const activeComment = document.getElementsByClassName("activeComment");
-        if (activeComment.length){
-            //commentGroupSpacing is a class that is only in commentGroups
-            //this will bring us to the active comments group
-            activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
-
-            activeComment[0].classList.remove("activeComment");
-            activeComment[0].classList.remove("activeCommentBorder")
-        }
-        titleCard.classList.add("activeComment");
-        titleCard.closest(".commentGroupSpacing").classList.add("activeGroup");
-    });
-
-    //create the header for the title card which holds the title text
-    const cardHeader = document.createElement('div');
-    cardHeader.setAttribute('id', 'descriptionHeader');
-    cardHeader.classList.add('card-header', 'text-center', 'titleCardHeaderStyle');
-    cardHeader.innerHTML = playbackData.playbackTitle;
-
-    //create the body for the card which holds the description text
-    const cardBody = document.createElement('div');
-    cardBody.classList.add('card-body', 'text-left', 'titleCardBodyStyle');
-    
-    const bodyParagraph = document.createElement('p');
-    bodyParagraph.innerHTML = descriptionInfo.commentText;
-
-    cardBody.append(bodyParagraph);
-
-    //create any media in the description
-    if (descriptionInfo.imageURLs.length > 0)
-    {
-        let carousel = createCarousel();
-        for (let i = 0; i < descriptionInfo.imageURLs.length; i++)
-        {
-            addImageToCarousel(descriptionInfo.imageURLs[i], carousel);
-        }
-
-        if (descriptionInfo.imageURLs.length > 1)
-        {
-            makeCarouselControls(carousel);
-        }
-
-        titleCard.append(carousel);
-    }
-
-    for (let i = 0; i < descriptionInfo.videoURLs.length; i++){
-        let videoElement = createMediaControllerCommentVideoUI(descriptionInfo.videoURLs[i], false, false);       
-        //add next media
-        titleCard.append(videoElement.firstChild);
-        //file names added invisible in case we later want to see them when editing
-        videoElement.lastChild.style.display ='none';
-        titleCard.append(videoElement.lastChild);     
-    }
-
-    for (let i = 0; i < descriptionInfo.audioURLs.length; i++){
-        let audioElement = createMediaControllerCommentAudioUI(descriptionInfo.audioURLs[i], false, false); 
-        titleCard.append(audioElement.firstChild);
-
-        //file names added invisible in case we later want to see them when editing
-        audioElement.lastChild.style.display ='none';
-        titleCard.append(audioElement.lastChild);  
-    }
-
-    //Create the card footer which holds the edit buttons
-    const descriptionFooter = document.createElement("div");
-    descriptionFooter.classList.add("card-footer","small", "p-0");
-
-    const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
-
-    // editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
-    // editTitleButton.appendChild(document.createTextNode('Edit Title'));
-
-    // acceptChangesToTitleButton.style.display = "none";
-
-    // acceptChangesToTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
-    // acceptChangesToTitleButton.appendChild(document.createTextNode('Accept Changes'));
-
-    descriptionFooter.append(editDescriptionButton);
-
-    //assemble the pieces of the card
-    titleCard.append(descriptionFooter);
-    titleCard.prepend(cardBody);
-    titleCard.prepend(cardHeader);
-
-    return titleCard;
-
-}
 /*
  * Makes a file tab and editor window active (gives them the class 'active' that
  * bootstrap uses).
@@ -1128,6 +1173,8 @@ function createFileTab(fileId, filePath) {
 
     //switches currently active editor on tab switch
     newTabLinkTag.addEventListener('click', event => {
+        stopAutomaticPlayback();
+
         //make the tab active
         addFocusToTab(fileId);
         //fixes Ace bug where editors are not updated
@@ -1714,94 +1761,6 @@ function clearHighlightChangedFiles() {
     }
 }
 
-function createEditCommentButton(commentObject, buttonText){
-    const editCommentButton = document.createElement("button");
-    editCommentButton.classList.add("btn", "btn-outline-dark", "btn-sm");
-    editCommentButton.style.border = 'none';
-    editCommentButton.appendChild(document.createTextNode(buttonText));
-    editCommentButton.addEventListener('click', event => {
-
-        if (event.target.closest(".drag")){
-            event.target.closest(".drag").querySelector(".commentCard").click();
-        }
-               
-
-        pauseMedia();
-        document.getElementById("viewCommentsTab").classList.add("disabled");
-        document.getElementById("fsViewTabTab").classList.add("disabled");
-
-        //reselect in ace all highlighted code from the original comment
-        for (let i = 0; i < commentObject.selectedCodeBlocks.length; i++){
-            const selectedBlock = commentObject.selectedCodeBlocks[i];
-
-            //create a new ace range object from the comments highlighted code
-            const newRange = new ace.Range(selectedBlock.startRow, selectedBlock.startColumn, selectedBlock.endRow, selectedBlock.endColumn);           
-            
-            //get the current active editor
-            const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
-
-            //select in ace the comments highlighted code
-            editor.getSession().selection.addRange(newRange);          
-        };
-    
-        const addCommentButton =  document.getElementById("addCommentButton");
-        const updateCommentButton = document.getElementById("UpdateCommentButton");
-        addCommentButton.style.display = "none";
-        updateCommentButton.removeAttribute("style");
-        //cancelUpdateButton.removeAttribute("style");
-    
-        document.getElementById("addCommentTab").click();
-        
-        const textArea = document.getElementById("textCommentTextArea");
-        textArea.innerHTML = commentObject.commentText;
-    
-        const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
-        const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
-        const videoPreviewDiv = document.getElementsByClassName("video-preview")[0];
-    
-        if (commentObject.imageURLs.length){
-            for (let i = 0; i < commentObject.imageURLs.length; i++){
-                const imageCard = createMediaControllerCommentImageUI(commentObject.imageURLs[i], false, false);
-                makeDraggable(imageCard);
-        
-                addCancelButtonToImage(imageCard,imagePreviewDiv );
-                }
-            imagePreviewDiv.removeAttribute("style");
-    
-        }
-    
-        if (commentObject.audioURLs.length){
-            for (let i = 0; i < commentObject.audioURLs.length; i++){
-                const audioCard = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false);
-                makeDraggable(audioCard);
-                addCancelButtonToCard(audioCard, audioPreviewDiv);
-                audioPreviewDiv.append(audioCard);
-            }
-            audioPreviewDiv.removeAttribute("style");
-        }
-    
-        if (commentObject.videoURLs.length){
-            for (let i = 0; i < commentObject.videoURLs.length; i++){
-              const videoCard = createMediaControllerCommentVideoUI(commentObject.videoURLs[i], false, false);
-              makeDraggable(videoCard);
-              addCancelButtonToCard(videoCard, videoPreviewDiv);
-              videoPreviewDiv.append(videoCard);
-            }
-          videoPreviewDiv.removeAttribute("style");
-        }
-  
-
-        updateCommentButton.addEventListener('click' , event => {
-            pauseMedia();
-            updateComment();
-
-            document.getElementById("CancelUpdateButton").click();
-        })
-    });
-    return editCommentButton;
-}
-
-
 function updateAllCommentHeaderCounts(){
     const drag = document.getElementsByClassName("drag");
     for (let i = 0; i < drag.length; i++){
@@ -1854,7 +1813,7 @@ function updateCurrentDeveloperGroupAvatars(devGroupId) {
         
         //remove the old images and add new ones 50px height
         currentDevsDiv.innerHTML = '';
-        currentDevsDiv.append(getDevImages(activeDevs, 50));
+        currentDevsDiv.append(getDevImages(activeDevs, 20));
     }
 }
 

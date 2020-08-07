@@ -330,6 +330,7 @@
 
 .slider {
     height: 40px;
+    display: none;
 }
 
 .speedButton{
@@ -427,3 +428,32 @@ resize: none;
 #playbackSlider{
     margin-left: -2px;
 }
+
+
+#continuousPlayButton,
+#pausePlayButton{
+    border:none;
+    background: transparent;
+}
+
+#helpButton{
+    background: transparent;
+    float: right;
+}
+
+.optionsGroup{
+    display: grid;
+}
+
+#slider{
+    width: 70vw;
+}
+
+.noUi-marker{
+    height: 20px !important;
+}
+
+.noUi-touch-area{
+    background: #0069d9;
+}
+
