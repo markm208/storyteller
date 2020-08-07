@@ -5,26 +5,25 @@ function step(numSteps) {
     clearInsertLineNumbers();
     clearDeleteLineNumbers();
     clearHighlightChangedFiles();
+ 
+    const slider = document.getElementById('slider');
 
     //move forward
     if(numSteps > 0) {
         stepForward(numSteps);
         
         //update the position of the slider
-        playbackSlider.value = playbackData.nextEventPosition;
+  
+        slider.noUiSlider.set(playbackData.nextEventPosition);
     } else if(numSteps < 0) { //move backward
         stepBackward(-numSteps);
 
         //update the position of the slider
-        playbackSlider.value = playbackData.nextEventPosition;
+        slider.noUiSlider.set(playbackData.nextEventPosition);
+
     } //else- no need to move at all
 
-    //get the active editor
-    const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
-    
-    //scroll to the cursor
-    const cursorPosition = editor.getCursorPosition();
-    editor.renderer.scrollCursorIntoView({row: cursorPosition.row, column: cursorPosition.column}, 0.5);
+
 }
 /*
  * Handles moving forward through some events.
@@ -40,6 +39,7 @@ function stepForward(numSteps) {
         let activeDirId;
         //the line number to scroll to
         let activeLineNumber;
+        let activeColumn;
         //current developer group id
         let currentDeveloperGroupId;
 
@@ -60,6 +60,7 @@ function stepForward(numSteps) {
             activeFileId = 'no-file-id';
             activeLineNumber = 0;
             activeDirId = 'no-dir-id';
+            activeColumn = 0;
 
             //check the event type and call the corresponding function for that event type
             
@@ -69,6 +70,7 @@ function stepForward(numSteps) {
                     //set the active file and line number
                     activeFileId = nextEvent.fileId;
                     activeLineNumber = nextEvent.lineNumber;
+                    activeColumn = nextEvent.column;
                     //mark the new code
                     newCodeMarkers.insert(nextEvent);
                     //handle the latest event
@@ -79,6 +81,7 @@ function stepForward(numSteps) {
                     //set the active file and line number
                     activeFileId = nextEvent.fileId;
                     activeLineNumber = nextEvent.lineNumber;
+                    activeColumn = nextEvent.column;
                     //mark the new code
                     newCodeMarkers.delete(nextEvent);
                     //handle the latest event
@@ -159,7 +162,7 @@ function stepForward(numSteps) {
 
         //make the correct editor active
         addFocusToTab(activeFileId);
-        scrollToLine(activeFileId, activeLineNumber);
+        scrollToLine(activeFileId, activeLineNumber, activeColumn);
 
         //highlight the new code
         highlightNewCode(newCodeMarkers.getAllNewCodeMarkers());

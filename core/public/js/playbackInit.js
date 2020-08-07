@@ -6,6 +6,7 @@
 
 async function initializePlayback()
 {
+
     try {
         const playbackInfo = await Promise.all([
             fetch('/event'),
@@ -39,13 +40,15 @@ async function initializePlayback()
         //determines how many non-relevant events there are
         for (let i = 0; i < playbackData.events.length; i++){
             if (playbackData.events[i].permanentRelevance === "never relevant"){
-                playbackData.numNonRelevantEvents++;
-                step(1);
+                playbackData.numNonRelevantEvents++;               
             }
             else{
                 break;
             }
         }
+
+        setUpSlider();
+        step(playbackData.numNonRelevantEvents.length - 1);
 
 
         if (!playbackData.comments['ev--1'])
@@ -70,10 +73,11 @@ async function initializePlayback()
         //grab any existing media from the server and display it in the media control modal
         initImageGallery();
 
+
         console.log('Success Initializing Playback');
 
     } catch(err) {
-        console.log(`Error retrieving data`);
+        console.log(err);
     } 
 }
 
@@ -128,6 +132,7 @@ function setupEventListeners()
         step(Number(playbackSlider.value) - playbackData.nextEventPosition);
         stopAutomaticPlayback();
     });
+
 
     //Setup the title buttons and data
     const playbackTitleDiv = document.getElementById('playbackTitleDiv');
@@ -214,7 +219,6 @@ function setupEventListeners()
             toastDiv.style.left = commentButtonRectangle.left + 'px';
             
             //show and focus the toast
-            //$('.toast').toast('show');
             $('#URL-Toast').toast('show');
             
             document.getElementById('URL').focus();
@@ -250,8 +254,10 @@ function setupEventListeners()
 
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
         stopAutomaticPlayback();
+        
 
         const textCommentTextArea = document.getElementById('textCommentTextArea');
+    
         
         //getting all video files in order
         const videoFiles = document.getElementsByClassName('video-preview')[0].children;
@@ -336,6 +342,11 @@ function setupEventListeners()
             //display a newly added comment on the current event
             displayAllComments();
             updateAllCommentHeaderCounts();
+
+            //rebuild the slider with the new comment pip
+            document.getElementById('slider').noUiSlider.destroy();
+            setUpSlider();
+
             document.getElementById("CancelUpdateButton").click();
         }
     });
@@ -386,12 +397,13 @@ function setupEventListeners()
         let keyPressed = e.key;
         let shiftPressed = e.shiftKey;
         let ctrlPressed = e.ctrlKey;
-       
+        const slider = document.getElementById('slider');    
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
             {
                 //left and right arrow are step one
-                step(1);
+                 step(1);
+                
             }
             else
             {
@@ -412,6 +424,8 @@ function setupEventListeners()
             {
                 //left and right arrow are step one
                 step(-1);
+
+
             }
             else
             {
@@ -439,12 +453,22 @@ function setupEventListeners()
         //get the currently selected card, if any
         const selectedComment = document.getElementsByClassName("activeComment")[0];
 
-        let eventNum = Number(playbackSlider.value) - 1; //TODO
+        //const sliderValue = Number(playbackSlider.value) - 1; //TODO
+
+
+       
+
+        let sliderValue = Math.ceil(document.getElementById('slider').noUiSlider.get()) - 1;
+        const eventId = playbackData.events[sliderValue].id;
+        let eventNum = Number(eventId.substr(eventId.lastIndexOf('-') + 1));
+
         let commentBlock;
 
-        //try to find the commentBlock of the event. if one does not exist, try to find the comment block of the next event that has one
+        //try to find the next event that has a comment block
         while (!commentBlock && eventNum < playbackData.numEvents){
             commentBlock = playbackData.comments["ev-" + eventNum];
+
+            //if the description doesn't have a comment, ignore it
             if (eventNum++ === -1 && commentBlock.length === 1){
                 commentBlock = null;
             }
@@ -454,6 +478,7 @@ function setupEventListeners()
 
         //if no comment is selected
         if (commentBlock && !selectedComment){
+            //select the first comment in the comment block
             const eventId = commentBlock[0].displayCommentEvent.id;
             const indexOfSelected = allCommentCards.findIndex(item => item.id.includes(eventId));
             activeComment = allCommentCards[indexOfSelected];     
@@ -549,7 +574,7 @@ function setupEventListeners()
                 //stop the automatic playback
                 stopAutomaticPlayback();
             }
-        }, 75)
+        }, playbackData.playbackSpeedMS)
     });
 
     document.getElementById("pausePlayButton").addEventListener('click', event => {
@@ -562,23 +587,85 @@ function setupEventListeners()
 
     document.getElementById("textSmallerButton").addEventListener('click', event => {
         const editorKeys =  Object.keys(playbackData.editors);  
+        playbackData.aceFontSize--;
         
         for (let i = 0; i <editorKeys.length; i++){
             const currentEditor = playbackData.editors[editorKeys[i]];
-            currentEditor.setFontSize(currentEditor.getFontSize() - 1);
+            currentEditor.setFontSize(playbackData.aceFontSize);
         }
     })
 
     document.getElementById("textBiggerButton").addEventListener('click', event => {
         const editorKeys =  Object.keys(playbackData.editors);  
-        
+        playbackData.aceFontSize++;
+
         for (let i = 0; i <editorKeys.length; i++){            
             const currentEditor = playbackData.editors[editorKeys[i]];
-            currentEditor.setFontSize(currentEditor.getFontSize() + 1);
+            currentEditor.setFontSize(playbackData.aceFontSize);
         }
+    })
+
+    document.getElementById('playbackSpeedDown').addEventListener('click', event => {
+        playbackData.playbackSpeedMS += 5;
+    })
+
+    document.getElementById('playbackSpeedUp').addEventListener('click', event => {
+        playbackData.playbackSpeedMS -= 5;
     })
     
 }
+
+function setUpSlider(){
+    const slider = document.getElementById('slider');
+
+    const commentPositions = [];
+    const commentsKeys = Object.keys(playbackData.comments);
+
+    for (let i = 0; i < commentsKeys.length; i++){
+        if (commentsKeys[i] !== "ev--1"){
+            const position = commentsKeys[i].substr(commentsKeys[i].lastIndexOf('-') + 1);
+            commentPositions.push(Number(position));          
+        }
+       
+    }
+
+    noUiSlider.create(slider, {
+        start: playbackData.nextEventPosition,
+       // step: 1,
+        animate: false,
+        keyboardSupport: false,
+        range: {
+            'min': playbackData.numNonRelevantEvents,
+            'max': playbackData.events.length
+           
+        },
+        pips: {
+            mode: 'values',
+            values: commentPositions,
+            connect: 'lower',
+            density: 100,
+            stepped: true,
+            filter: returnZero
+        }
+    });
+    
+    slider.noUiSlider.on('slide.one', function () { 
+        //take the slider value and subtract the next event's position
+        step(Number(slider.noUiSlider.get()) - playbackData.nextEventPosition);
+        stopAutomaticPlayback();
+    });
+
+    // //delete the pip that is created on the right side of the slider
+    // const pips = document.querySelectorAll('.noUi-marker')
+    // pips[pips.length - 1].remove();
+
+
+}
+
+function returnZero(){
+    return 0;
+}
+
 
 
 function stopAutomaticPlayback(){

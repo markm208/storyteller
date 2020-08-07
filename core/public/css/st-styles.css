@@ -330,6 +330,7 @@
 
 .slider {
     height: 40px;
+    display: none;
 }
 
 .speedButton{
@@ -441,5 +442,18 @@ resize: none;
 }
 
 .optionsGroup{
-    float: right;
+    display: grid;
 }
+
+#slider{
+    width: 70vw;
+}
+
+.noUi-marker{
+    height: 20px !important;
+}
+
+.noUi-touch-area{
+    background: #0069d9;
+}
+

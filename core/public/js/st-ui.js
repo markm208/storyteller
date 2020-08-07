@@ -727,6 +727,11 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             card.remove();
         }
         deleteCommentFromServer(comment);
+
+        //rebuild the slider with the new comment pip
+        document.getElementById('slider').noUiSlider.destroy();
+        setUpSlider();
+        
         updateAllCommentHeaderCounts();
     });
 
