@@ -541,14 +541,14 @@ function setupEventListeners()
         zipAndDownloadCodeOnly();
     });
     document.getElementById("saveCodeAndHistoryButton").addEventListener('click', event => {
-        zipAndDownloadCodeWithHistory(false);
+        zipCodeWithHistory(false);
     });
     document.getElementById("saveCodeAndHistoryButtonWithComments").addEventListener('click', event => {
-        zipAndDownloadCodeWithHistory(true);
+        zipCodeWithHistory(true);
     });
     
     document.getElementById("saveCodeAtCommentsButton").addEventListener('click', event => {
-        zipAndDownloadCodeOnlyWithHistoryAtComments();
+        zipAtComments();
     });
 
     $('#deleteMediaButton').popover('disable')
