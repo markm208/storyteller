@@ -8,18 +8,22 @@ function step(numSteps) {
  
     const slider = document.getElementById('slider');
 
+    console.log("slider value is: " + slider.noUiSlider.get());
+    console.log("next event position is: " + playbackData.nextEventPosition);
+    console.log("num events is: " + playbackData.numEvents)
+
     //move forward
     if(numSteps > 0) {
         stepForward(numSteps);
         
         //update the position of the slider
   
-        slider.noUiSlider.set(playbackData.nextEventPosition);
+        slider.noUiSlider.set(playbackData.nextEventPosition + 1);
     } else if(numSteps < 0) { //move backward
         stepBackward(-numSteps);
 
         //update the position of the slider
-        slider.noUiSlider.set(playbackData.nextEventPosition);
+        slider.noUiSlider.set(playbackData.nextEventPosition + 1);
 
     } //else- no need to move at all
 
@@ -192,7 +196,7 @@ function stepForward(numSteps) {
  */
 function stepBackward(numSteps) {
     //if there is room to move backwards
-    if(playbackData.nextEventPosition > playbackData.numNonRelevantEvents) {
+    if(playbackData.nextEventPosition > playbackData.numNonRelevantEvents -1) {
         removeActiveCommentAndGroup();
 
         //holds the next event to animate

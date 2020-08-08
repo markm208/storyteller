@@ -421,8 +421,9 @@ resize: none;
     display: flex;
 }
 
-#playPauseButton{
+#fastForwardButton{
     padding: 0%;
+    padding-right: 10px;
 }
 
 #playbackSlider{
@@ -457,3 +458,11 @@ resize: none;
     background: #0069d9;
 }
 
+.noUi-value{
+    display: none !important;
+}
+
+.clickableTickMark{
+    cursor: pointer;
+    width: 5px !important;
+}

@@ -612,6 +612,13 @@ function setupEventListeners()
     document.getElementById('playbackSpeedUp').addEventListener('click', event => {
         playbackData.playbackSpeedMS -= 5;
     })
+
+    //always open the options modal with the first tab selected
+    $('#optionsModal').on('show.bs.modal', event => {
+        document.getElementById('optionsModal').querySelectorAll('.nav-item')[0].click();
+        //document.getElementById('optionsTab').click();
+    })
+  
     
 }
 
@@ -630,43 +637,65 @@ function setUpSlider(){
     }
 
     noUiSlider.create(slider, {
-        start: playbackData.nextEventPosition,
-       // step: 1,
+        start: playbackData.nextEventPosition - 1,
+        step: 1, //this seems to cause stuttering when moving the slider in playback with a large number of events
         animate: false,
         keyboardSupport: false,
         range: {
             'min': playbackData.numNonRelevantEvents,
-            'max': playbackData.events.length
+            'max': playbackData.events.length 
            
         },
         pips: {
             mode: 'values',
             values: commentPositions,
-            connect: 'lower',
+            //connect: 'upper',
             density: 100,
             stepped: true,
-            filter: returnZero
+            filter: returnZero //TODO write this function here
         }
     });
     
     slider.noUiSlider.on('slide.one', function () { 
         //take the slider value and subtract the next event's position
-        step(Number(slider.noUiSlider.get()) - playbackData.nextEventPosition);
+        step(Number(slider.noUiSlider.get()) - playbackData.nextEventPosition +1);
         stopAutomaticPlayback();
     });
 
     // //delete the pip that is created on the right side of the slider
-    // const pips = document.querySelectorAll('.noUi-marker')
+    //const pips = document.querySelectorAll('.noUi-marker')
     // pips[pips.length - 1].remove();
 
-
+    setUpClickableTickMarks();
 }
 
 function returnZero(){
-    return 0;
+    return 1;
 }
 
+// not done
+function setUpClickableTickMarks(){
+    const pips = document.querySelectorAll('.noUi-value');
 
+    for (let i = 0; i < pips.length; i++){
+        const style = pips[i].getAttribute("style");
+        const value = pips[i].getAttribute('data-value');
+        const tickMark = document.querySelector(`.noUi-marker[style="${style}"]`);
+        
+
+        if (document.querySelector(`[data-commenteventid="ev-${value}"`)){
+            tickMark.classList.add('clickableTickMark');
+            tickMark.addEventListener('click', event => {
+            
+                document.querySelector(`[data-commenteventid="ev-${value}"`).click();
+                
+                
+            })
+        }
+    }
+
+
+}
 
 function stopAutomaticPlayback(){
     document.getElementById("continuousPlayButton").style.display = "block";
