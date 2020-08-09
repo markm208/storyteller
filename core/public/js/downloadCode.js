@@ -17,7 +17,7 @@ function addCodeToZip(zip) {
     //get the UL at the top of the fs view
     const playbackViewOfFileSystem = document.getElementById('playbackViewOfFileSystem');
     
-    //the root dir be the one child of the UL, playbackViewOfFileSystem
+    //the root dir will be the one child of the UL, playbackViewOfFileSystem
     if(playbackViewOfFileSystem.children.length === 1) {
         //get the root dir LI
         const dirLI = playbackViewOfFileSystem.children[0];
@@ -61,7 +61,7 @@ async function downloadZip(zip) {
     zipStatus.innerHTML = 'building zip file, this may take a while...';
 
     //timing for debug purposes
-    const t0 = performance.now();
+    //const t0 = performance.now();
     
     //create a blob representation of the zip
     const blobbedZip = await zip.generateAsync({
@@ -71,8 +71,9 @@ async function downloadZip(zip) {
             level: 9
         }
     });
-    const t1 = performance.now();
-    console.log(`zip took: ${t1-t0} ms`);
+    
+    //const t1 = performance.now();
+    //console.log(`zip took: ${t1-t0} ms`);
     
     //clear out the zip status message
     zipStatus.innerHTML = '';
@@ -105,7 +106,7 @@ async function downloadZip(zip) {
 
     //set a handler when the toast is closed
     $('#zipLinkToast').on('hidden.bs.toast', function () {
-        //give back the resources for the zip in memory
+        //give back the resources for the zip file in memory
         window.URL.revokeObjectURL(url);
     });
 
@@ -146,7 +147,7 @@ async function addStorytellerProjectHistoryToZip(events, zip, withComments) {
     zip.folder('.storyteller/project');
 
     //data collected from the events up to the pause point
-    const stData = {
+    const zipPlaybackData = {
         comments: {},
         commentImageURLs: {},
         commentVideoURLs: {},
@@ -168,30 +169,30 @@ async function addStorytellerProjectHistoryToZip(events, zip, withComments) {
 
     //move through the events up to the pause point and collect only the data
     //that has been used so far
-    collectDataAboutEvents(events, stData);
+    collectDataAboutEvents(events, zipPlaybackData);
 
     //get the comments up to this point in the playback and store in the comments dir
-    await createCommentsFile(stData, zip, withComments);
+    await createCommentsFile(zipPlaybackData, zip, withComments);
 
     //get the devs up to this point in the playback and store in the devs dir
-    createDevsFile(stData, zip);
+    createDevsFile(zipPlaybackData, zip);
     
     //get the fs data up to this point in the playback and store in the fs dir
-    createFSFile(stData, zip);
+    createFSFile(zipPlaybackData, zip);
 
     //get the events up to this point in the playback and store in the events dir
-    createEventsFile(stData, zip);
+    createEventsFile(zipPlaybackData, zip);
     
     //get the project data up to this point in the playback and store in the project dir
-    createProjectFile(stData, zip);
+    createProjectFile(zipPlaybackData, zip);
 }
 /*
  * March through the events from the beginning until the pause point and collect
  * information from the events. 
  */
-function collectDataAboutEvents(events, stData) {
+function collectDataAboutEvents(events, zipPlaybackData) {
     //store the description comment block
-    storeCommentData(playbackData.comments['ev--1'], 'ev--1', stData);
+    storeCommentData(playbackData.comments['ev--1'], 'ev--1', zipPlaybackData);
 
     //start at the beginning and move until the pause point in the playback
     for(let i = 0;i < events.length;i++) {
@@ -201,53 +202,53 @@ function collectDataAboutEvents(events, stData) {
         //is there a comment associated with this event
         if(playbackData.comments[nextEvent.id]) {
             //add the comment data to the st data
-            storeCommentData(playbackData.comments[nextEvent.id], nextEvent.id, stData);
+            storeCommentData(playbackData.comments[nextEvent.id], nextEvent.id, zipPlaybackData);
         }
         
         //if this is a new dev group add it and all the devs in the group
-        if(!stData.devGroups[nextEvent.createdByDevGroupId]) {
-            storeDevData(nextEvent.createdByDevGroupId, stData)
+        if(!zipPlaybackData.devGroups[nextEvent.createdByDevGroupId]) {
+            storeDevData(nextEvent.createdByDevGroupId, zipPlaybackData)
         }
 
         //the latest event's dev group id to set the current dev group 
-        stData.latestDevGroupId = nextEvent.createdByDevGroupId;
+        zipPlaybackData.latestDevGroupId = nextEvent.createdByDevGroupId;
 
         //update the fs 
-        updateFileSystem(nextEvent, stData);
+        updateFileSystem(nextEvent, zipPlaybackData);
 
         //add the event
-        stData.events.push(nextEvent);
+        zipPlaybackData.events.push(nextEvent);
     }
 
     //store the project title and branch id
-    stData.project.title = playbackData.playbackTitle;
-    stData.project.branchId = playbackData.branchId; //TODO change this for every new download???
+    zipPlaybackData.project.title = playbackData.playbackTitle;
+    zipPlaybackData.project.branchId = playbackData.branchId; //TODO change this for every new download???
 }
 /*
  * Stores info about a dev group and devs that are encountered.
  */
-function storeDevData(devGroupId, stData) {
+function storeDevData(devGroupId, zipPlaybackData) {
     //get the dev group
     const newDevGroup = playbackData.developerGroups[devGroupId];
     //store the dev group
-    stData.devGroups[devGroupId] = newDevGroup;
+    zipPlaybackData.devGroups[devGroupId] = newDevGroup;
 
     //add the members of the new group if they are not already present
     const memberIds = newDevGroup.memberIds;
     for(let i = 0;i < memberIds.length;i++) {
         const memberId = memberIds[i];
-        if(!stData.devs[memberId]) {
-            stData.devs[memberId] = playbackData.developers[memberId];
+        if(!zipPlaybackData.devs[memberId]) {
+            zipPlaybackData.devs[memberId] = playbackData.developers[memberId];
         }
     }
 }
 /*
  * Update the file system based on the event.
  */
-function updateFileSystem(nextEvent, stData) {
+function updateFileSystem(nextEvent, zipPlaybackData) {
     if(nextEvent.type === 'CREATE FILE') {
         //add an entry for the file
-        stData.allFiles[nextEvent.fileId] = {
+        zipPlaybackData.allFiles[nextEvent.fileId] = {
             parentDirectoryId: nextEvent.parentDirectoryId,
             currentPath: nextEvent.filePath,
             isDeleted: 'false',
@@ -256,101 +257,99 @@ function updateFileSystem(nextEvent, stData) {
             textFileInsertEvents: []
         };
         //create an entry for the path to id map
-        stData.pathToFileIdMap[nextEvent.filePath] = nextEvent.fileId;
+        zipPlaybackData.pathToFileIdMap[nextEvent.filePath] = nextEvent.fileId;
 
         //add an entry for the file contents
-        stData.textFileContents[nextEvent.fileId] = []; 
+        zipPlaybackData.textFileContents[nextEvent.fileId] = []; 
     } else if(nextEvent.type === 'DELETE FILE') {
         //mark the file as deleted
-        stData.allFiles[nextEvent.fileId].isDeleted = 'true';
+        zipPlaybackData.allFiles[nextEvent.fileId].isDeleted = 'true';
         //remove the path to id mapping
-        delete stData.pathToFileIdMap[nextEvent.filePath];
+        delete zipPlaybackData.pathToFileIdMap[nextEvent.filePath];
         //remove the file contents
-        delete stData.textFileContents[nextEvent.fileId];
+        delete zipPlaybackData.textFileContents[nextEvent.fileId];
     } else if(nextEvent.type === 'RENAME FILE') {
         //update the file's path
-        stData.allFiles[nextEvent.fileId].currentPath = nextEvent.newFilePath;
+        zipPlaybackData.allFiles[nextEvent.fileId].currentPath = nextEvent.newFilePath;
         //adjust the path to id mapping
-        const fileId = stData.pathToFileIdMap[nextEvent.oldFilePath];
-        stData.pathToFileIdMap[nextEvent.newFilePath] = fileId;
-        delete stData.pathToFileIdMap[nextEvent.oldFilePath];
+        const fileId = zipPlaybackData.pathToFileIdMap[nextEvent.oldFilePath];
+        zipPlaybackData.pathToFileIdMap[nextEvent.newFilePath] = fileId;
+        delete zipPlaybackData.pathToFileIdMap[nextEvent.oldFilePath];
     } else if(nextEvent.type === 'MOVE FILE') {
         //update the file's path
-        stData.allFiles[nextEvent.fileId].currentPath = nextEvent.newFilePath;
-        stData.allFiles[nextEvent.fileId].parentDirectoryId = nextEvent.newParentDirectoryId;
+        zipPlaybackData.allFiles[nextEvent.fileId].currentPath = nextEvent.newFilePath;
+        zipPlaybackData.allFiles[nextEvent.fileId].parentDirectoryId = nextEvent.newParentDirectoryId;
         //adjust the path to id mapping
-        const fileId = stData.pathToFileIdMap[nextEvent.oldFilePath];
-        stData.pathToFileIdMap[nextEvent.newFilePath] = fileId;
-        delete stData.pathToFileIdMap[nextEvent.oldFilePath];
+        const fileId = zipPlaybackData.pathToFileIdMap[nextEvent.oldFilePath];
+        zipPlaybackData.pathToFileIdMap[nextEvent.newFilePath] = fileId;
+        delete zipPlaybackData.pathToFileIdMap[nextEvent.oldFilePath];
     } else if(nextEvent.type === 'CREATE DIRECTORY') {
         //add an entry for the directory
-        stData.allDirs[nextEvent.directoryId] = {
+        zipPlaybackData.allDirs[nextEvent.directoryId] = {
             parentDirectoryId: nextEvent.parentDirectoryId,
             currentPath: nextEvent.directoryPath,
             isDeleted: 'false',
             id: nextEvent.directoryId
         };
         //create an entry for the path to id map
-        stData.pathToDirIdMap[nextEvent.directoryPath] = nextEvent.directoryId;
+        zipPlaybackData.pathToDirIdMap[nextEvent.directoryPath] = nextEvent.directoryId;
     } else if(nextEvent.type === 'DELETE DIRECTORY') {
         //mark the directory as deleted
-        stData.allDirs[nextEvent.directoryId].isDeleted = 'true';
+        zipPlaybackData.allDirs[nextEvent.directoryId].isDeleted = 'true';
         //remove the path to id mapping
-        delete stData.pathToDirIdMap[nextEvent.directoryPath];
+        delete zipPlaybackData.pathToDirIdMap[nextEvent.directoryPath];
     } else if(nextEvent.type === 'RENAME DIRECTORY') {
         //adjust the path to id mappings and the current paths of the files/dirs affected by the dir rename
-        updateFileAndDirPaths(stData, nextEvent.oldDirectoryPath, nextEvent.newDirectoryPath);
+        updateFileAndDirPaths(zipPlaybackData, nextEvent.oldDirectoryPath, nextEvent.newDirectoryPath);
     } else if(nextEvent.type === 'MOVE DIRECTORY') {
         //update the directory's parent dir id
-        stData.allDirs[nextEvent.directoryId].parentDirectoryId = nextEvent.newParentDirectoryId;
+        zipPlaybackData.allDirs[nextEvent.directoryId].parentDirectoryId = nextEvent.newParentDirectoryId;
         //adjust the path to id mappings and the current paths of the files/dirs affected by the dir move
-        updateFileAndDirPaths(stData, nextEvent.oldDirectoryPath, nextEvent.newDirectoryPath);
+        updateFileAndDirPaths(zipPlaybackData, nextEvent.oldDirectoryPath, nextEvent.newDirectoryPath);
     } else if(nextEvent.type === 'INSERT') {
         //insert the character
-        addInsertEventByPos(stData.textFileContents[nextEvent.fileId], nextEvent.id, nextEvent.character, nextEvent.lineNumber - 1, nextEvent.column - 1);
-        //printInsertEvents(stData.textFileContents[nextEvent.fileId]);
+        addInsertEventByPos(zipPlaybackData.textFileContents[nextEvent.fileId], nextEvent.id, nextEvent.character, nextEvent.lineNumber - 1, nextEvent.column - 1);
     } else if(nextEvent.type === 'DELETE') {
         //remove the character
-        removeInsertEventByPos(stData.textFileContents[nextEvent.fileId], nextEvent.lineNumber - 1, nextEvent.column - 1);
-        //printInsertEvents(stData.textFileContents[nextEvent.fileId]);
+        removeInsertEventByPos(zipPlaybackData.textFileContents[nextEvent.fileId], nextEvent.lineNumber - 1, nextEvent.column - 1);
     }
 }
 /*
  * Updates the current paths in allFiles and allDirs and values in the path to 
  * id mapping objects when a dir is moved or renamed.
  */
-function updateFileAndDirPaths(stData, oldDirectoryPath, newDirectoryPath) {
+function updateFileAndDirPaths(zipPlaybackData, oldDirectoryPath, newDirectoryPath) {
     //path to id mapping
     //update all of the files that have the moved/renamed dir as part of the path
-    for(let filePath in stData.pathToFileIdMap) {
+    for(let filePath in zipPlaybackData.pathToFileIdMap) {
         //if the file is somewhere within the old dir
         if(filePath.startsWith(oldDirectoryPath)) {
             //create a new path with the old dir path replaced with the new one
             const newFilePath = `${newDirectoryPath}${filePath.substring(oldDirectoryPath.length)}`;
             //add a new entry and remove the old one
-            const fileId = stData.pathToFileIdMap[filePath];
-            stData.pathToFileIdMap[newFilePath] = fileId;
-            delete stData.pathToFileIdMap[filePath];
+            const fileId = zipPlaybackData.pathToFileIdMap[filePath];
+            zipPlaybackData.pathToFileIdMap[newFilePath] = fileId;
+            delete zipPlaybackData.pathToFileIdMap[filePath];
         }
     }
     //update all of the subdirectories that have the moved/renamed dir as part of the path
-    for(let dirPath in stData.pathToDirIdMap) {
+    for(let dirPath in zipPlaybackData.pathToDirIdMap) {
         //if the dir is somewhere within the old dir
         if(dirPath.startsWith(oldDirectoryPath)) {
             //create a new path with the old dir path replaced with the new one
             const newDirPath = `${newDirectoryPath}${dirPath.substring(oldDirectoryPath.length)}`;
             //add a new entry and remove the old one
-            const dirId = stData.pathToDirIdMap[dirPath];
-            stData.pathToDirIdMap[newDirPath] = dirId;
-            delete stData.pathToDirIdMap[dirPath];
+            const dirId = zipPlaybackData.pathToDirIdMap[dirPath];
+            zipPlaybackData.pathToDirIdMap[newDirPath] = dirId;
+            delete zipPlaybackData.pathToDirIdMap[dirPath];
         }
     }
 
     //all files/dirs
     //update all of the current paths
-    for(let fileId in stData.allFiles) {
+    for(let fileId in zipPlaybackData.allFiles) {
         //get the file and its current path
-        const file = stData.allFiles[fileId];
+        const file = zipPlaybackData.allFiles[fileId];
         const filePath = file.currentPath;
         //if the file is somewhere within the old dir
         if(filePath.startsWith(oldDirectoryPath)) {
@@ -359,9 +358,9 @@ function updateFileAndDirPaths(stData, oldDirectoryPath, newDirectoryPath) {
         }
     }
     //update all of the current paths
-    for(let dirId in stData.allDirs) {
+    for(let dirId in zipPlaybackData.allDirs) {
         //get the dir and its current path
-        const dir = stData.allDirs[dirId];
+        const dir = zipPlaybackData.allDirs[dirId];
         const dirPath = dir.currentPath;
         //if the dir is somewhere within the old dir
         if(dirPath.startsWith(oldDirectoryPath)) {
@@ -373,48 +372,50 @@ function updateFileAndDirPaths(stData, oldDirectoryPath, newDirectoryPath) {
 /*
  * Adds the comment data.
  */
-function storeCommentData(comments, eventId, stData) {
+function storeCommentData(comments, eventId, zipPlaybackData) {
     //store the comment to be added to the zip
-    stData.comments[eventId] = comments;
+    zipPlaybackData.comments[eventId] = comments;
     //collect the media URLs from the comments
     for(let i = 0;i < comments.length;i++) {
         const comment = comments[i];
         //store the media URLs in the comments (use an object so there are no repeats)
         if(comment.imageURLs.length > 0) {
-            comment.imageURLs.forEach(imageURL => stData.commentImageURLs[imageURL] = imageURL);
+            comment.imageURLs.forEach(imageURL => zipPlaybackData.commentImageURLs[imageURL] = imageURL);
         }
         if(comment.videoURLs.length > 0) {
-            comment.videoURLs.forEach(videoURL => stData.commentVideoURLs[videoURL] = videoURL);
+            comment.videoURLs.forEach(videoURL => zipPlaybackData.commentVideoURLs[videoURL] = videoURL);
         }
         if(comment.audioURLs.length > 0) {
-            comment.audioURLs.forEach(audioURL => stData.commentAudioURLs[audioURL] = audioURL);
+            comment.audioURLs.forEach(audioURL => zipPlaybackData.commentAudioURLs[audioURL] = audioURL);
         }
     }
 }
 /*
  * Create the comments.json file in the zip.
  */
-async function createCommentsFile(stData, zip, withComments) {
+async function createCommentsFile(zipPlaybackData, zip, withComments) {
     const commentsObject = {
         comments: {},
         commentAutoGeneratedId: 0
     };
 
+    //if the user has requested that comments come with the code
     if(withComments) {
-        commentsObject.comments = stData.comments;
-        commentsObject.commentAutoGeneratedId = Object.keys(stData.comments).length;
+        commentsObject.comments = zipPlaybackData.comments;
+        commentsObject.commentAutoGeneratedId = Object.keys(zipPlaybackData.comments).length;
         
         //now add the comment media (images, videos, audios)
-        await createCommentMedia(Object.keys(stData.commentImageURLs), zip);
-        await createCommentMedia(Object.keys(stData.commentVideoURLs), zip);
-        await createCommentMedia(Object.keys(stData.commentAudioURLs), zip);
-    }
+        await createCommentMedia(Object.keys(zipPlaybackData.commentImageURLs), zip);
+        await createCommentMedia(Object.keys(zipPlaybackData.commentVideoURLs), zip);
+        await createCommentMedia(Object.keys(zipPlaybackData.commentAudioURLs), zip);
+    } //else- no comments, stick with the default empty values
+
     zip.file('.storyteller/comments/comments.json', JSON.stringify(commentsObject));
 }
 /*
  * Create the devs.json file in the zip.
  */
-function createDevsFile(stData, zip) {
+function createDevsFile(zipPlaybackData, zip) {
     const devsObject = {
         systemDeveloper: playbackData.developers['devId-0'],
         anonymousDeveloper: playbackData.developers['devId-1'],
@@ -422,7 +423,7 @@ function createDevsFile(stData, zip) {
         anonymousDeveloperGroup: playbackData.developerGroups['devGroupId-1'],
         allDevelopers: playbackData.developers,
         allDeveloperGroups: playbackData.developerGroups,
-        currentDeveloperGroupId: stData.latestDevGroupId,
+        currentDeveloperGroupId: zipPlaybackData.latestDevGroupId,
         developerAutoGeneratedId: Object.keys(playbackData.developers).length,
         developerGroupAutoGeneratedId: Object.keys(playbackData.developerGroups).length
     };
@@ -433,18 +434,20 @@ function createDevsFile(stData, zip) {
 /*
  * Create the fs file.
  */
-function createFSFile(stData, zip) {
-    Object.values(stData.allFiles).forEach(file => {
-        file['textFileInsertEvents'] = stData.textFileContents[file.id];
+function createFSFile(zipPlaybackData, zip) {
+    //add the contents of the file (minimal insert events) to the file object 
+    Object.values(zipPlaybackData.allFiles).forEach(file => {
+        file['textFileInsertEvents'] = zipPlaybackData.textFileContents[file.id];
     });
 
+    //create the object
     const fsObject = {
-        allFiles: stData.allFiles,
-        allDirs: stData.allDirs,
-        pathToFileIdMap: stData.pathToFileIdMap,
-        pathToDirIdMap: stData.pathToDirIdMap,
-        fileAutoGeneratedId: Object.keys(stData.pathToFileIdMap).length,
-        directoryAutoGeneratedId: Object.keys(stData.pathToDirIdMap).length
+        allFiles: zipPlaybackData.allFiles,
+        allDirs: zipPlaybackData.allDirs,
+        pathToFileIdMap: zipPlaybackData.pathToFileIdMap,
+        pathToDirIdMap: zipPlaybackData.pathToDirIdMap,
+        fileAutoGeneratedId: Object.keys(zipPlaybackData.pathToFileIdMap).length,
+        directoryAutoGeneratedId: Object.keys(zipPlaybackData.pathToDirIdMap).length
     };
 
     //add the fs data to the zip
@@ -453,10 +456,10 @@ function createFSFile(stData, zip) {
 /*
  * Create the events file.
  */
-function createEventsFile(stData, zip) {
+function createEventsFile(zipPlaybackData, zip) {
     const eventsObject = {
-        events: stData.events,
-        eventAutoGeneratedId: stData.events.length 
+        events: zipPlaybackData.events,
+        eventAutoGeneratedId: zipPlaybackData.events.length 
     };
 
     //add the event data to the zip
@@ -465,11 +468,12 @@ function createEventsFile(stData, zip) {
 /*
  * Create the project file.
  */
-function createProjectFile(stData, zip) {
+function createProjectFile(zipPlaybackData, zip) {
     const projectObject = {
-        title: stData.project.title,
-        branchId: stData.project.branchId
+        title: zipPlaybackData.project.title,
+        branchId: zipPlaybackData.project.branchId
     };
+
     //add the event data to the zip
     zip.file('.storyteller/project/project.json', JSON.stringify(projectObject));
 }
@@ -481,102 +485,54 @@ async function createCommentMedia(commentMediaURLs, zip) {
     const mediaResults = await Promise.all(commentMediaURLs.map(url => fetch(url)));
     const mediaBlobs = await Promise.all(mediaResults.map(mediaResult => mediaResult.blob()));
 
-    //add the blobs to the zip
+    //add the media blobs to the zip
     for(let i = 0;i < mediaBlobs.length;i++) {
         zip.file(`.storyteller/comments${commentMediaURLs[i]}`, mediaBlobs[i]);
     }
 }
 /*
- *
+ * Create a zip that marks certain events as non-relevant so that they won't 
+ * ever be seen in a playback. This zip will mark any event that is added and
+ * then deleted in between comments as irrelevant. The idea is that the comment
+ * points are the important milestones and if code is added and then deleted
+ * inbetween two milestones then it is not really important and can be hidden
+ * during playback.
  */
 async function zipAtComments() {
-    //holds all of the events where some of the events from playbackData.events may be thrown out
+    //holds all of the events to be added to the zip
     const allEvents = [];
-    //holds the state of the files
-    const textFileContents = {};
 
-    //by file collection of fresh inserts
+    //by file collection of fresh inserts in between comments
     let freshInserts = {};
-
-    //groups of events in between comment points
-    let eventsBetweenComments = [];
-
-    //get the first event's event sequence number
-    let eventSequenceNumber = playbackData.events[0].eventSequenceNumber;
 
     //go through all of the events up to the pause point stopping at comments
     for(let i = 0;i < playbackData.nextEventPosition;i++) {
-        //copy the event since it may be changed for the zip (don't want to mess up the current playback)
+        //copy the event since it may be marked as irrelevant for the zip (don't want to mess up the current playback)
         let nextEvent = Object.assign({}, playbackData.events[i]);
+        //add the event
+        allEvents.push(nextEvent);
         
         //if there is a comment at this event or it is the last one
         if(playbackData.comments[nextEvent.id] || i === (playbackData.nextEventPosition - 1)) {
-            //add the non-insert events first
-            eventsBetweenComments.forEach(event => allEvents.push(event));
-
-            //get only the events that were not inserted and then deleted in between comments
-            const updatedInsertEvents = updateFreshInsertEvents(eventsBetweenComments, textFileContents, freshInserts, eventSequenceNumber);
-            //add the (possibly) smaller set of (possibly altered) events to the group that will be written to the playback
-            updatedInsertEvents.forEach(event => allEvents.push(event));
-            
-            //add the current event ?????
-            allEvents.push(nextEvent);
-            
-            //if the pause event is a comment event
-            if(playbackData.comments[nextEvent.id]) {
-                for(let j = 0;j < playbackData.comments[nextEvent.id].length;j++) {
-                    const comment = playbackData.comments[nextEvent.id][j];
-                    comment.displayCommentEvent = nextEvent;
+            //clear out the fresh inserts and get ready for the next group of events
+            freshInserts = {};
+        } else { //the event is inbetween two comments 
+            //all inserts are handled at the end of a comment grouping
+            if(nextEvent.type === 'INSERT') {
+                //if this is the first fresh insert in a file
+                if(!freshInserts[nextEvent.fileId]) {
+                    freshInserts[nextEvent.fileId] = {};
+                }
+                //store the fresh insert event 
+                freshInserts[nextEvent.fileId][nextEvent.id] = nextEvent;
+            } else if(nextEvent.type === 'DELETE') { 
+                //if it is a delete of a fresh insert
+                if(freshInserts[nextEvent.fileId] && freshInserts[nextEvent.fileId][nextEvent.previousNeighborId]) {
+                    //mark the insert and delete as not relevant during playback
+                    freshInserts[nextEvent.fileId][nextEvent.previousNeighborId].permanentRelevance = 'never relevant';
+                    nextEvent.permanentRelevance = 'never relevant';
                 }
             }
-            
-            //update the event sequence number 
-            eventSequenceNumber += updatedInsertEvents.length;
-            
-            //clear these out for the next group
-            freshInserts = {};
-            eventsBetweenComments = [];
-        } 
-
-        //all inserts are handled at the end of a comment grouping
-        if(nextEvent.type === 'INSERT') {
-            //if this is the first fresh insert in a file
-            if(!freshInserts[nextEvent.fileId]) {
-                freshInserts[nextEvent.fileId] = {};
-            }
-            //store the fresh insert event 
-            freshInserts[nextEvent.fileId][nextEvent.id] = nextEvent;
-
-            //insert the event
-            const minimalEvent = addInsertEventByPos(textFileContents[nextEvent.fileId], nextEvent.id, nextEvent.character, nextEvent.lineNumber - 1, nextEvent.column - 1);
-            //mark the minimal event as fresh
-            minimalEvent.isFresh = true;
-        } else if(nextEvent.type === 'DELETE') { 
-            //remove the previous neighbor insert
-            removeInsertEventByPos(textFileContents[nextEvent.fileId], nextEvent.lineNumber - 1, nextEvent.column - 1);
-
-            //if it is NOT a delete of a fresh insert, there is a comment on this event, or it is the last event
-            // if((freshInserts[nextEvent.fileId] && !freshInserts[nextEvent.fileId][nextEvent.previousNeighborId]) || 
-            //    playbackData.comments[nextEvent.id] || 
-            //    i === (playbackData.nextEventPosition - 1)) {
-            //     //update the event sequence number
-            //     nextEvent.eventSequenceNumber = eventSequenceNumber++;
-            //     //add the event to the latest group
-            //     eventsBetweenComments.push(nextEvent);
-            // }
-        } else { //all fs event types
-            //if a new file is being created
-            if(nextEvent.type === 'CREATE FILE') {
-                //create an entry for the new file
-                textFileContents[nextEvent.fileId] = [];
-            } else if(nextEvent.type === 'DELETE FILE') {
-                //delete the entry for the new file
-                delete textFileContents[nextEvent.fileId];
-            }
-            //update the event sequence number
-            nextEvent.eventSequenceNumber = eventSequenceNumber++;
-            //add the event to the latest group
-            eventsBetweenComments.push(nextEvent);
         }
     }
 
@@ -588,279 +544,6 @@ async function zipAtComments() {
     await addStorytellerProjectHistoryToZip(allEvents, zip, true);
     //cause the zip to be downloaded
     downloadZip(zip);
-}
-function updateFreshInsertEvents(eventsBetweenComments, textFileContents, freshInserts, eventSequenceNumber) {
-    //only fresh events with the previous neighbor id and line number and column updated
-    const events = [];
-
-    //go through only files with fresh inserts
-    for(let fileId in freshInserts) {
-        //get the minimal file representation
-        const textFileContent = textFileContents[fileId];
-
-        //for previous neighbors
-        let previousNeighborId = 'none';
-        //go through the file left to right, top to bottom
-        for(let row = 0;row < textFileContent.length;row++) {
-            for(let col = 0;col < textFileContent[row].length;col++) {
-                //if this is a fresh insert
-                if(textFileContent[row][col].isFresh) {
-                    //get the latest full event at the corresponding position in the file
-                    const eventId = textFileContent[row][col].id;
-                    const updatedEvent = freshInserts[fileId][eventId];
-
-                    //update the full insert event
-                    updatedEvent.previousNeighborId = previousNeighborId;
-                    updatedEvent.lineNumber = row + 1;
-                    updatedEvent.column = col + 1;
-                    updatedEvent.eventSequenceNumber = eventSequenceNumber++;
-
-                    events.push(updatedEvent);
-                    
-                    textFileContent[row][col].isFresh = false;
-                }
-
-                //update the previous neeighbor before moving on to the next event
-                previousNeighborId = textFileContent[row][col].id;
-            }
-        }
-    }
-    return events;
-}
-// /*
-//  *
-//  */
-// async function zipAtComments() {
-//     //holds all of the events where some of the events from playbackData.events may be thrown out
-//     const allEvents = [];
-//     //holds the state of the files
-//     const textFileContents = {};
-//     const lineLengths = {};
-//     //by file collection of fresh inserts
-//     let freshInserts = {};
-//     //files that have had a fresh insert deleted
-//     let filesRequiringEventAdjustment = {};
-//     //groups of events in between comment points
-//     let eventsBetweenComments = [];
-
-//     //go through all of the events up to the pause point stopping at comments
-//     for(let i = 0;i < playbackData.nextEventPosition;i++) {
-//         //copy the event since it may be changed for the zip (don't want to mess up the current playback)
-//         let nextEvent = Object.assign({}, playbackData.events[i]);
-
-//         //capture all new inserts in this block
-//         if(nextEvent.type === 'INSERT') {
-//             //if this is the first fresh insert in a file
-//             if(!freshInserts[nextEvent.fileId]) {
-//                 freshInserts[nextEvent.fileId] = {};
-//             }
-//             //store the fresh insert event 
-//             freshInserts[nextEvent.fileId][nextEvent.id] = nextEvent;
-//         } else if(nextEvent.type === 'DELETE') { 
-//             //if a fresh insert has been deleted 
-//             if(freshInserts[nextEvent.fileId][nextEvent.previousNeighborId]) {
-//                 //indicate that the insert events in this file need to be adjusted 
-//                 filesRequiringEventAdjustment[nextEvent.fileId] = true;
-
-//                 //mark the previously encountered fresh insert event as deleted
-//                 freshInserts[nextEvent.fileId][nextEvent.previousNeighborId].isDeleted = true;
-//                 //mark this delete event as well since it won't be needed
-//                 nextEvent.isDeleted = true;
-//             }
-//         }
-//         //add the event to the latest group
-//         eventsBetweenComments.push(nextEvent);
-
-//         //if there is a comment at this event or it is the last one
-//         if(playbackData.comments[nextEvent.id] || i === (playbackData.nextEventPosition - 1)) {
-//             //get only the events that were not inserted and then deleted in between comments
-//             const noDeletedEvents = getEventsWithoutDeletes(eventsBetweenComments, textFileContents, lineLengths, filesRequiringEventAdjustment);
-//             //add the (possibly) smaller set of (possibly altered) events to the group that will be written to the playback
-//             noDeletedEvents.forEach(event => allEvents.push(event));
-
-//             // //if the latest event is a delete that removes a fresh delete
-//             // if(nextEvent.type === 'DELETE' && nextEvent.isDeleted) {
-//             //     //move the comment at this event to the last event not deleted
-//             //     for(let j = i;j >= 0;j--) {
-//             //         if()
-//             //     }
-//             // }
-//             //reset these for the next group
-//             //freshInserts = {};
-//             for(let freshFileId in freshInserts) {
-//                 freshInserts[freshFileId] = null;
-//             }
-//             filesRequiringEventAdjustment = {};
-//             eventsBetweenComments = [];
-//         } 
-//     }
-
-//     //create a new zip
-//     const zip = new JSZip();
-//     //add only the code to the zip
-//     addCodeToZip(zip);
-//     //add the data required to make this a storyeller project
-//     await addStorytellerProjectHistoryToZip(allEvents, zip, true);
-//     //cause the zip to be downloaded
-//     downloadZip(zip);
-// }
-/*
- *
- */
-function getEventsWithoutDeletes(eventsBetweenComments, textFileContents, lineLengths, filesRequiringEventAdjustment) {
-    //all events with the recently inserted and then deleted inserts removed
-    const minimalEvents = [];
-
-    //go through the events in between the comments
-    for(let i = 0;i < eventsBetweenComments.length;i++) {
-        const nextEvent = eventsBetweenComments[i];
-        //do not add events that were added and then deleted in between comments
-        //(insert events or deletes of recent inserts)
-        if(!nextEvent.isDeleted) {
-            minimalEvents.push(nextEvent);
-        }
-
-        //if a new file is being created
-        if(nextEvent.type === 'CREATE FILE') {
-            //create an entry for the new file- insert events and line lengths
-            textFileContents[nextEvent.fileId] = [];
-            lineLengths[nextEvent.fileId] = [];
-        } else if(nextEvent.type === 'INSERT') {
-            //insert the event
-            const minimalEvent = addInsertEventByPos(textFileContents[nextEvent.fileId], nextEvent.id, nextEvent.character, nextEvent.lineNumber - 1, nextEvent.column - 1);
-            
-            //if this is an insert that was deleted before the comment point
-            if(nextEvent.isDeleted) {
-                //mark the minimal event as deleted
-                minimalEvent.isDeleted = true;
-            } else { //plain old insert
-                //if this file has had some fresh inserts that were deleted
-                if(filesRequiringEventAdjustment[nextEvent.fileId]) {
-                    //adjust the previous neighbor, line number, and column
-                    adjustInsertEvent(nextEvent, textFileContents[nextEvent.fileId], lineLengths[nextEvent.fileId]);
-                } //else- it is not necessary to go through the expensive adjustment process
-
-                //increase the line length 
-                if(lineLengths[nextEvent.fileId][nextEvent.lineNumber - 1]) {
-                    lineLengths[nextEvent.fileId][nextEvent.lineNumber - 1]++;
-                } else {
-                    lineLengths[nextEvent.fileId].push(1);
-                }
-            }
-        } else if(nextEvent.type === 'DELETE') {
-            //remove the insert
-            removeInsertEventByPos(textFileContents[nextEvent.fileId], nextEvent.lineNumber - 1, nextEvent.column - 1);
-
-            //adjustDeleteEvent(nextEvent, textFileContents[nextEvent.fileId], lineLengths[nextEvent.fileId])
-            //update the line lengths
-            //if this event removed an old, non-deleted insert
-            if(nextEvent.isDeleted === false) {
-                //decrease the line length by one
-                lineLengths[nextEvent.fileId][nextEvent.lineNumber - 1]--;
-            }
-            //if the delete was of a newline (deleted or not)
-            if(nextEvent.character === 'NEWLINE' || nextEvent.character === 'CR-LF') {
-                //add the line length of the line underneath to this one
-                lineLengths[nextEvent.fileId][nextEvent.lineNumber - 1] += lineLengths[nextEvent.fileId][nextEvent.lineNumber];
-                lineLengths[nextEvent.fileId].splice(nextEvent.lineNumber, 1);
-            }
-        }
-    }
-
-    return minimalEvents;
-}
-/*
- *
- */
-function adjustInsertEvent(nextEvent, textFileInsertEvents, lineLengths) {
-    //get the position of the previous insert event that is not deleted
-    let position = moveBackAnEvent(nextEvent.lineNumber - 1, nextEvent.column - 1, textFileInsertEvents);
-    
-    //while we are not at the beginning of the file and there is a deleted insert
-    while(position.atBeginningOfFile === false && textFileInsertEvents[position.row][position.col].isDeleted) {
-        //move backward again
-        position = moveBackAnEvent(position.row, position.col, textFileInsertEvents);
-    }
-
-    //if we have moved back to the beginning of the file
-    if(position.atBeginningOfFile) {
-        //prev neighbor id of first character in a file
-        nextEvent.previousNeighborId = 'none';
-        nextEvent.lineNumber = 1;
-        nextEvent.column = 1;
-    } else {
-        //store the event id as the new previous neighbor
-        nextEvent.previousNeighborId = textFileInsertEvents[position.row][position.col].id;
-
-        // if(nextEvent.character === 'CR-LF') {
-        //     printInsertEvents(textFileInsertEvents);
-        // }
-        //nextEvent.lineNumber = position.row + 1;
-        //nextEvent.column = position.col + 2 ;
-        //adjustColumn(nextEvent, textFileInsertEvents);
-        //adjustRow(nextEvent, lineLengths);
-
-        //if its a newline
-        // if(textFileInsertEvents[position.row][position.col].character === 'NEWLINE' || textFileInsertEvents[position.row][position.col].character === 'CR-LF') {
-        //     nextEvent.lineNumber = position.row + 2;
-        //     nextEvent.column = 1;
-        // } else { //not a newline
-        //     nextEvent.lineNumber = position.row + 1;
-        //     nextEvent.column = position.col + 2;
-        // }
-    }
-}
-/*
- *
- */
-function adjustDeleteEvent(nextEvent, textFileInsertEvents, lineLengths) {
-    adjustColumn(nextEvent, textFileInsertEvents);
-    adjustRow(nextEvent, lineLengths);
-}
-/*
- *
- */
-function adjustColumn(nextEvent, textFileInsertEvents) {
-    for(let i = nextEvent.column - 1;i >= 0;i--) {
-        if(textFileInsertEvents[nextEvent.lineNumber - 1][i].isDeleted) {
-            nextEvent.column--;
-        }
-    }
-}
-/*
- *
- */
-function adjustRow(nextEvent, lineLengths) {
-    for(let i = nextEvent.lineNumber - 1;i >= 0;i--) {
-        if(lineLengths[i] === 0) {
-            nextEvent.lineNumber--;
-        }
-    }
-}
-/*
- * Moves one event backwards in a file based on a row and col.
- */
-function moveBackAnEvent(row, col, textFileInsertEvents) {
-    //if the current row and col are the at the beginning of the file
-    let atBeginningOfFile = false;
-
-    //if not at the beginning of a line
-    if(col > 0) {
-        //move back one event in the row
-        col--;
-    } else { //beginning of a line
-        //if not on the first line
-        if(row > 0) {
-            //move up a line
-            row--;
-            //go to the end of the previous line
-            col = textFileInsertEvents[row].length - 1;
-        } else { //row 0, col 0, no room to move backward
-            atBeginningOfFile = true;
-        }
-    }
-    //return info about the previous position
-    return {row, col, atBeginningOfFile};
 }
 /*
  * Creates a minimal insert event and adds it in its correct position in 
@@ -933,42 +616,4 @@ function removeInsertEventByPos(textFileInsertEvents, row, col) {
         //remove the row
         textFileInsertEvents.splice(row, 1);
     }
-}
-function printInsertEvents(textFileInsertEvents) {
-    let outputString = '';
-    for(let row = 0;row < textFileInsertEvents.length;row++) {
-        for(let col = 0;col < textFileInsertEvents[row].length;col++) {
-            if(textFileInsertEvents[row][col].isDeleted) {
-                outputString += `[${textFileInsertEvents[row][col].character}-r:${row}c:${col}] `;
-            } else {
-                outputString += `.${textFileInsertEvents[row][col].character}-r:${row}c:${col}. `;
-            }
-        }
-        outputString += '\n';
-    }
-    console.log(outputString);
-    console.log();
-}
-/*
- * Get the text from the file.
- */
-function getText(textFileInsertEvents) {
-    //text in the file
-    let text = '';
-
-    //go through the entire 2D array of events
-    for(let line = 0;line < textFileInsertEvents.length;line++) {
-        for(let column = 0;column < textFileInsertEvents[line].length;column++) {
-            if(textFileInsertEvents[line][column].character === 'NEWLINE' || textFileInsertEvents[line][column].character === 'CR-LF') {
-                text += '\n';
-            } else if(textFileInsertEvents[line][column].character === 'TAB') {
-                text += '\t';
-            } else {
-                //append the code character to a string
-                text += textFileInsertEvents[line][column].character;
-            }
-        }
-    }
-
-    return text;
 }
