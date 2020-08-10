@@ -67,6 +67,9 @@ async function initializePlayback()
         //displays all comments
         displayAllComments();
 
+        //make tick marks on slider clickable
+        setUpClickableTickMarks();
+
         //Sets up the event listeners for html elements on the page
         setupEventListeners();
 
@@ -344,8 +347,7 @@ function setupEventListeners()
             updateAllCommentHeaderCounts();
 
             //rebuild the slider with the new comment pip
-            document.getElementById('slider').noUiSlider.destroy();
-            setUpSlider();
+            setUpSliderTickMarks();
 
             document.getElementById("CancelUpdateButton").click();
         }
@@ -624,7 +626,30 @@ function setupEventListeners()
 
 function setUpSlider(){
     const slider = document.getElementById('slider');
+    
+    noUiSlider.create(slider, {
+        start: playbackData.nextEventPosition - 1,
+        step: 1, //this seems to cause stuttering when moving the slider in playback with a large number of events
+        animate: false,
+        keyboardSupport: false,
+        range: {
+            'min': playbackData.numNonRelevantEvents,
+            'max': playbackData.events.length 
+           
+        }
+    });
+    
+    slider.noUiSlider.on('slide.one', function () { 
+        //take the slider value and subtract the next event's position
+        step(Number(slider.noUiSlider.get()) - playbackData.nextEventPosition +1);
+        stopAutomaticPlayback();
+    });
 
+    setUpSliderTickMarks();
+}
+
+function setUpSliderTickMarks(){
+    const slider = document.getElementById ('slider');
     const commentPositions = [];
     const commentsKeys = Object.keys(playbackData.comments);
 
@@ -636,35 +661,16 @@ function setUpSlider(){
        
     }
 
-    noUiSlider.create(slider, {
-        start: playbackData.nextEventPosition - 1,
-        step: 1, //this seems to cause stuttering when moving the slider in playback with a large number of events
-        animate: false,
-        keyboardSupport: false,
-        range: {
-            'min': playbackData.numNonRelevantEvents,
-            'max': playbackData.events.length 
-           
-        },
+    slider.noUiSlider.updateOptions({
         pips: {
             mode: 'values',
             values: commentPositions,
             //connect: 'upper',
             density: 100,
             stepped: true,
-            filter: returnZero //TODO write this function here
+            filter: (function () {return -1;}) //TODO write this function here
         }
-    });
-    
-    slider.noUiSlider.on('slide.one', function () { 
-        //take the slider value and subtract the next event's position
-        step(Number(slider.noUiSlider.get()) - playbackData.nextEventPosition +1);
-        stopAutomaticPlayback();
-    });
-
-    // //delete the pip that is created on the right side of the slider
-    //const pips = document.querySelectorAll('.noUi-marker')
-    // pips[pips.length - 1].remove();
+    })
 
     setUpClickableTickMarks();
 }
@@ -673,7 +679,6 @@ function returnZero(){
     return 1;
 }
 
-// not done
 function setUpClickableTickMarks(){
     const pips = document.querySelectorAll('.noUi-value');
 
@@ -685,15 +690,16 @@ function setUpClickableTickMarks(){
 
         if (document.querySelector(`[data-commenteventid="ev-${value}"`)){
             tickMark.classList.add('clickableTickMark');
-            tickMark.addEventListener('click', event => {
-            
-                document.querySelector(`[data-commenteventid="ev-${value}"`).click();
-                
-                
+
+            tickMark.addEventListener('click', event => {            
+                document.querySelector(`[data-commenteventid="ev-${value}"`).click();                
             })
         }
     }
 
+    // //delete the pip that is created on the right side of the slider
+    //const pips = document.querySelectorAll('.noUi-marker')
+    // pips[pips.length - 1].remove();
 
 }
 
