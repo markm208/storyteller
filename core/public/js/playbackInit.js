@@ -665,18 +665,13 @@ function setUpSliderTickMarks(){
         pips: {
             mode: 'values',
             values: commentPositions,
-            //connect: 'upper',
-            density: 100,
+            density: -1,
             stepped: true,
-            filter: (function () {return -1;}) //TODO write this function here
+            filter: (function () {return 1;}) 
         }
     })
 
     setUpClickableTickMarks();
-}
-
-function returnZero(){
-    return 1;
 }
 
 function setUpClickableTickMarks(){
@@ -695,12 +690,7 @@ function setUpClickableTickMarks(){
                 document.querySelector(`[data-commenteventid="ev-${value}"`).click();                
             })
         }
-    }
-
-    // //delete the pip that is created on the right side of the slider
-    //const pips = document.querySelectorAll('.noUi-marker')
-    // pips[pips.length - 1].remove();
-
+    }    
 }
 
 function stopAutomaticPlayback(){
