@@ -6,25 +6,11 @@ function step(numSteps) {
     clearDeleteLineNumbers();
     clearHighlightChangedFiles();
  
-    const slider = document.getElementById('slider');
-
-    console.log("slider value is: " + slider.noUiSlider.get());
-    console.log("next event position is: " + playbackData.nextEventPosition);
-    console.log("num events is: " + playbackData.numEvents)
-
     //move forward
     if(numSteps > 0) {
         stepForward(numSteps);
-        
-        //update the position of the slider
-  
-        slider.noUiSlider.set(playbackData.nextEventPosition + 1);
     } else if(numSteps < 0) { //move backward
         stepBackward(-numSteps);
-
-        //update the position of the slider
-        slider.noUiSlider.set(playbackData.nextEventPosition + 1);
-
     } //else- no need to move at all
 
 
@@ -177,6 +163,11 @@ function stepForward(numSteps) {
         
         //update the current dev group avatars
         updateCurrentDeveloperGroupAvatars(currentDeveloperGroupId);
+        
+        //update the position of the slider
+        const slider = document.getElementById('slider');
+        slider.noUiSlider.set(playbackData.nextEventPosition);
+
         //store the latest dev group id
         playbackData.currentDeveloperGroupId = currentDeveloperGroupId;
 
@@ -196,7 +187,7 @@ function stepForward(numSteps) {
  */
 function stepBackward(numSteps) {
     //if there is room to move backwards
-    if(playbackData.nextEventPosition > playbackData.numNonRelevantEvents -1) {
+    if(playbackData.nextEventPosition > playbackData.numNonRelevantEvents) {
         removeActiveCommentAndGroup();
 
         //holds the next event to animate
@@ -306,6 +297,11 @@ function stepBackward(numSteps) {
 
         //update the current dev group avatars
         updateCurrentDeveloperGroupAvatars(currentDeveloperGroupId);
+        
+        //update the position of the slider
+        const slider = document.getElementById('slider');
+        slider.noUiSlider.set(playbackData.nextEventPosition);
+        
         //store the latest dev group id
         playbackData.currentDeveloperGroupId = currentDeveloperGroupId;
         

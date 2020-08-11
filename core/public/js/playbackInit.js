@@ -48,7 +48,7 @@ async function initializePlayback()
         }
 
         setUpSlider();
-        step(playbackData.numNonRelevantEvents.length - 1);
+        step(playbackData.numNonRelevantEvents);
 
 
         if (!playbackData.comments['ev--1'])
@@ -68,7 +68,7 @@ async function initializePlayback()
         displayAllComments();
 
         //make tick marks on slider clickable
-        setUpClickableTickMarks();
+        //setUpClickableTickMarks();
 
         //Sets up the event listeners for html elements on the page
         setupEventListeners();
@@ -565,9 +565,9 @@ function setupEventListeners()
         document.getElementById("pausePlayButton").style.display = "block";
         playbackInterval = setInterval(function(){
             step(1);
-            if (playbackData.comments["ev-" + playbackData.nextEventPosition]){   
+            if (playbackData.comments[`ev-${playbackData.nextEventPosition - 1}`]){   
                 //get the comment card associated with the position             
-                const currentComment = document.querySelector(`[data-commenteventid="ev-${playbackData.nextEventPosition}"]`);
+                const currentComment = document.querySelector(`[data-commenteventid="ev-${playbackData.nextEventPosition - 1}"]`);
 
                 //make it active by clicking it and then scroll to it
                 currentComment.click();
@@ -628,20 +628,20 @@ function setUpSlider(){
     const slider = document.getElementById('slider');
     
     noUiSlider.create(slider, {
-        start: playbackData.nextEventPosition - 1,
+        start: playbackData.numNonRelevantEvents, /*playbackData.nextEventPosition - 1,*/
         step: 1, //this seems to cause stuttering when moving the slider in playback with a large number of events
         animate: false,
         keyboardSupport: false,
         range: {
             'min': playbackData.numNonRelevantEvents,
-            'max': playbackData.events.length 
+            'max': playbackData.events.length
            
         }
     });
     
     slider.noUiSlider.on('slide.one', function () { 
         //take the slider value and subtract the next event's position
-        step(Number(slider.noUiSlider.get()) - playbackData.nextEventPosition +1);
+        step(Number(slider.noUiSlider.get()) - playbackData.nextEventPosition);
         stopAutomaticPlayback();
     });
 
@@ -656,7 +656,7 @@ function setUpSliderTickMarks(){
     for (let i = 0; i < commentsKeys.length; i++){
         if (commentsKeys[i] !== "ev--1"){
             const position = commentsKeys[i].substr(commentsKeys[i].lastIndexOf('-') + 1);
-            commentPositions.push(Number(position));          
+            commentPositions.push(Number(position) + playbackData.numNonRelevantEvents);          
         }
        
     }
@@ -671,7 +671,7 @@ function setUpSliderTickMarks(){
         }
     })
 
-    setUpClickableTickMarks();
+    //setUpClickableTickMarks();
 }
 
 function setUpClickableTickMarks(){
