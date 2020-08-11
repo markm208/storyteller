@@ -68,7 +68,7 @@ async function initializePlayback()
         displayAllComments();
 
         //make tick marks on slider clickable
-        //setUpClickableTickMarks();
+        setUpClickableTickMarks();
 
         //Sets up the event listeners for html elements on the page
         setupEventListeners();
@@ -671,23 +671,33 @@ function setUpSliderTickMarks(){
         }
     })
 
-    //setUpClickableTickMarks();
+    setUpClickableTickMarks();
 }
 
+
+/*Adds the ability to click a tickmark on the slider and jump to that comment */
 function setUpClickableTickMarks(){
+    //In noUiSlider, the pips (the number below the tick mark) has a data-value attribute on all .noUi-value elements with the value of the slider. 
+
     const pips = document.querySelectorAll('.noUi-value');
 
     for (let i = 0; i < pips.length; i++){
+
+        //the style attibute is the 'left' amount of the pip
         const style = pips[i].getAttribute("style");
-        const value = pips[i].getAttribute('data-value');
+        const value = Number(pips[i].getAttribute('data-value')) - 1;
+
+        //the style of the pip mark is used to find the tick mark with the same style 
         const tickMark = document.querySelector(`.noUi-marker[style="${style}"]`);
         
-
+        //find the comment with the same commenteventid as the value of the slider
         if (document.querySelector(`[data-commenteventid="ev-${value}"`)){
             tickMark.classList.add('clickableTickMark');
 
+            //add the clickable element that will bring us to the comment
             tickMark.addEventListener('click', event => {            
-                document.querySelector(`[data-commenteventid="ev-${value}"`).click();                
+                document.querySelector(`[data-commenteventid="ev-${value}"`).click();      
+                document.getElementById("commentContentDiv").scrollTop = document.getElementsByClassName('activeComment')[0].offsetTop - 100;          
             })
         }
     }    

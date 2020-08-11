@@ -300,7 +300,7 @@ function stepBackward(numSteps) {
         
         //update the position of the slider
         const slider = document.getElementById('slider');
-        slider.noUiSlider.set(playbackData.nextEventPosition);
+        slider.noUiSlider.set(playbackData.nextEventPosition + 1);
         
         //store the latest dev group id
         playbackData.currentDeveloperGroupId = currentDeveloperGroupId;
