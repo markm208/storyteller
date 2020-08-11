@@ -120,11 +120,26 @@ function setupEventListeners()
     //add event handlers for clicking the buttons
     stepBackOne.addEventListener('click', event => {
         step(-1);
+        
         stopAutomaticPlayback();
+        removeActiveCommentAndGroup();
+
+        const sliderValue = Number(slider.noUiSlider.get());
+        //if the slider falls on a comment, click the comment
+        if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
+            document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        }
     });
 
     stepForwardOne.addEventListener('click', event => {
+        removeActiveCommentAndGroup();
         step(1);
+
+        const sliderValue = Number(slider.noUiSlider.get());
+        //if the slider falls on a comment, click the comment
+        if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
+            document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        }
         stopAutomaticPlayback();
     });
 
@@ -493,10 +508,7 @@ function setupEventListeners()
         }                
 
         if (activeComment){
-            activeComment.click();
-
-            //scroll to the active comment
-            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;
+            activeComment.click();            
         }
         //if activeComment hasn't been assigned, then no comment was found at, or forward of the slider position
         //step to the last event and unselect any selected comment
@@ -569,9 +581,8 @@ function setupEventListeners()
                 //get the comment card associated with the position             
                 const currentComment = document.querySelector(`[data-commenteventid="ev-${playbackData.nextEventPosition - 1}"]`);
 
-                //make it active by clicking it and then scroll to it
+                //make it active by clicking it
                 currentComment.click();
-                document.getElementById("commentContentDiv").scrollTop = currentComment.offsetTop - 100;
 
                 //stop the automatic playback
                 stopAutomaticPlayback();
@@ -640,9 +651,17 @@ function setUpSlider(){
     });
     
     slider.noUiSlider.on('slide.one', function () { 
+        const sliderValue = Number(slider.noUiSlider.get());
         //take the slider value and subtract the next event's position
-        step(Number(slider.noUiSlider.get()) - playbackData.nextEventPosition);
+        step(sliderValue - playbackData.nextEventPosition);
+
+        removeActiveCommentAndGroup();   
         stopAutomaticPlayback();
+
+        //if the slider falls on a comment, click the comment
+        if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
+            document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        }
     });
 
     setUpSliderTickMarks();
@@ -657,8 +676,7 @@ function setUpSliderTickMarks(){
         if (commentsKeys[i] !== "ev--1"){
             const position = commentsKeys[i].substr(commentsKeys[i].lastIndexOf('-') + 1);
             commentPositions.push(Number(position) + playbackData.numNonRelevantEvents);          
-        }
-       
+        }       
     }
 
     slider.noUiSlider.updateOptions({
@@ -678,6 +696,7 @@ function setUpSliderTickMarks(){
 /*Adds the ability to click a tickmark on the slider and jump to that comment */
 function setUpClickableTickMarks(){
     //In noUiSlider, the pips (the number below the tick mark) has a data-value attribute on all .noUi-value elements with the value of the slider. 
+    //the tickmarks do not have this attribute
 
     const pips = document.querySelectorAll('.noUi-value');
 
@@ -697,7 +716,6 @@ function setUpClickableTickMarks(){
             //add the clickable element that will bring us to the comment
             tickMark.addEventListener('click', event => {            
                 document.querySelector(`[data-commenteventid="ev-${value}"`).click();      
-                document.getElementById("commentContentDiv").scrollTop = document.getElementsByClassName('activeComment')[0].offsetTop - 100;          
             })
         }
     }    
@@ -742,9 +760,6 @@ function jumpToPreviousComment()
 
     if (activeComment){
         activeComment.click();
-
-        //scroll to the active comment
-        document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;
     }
     //if activeComment hasn't been assigned, then no comment was found at, or forward of the slider position
     //step to the last event and unselect any selected comment

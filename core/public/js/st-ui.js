@@ -475,6 +475,9 @@ function updateActiveComment(cardObject)
     cardObject.classList.add("activeComment");
     cardObject.closest(".commentGroupSpacing").classList.add("activeGroup");
 
+    //scroll to the new active comment
+    document.getElementById("commentContentDiv").scrollTop = cardObject.offsetTop - 100;          
+
     return cardObject;
 }
 //Creates the edit button at the bottom of each card
