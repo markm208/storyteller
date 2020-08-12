@@ -170,7 +170,7 @@ function displayAllComments(){
 
         const atEventNegOne = `ev-${key}` === 'ev--1';
 
-        const displayEditCommentButton = (atEventNegOne && commentBlock.length > 2) || !atEventNegOne;
+        const displayEditCommentButton = (atEventNegOne && commentBlock.length > 1) || !atEventNegOne;
         if (playbackData.isEditable && displayEditCommentButton){
             
             //create the edit Comment button
@@ -185,7 +185,7 @@ function displayAllComments(){
                 stopAutomaticPlayback();
 
                 //for each element with class "drag", make draggable as long as there is more than 1 comment in the comment block   
-                if ((atEventNegOne && commentBlock.length > 3 ) || (!atEventNegOne && commentBlock.length > 1)){
+                if ((atEventNegOne && commentBlock.length > 2 ) || (!atEventNegOne && commentBlock.length > 1)){
                     $('.drag', "#" + commentGroupDiv.id).each(function(){                    
                         makeDraggable(this, key);
                     });
