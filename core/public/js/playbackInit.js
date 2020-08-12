@@ -733,13 +733,13 @@ function setUpClickableTickMarks(){
         tickMark.classList.add('clickableTickMark');
         
         //find the comment with the same commenteventid as the value of the slider
-        if (document.querySelector(`[data-commenteventid="ev-${pipValue}"`)){
+        if (document.querySelector(`[data-commenteventid="ev-${pipValue}"`)){           
+
             //add the clickable element that will bring us to the comment
             tickMark.addEventListener('click', event => {            
                 document.querySelector(`[data-commenteventid="ev-${pipValue}"`).click();      
             })
         }
-        //make the description tickmark clickable
         else if (pipStyle === "left: 0%;"){
             tickMark.addEventListener('click', event => {
                 document.querySelector(`[data-commenteventid="ev--1"`).click();  
