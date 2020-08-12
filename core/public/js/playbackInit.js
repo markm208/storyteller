@@ -124,22 +124,25 @@ function setupEventListeners()
         stopAutomaticPlayback();
         removeActiveCommentAndGroup();
 
-        const sliderValue = Number(slider.noUiSlider.get());
-        //if the slider falls on a comment, click the comment
-        if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
-            document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
-        }
+
+        //TODO determine if this will be included or not
+        // const sliderValue = Number(slider.noUiSlider.get());
+        // //if the slider falls on a comment, click the comment
+        // if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
+        //     document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        // }
     });
 
     stepForwardOne.addEventListener('click', event => {
         removeActiveCommentAndGroup();
         step(1);
 
-        const sliderValue = Number(slider.noUiSlider.get());
-        //if the slider falls on a comment, click the comment
-        if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
-            document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
-        }
+        //TODO determine if this will be included or not
+        // const sliderValue = Number(slider.noUiSlider.get());
+        // //if the slider falls on a comment, click the comment
+        // if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
+        //     document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        // }
         stopAutomaticPlayback();
     });
 
@@ -657,28 +660,42 @@ function setUpSlider(){
         //take the slider value and subtract the next event's position
         step(sliderValue - playbackData.nextEventPosition);
 
-        removeActiveCommentAndGroup();   
+        //removeActiveCommentAndGroup();   
         stopAutomaticPlayback();
 
-        //if the slider falls on a comment, click the comment
-        if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
-            document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
-        }
+        //TODO Determine if this will be included or not
+        // //if the slider falls on a comment, click the comment
+        // if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
+        //     document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        // }
+        // else if (document.querySelector(`[data-commenteventid="ev-${sliderValue}"]`)){
+        //     document.querySelector(`[data-commenteventid="ev-${sliderValue}"]`).click();
+        // }
     });
 
     setUpSliderTickMarks();
 }
 
 function setUpSliderTickMarks(){
+    //get the slider
     const slider = document.getElementById ('slider');
+    //holds the positions of the tick marks
     const commentPositions = [];
-    const commentsKeys = Object.keys(playbackData.comments);
 
-    for (let i = 0; i < commentsKeys.length; i++){
-        if (commentsKeys[i] !== "ev--1"){
-            const position = commentsKeys[i].substr(commentsKeys[i].lastIndexOf('-') + 1);
-            commentPositions.push(Number(position) + playbackData.numNonRelevantEvents);          
-        }       
+    //go through all of the comment blocks
+    for(let commentKey in playbackData.comments) {
+        //get an array of comment objects
+        const allCommentsAtPoint = playbackData.comments[commentKey];
+        //get the first comment in the block (they all have the same display event)
+        const firstCommentAtPoint = allCommentsAtPoint[0];
+
+        let test = slider.noUiSlider.get();
+
+        //if this is not the description comment
+        if(firstCommentAtPoint.displayCommentEvent.eventSequenceNumber !== -1) {
+            //comment tick marks are numbered to slide into the comment
+            commentPositions.push(firstCommentAtPoint.displayCommentEvent.eventSequenceNumber + 1);
+        }
     }
 
     slider.noUiSlider.updateOptions({
@@ -698,26 +715,28 @@ function setUpSliderTickMarks(){
 /*Adds the ability to click a tickmark on the slider and jump to that comment */
 function setUpClickableTickMarks(){
     //In noUiSlider, the pips (the number below the tick mark) has a data-value attribute on all .noUi-value elements with the value of the slider. 
-    //the tickmarks do not have this attribute
+    //the tickmarks do not have this attribute but they do have a matching style as the pip and we use that to find the tickmark that corresponds to the pip
 
     const pips = document.querySelectorAll('.noUi-value');
 
     for (let i = 0; i < pips.length; i++){
 
         //the style attibute is the 'left' amount of the pip
-        const style = pips[i].getAttribute("style");
-        const value = Number(pips[i].getAttribute('data-value')) - 1;
+        const pipStyle = pips[i].getAttribute("style");
+
+        //get the value of the slider at the pip mark
+        const pipValue = Number(pips[i].getAttribute('data-value')) - 1;
 
         //the style of the pip mark is used to find the tick mark with the same style 
-        const tickMark = document.querySelector(`.noUi-marker[style="${style}"]`);
+        const tickMark = document.querySelector(`.noUi-marker[style="${pipStyle}"]`);
         
         //find the comment with the same commenteventid as the value of the slider
-        if (document.querySelector(`[data-commenteventid="ev-${value}"`)){
+        if (document.querySelector(`[data-commenteventid="ev-${pipValue}"`)){
             tickMark.classList.add('clickableTickMark');
 
             //add the clickable element that will bring us to the comment
             tickMark.addEventListener('click', event => {            
-                document.querySelector(`[data-commenteventid="ev-${value}"`).click();      
+                document.querySelector(`[data-commenteventid="ev-${pipValue}"`).click();      
             })
         }
     }    
