@@ -120,7 +120,7 @@ function setupEventListeners()
     //add event handlers for clicking the buttons
     stepBackOne.addEventListener('click', event => {
         step(-1);
-        
+
         stopAutomaticPlayback();
         removeActiveCommentAndGroup();
 
@@ -573,6 +573,8 @@ function setupEventListeners()
     });
 
     document.getElementById("continuousPlayButton").addEventListener('click', event => {
+        removeActiveCommentAndGroup();
+
         document.getElementById("continuousPlayButton").style.display = "none";
         document.getElementById("pausePlayButton").style.display = "block";
         playbackInterval = setInterval(function(){

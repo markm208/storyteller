@@ -272,7 +272,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
         cardFinal = updateActiveComment(cardFinal);
-        cardFinal.classList.add("activeCommentBorder");
+        cardFinal.classList.add("activeCommentBorder", 'commentBox');
 
         //add highlights for the comment
         for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
@@ -295,18 +295,8 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     addMediaToCommentCard(cardFinal, commentObject);
 
     cardFinal.prepend(cardBody);
-    const finalDiv = document.createElement('div');
-    finalDiv.classList.add('commentBox');
+    const finalDiv = document.createElement('div'); //TODO determine if eliminating finalDiv will cause problems 
 
-    finalDiv.addEventListener('click', function(e) {
-        
-        stopAutomaticPlayback();
-
-        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition +1); 
-        for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++){
-            addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
-        }
-    });
     cardFinal.prepend(cardHeader);
     finalDiv.append(cardFinal);
 
@@ -462,21 +452,31 @@ function addMediaToCommentCard(cardObject, commentObject)
 //used in the comment card event listeners to update the active comment
 function updateActiveComment(cardObject)
 {
+    let alreadyActive = false;
+
     //handle which comment and which comment group is currently active
     let activeComment = document.getElementsByClassName("activeComment");
     if (activeComment.length){
-        //commentGroupSpacing is a class that is only in commentGroups
-        //this will bring us to the active comments group
-        activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
+        if (cardObject !== activeComment[0]){            
+            //commentGroupSpacing is a class that is only in commentGroups
+            //this will bring us to the active comments group
+            activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
 
-        activeComment[0].classList.remove("activeCommentBorder")
-        activeComment[0].classList.remove("activeComment");
+            activeComment[0].classList.remove("activeCommentBorder")
+            activeComment[0].classList.remove("activeComment");
+        }
+        else{
+            alreadyActive = true;
+        }
     }
     cardObject.classList.add("activeComment");
     cardObject.closest(".commentGroupSpacing").classList.add("activeGroup");
 
-    //scroll to the new active comment
-    document.getElementById("commentContentDiv").scrollTop = cardObject.offsetTop - 100;          
+    //prevents an already active card from being scrolled to again
+    if (!alreadyActive){
+        //scroll to the new active comment
+        document.getElementById("commentContentDiv").scrollTop = cardObject.offsetTop - 100;      
+    }    
 
     return cardObject;
 }
