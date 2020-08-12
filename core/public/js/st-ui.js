@@ -175,9 +175,9 @@ function displayAllComments(){
             
             //create the edit Comment button
             const editCommentBlockButton = document.createElement('button');
-            editCommentBlockButton.classList.add("btn", "btn-outline-primary", "btn-sm", "commentBlockIcon");
-            editCommentBlockButton.title = "Edit Comment Block";
-
+            editCommentBlockButton.classList.add("btn", "btn-outline-primary", "btn-sm");
+            editCommentBlockButton.style.border = 'none';
+            editCommentBlockButton.appendChild(document.createTextNode('Edit Comment Block'));
             editCommentBlockButton.setAttribute("id", "edit" + uniqueCommentGroupID);
 
             //go to every card marked 'drag' in the div where editCommentBlockButton was clicked, and make each draggable
@@ -342,7 +342,6 @@ function createTitleCard(descriptionInfo)
     //Create the card footer which holds the edit buttons
     const descriptionFooter = document.createElement("div");
     descriptionFooter.classList.add("card-footer","small", "p-0");
-    descriptionFooter.style.textAlign = "right";
 
     const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
 
@@ -486,9 +485,9 @@ function createEditCommentButton(commentObject, buttonText){
     stopAutomaticPlayback();
 
     const editCommentButton = document.createElement("button");
-    editCommentButton.classList.add("btn", "btn-outline-dark", "btn-sm", "editCommentButton");
-    editCommentButton.title = buttonText;
-
+    editCommentButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    editCommentButton.style.border = 'none';
+    editCommentButton.appendChild(document.createTextNode(buttonText));
     editCommentButton.addEventListener('click', event => {
         stopAutomaticPlayback();
 
@@ -747,8 +746,6 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
 
   const cardFooter = document.createElement("div");
   cardFooter.classList.add("card-footer", "small", "p-0");
-  cardFooter.style.textAlign = "right";
-
 
 
   cardFooter.append(editCommentButton);
