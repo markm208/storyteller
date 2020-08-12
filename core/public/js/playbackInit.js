@@ -689,8 +689,8 @@ function setUpSliderTickMarks(){
         //get the first comment in the block (they all have the same display event)
         const firstCommentAtPoint = allCommentsAtPoint[0];
 
-        let test = slider.noUiSlider.get();
-
+        
+        
         //if this is not the description comment
         if(firstCommentAtPoint.displayCommentEvent.eventSequenceNumber !== -1) {
             //comment tick marks are numbered to slide into the comment
@@ -729,14 +729,20 @@ function setUpClickableTickMarks(){
 
         //the style of the pip mark is used to find the tick mark with the same style 
         const tickMark = document.querySelector(`.noUi-marker[style="${pipStyle}"]`);
+
+        tickMark.classList.add('clickableTickMark');
         
         //find the comment with the same commenteventid as the value of the slider
-        if (document.querySelector(`[data-commenteventid="ev-${pipValue}"`)){
-            tickMark.classList.add('clickableTickMark');
+        if (document.querySelector(`[data-commenteventid="ev-${pipValue}"`)){           
 
             //add the clickable element that will bring us to the comment
             tickMark.addEventListener('click', event => {            
                 document.querySelector(`[data-commenteventid="ev-${pipValue}"`).click();      
+            })
+        }
+        else if (pipStyle === "left: 0%;"){
+            tickMark.addEventListener('click', event => {
+                document.querySelector(`[data-commenteventid="ev--1"`).click();  
             })
         }
     }    
