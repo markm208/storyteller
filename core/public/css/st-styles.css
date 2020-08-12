@@ -68,12 +68,12 @@
     padding-top: 1px;
 }
 
-.commentBox {
+/* .commentBox {
     margin-top: 20px;
     margin-left: 20px;
     margin-right: 20px;
     margin-bottom: 20px;
-}
+} */
 
 .commentCount{
     text-align: right !important;
@@ -427,6 +427,7 @@ resize: none;
 #fastForwardButton{
     padding: 0%;
     padding-right: 10px;
+    margin-left: 10px;
 }
 
 #playbackSlider{
@@ -452,6 +453,7 @@ resize: none;
 
 #slider{
     width: 70vw;
+    margin-left: 8px;
 }
 
 .noUi-marker{
