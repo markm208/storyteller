@@ -446,12 +446,17 @@ function addMediaToCommentCard(cardObject, commentObject)
 //used in the comment card event listeners to update the active comment
 function updateActiveComment(cardObject)
 {
-    let alreadyActive = false;
+    let commentAlreadyActive = false;
+    let groupAlreadyActive = false;
 
     //handle which comment and which comment group is currently active
     let activeComment = document.getElementsByClassName("activeComment");
     if (activeComment.length){
-        if (cardObject !== activeComment[0]){            
+        if (cardObject !== activeComment[0]){
+            
+            //determine if the new active comment is in an already active group
+            groupAlreadyActive = cardObject.closest(".activeGroup") === activeComment[0].closest(".activeGroup");
+
             //commentGroupSpacing is a class that is only in commentGroups
             //this will bring us to the active comments group
             activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
@@ -460,14 +465,15 @@ function updateActiveComment(cardObject)
             activeComment[0].classList.remove("activeComment");
         }
         else{
-            alreadyActive = true;
+            commentAlreadyActive = true;
         }
     }
     cardObject.classList.add("activeComment");
     cardObject.closest(".commentGroupSpacing").classList.add("activeGroup");
 
     //prevents an already active card from being scrolled to again
-    if (!alreadyActive){
+    //and an already active comment block from scrolling to the top
+    if (!commentAlreadyActive && !groupAlreadyActive){
         //scroll to the new active comment
         document.getElementById("commentContentDiv").scrollTop = cardObject.offsetTop - 100;      
     }    
@@ -488,7 +494,6 @@ function createEditCommentButton(commentObject, buttonText){
         if (event.target.closest(".drag")){
             event.target.closest(".drag").click();
         }
-               
 
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");

@@ -465,50 +465,51 @@ function setupEventListeners()
 
     });
 
+    //moves forward in the playback comment by comment
     fastForwardButton.addEventListener('click', event =>{
         stopAutomaticPlayback();
 
-        //generate a list of all commentCards
-        const allCommentCards = [...document.getElementsByClassName("commentCard")];
+        //generate a list of all comment divs
+        const allCommentDivs = [...document.getElementsByClassName("drag")];
 
-        //get the currently selected card, if any
-        const selectedComment = document.getElementsByClassName("activeComment")[0];
-
-        //const sliderValue = Number(playbackSlider.value) - 1; //TODO
-
-
-       
-
-        let sliderValue = Math.ceil(document.getElementById('slider').noUiSlider.get()) - 1;
-        const eventId = playbackData.events[sliderValue].id;
-        let eventNum = Number(eventId.substr(eventId.lastIndexOf('-') + 1));
-
-        let commentBlock;
-
-        //try to find the next event that has a comment block
-        while (!commentBlock && eventNum < playbackData.numEvents){
-            commentBlock = playbackData.comments["ev-" + eventNum];
-
-            //if the description doesn't have a comment, ignore it
-            if (eventNum++ === -1 && commentBlock.length === 1){
-                commentBlock = null;
-            }
-        }
+        //get the currently selected comment div, if any
+        const selectedComment = document.getElementsByClassName("activeComment")[0];      
         
         let activeComment;
 
         //if no comment is selected
-        if (commentBlock && !selectedComment){
-            //select the first comment in the comment block
-            const eventId = commentBlock[0].displayCommentEvent.id;
-            const indexOfSelected = allCommentCards.findIndex(item => item.id.includes(eventId));
-            activeComment = allCommentCards[indexOfSelected];     
+        if (!selectedComment){
+            //use the slider position to determine the event number
+            let eventNum = Math.ceil(document.getElementById('slider').noUiSlider.get()) - 1;        
+
+            let commentBlock;
+
+            //try to find the next event that has a comment block
+            while (!commentBlock && eventNum < playbackData.numEvents){
+                commentBlock = playbackData.comments["ev-" + eventNum];
+
+                //if the description doesn't have a comment, ignore it
+                if (eventNum++ === -1 && commentBlock.length === 1){
+                    commentBlock = null;
+                }
+            }
+
+            //if a comment block was found forward of the slider position
+            if (commentBlock){
+                //select the first comment in the comment block
+                const eventId = commentBlock[0].displayCommentEvent.id;
+
+                //find the next comment
+                const indexOfSelected = allCommentDivs.findIndex(item => item.getAttribute("data-commenteventid") === eventId);
+                activeComment = allCommentDivs[indexOfSelected];     
+            }
+            
         }
-        //if a comment was selected
-        else if (commentBlock && selectedComment){
-            //find the current active card, and make the next one after it active
-            const index = allCommentCards.findIndex(item => item.classList.contains('activeComment'));;
-            activeComment = allCommentCards[index + 1];
+        //if a comment is selected
+        else{
+            //find the current active comment div, and make the next one after it active
+            const index = allCommentDivs.findIndex(item => item.classList.contains('activeComment'));;
+            activeComment = allCommentDivs[index + 1];
         }                
 
         if (activeComment){
