@@ -154,14 +154,7 @@ function displayAllComments(){
 
                addEditButtonsToCard(commentCard, commentObject.displayCommentEvent.id ,returnObject.commentID,commentBlock, uniqueNumBackup, commentObject);
             }
-
-            //add a tick mark to the slider for the comment group ---DOESN'T WORK
-            var tickmarkObject = document.getElementById('tickmarks');
-            const newTick = document.createElement('option');
-            newTick.setAttribute('value', commentBlock[0].displayCommentEvent.eventSequenceNumber);
-            newTick.classList.add("ui-slider-tick-mark");
-            tickmarkObject.appendChild(newTick);
-
+            
             commentGroupDiv.append(commentCard);
         }
 
@@ -176,7 +169,7 @@ function displayAllComments(){
             //create the edit Comment button
             const editCommentBlockButton = document.createElement('button');
             editCommentBlockButton.classList.add("btn", "btn-outline-primary", "btn-sm", "commentBlockIcon");
-            editCommentBlockButton.title = "Edit Comment Block";
+            editCommentBlockButton.title = "Reorder or delete comments";
 
             editCommentBlockButton.setAttribute("id", "edit" + uniqueCommentGroupID);
 
@@ -239,7 +232,7 @@ function displayAllComments(){
 function createCommentCard(commentObject, currentComment, commentCount, i)
 {
     const cardHeader = document.createElement('div');
-    cardHeader.classList.add('card-header', 'text-muted', 'small', 'text-left', 'commentCardHeaderColor', 'p-0', "commentCount");
+    cardHeader.classList.add('text-muted', 'small', 'text-left', 'commentCardHeaderColor', 'p-0', "commentCount");
     //get the developers who authored the comment
     const commentAuthorGroup = getDevelopersInADevGroup(commentObject.developerGroupId);
     //create a div to hold the author info
@@ -254,11 +247,11 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardHeader.append(progressSpan);
     
     const cardBody = document.createElement('div');
-    cardBody.classList.add('card-body', 'text-left', 'commentCardBodyColor');
+    cardBody.classList.add('text-left', 'commentCardBodyColor');
     cardBody.innerHTML = commentObject.commentText;
 
     let cardFinal = createCardDiv(commentObject);
-    cardFinal.classList.add('text-center', 'commentCard');
+    cardFinal.classList.add('text-center');
 
     //allows us to send a click event to this card in order to jump to it in the playback
     cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
@@ -272,7 +265,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
         cardFinal = updateActiveComment(cardFinal);
-        cardFinal.classList.add("activeCommentBorder", 'commentBox');
+        cardFinal.classList.add("activeCommentBorder");
 
         //add highlights for the comment
         for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
@@ -295,12 +288,12 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     addMediaToCommentCard(cardFinal, commentObject);
 
     cardFinal.prepend(cardBody);
-    const finalDiv = document.createElement('div'); //TODO determine if eliminating finalDiv will cause problems 
+    //const finalDiv = document.createElement('div'); //TODO determine if eliminating finalDiv will cause problems 
 
     cardFinal.prepend(cardHeader);
-    finalDiv.append(cardFinal);
+    //finalDiv.append(cardFinal);
 
-    return {cardObject: finalDiv, count: currentComment, commentID: commentObject.id};
+    return {cardObject: cardFinal, count: currentComment, commentID: commentObject.id};
     
 }
 
@@ -341,7 +334,7 @@ function createTitleCard(descriptionInfo)
 
     //Create the card footer which holds the edit buttons
     const descriptionFooter = document.createElement("div");
-    descriptionFooter.classList.add("card-footer","small", "p-0");
+    descriptionFooter.classList.add("card-footer","small", "p-0", "commentCardBodyColor");
     descriptionFooter.style.textAlign = "right";
 
     const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
@@ -688,7 +681,7 @@ function toggleEditAcceptButtons(currentButtonType, id){
 //adds the edit buttons to the normal comments
 function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumber, commentObject){
   //find the card header in the card to add the buttons to  
-  const header = card.querySelector(".card-header");
+  const header = card.querySelector(".commentCount");
 
   const buttonGroup = document.createElement("div");
   //buttonGroup.classList.add("btn-group");
@@ -746,7 +739,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
   const editCommentButton = createEditCommentButton(commentObject, "Edit Comment");
 
   const cardFooter = document.createElement("div");
-  cardFooter.classList.add("card-footer", "small", "p-0");
+  cardFooter.classList.add("small", "p-0", "commentCardBodyColor");
   cardFooter.style.textAlign = "right";
 
 
@@ -1770,7 +1763,7 @@ function clearHighlightChangedFiles() {
 function updateAllCommentHeaderCounts(){
     const drag = document.getElementsByClassName("drag");
     for (let i = 0; i < drag.length; i++){
-       drag[i].getElementsByClassName("card-header")[0].getElementsByClassName("progressSpan")[0].firstChild.data = i + 1 + "/" + drag.length;       
+       drag[i].getElementsByClassName("commentCount")[0].getElementsByClassName("progressSpan")[0].firstChild.data = i + 1 + "/" + drag.length;       
     }    
 }
 
