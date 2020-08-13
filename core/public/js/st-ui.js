@@ -486,7 +486,7 @@ function createEditCommentButton(commentObject, buttonText){
         stopAutomaticPlayback();
 
         if (event.target.closest(".drag")){
-            event.target.closest(".drag").querySelector(".commentCard").click();
+            event.target.closest(".drag").click();
         }
                
 

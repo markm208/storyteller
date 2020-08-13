@@ -238,6 +238,7 @@ function setupEventListeners()
             const commentButtonRectangle = document.querySelector('#linkCommentButton').getBoundingClientRect();
             toastDiv.style.top = commentButtonRectangle.y + 20 +'px';
             toastDiv.style.left = commentButtonRectangle.left + 'px';
+
             
             //show and focus the toast
             $('#URL-Toast').toast('show');
