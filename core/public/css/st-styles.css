@@ -81,6 +81,7 @@
 
 .commentCardBodyColor {
     background-color: rgb(222, 224, 238);
+    padding: 5px 15px;
 }
 
 .commentCardHeaderColor {

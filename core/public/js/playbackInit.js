@@ -508,7 +508,8 @@ function setupEventListeners()
         }                
 
         if (activeComment){
-            activeComment.click();            
+            activeComment.click();    
+            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;              
         }
         //if activeComment hasn't been assigned, then no comment was found at, or forward of the slider position
         //step to the last event and unselect any selected comment
@@ -727,7 +728,7 @@ function setUpClickableTickMarks(){
         tickMark.addEventListener('click', event => { 
             //determine if the description tick mark was clicked   
             const eventNum = pipValue === 0 ? -1 : pipValue; 
-                       
+
             document.querySelector(`[data-commenteventid="ev-${eventNum}"`).click();                               
         })               
     }    
@@ -741,43 +742,53 @@ function stopAutomaticPlayback(){
 
 function jumpToPreviousComment()
 {
-    //generate a list of all commentCards
-    const allCommentCards = [...document.getElementsByClassName("commentCard")];
+    stopAutomaticPlayback();
 
-    //get the currently selected card, if any
-    const selectedComment = document.getElementsByClassName("activeComment")[0];
+    //generate a list of all comment divs
+    const allCommentDivs = [...document.getElementsByClassName("drag")];
 
-    let eventNum = Number(playbackSlider.value) - 1;
-    let commentBlock;
-
-    //try to find the commentBlock of the event. if one does not exist, try to find the comment block of the next event that has one
-    while (!commentBlock && eventNum >= 0){
-        commentBlock = playbackData.comments["ev-" + eventNum--];
-    }
+    //get the currently selected comment div, if any
+    const selectedComment = document.getElementsByClassName("activeComment")[0];      
     
     let activeComment;
 
     //if no comment is selected
-    if (commentBlock && !selectedComment){
-        const eventId = commentBlock[0].displayCommentEvent.id;
-        const indexOfSelected = allCommentCards.reverse().findIndex(item => item.id.includes(eventId));
-        activeComment = allCommentCards[indexOfSelected];     
+    if (!selectedComment){
+        //use the slider position to determine the event number
+        let eventNum = Math.ceil(document.getElementById('slider').noUiSlider.get()) - 1;        
+
+        let commentBlock;
+
+        //try to find the previous event that has a comment block
+        while (!commentBlock && eventNum >= 0){
+            commentBlock = playbackData.comments["ev-" + eventNum--];
+        }
+
+        //if a comment block was found behind the slider position
+        if (commentBlock){
+            //select the first comment in the comment block
+            const eventId = commentBlock[0].displayCommentEvent.id;
+
+            //find the previous comment
+            const indexOfSelected = allCommentDivs.reverse().findIndex(item => item.getAttribute("data-commenteventid") === eventId);
+            activeComment = allCommentDivs[indexOfSelected];     
+        }            
     }
-    //if a comment was selected
-    else if (commentBlock && selectedComment){
-        //find the current active card, and make the previous one active
-        const index = allCommentCards.findIndex(item => item.classList.contains('activeComment'));;
-        activeComment = allCommentCards[index - 1];
+    //if a comment is selected
+    else{
+        //find the current active comment div, and make the previous one active
+        const index = allCommentDivs.findIndex(item => item.classList.contains('activeComment'));;
+        activeComment = allCommentDivs[index - 1];
     }                
 
     if (activeComment){
-        activeComment.click();
+        activeComment.click();   
+        document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;      
     }
-    //if activeComment hasn't been assigned, then no comment was found at, or forward of the slider position
-    //step to the last event and unselect any selected comment
+    //if activeComment hasn't been assigned, then no comment was found at, or behind the slider position
+    //make the description active
     else{
-        step(-playbackData.nextEventPosition);
-        removeActiveCommentAndGroup();            
+        document.querySelector(`[data-commenteventid="ev--1"`).click(); 
     }      
 }
 

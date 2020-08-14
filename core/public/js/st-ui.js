@@ -668,6 +668,9 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
   deleteButton.appendChild(document.createTextNode('x'));  
 
   deleteButton.addEventListener('click', event => {
+        //dont trigger the click handler of the parentElement of deleteButton
+        event.stopPropagation();
+
         let comment;
         //find the comment object associated with the card being deleted
         for (let indexToDelete = 0; indexToDelete < playbackData.comments[eventID].length; indexToDelete++){
@@ -680,8 +683,9 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             }
         }
 
-        //remove the accept button if there are no more comments but leave the title and description
-        if (eventID === "ev--1" && commentBlock.length < 3){
+        //TODO might not need this anymore
+        //remove the accept button if there are no more comments but leave description
+        if (eventID === "ev--1" && commentBlock.length < 2){
             $('#' + "accept" + uniqueNumber).remove();
         }
 
