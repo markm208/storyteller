@@ -264,7 +264,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         //step to the event this comment is at
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
-        cardFinal = updateActiveComment(cardFinal);
+        updateActiveComment(cardFinal);
         cardFinal.classList.add("activeCommentBorder");
 
         //add highlights for the comment
@@ -285,7 +285,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         }
     });
 
-    addMediaToCommentCard(cardFinal, commentObject);
+    addMediaToCommentDiv(cardFinal, commentObject);
 
     cardFinal.prepend(cardBody);
     //const finalDiv = document.createElement('div'); //TODO determine if eliminating finalDiv will cause problems 
@@ -311,7 +311,7 @@ function createTitleCard(descriptionInfo)
         //step to the event this comment is at
         step(descriptionInfo.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
-        titleCard = updateActiveComment(titleCard);
+        updateActiveComment(titleCard);
     });
 
     //create the header for the title card which holds the title text
@@ -330,7 +330,7 @@ function createTitleCard(descriptionInfo)
     cardBody.append(bodyParagraph);
 
     //create any media in the description
-    addMediaToCommentCard(titleCard, descriptionInfo)
+    addMediaToCommentDiv(titleCard, descriptionInfo)
 
     //Create the card footer which holds the edit buttons
     const descriptionFooter = document.createElement("div");
@@ -366,120 +366,86 @@ function createCardDiv(commentObject)
     return cardObject;
 }
 
-//Adds media to the comment cards
-function addMediaToCommentCard(cardObject, commentObject)
+//Adds media to the comment
+function addMediaToCommentDiv(commentDivToAddTo, commentObject)
 {
-    let carousel = createCarousel();
-    let temp;
+    const carousel = createCarousel();
+    const modalImg = document.getElementById('imgToExpand');
 
-    if (commentObject.imageURLs.length > 1){  
-        // Get the modal
-        let modal = document.getElementById('imgExpandModal');
+    for (let j = 0; j < commentObject.imageURLs.length; j++){
+        addImageToCarousel(commentObject.imageURLs[j], carousel);
 
-        // Get the image and insert it inside the modal - use its 'alt' text as a caption
-        let img = document.getElementById('myImg');
-        let modalImg = document.getElementById('imgToExpand');
-        //const captionText = document.getElementById('caption');
-
-        for (let j = 0; j < commentObject.imageURLs.length; j++){
-            addImageToCarousel(commentObject.imageURLs[j], carousel);
+        if (commentObject.imageURLs.length > 1){
             makeCarouselControls(carousel);
+        }        
 
-            carousel.addEventListener('click', event =>{
-                //if the carousel is clicked on either the left or right button, dont trigger the enlarged image modal
-                if (!event.target.className.includes('carousel-control')){   
-                    //get the src of the current active image from the carousel that was clicked on                    
-                    let src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
-                    modal.style.display = 'block';
-                    modalImg.src = src;
-                }
-            });
+        carousel.addEventListener('click', event =>{
+            //if the carousel is clicked on either the left or right button, dont show the enlarged image modal
+            if (!event.target.className.includes('carousel-control')){   
+                //get the src of the current active image from the carousel that was clicked on       
+                modalImg.src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
 
-            // Get the <span> element that closes the modal
-            let span = document.getElementsByClassName('modalClose')[0];
-
-            //close the modal
-            span.onclick = function() {
-                modalImg.removeAttribute('src');
-                modal.style.display = 'none';
+                $('#imgExpandModal').modal('show')                   
             }
-            //add carousel
-            cardObject.append(carousel);
-        }
-    }
-    //creates a carousel without controls to keep consistency among single images and images in carousels
-    else if (commentObject.imageURLs.length === 1){
-        addImageToCarousel(commentObject.imageURLs[0], carousel);
-
-        carousel.addEventListener('click',event => {
-            //add image to the modal
-            document.getElementById('imgExpandModal').style.display = 'block';
-            document.getElementById('imgToExpand').src = commentObject.imageURLs[0];
-        })
-        //modal close button
-        document.getElementsByClassName('modalClose')[0].onclick = function() {
-            document.getElementById('imgToExpand').removeAttribute('src');
-            document.getElementById('imgExpandModal').style.display = 'none';
-        }
-        cardObject.append(carousel);
+        });     
+                
+        commentDivToAddTo.append(carousel);
     }
     
     for (let i = 0; i < commentObject.videoURLs.length; i++){
-        let videoElement = createMediaControllerCommentVideoUI(commentObject.videoURLs[i], false, false);       
+        const videoElement = createMediaControllerCommentVideoUI(commentObject.videoURLs[i], false, false);       
         //add next media
-        cardObject.append(videoElement.firstChild);
+        commentDivToAddTo.append(videoElement.firstChild);
         //file names added invisible in case we later want to see them when editing
         videoElement.lastChild.style.display ='none';
-        cardObject.append(videoElement.lastChild);     
+        commentDivToAddTo.append(videoElement.lastChild);     
     }
 
     for (let i = 0; i < commentObject.audioURLs.length; i++){
-        let audioElement = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false); 
-        cardObject.append(audioElement.firstChild);
+        const audioElement = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false); 
+        commentDivToAddTo.append(audioElement.firstChild);
 
         //file names added invisible in case we later want to see them when editing
         audioElement.lastChild.style.display ='none';
-        cardObject.append(audioElement.lastChild);  
+        commentDivToAddTo.append(audioElement.lastChild);  
     }
 }
 
-//used in the comment card event listeners to update the active comment
-function updateActiveComment(cardObject)
+//used in the comment div event listeners to update the active comment
+//handle which comment and which comment group is currently active
+function updateActiveComment(commentToMakeActive)
 {
     let commentAlreadyActive = false;
-    let groupAlreadyActive = false;
-
-    //handle which comment and which comment group is currently active
+    let groupAlreadyActive = false;    
     let activeComment = document.getElementsByClassName("activeComment");
+
+    //if a comment is already active
     if (activeComment.length){
-        if (cardObject !== activeComment[0]){
-            
+        activeComment = activeComment[0];
+        
+        if (commentToMakeActive !== activeComment){            
             //determine if the new active comment is in an already active group
-            groupAlreadyActive = cardObject.closest(".activeGroup") === activeComment[0].closest(".activeGroup");
-
-            //commentGroupSpacing is a class that is only in commentGroups
-            //this will bring us to the active comments group
-            activeComment[0].closest(".commentGroupSpacing").classList.remove("activeGroup");
-
-            activeComment[0].classList.remove("activeCommentBorder")
-            activeComment[0].classList.remove("activeComment");
+            groupAlreadyActive = commentToMakeActive.closest(".activeGroup") === activeComment.closest(".activeGroup");
+            
+            activeComment.closest(".activeGroup").classList.remove("activeGroup");
+            activeComment.classList.remove("activeCommentBorder")
+            activeComment.classList.remove("activeComment");
         }
         else{
             commentAlreadyActive = true;
         }
     }
-    cardObject.classList.add("activeComment");
-    cardObject.closest(".commentGroupSpacing").classList.add("activeGroup");
+    commentToMakeActive.classList.add("activeComment");
+    commentToMakeActive.closest(".commentGroupSpacing").classList.add("activeGroup");
 
-    //prevents an already active card from being scrolled to again
-    //and an already active comment block from scrolling to the top
+    //prevents an already active comment from being scrolled to again
+    //and an already active comment block from scrolling to the new active comment
     if (!commentAlreadyActive && !groupAlreadyActive){
         //scroll to the new active comment
-        document.getElementById("commentContentDiv").scrollTop = cardObject.offsetTop - 100;      
-    }    
-
-    return cardObject;
+        document.getElementById("commentContentDiv").scrollTop = commentToMakeActive.offsetTop - 100;      
+    }     
 }
+
 //Creates the edit button at the bottom of each card
 function createEditCommentButton(commentObject, buttonText){
     stopAutomaticPlayback();
@@ -1822,10 +1788,10 @@ function updateCurrentDeveloperGroupAvatars(devGroupId) {
 }
 
 function removeActiveCommentAndGroup(){
-    if (document.getElementsByClassName('activeComment')[0]){
-        document.getElementsByClassName('activeComment')[0].classList.remove('activeComment');
-        document.getElementsByClassName('activeCommentBorder')[0].classList.remove('activeCommentBorder');
-        document.getElementsByClassName('activeGroup')[0].classList.remove('activeGroup');
+    const activeComment = document.getElementsByClassName('activeComment')[0];
+    if (activeComment){        
+        activeComment.closest('.activeGroup').classList.remove('activeGroup');
+        activeComment.classList.remove('activeCommentBorder');
+        activeComment.classList.remove('activeComment');
     }
 }
-

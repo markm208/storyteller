@@ -410,21 +410,20 @@ function setupEventListeners()
     //detects key presses 
     document.addEventListener('keydown', function(e){    
 
+        //prevent keyboard presses within the comment textbox from triggering actions 
         if (e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv'){
-            //prevent keyboard presses within the comment textbox from triggering actions 
             return;
         }
        
-        let keyPressed = e.key;
-        let shiftPressed = e.shiftKey;
-        let ctrlPressed = e.ctrlKey;
-        const slider = document.getElementById('slider');    
+        const keyPressed = e.key;
+        const shiftPressed = e.shiftKey;
+        const ctrlPressed = e.ctrlKey;
+
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
             {
                 //left and right arrow are step one
-                 step(1);
-                
+                step(1);                
             }
             else
             {
@@ -445,8 +444,6 @@ function setupEventListeners()
             {
                 //left and right arrow are step one
                 step(-1);
-
-
             }
             else
             {
@@ -462,7 +459,6 @@ function setupEventListeners()
                 }
             }
         }
-
     });
 
     //moves forward in the playback comment by comment
@@ -502,8 +498,7 @@ function setupEventListeners()
                 //find the next comment
                 const indexOfSelected = allCommentDivs.findIndex(item => item.getAttribute("data-commenteventid") === eventId);
                 activeComment = allCommentDivs[indexOfSelected];     
-            }
-            
+            }            
         }
         //if a comment is selected
         else{
@@ -635,11 +630,8 @@ function setupEventListeners()
 
     //always open the options modal with the first tab selected
     $('#optionsModal').on('show.bs.modal', event => {
-        document.getElementById('optionsModal').querySelectorAll('.nav-item')[0].click();
-        //document.getElementById('optionsTab').click();
-    })
-  
-    
+        document.getElementById('optionsModal').querySelector('.nav-item').click();
+    })    
 }
 
 function setUpSlider(){
@@ -652,8 +644,7 @@ function setUpSlider(){
         keyboardSupport: false,
         range: {
             'min': playbackData.numNonRelevantEvents,
-            'max': playbackData.events.length
-           
+            'max': playbackData.events.length           
         }
     });
     
@@ -689,9 +680,7 @@ function setUpSliderTickMarks(){
         //get an array of comment objects
         const allCommentsAtPoint = playbackData.comments[commentKey];
         //get the first comment in the block (they all have the same display event)
-        const firstCommentAtPoint = allCommentsAtPoint[0];
-
-        
+        const firstCommentAtPoint = allCommentsAtPoint[0];       
         
         //if this is not the description comment
         if(firstCommentAtPoint.displayCommentEvent.eventSequenceNumber !== -1) {
@@ -732,21 +721,15 @@ function setUpClickableTickMarks(){
         //the style of the pip mark is used to find the tick mark with the same style 
         const tickMark = document.querySelector(`.noUi-marker[style="${pipStyle}"]`);
 
-        tickMark.classList.add('clickableTickMark');
-        
-        //find the comment with the same commenteventid as the value of the slider
-        if (document.querySelector(`[data-commenteventid="ev-${pipValue}"`)){
-            //add the clickable element that will bring us to the comment
-            tickMark.addEventListener('click', event => {            
-                document.querySelector(`[data-commenteventid="ev-${pipValue}"`).click();      
-            })
-        }
-        //make the description tickmark clickable
-        else if (pipStyle === "left: 0%;"){
-            tickMark.addEventListener('click', event => {
-                document.querySelector(`[data-commenteventid="ev--1"`).click();  
-            })
-        }
+        tickMark.classList.add('clickableTickMark');        
+       
+        //add the clickable element that will bring us to the comment
+        tickMark.addEventListener('click', event => { 
+            //determine if the description tick mark was clicked   
+            const eventNum = pipValue === 0 ? -1 : pipValue;            
+
+            document.querySelector(`[data-commenteventid="ev-${eventNum}"`).click();                               
+        })               
     }    
 }
 
@@ -1078,9 +1061,7 @@ async function updateComment(){
         $('.image-preview')[0].style.display='none';
         $('.image-preview')[0].innerHTML = '';
     }
-
 }
-
 
 function updateTitle(newTitle){
     updateTitleOnServer(newTitle);

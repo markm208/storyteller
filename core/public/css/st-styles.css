@@ -205,28 +205,6 @@
     opacity: 0.5
 }
 
-#imgToExpand {
-    animation-name: zoom;
-    animation-duration: 0.6s;
-    border-radius: 5px;
-    transition: 0.3s;
-    min-width: 1000px;   
-}
-
-.imgExpandModal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 100; /* Sit on top */
-    padding-top: 100px; /* Location of the box */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
-}
-
 .insertOnLine {
     text-decoration: underline;
     font-weight: bold;
