@@ -716,7 +716,7 @@ function setUpClickableTickMarks(){
         const pipStyle = pips[i].getAttribute("style");
 
         //get the value of the slider at the pip mark
-        const pipValue = Number(pips[i].getAttribute('data-value')) - 1;
+        const pipValue = Math.ceil(Number(pips[i].getAttribute('data-value'))) - 1;
 
         //the style of the pip mark is used to find the tick mark with the same style 
         const tickMark = document.querySelector(`.noUi-marker[style="${pipStyle}"]`);
@@ -726,8 +726,8 @@ function setUpClickableTickMarks(){
         //add the clickable element that will bring us to the comment
         tickMark.addEventListener('click', event => { 
             //determine if the description tick mark was clicked   
-            const eventNum = pipValue === 0 ? -1 : pipValue;            
-
+            const eventNum = pipValue === 0 ? -1 : pipValue; 
+                       
             document.querySelector(`[data-commenteventid="ev-${eventNum}"`).click();                               
         })               
     }    
