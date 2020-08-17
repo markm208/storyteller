@@ -67,10 +67,7 @@ async function initializePlayback()
 
         //displays all comments
         displayAllComments();
-
-        //make tick marks on slider clickable
-        setUpClickableTickMarks();
-
+      
         //Sets up the event listeners for html elements on the page
         setupEventListeners();
 
@@ -486,7 +483,7 @@ function setupEventListeners()
         //if no comment is selected
         if (!selectedComment){
             //use the slider position to determine the event number
-            let eventNum = Math.ceil(document.getElementById('slider').noUiSlider.get()) - 1;        
+            let eventNum = Math.round(document.getElementById('slider').noUiSlider.get()) - 1;        
 
             let commentBlock;
 
@@ -727,7 +724,7 @@ function setUpClickableTickMarks(){
         const pipStyle = pips[i].getAttribute("style");
 
         //get the value of the slider at the pip mark
-        const pipValue = Math.ceil(Number(pips[i].getAttribute('data-value'))) - 1;
+        const pipValue = Math.round(Number(pips[i].getAttribute('data-value'))) - 1;
 
         //the style of the pip mark is used to find the tick mark with the same style 
         const tickMark = document.querySelector(`.noUi-marker[style="${pipStyle}"]`);
@@ -765,7 +762,7 @@ function jumpToPreviousComment()
     //if no comment is selected
     if (!selectedComment){
         //use the slider position to determine the event number
-        let eventNum = Math.ceil(document.getElementById('slider').noUiSlider.get()) - 1;        
+        let eventNum = Math.round(document.getElementById('slider').noUiSlider.get()) - 1;        
 
         let commentBlock;
 
