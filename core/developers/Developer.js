@@ -1,9 +1,10 @@
+const md5 = require('md5');
 /*
- * Every developer has an id, user name, and an email.
+ * Every developer has an id, user name, email, and avatar url.
  * A developer's id is auto-generated.
  */
 class Developer {
-    constructor(userName, email, id) {
+    constructor(userName, email, avatarURL, id) {
         //if an id is supplied, use it
         if(id) {
             this.id = id;
@@ -13,7 +14,14 @@ class Developer {
         }
         //set the user name and email
         this.userName = userName;
-        this.email = email;
+        this.email = email.toLowerCase().trim();
+        //url for a gravatar avatar 
+        if(avatarURL) {
+            this.avatarURL = avatarURL;
+        } else {
+            //generate a gravatar url with a md5 hash of the email
+            this.avatarURL = `https://www.gravatar.com/avatar/${md5(this.email)}`;
+        }
     }
 
     generateId() {

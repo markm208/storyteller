@@ -101,7 +101,7 @@ class File extends FileSystemElement {
             }
             
             //if the new character was a newline character
-            if(eventCharacter === '\n') {
+            if(eventCharacter === 'NEWLINE' || eventCharacter === 'CR-LF') {
                 //get the rest of the line after the newline character
                 const restOfLine = this.textFileInsertEvents[row].splice(col + 1, this.textFileInsertEvents[row].length - col);
                 
@@ -122,7 +122,7 @@ class File extends FileSystemElement {
         //make sure the request is within the bounds
         if(row >= 0 && row < this.textFileInsertEvents.length && col >= 0 && col < this.textFileInsertEvents[row].length) {
             //if we are removing a newline character
-            if(this.textFileInsertEvents[row][col].character === '\n') {
+            if(this.textFileInsertEvents[row][col].character === 'NEWLINE' || this.textFileInsertEvents[row][col].character === 'CR-LF') {
                 //remove the newline character from its line
                 this.textFileInsertEvents[row].splice(col, 1);
 
@@ -244,7 +244,7 @@ class File extends FileSystemElement {
                 events.push(currentEvent);
 
                 //if this code character was a newline
-                if(currentEvent.character === '\n') {
+                if(currentEvent.character === 'NEWLINE' || currentEvent.character === 'CR-LF') {
                     //go to the next row
                     row++;
 
@@ -270,8 +270,14 @@ class File extends FileSystemElement {
         //go through the entire 2D array of events
         for(let line = 0;line < this.textFileInsertEvents.length;line++) {
             for(let column = 0;column < this.textFileInsertEvents[line].length;column++) {
-                //append the code character to a string
-                text += this.textFileInsertEvents[line][column].character;
+                if(this.textFileInsertEvents[line][column].character === 'NEWLINE' || this.textFileInsertEvents[line][column].character === 'CR-LF') {
+                    text += '\n';
+                } else if(this.textFileInsertEvents[line][column].character === 'TAB') {
+                    text += '\t';
+                } else {
+                    //append the code character to a string
+                    text += this.textFileInsertEvents[line][column].character;
+                }
             }
         }
 

@@ -14,13 +14,33 @@ class CommentManager extends FileBackedCollection {
         //init the base class
         super(storytellerDirPath, 'comments', 'comments.json');
 
+        //create full paths to the media directories
+        this.pathToMediaDir = path.join(this.fullPathToParentDir, 'media');
+        this.pathToImagesDir = path.join(this.fullPathToParentDir, 'media', 'images');
+        this.pathToVideosDir = path.join(this.fullPathToParentDir, 'media', 'videos');
+        this.pathToAudiosDir = path.join(this.fullPathToParentDir, 'media', 'audios');
+        this.pathToTempDir = path.join(this.fullPathToParentDir, 'media', '.tmp');
+
+        //create web paths to the media directories to return relative urls of media
+        this.webPathToImagesDir = path.posix.join(path.posix.sep, 'media', 'images');
+        this.webPathToVideosDir = path.posix.join(path.posix.sep, 'media', 'videos');
+        this.webPathToAudiosDir = path.posix.join(path.posix.sep, 'media', 'audios');
+
         //if the json file exists
         if(this.fileExists()) {
             //read the data from the file and load the comment info
             this.read();
         } else { //no json file exists
+            //make the media directory with subdirs for images, videos, and audio files
+            fs.mkdirSync(this.pathToMediaDir, {recursive: true});
+            fs.mkdirSync(this.pathToImagesDir, {recursive: true});
+            fs.mkdirSync(this.pathToVideosDir, {recursive: true});
+            fs.mkdirSync(this.pathToAudiosDir, {recursive: true});
+            fs.mkdirSync(this.pathToTempDir, {recursive: true});
+
             //init an object to hold comments
             this.comments = {};
+            this.write();
         }
     }
 
@@ -52,7 +72,7 @@ class CommentManager extends FileBackedCollection {
                 //get the raw comment data
                 const comment = this.comments[eventId][i];
                 //create the Comment object and add it to the array
-                allCommentsForAnEvent.push(new Comment(comment.displayCommentEvent, comment.developerGroupId, comment.timestamp, comment.commentText, comment.selectedCodeText, comment.selectedCodeBlocks, comment.imageURLs, comment.videoURLs, comment.audioURLs, comment.id));
+                allCommentsForAnEvent.push(new Comment(comment.displayCommentEvent, comment.developerGroupId, comment.timestamp, comment.commentText, comment.selectedCodeBlocks, comment.imageURLs, comment.videoURLs, comment.audioURLs, comment.id));
             }
 
             //replace the raw object array with one filled with Comments
@@ -65,7 +85,7 @@ class CommentManager extends FileBackedCollection {
      */
     addComment(commentData) {
         //create a comment object
-        const newComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs);
+        const newComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs);
         
         //if an array of comments does not already exist for this event
         if(!this.comments[commentData.displayCommentEvent.id]) {
@@ -74,6 +94,7 @@ class CommentManager extends FileBackedCollection {
         } 
         //store the comment in the array
         this.comments[commentData.displayCommentEvent.id].push(newComment);
+        return newComment;
     }
 
     /*
@@ -90,10 +111,10 @@ class CommentManager extends FileBackedCollection {
                 //find the correct comment based on its id
                 if(allCommentsForAnEvent[i].id === commentData.id) {
                     //create an updated comment object
-                    const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.id);
+                    const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.id);
                     //update the comment
                     allCommentsForAnEvent[i] = updatedComment;
-                    break;
+                    return updatedComment;
                 }
             }
         }

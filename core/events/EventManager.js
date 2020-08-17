@@ -293,7 +293,7 @@ class EventManager extends FileBackedCollection {
     /*
      * Creates a 'RENAME FILE' event.
      */
-    insertRenameFileEvent(timestamp, createdByDevGroupId, branchId, fileId, newFilePath, oldFilePath) {
+    insertRenameFileEvent(timestamp, createdByDevGroupId, branchId, fileId, parentDirectoryId, newFilePath, oldFilePath) {
         //create an event id
         const eventId = this.generateId();
         
@@ -303,6 +303,7 @@ class EventManager extends FileBackedCollection {
         //add specific properties
         renameFileEvent['type'] = 'RENAME FILE';
         renameFileEvent['fileId'] = fileId;
+        renameFileEvent['parentDirectoryId'] = parentDirectoryId;
         renameFileEvent['newFilePath'] = newFilePath;
         renameFileEvent['oldFilePath'] = oldFilePath;
         
@@ -375,7 +376,7 @@ class EventManager extends FileBackedCollection {
     /*
      * Creates a 'RENAME DIRECTORY' event.
      */
-    insertRenameDirectoryEvent(timestamp, createdByDevGroupId, branchId, dirId, newDirPath, oldDirPath) {
+    insertRenameDirectoryEvent(timestamp, createdByDevGroupId, branchId, dirId, parentDirectoryId, newDirPath, oldDirPath) {
         //create an event id
         const eventId = this.generateId();
         
@@ -385,6 +386,7 @@ class EventManager extends FileBackedCollection {
         //add specific properties
         renameDirectoryEvent['type'] = 'RENAME DIRECTORY';
         renameDirectoryEvent['directoryId'] = dirId;
+        renameDirectoryEvent['parentDirectoryId'] = parentDirectoryId;
         renameDirectoryEvent['newDirectoryPath'] = newDirPath;
         renameDirectoryEvent['oldDirectoryPath'] = oldDirPath;
 
@@ -402,6 +404,20 @@ class EventManager extends FileBackedCollection {
 
             //go through each new character being inserted
             for(let i = 0;i < insertedText.length;i++) {
+                //the next character to insert
+                let newText = insertedText[i];
+                //if the character is a windows carriage return (CR)
+                if(insertedText[i] === '\r') {
+                    //look at the character next to it to see if it is a newline (LF) 
+                    const nextPos = i + 1;
+                    if(nextPos < insertedText.length && insertedText[nextPos] === '\n') {
+                        //store both as the new text to insert
+                        newText = '\r\n';
+                        //handling two characters as one, \r followed by \n, 
+                        //so move i forward to the the newline's position
+                        i++;
+                    }
+                }
                 //create an event id and store it in the object
                 const eventId = this.generateId();
                 
@@ -421,7 +437,7 @@ class EventManager extends FileBackedCollection {
                 //add specific properties
                 insertTextEvent['type'] = 'INSERT';
                 insertTextEvent['fileId'] = file.id;
-                insertTextEvent['character'] = utilities.escapeSpecialCharacter(insertedText[i]);
+                insertTextEvent['character'] = utilities.escapeSpecialCharacter(newText);
                 insertTextEvent['previousNeighborId'] = previousNeighborId === 'none' ? null : previousNeighborId;
                 insertTextEvent['lineNumber'] = row + 1;
                 insertTextEvent['column'] = col + 1;
@@ -431,10 +447,10 @@ class EventManager extends FileBackedCollection {
                 bulkInserts.push(insertTextEvent);
 
                 //insert the character in the text file state
-                file.addInsertEventByPos(eventId, insertedText[i], row, col);
+                file.addInsertEventByPos(eventId, insertTextEvent['character'], row, col);
 
                 //if this code character was a newline
-                if(insertedText[i] === '\n') {
+                if(newText === '\n' || newText === '\r\n') {
                     //go to the next row
                     row++;
 
@@ -472,6 +488,14 @@ class EventManager extends FileBackedCollection {
             //get the insert event that is being deleted
             const insertEventBeingDeleted = file.getEvent(row, col);
             
+            //if a windows newline is being removed
+            if(insertEventBeingDeleted.character === 'CR-LF') {
+                //the editor will have an extra character (it counts \r and \n 
+                //as two separate characters whereas we store it in a single event)
+                //remove the extra character
+                numElementsToDelete--;
+            }
+
             //add specific properties
             deleteTextEvent['type'] = 'DELETE';
             deleteTextEvent['fileId'] = file.id;
