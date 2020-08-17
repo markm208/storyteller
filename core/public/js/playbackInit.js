@@ -572,9 +572,9 @@ function setupEventListeners()
         zipCodeWithHistory(true);
     });
     
-    document.getElementById("saveCodeAtCommentsButton").addEventListener('click', event => {
-        zipAtComments();
-    });
+    // document.getElementById("saveCodeAtCommentsButton").addEventListener('click', event => {
+    //     zipAtComments();
+    // });
 
     $('#deleteMediaButton').popover('disable')
 
