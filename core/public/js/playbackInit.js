@@ -2,6 +2,7 @@
 //for playback should be placed in /core/public/js/ and the storyteller server
 //will serve these. 
 
+
 //We can use classes here instead of plain functions
 
 async function initializePlayback()
@@ -213,65 +214,74 @@ function setupEventListeners()
         //make the selected text look like code by using a fixed width font
         document.execCommand('fontName', null, 'Courier');
     });
-
-    //add a link
+    
+    //make selected text into a clickable link
     let selectedRange = {};
     document.querySelector('#linkCommentButton').addEventListener('click', event => {       
-        const textArea = $('#textCommentTextArea')[0].firstChild;
-        const selectedText = window.getSelection();
-        const tempRange =  selectedText.getRangeAt(0);
-        const selectedTextString = selectedText.toString();
-        selectedRange = tempRange.cloneRange();       
 
-        //check to make sure there is selected text and it is in the textArea
-        if ((selectedText.anchorNode.parentElement.parentElement.id === 'textCommentTextArea' || selectedText.containsNode(textArea)) && selectedTextString){
+        const selectedTextString = window.getSelection().toString();
+        const textWindow = document.querySelector('.storytellerCommentEditable[contenteditable=true]');
+        const selectionParent = window.getSelection().anchorNode ? window.getSelection().anchorNode.parentNode : null;
+        
+        //make sure that these is a selection, and it comes from only the correct place
+        if ((selectedTextString && selectionParent) && (selectionParent.contains(textWindow) || textWindow.contains(selectionParent))){
             const toastDiv = document.getElementById('URL-Toast'); 
-
-            //removes style="display: none"
-            toastDiv.removeAttribute('style');
-
             toastDiv.style.position = "absolute";
-            toastDiv.style.zIndex = "100";
-            toastDiv.style.width = 500 + 'px';
-    
+
             //sets the position of the toast to just under the linkCommentButton
             const commentButtonRectangle = document.querySelector('#linkCommentButton').getBoundingClientRect();
             toastDiv.style.top = commentButtonRectangle.y + 20 +'px';
             toastDiv.style.left = commentButtonRectangle.left + 'px';
+            
+            //add a blue highlight to the selected text
+            document.execCommand("BackColor", false, 'LightBlue');
+            
+            //backup the selected range
+            selectedRange = window.getSelection().getRangeAt(0);
 
-            
             //show and focus the toast
-            $('#URL-Toast').toast('show');
-            
+            $('#URL-Toast').toast('show');            
             document.getElementById('URL').focus();
+            
+            //add a class to body that will disable all clicks except inside the toast
+            document.body.classList.add('popup');
         }
     });
 
-    //event listener for when the toast to add a link is confirmed
+    //event listener for when the link is confirmed
     document.querySelector('#URL-Confirm').addEventListener('click', event => {
         const URLInput = document.getElementById('URL').innerText;
         if (URLInput){
-
-            //hide the toast
-            $('.toast').toast('hide');
-            const windowSelection = window.getSelection();
-
             //restores the original selection
-            windowSelection.removeAllRanges();
-            windowSelection.addRange(selectedRange);
+            selectRange(selectedRange);         
             
             //creates the link
             document.execCommand('createLink', null, URLInput);
 
-            windowSelection.removeAllRanges();
-            //clear the toast for next use
-            URLInput.innerHTML = "";
+            //backup the selected range
+            selectedRange = window.getSelection().getRangeAt(0);
+            
+            //handle all close operations
+            document.querySelector('#URL-Close').click();
         }
     });  
 
     document.querySelector('#URL-Close').onclick = function(){
-        //cancel. so clear the toast
+
+        //clear the inputted link
         document.getElementById('URL').innerHTML = "";
+
+        //restores the original selection
+        selectRange(selectedRange);
+
+        //remove the blue highlight
+        document.execCommand("removeFormat", false, 'LightBlue');
+
+        document.querySelector('.storytellerCommentEditable[contenteditable=true]').focus();
+        window.getSelection().removeAllRanges();
+        
+        //removes the body class that prevents clicks
+        document.body.classList.remove('popup');
     };
 
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        

@@ -1799,3 +1799,9 @@ function removeActiveCommentAndGroup(){
         activeComment.classList.remove('activeComment');
     }
 }
+
+function selectRange(rangeToSelect){
+    const windowSelection = window.getSelection();
+    windowSelection.removeAllRanges();
+    windowSelection.addRange(rangeToSelect);
+}
