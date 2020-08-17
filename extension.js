@@ -2,6 +2,7 @@ const vscode = require('vscode');
 const spawn = require('child_process').spawn;
 const path = require('path');
 const fs = require('fs');
+const JSZip = require('jszip');
 
 //main interface with the storyteller server
 const ProjectManager = require('./core/project/ProjectManager');
@@ -47,8 +48,8 @@ function activate(context) {
     extensionContext = context;
 
     //register storyteller commands for this plugin  
-    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.startTrackingProject', startTrackingProject));
-    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.stopTrackingProject', stopTrackingProject));
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.startStoryteller', startStoryteller));
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.stopStoryteller', stopStoryteller));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.startPlaybackNoComment', startPlaybackNoComment));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.startPlaybackToMakeAComment', startPlaybackToMakeAComment));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.storytellerState', storytellerState));
@@ -56,7 +57,8 @@ function activate(context) {
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.createNewDeveloper', createNewDeveloper));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.addDevelopersToActiveGroup', addDevelopersToActiveGroup));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.removeDevelopersFromActiveGroup', removeDevelopersFromActiveGroup));
-    
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipProject', zipProject));
+
     //if there is an open workspace then attempt to open storyteller without requiring user interaction
     if(vscode.workspace.workspaceFolders) {
         //path to the hidden .storyteller dir in every storyteller project 
@@ -64,19 +66,25 @@ function activate(context) {
         
         //if there is a .storyteller dir
         if(fs.existsSync(pathToHiddenStorytellerDir)) {
-            //init storyteller without a prompt
-            startTrackingProject();
+            //give a startup message in the status bar
+            updateStorytellerStatusBar('Starting Storyteller $(sync~spin)', 'Starting Storyteller- please do not edit any files of dirs until this is complete', 'storyteller.storytellerState');
+            
+            //don't want to slow down the init of the system so we do the more expensive operations a little later
+            setTimeout(function() {
+                //init storyteller without a prompt
+                startStoryteller();
+            }, 1);
         } else { //there is an open directory but it does not have a .storyteller dir in it
             //don't start tracking unless the user chooses to use storyteller
             //add a button to the status bar so the user can start using storyteller
-            updateStorytellerStatusBar('Start Storyteller', 'Start using Storyteller in this workspace', 'storyteller.startTrackingProject');
+            updateStorytellerStatusBar('Start Storyteller', 'Start using Storyteller in this workspace', 'storyteller.startStoryteller');
 
             //show a message informing the user that they can use storyteller if they wish
             promptInformingAboutUsingStoryteller(false);
         }
     } else { //there is no open workspace
         //add a button to the status bar so the user can start using storyteller
-        updateStorytellerStatusBar('Start Storyteller', 'Start using Storyteller in this workspace', 'storyteller.startTrackingProject');   
+        updateStorytellerStatusBar('Start Storyteller', 'Start using Storyteller in this workspace', 'storyteller.startStoryteller');   
 
         //show a message informing the user that they can use storyteller if they wish
         promptInformingAboutUsingStoryteller(true);
@@ -87,12 +95,12 @@ function activate(context) {
  */
 function deactivate() {
     //stop tracking this project
-    stopTrackingProject();
+    stopStoryteller();
 }
 /*
  * Creates or opens a new Storyteller project in a workspace.
  */
-function startTrackingProject() {
+function startStoryteller() {
     //st is already active
     if(isStorytellerCurrentlyActive) {
         //let them know about the current state
@@ -104,43 +112,14 @@ function startTrackingProject() {
             //the project manager
             const projectExists = fs.existsSync(path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.storyteller'));
 
-            //create and store the global project manager in the opened directory
-            projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath);
-
-            //ask for any discrepancies between the open project and the file system
-            const discrepancies = projectManager.reconciler.findDiscrepancies();
-
             //if this is an existing project
             if(projectExists === true) {
-                //if there is at least one discrepancy
-                if(areDiscrepanciesPresent(discrepancies)) {
-                    //let the user know they have to resolve some discrepancies
-                    vscode.window.showInformationMessage(`There were some changes to the project when Storyteller wasn't active. In a moment you will be prompted to resolve the discrepancies.`);
-                    //ask the user to decide how to handle them
-                    resolveFileSystemDescrepancies(discrepancies);
-                } else { //there are no discrepancies
-                    //turn on file watching
-                    turnOnFSWatcherAndTextHandler();
-                    //give the user some feedback about starting storyteller in an info message
-                    storytellerState();
-                }
+                //resume working on an existing project
+                resumeExistingProject();
             } else { //this is a brand new project
-                //holds the number of existing files and directories in the new project
-                const existingFilesDirs = discrepancies.fullDirPathsPresentButNotTracked.length + discrepancies.fullFilePathsPresentButNotTracked.length;
-
-                //if there are any files/dirs in the new project
-                if(existingFilesDirs > 0) {
-                    //add them to the project
-                    projectManager.reconciler.addExistingFilesDirs(discrepancies);
-                }
-                //turn on file watching
-                turnOnFSWatcherAndTextHandler();
-
-                //prompt for the first developer's info
-                createFirstDeveloper();
+                //start tracking changes in this folder
+                startTrackingInFolder();
             }
-            //update the status bar
-            updateStorytellerStatusBar('Start Playback', 'Start a Storyteller playback in the browser', 'storyteller.startPlaybackNoComment');
         } else { //there is no open workspace
             //tell the user they need to open a workspace in order to use Storyteller
             promptInformingAboutUsingStoryteller(true);
@@ -150,7 +129,7 @@ function startTrackingProject() {
 /*
  * Used to stop tracking a project.
  */
-function stopTrackingProject() {
+function stopStoryteller() {
     //clear out any values that might still be in this array.
     recentlyCreatedFileOrDir = [];
 
@@ -160,7 +139,7 @@ function stopTrackingProject() {
         projectManager.stopStoryteller();
 
         //update the status bar
-        updateStorytellerStatusBar('Start Storyteller', 'Start using Storyteller in this workspace', 'storyteller.startTrackingProject');
+        updateStorytellerStatusBar('Start Storyteller', 'Start using Storyteller in this workspace', 'storyteller.startStoryteller');
 
         //tell the user they need to open a workspace in order to use Storyteller
         promptInformingAboutUsingStoryteller(false);
@@ -176,6 +155,70 @@ function stopTrackingProject() {
         //tell the user they need to open a workspace in order to use Storyteller
         promptInformingAboutUsingStoryteller(false);
     }
+}
+/*
+ * Used to resume an existing st project. This is where reconciliation happens
+ * if it is needed.
+ */
+function resumeExistingProject() {
+    //check to see if there is a .storyteller directory 
+    const projectExists = fs.existsSync(path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.storyteller'));
+   
+    //if a folder is open and there is a .storyteller directory in it
+    if(vscode.workspace.workspaceFolders && projectExists === true) {
+        //create and store the global project manager in the opened directory
+        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath);
+
+        //ask for any discrepancies between the open project and the file system
+        const discrepancies = projectManager.reconciler.findDiscrepancies();
+
+        //if there is at least one discrepancy
+        if(areDiscrepanciesPresent(discrepancies)) {
+            //let the user know they have to resolve some discrepancies
+            vscode.window.showInformationMessage(`There were some changes to the project when Storyteller wasn't active. In a moment you will be prompted to resolve the discrepancies.`);
+            //ask the user to decide how to handle them
+            resolveFileSystemDescrepancies(discrepancies);
+        } else { //there are no discrepancies
+            //turn on file watching
+            turnOnFSWatcherAndTextHandler();
+            //give the user some feedback about starting storyteller in an info message
+            storytellerState();
+        }
+        //update the status bar
+        updateStorytellerStatusBar('Start Playback', 'Start a Storyteller playback in the browser', 'storyteller.startPlaybackNoComment');
+   }
+}
+/*
+* Used to start tracking a new project. If the open folder is not empty then 
+* the contents of the existing files will be added to the history of the system.
+*/
+async function startTrackingInFolder() {
+   //check to see if there is a .storyteller directory 
+   const projectExists = fs.existsSync(path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.storyteller'));
+   
+   //if a folder is open and there is not a .storyteller directory in it
+   if(vscode.workspace.workspaceFolders && projectExists === false) {
+        //create and store the global project manager in the opened directory
+        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath);
+
+        //ask for any discrepancies between the open project and the file system
+        const discrepancies = projectManager.reconciler.findDiscrepancies();
+        //holds the number of existing files and directories in the new project
+        const existingFilesDirs = discrepancies.fullDirPathsPresentButNotTracked.length + discrepancies.fullFilePathsPresentButNotTracked.length;
+        //if there are any files/dirs in the new project
+        if(existingFilesDirs > 0) {
+            //add them to the project
+            projectManager.reconciler.addExistingFilesDirs(discrepancies);
+        }
+        //turn on file watching
+        turnOnFSWatcherAndTextHandler();
+
+        //prompt for the first developer's info
+        createFirstDeveloper();
+
+        //update the status bar
+        updateStorytellerStatusBar('Start Playback', 'Start a Storyteller playback in the browser', 'storyteller.startPlaybackNoComment');
+   }
 }
 /*
  * Turns the file system watcher, text change handler, and save handler on.
@@ -261,24 +304,44 @@ function resolveFileSystemDescrepancies(discrepancies) {
     //reconcileComplete();
 }
 /*
- * This is used to indicate that each of the three types of issues (modified, 
- * untracked, missing) are complete. When they are all complete the user
- * will be notified and they will be asked to continue using Storyteller or
- * to stop using it.
+ * Handles files that were modified outside of st.
  */
-async function reconcileComplete() {
-    //let the user know reconciliation is complete and ask them if they 
-    //want to continue using Storyteller
-    const options = ['Continue using Storyteller', 'Stop using Storyteller'];
-    const selectedOption = await vscode.window.showQuickPick(options, {placeHolder: `Reconcile complete. Do you want to continue using Storyteller?`});
+async function resolveModified(discrepancies) {
+    //count how many modified files there are
+    const numModified = discrepancies.modifiedFileIds.length;
 
-    //if the user does not choose an option OR they want to continue using st
-    if(!selectedOption || options.indexOf(selectedOption) === 0) {
-        //turn on file watching since reconciliation is complete
-        turnOnFSWatcherAndTextHandler();
-    } else if(options.indexOf(selectedOption) === 1) { //stop using st
-        projectManager.stopStoryteller();
+    //if there are some that need to be resolved by the user
+    if(numModified > 0) {
+        //ask the user what they want to do with the modified files 
+        const options = ['Add the changes in the files to the history of this project', 'Ignore the changes to the files'];
+        const selectedOption = await vscode.window.showQuickPick(options, {placeHolder: `There are ${numModified} modified files. What would you like to do with them?`});
+        
+        //if the user does not choose an option OR they want to accept the changes in the files
+        if(!selectedOption || options.indexOf(selectedOption) === 0) {
+            //accept changes made to the files
+            for(let i = 0;i < discrepancies.modifiedFileIds.length;i++) {
+                const fileId = discrepancies.modifiedFileIds[i];
+                //accept changes to the storyteller state
+                projectManager.reconciler.resolveFileChanges(fileId, 'accept-changes');
+            }
+
+            //let the user know what happened
+            vscode.window.showInformationMessage(`Accepted the changes made in ${numModified} files. Files: ${discrepancies.modifiedFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
+        } else if(options.indexOf(selectedOption) === 1) {
+            //abandon changes made to the files
+            for(let i = 0;i < discrepancies.modifiedFileIds.length;i++) {
+                const fileId = discrepancies.modifiedFileIds[i];
+                //abandon change to the storyteller state
+                projectManager.reconciler.resolveFileChanges(fileId, 'recreate');
+            }
+
+            //let the user know what happened
+            vscode.window.showInformationMessage(`Abandoned the changes made in ${numModified} files.  Files: ${discrepancies.modifiedFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
+        }
     }
+
+    //move on to the next type of discrepancy
+    resolveUntracked(discrepancies);
 }
 /*
  * Handles untracked (newly added when st was not active) files and dirs. 
@@ -392,45 +455,24 @@ async function resolveMissing(discrepancies) {
     reconcileComplete();
 }
 /*
- * Handles files that were modified outside of st.
+ * This is used to indicate that each of the three types of issues (modified, 
+ * untracked, missing) are complete. When they are all complete the user
+ * will be notified and they will be asked to continue using Storyteller or
+ * to stop using it.
  */
-async function resolveModified(discrepancies) {
-    //count how many modified files there are
-    const numModified = discrepancies.modifiedFileIds.length;
+async function reconcileComplete() {
+    //let the user know reconciliation is complete and ask them if they 
+    //want to continue using Storyteller
+    const options = ['Continue using Storyteller', 'Stop using Storyteller'];
+    const selectedOption = await vscode.window.showQuickPick(options, {placeHolder: `Reconcile complete. Do you want to continue using Storyteller?`});
 
-    //if there are some that need to be resolved by the user
-    if(numModified > 0) {
-        //ask the user what they want to do with the modified files 
-        const options = ['Add the changes in the files to the history of this project', 'Ignore the changes to the files'];
-        const selectedOption = await vscode.window.showQuickPick(options, {placeHolder: `There are ${numModified} modified files. What would you like to do with them?`});
-        
-        //if the user does not choose an option OR they want to accept the changes in the files
-        if(!selectedOption || options.indexOf(selectedOption) === 0) {
-            //accept changes made to the files
-            for(let i = 0;i < discrepancies.modifiedFileIds.length;i++) {
-                const fileId = discrepancies.modifiedFileIds[i];
-                //accept changes to the storyteller state
-                projectManager.reconciler.resolveFileChanges(fileId, 'accept-changes');
-            }
-
-            //let the user know what happened
-            vscode.window.showInformationMessage(`Accepted the changes made in ${numModified} files. Files: ${discrepancies.modifiedFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
-        } else if(options.indexOf(selectedOption) === 1) {
-            //abandon changes made to the files
-            for(let i = 0;i < discrepancies.modifiedFileIds.length;i++) {
-                const fileId = discrepancies.modifiedFileIds[i];
-                //abandon change to the storyteller state
-                projectManager.reconciler.resolveFileChanges(fileId, 'recreate');
-            }
-
-            //let the user know what happened
-            vscode.window.showInformationMessage(`Abandoned the changes made in ${numModified} files.  Files: ${discrepancies.modifiedFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
-        }
+    //if the user does not choose an option OR they want to continue using st
+    if(!selectedOption || options.indexOf(selectedOption) === 0) {
+        //turn on file watching since reconciliation is complete
+        turnOnFSWatcherAndTextHandler();
+    } else if(options.indexOf(selectedOption) === 1) { //stop using st
+        projectManager.stopStoryteller();
     }
-
-    //move on to the next type of discrepancy
-    resolveUntracked(discrepancies);
-    
 }
 /********************************** Playback **********************************/
 /*
@@ -1140,6 +1182,88 @@ function getCurrentSelectionEvents() {
                     clipboardData.eventIds.push(selectedEvents[j].id);
                 }
             }
+        }
+    }
+}
+/*
+ * Used to create a zip file of a project. These can be shared with others
+ * who have the extension installed.
+ */
+async function zipProject() {
+    //if st is active
+    if(isStorytellerCurrentlyActive) {
+        //prompt for where to store the zip file
+        let zipStorageFolders = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            defaultUri: vscode.workspace.workspaceFolders[0].uri,
+            openLabel: 'Save st.zip',
+            title: 'Choose a folder to store the Storyteller zip'
+        });
+
+        //if there was a selected location
+        if(zipStorageFolders.length > 0) {
+            //create an instance of jszip
+            const zip = new JSZip();
+
+            //get the path to the open project and the hidden st directory
+            const projectDirPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+            //recursively add files to the zip
+            zipProjectHelper(projectDirPath, zip);
+
+            //create and save the zip in the .storyteller dir
+            zip.generateNodeStream({
+                streamFiles: true,
+                compression: 'DEFLATE',
+                compressionOptions: {
+                    level: 9
+                }
+            }).pipe(fs.createWriteStream(path.join(zipStorageFolders[0].fsPath, 'st.zip'))).on('finish', function () {
+                //notify user that the zip is complete
+                vscode.window.showInformationMessage(`A new zip file, st.zip, has been added to the ${zipStorageFolders[0].fsPath} directory. You can share this file with others.`);
+            });
+        }
+    }
+}
+/*
+ * Helper that recursively moves through the file system
+ */
+function zipProjectHelper(dirPath, zip) {
+    //get all of the files and dirs in the passed in directory
+    const allFilesAndDirs = fs.readdirSync(dirPath);
+
+    //go through the contents of the dir
+    for (let i = 0; i < allFilesAndDirs.length; i++) {
+        //get the full path to the file or directory
+        const fullPathToFileOrDir = path.join(dirPath, allFilesAndDirs[i]);
+
+        //get some stats about the file/dir
+        const stats = fs.statSync(fullPathToFileOrDir);
+
+        //if this is a file
+        if(stats.isFile()) {
+            //get a normalized path to the file
+            let normalizedFilePath = projectManager.pathHelper.normalizeFilePath(fullPathToFileOrDir);
+            //jszip does not like leading / so remove it
+            normalizedFilePath = normalizedFilePath.substr(1);
+
+            //read the contents of the file
+            const fileContents = fs.readFileSync(fullPathToFileOrDir, 'utf8');
+            
+            //add the file to the zip
+            zip.file(normalizedFilePath, fileContents);
+        } else if(stats.isDirectory()) {
+            //get a normalized path to the dir
+            let normalizedDirectoryPath = projectManager.pathHelper.normalizeDirPath(fullPathToFileOrDir);
+            //jszip does not like leading / so remove it
+            normalizedDirectoryPath = normalizedDirectoryPath.substr(1);
+            //add the folder to the zip (for empty dirs)
+            zip.folder(normalizedDirectoryPath);
+
+            //recurse and add the files in the dir to the zip
+            zipProjectHelper(fullPathToFileOrDir, zip);
         }
     }
 }

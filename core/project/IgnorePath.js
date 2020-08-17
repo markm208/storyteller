@@ -17,43 +17,35 @@ class IgnorePath {
         
         //check to see if the st-ignore.json file exists
         if(fs.existsSync(fullPathToStorytellerIgnoreFile)) {
-            //read the file and parse the data inside it into JSON
-            this.stIgnoreData = JSON.parse(fs.readFileSync(fullPathToStorytellerIgnoreFile, 'utf8'));
-        } else { //no file
-            //create an empty object
-            this.stIgnoreData = {};
+            try {
+                //read the file and parse the data inside it into JSON
+                this.stIgnoreData = JSON.parse(fs.readFileSync(fullPathToStorytellerIgnoreFile, 'utf8'));
+
+                //handle the case of missing properties in the json file
+                if(!this.stIgnoreData.ignoredFileExtensions) {
+                    this.stIgnoreData.ignoredFileExtensions = [];
+                }
+
+                if(!this.stIgnoreData.ignoredFiles) {
+                    this.stIgnoreData.ignoredFiles = [];
+                }
+
+                if(!this.stIgnoreData.ignoredDirectories) {
+                    this.stIgnoreData.ignoredDirectories = [];
+                }
+
+                //make sure that the directory paths are normalized
+                this.stIgnoreData.ignoredDirectories = this.stIgnoreData.ignoredDirectories.map(dirPath => {
+                    return utilities.addEndingPathSeparator(utilities.normalizeSeparators(dirPath));
+                });
+                
+                //indicate that there is ignore data for this project
+                this.stIgnoreFileIsPresent = true;
+            } catch (ex) { 
+                //st-ignore.json can't be read or is not well-formed json
+                throw new Error('st-ignore file cannot be read or is malformed JSON');
+            }
         }
-
-        //handle the case of missing properties in the json file
-        if(!this.stIgnoreData.ignoredFileExtensions) {
-            this.stIgnoreData.ignoredFileExtensions = [];
-        }
-
-        if(!this.stIgnoreData.ignoredFiles) {
-            this.stIgnoreData.ignoredFiles = [];
-        }
-
-        if(!this.stIgnoreData.ignoredDirectories) {
-            this.stIgnoreData.ignoredDirectories = [];
-        }
-
-        if(!this.stIgnoreData.ignoreAllWithExceptions) {
-            this.stIgnoreData.ignoreAllWithExceptions = false;
-        }
-
-        if(!this.stIgnoreData.ignoreExceptions) {
-            this.stIgnoreData.ignoreExceptions = [];
-        }
-
-        //make sure that the directory paths are normalized
-        this.stIgnoreData.ignoredDirectories = this.stIgnoreData.ignoredDirectories.map(dirPath => {
-            return utilities.addEndingPathSeparator(utilities.normalizeSeparators(dirPath));
-        });
-
-        //make sure that the exception file paths are normalized
-        this.stIgnoreData.ignoreExceptions = this.stIgnoreData.ignoreExceptions.map(filePath => {
-            return utilities.normalizeSeparators(filePath);
-        });
     }
     /*
      * A relative path to a file or directory in the storyteller project is 
@@ -63,62 +55,38 @@ class IgnorePath {
     ignoreThisFileOrDir(pathToFileOrDir) {
         //assume that the file or dir should NOT be ignored
         let retVal = false;
-
-        //don't track anything in the /.storyteller/ directory
+    
+        //don't track anything in the /.storyteller directory
         if(pathToFileOrDir.startsWith(`${utilities.storytellerPathSeparator}.storyteller${utilities.storytellerPathSeparator}`)) { 
             retVal = true;
-        } else { //not in .storyteller
-            //if an exception should NOT be granted check whether to exclude it
-            if(this.grantException(pathToFileOrDir) === false) { 
-                //if ignoring everything with some exceptions
-                if(this.stIgnoreData.ignoreAllWithExceptions) { 
-                    retVal = true;
-                } else if(pathToFileOrDir === `${utilities.storytellerPathSeparator}st-ignore.json`) {
-                    //ignore changes to /st-ignore.json 
-                    retVal = true;
-                } else { //check file extensions, filenames, and directories
-                    //pick apart the file/dir path
-                    const fileInfo = path.parse(pathToFileOrDir);
+        //ignore changes to the file named /st-ignore.json in the project dir
+        } else if(pathToFileOrDir === `${utilities.storytellerPathSeparator}st-ignore.json`) {
+            retVal = true;
+        //if there was a st-ignore file read in on startup
+        } else if(this.stIgnoreFileIsPresent === true) {
+            //pick apart the file/dir path
+            const fileInfo = path.parse(pathToFileOrDir);
 
-                    //check to see if the file extension is on the ignore list
-                    if(this.stIgnoreData.ignoredFileExtensions.includes(fileInfo.ext)) {
+            //check to see if the file extension is on the blacklist
+            if(this.stIgnoreData.ignoredFileExtensions.includes(fileInfo.ext)) {
+                retVal = true;
+            //check to see if the file name is on the the blacklist
+            } else if(this.stIgnoreData.ignoredFiles.includes(fileInfo.base)) {
+                retVal = true;
+            //check the directory blacklist
+            } else { 
+                //go through the ignored directories
+                for(let i = 0;i < this.stIgnoreData.ignoredDirectories.length;i++) {
+                    //if the path starts with any of the ignored directories it should be ignored
+                    if(pathToFileOrDir.startsWith(this.stIgnoreData.ignoredDirectories[i])) {
                         retVal = true;
-                    } else if(this.stIgnoreData.ignoredFiles.includes(fileInfo.base)) { //check the file name
-                        retVal = true;
-                    } else { //check the directory 
-                        //go through the ignored directories
-                        for(let i = 0;i < this.stIgnoreData.ignoredDirectories.length;i++) {
-                            //if the path starts with any of the ignored directories it should be ignored
-                            if(pathToFileOrDir.startsWith(this.stIgnoreData.ignoredDirectories[i])) {
-                                retVal = true;
-                                break;
-                            }
-                        }
+                        break;
                     }
                 }
-            } //else- an exception was granted, default retVal of false will be returned
-        }
-        return retVal;
-    }
-    /*
-     * Checks whether a file exception should be granted from the relative 
-     * paths in st-ignore.json's ignoreExceptions array
-     */
-    grantException(pathToFileOrDir) {
-        //check for an exception granted in st-ignore.json, assume there is none
-        let retVal = false;
-
-        //go through the paths of files to grant exceptions
-        for(let i = 0;i < this.stIgnoreData.ignoreExceptions.length;i++) {
-            //if the exception path starts with the passed in path then it 
-            //is an exception file or the parent dir of an exception file
-            if(this.stIgnoreData.ignoreExceptions[i].startsWith(pathToFileOrDir)) {
-                retVal = true;
-                break;
             }
         }
         return retVal;
-    }
+    }    
 }
 
 module.exports = IgnorePath;

@@ -12,12 +12,6 @@ suite('Ignoring files in \'st-ignore.json\' Tests', function () {
     const pathToProject2 = path.join(__dirname, 'data', 'st-ignoreData', 'st-ignoreData2');
     //path to a dir with a malformed st-ignore.json
     const pathToProject3 = path.join(__dirname, 'data', 'st-ignoreData', 'st-ignoreData3');
-    //path to a dir with a an ignore all request
-    const pathToProject4 = path.join(__dirname, 'data', 'st-ignoreData', 'st-ignoreData4');
-    //path to a dir with an ignore all request with some exceptions
-    const pathToProject5 = path.join(__dirname, 'data', 'st-ignoreData', 'st-ignoreData5');
-    //path to a dir with some exceptions
-    const pathToProject6 = path.join(__dirname, 'data', 'st-ignoreData', 'st-ignoreData6');
     
     test('check file extensions', function () {
         const ignore = new IgnorePath(pathToProject1);
@@ -57,48 +51,6 @@ suite('Ignoring files in \'st-ignore.json\' Tests', function () {
         assert.equal(ignore.ignoreThisFileOrDir('/project/docs/README.md'), false);
     });
 
-    test('ignore all', function () {
-        const ignore = new IgnorePath(pathToProject4);
-
-        //check directories
-        //ignore all
-        assert.equal(ignore.ignoreThisFileOrDir('/bin/main.o'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/bin/foo.obj'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/node_modules/coolPackage/README.md'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/.git/text.txt'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/project/docs/README.md'), true);
-    });
-
-    test('ignore all with exceptions', function () {
-        const ignore = new IgnorePath(pathToProject5);
-
-        //check directories
-        //ignore
-        assert.equal(ignore.ignoreThisFileOrDir('/bin/main.o'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/bin/foo.obj'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/node_modules/coolPackage/README.md'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/.git/text.txt'), true);
-        //don't ignore
-        assert.equal(ignore.ignoreThisFileOrDir('/dontIgnore.java'), false);
-    });
-
-    test('test file path exceptions', function () {
-        const ignore = new IgnorePath(pathToProject6);
-
-        //check directories
-        //ignore
-        assert.equal(ignore.ignoreThisFileOrDir('/bin/main.o'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/bin/foo.obj'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/bin/help.txt'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/bin/sub/help.txt'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/node_modules/coolPackage/README.md'), true);
-        assert.equal(ignore.ignoreThisFileOrDir('/.git/text.txt'), true);
-        //don't ignore
-        assert.equal(ignore.ignoreThisFileOrDir('/bin/'), false);
-        assert.equal(ignore.ignoreThisFileOrDir('/bin/dontIgnore.txt'), false);
-        assert.equal(ignore.ignoreThisFileOrDir('main.cpp'), false);
-    });
-
     test('ok to not have a st-ignore.json file', function() {
         //there is no st-ignore.json in this path
         const ignore = new IgnorePath(pathToProject2);
@@ -111,7 +63,6 @@ suite('Ignoring files in \'st-ignore.json\' Tests', function () {
         assert.equal(ignore.ignoreThisFileOrDir('/st-ignore.json'), true);
         assert.equal(ignore.ignoreThisFileOrDir('/.storyteller/st.db'), true);
     });
-
     test('ignore changes to /st-ignore.json file', function() {
         const ignore = new IgnorePath(pathToProject1);
 
