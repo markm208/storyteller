@@ -534,3 +534,7 @@ body.popup .toast-popup * {
     opacity: 0.5;
     color: white;
 }
+
+.testclass{
+    display: none;
+}

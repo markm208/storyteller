@@ -54,7 +54,7 @@ async function initializePlayback()
 
         if (!playbackData.comments['ev--1'])
         {
-            const newDescription = createCommentObject('Insert DESCRIPTION here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
+            const newDescription = createCommentObject('Insert DESCRIPTION here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], [], 0, 0);
 
             const descrFromServer = await sendCommentToServer(newDescription);
 
@@ -83,7 +83,7 @@ async function initializePlayback()
 }
 
 // Puts together a full comment object to be pushed to the server
-function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs)
+function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow)
 {
     const comment = {
         commentText,
@@ -92,7 +92,9 @@ function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidUR
         selectedCodeBlocks: selectedCode,            
         imageURLs: imgURLs,
         videoURLs: vidURLs,
-        audioURLs: audioURLs
+        audioURLs: audioURLs,
+        linesAbove: linesAbove,
+        linesBelow: linesBelow
     };    
 
     return comment;
@@ -318,6 +320,9 @@ function setupEventListeners()
         //get all text and html from the comment text box
         const commentText = textCommentTextArea.innerHTML;
 
+        const linesAboveValue = document.getElementById("blogModeExtraAbove").value;
+        const linesBelowValue = document.getElementById("blogModeExtraBelow").value;
+
         //get the active editor
         const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
 
@@ -355,7 +360,7 @@ function setupEventListeners()
             }
           
             //create an object that has all of the comment info
-            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder)
+            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue)
 
             //determine if any comments already exist for this event 
             //if so add the new comment
@@ -650,8 +655,11 @@ function setupEventListeners()
         document.getElementById("codeMode").classList.remove("activeModeButton");
         document.getElementById("blogMode").classList.add("activeModeButton");
 
-        document.querySelector(".codeView").style.display = "none";
-        document.querySelector(".blogView").style.display = "block";
+
+        document.querySelector(".codeView").classList.add('testclass');
+        document.querySelector(".blogView").classList.remove("testclass");
+
+
 
     })
 
@@ -659,8 +667,9 @@ function setupEventListeners()
         document.getElementById("blogMode").classList.remove("activeModeButton");
         document.getElementById("codeMode").classList.add("activeModeButton");
 
-        document.querySelector(".blogView").style.display = "none";
-        document.querySelector(".codeView").style.display = "block";
+        document.querySelector(".codeView").classList.remove('testclass');
+        document.querySelector(".blogView").classList.add("testclass");
+
 
     })
 }
@@ -1011,6 +1020,9 @@ async function updateComment(){
     const index = commentGroup.findIndex(item => item.id === commentId);
     const commentObject = commentGroup[index];
 
+    const linesAboveValue = document.getElementById("blogModeExtraAbove").value;
+    const linesBelowValue = document.getElementById("blogModeExtraBelow").value;
+
     //getting all video files in order
     const videoFiles = document.getElementsByClassName('video-preview')[0].children;
     const currentVideoOrder = [];
@@ -1064,7 +1076,7 @@ async function updateComment(){
     {     
       
         //create an object that has all of the comment info
-        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder)
+        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue)
         //add the developer group id to the comment object and its id
         comment.developerGroupId = commentObject.developerGroupId;
         comment.id = commentObject.id;

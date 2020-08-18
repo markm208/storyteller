@@ -5,7 +5,7 @@
  * two array of images and videos.
  */
 class Comment {
-    constructor(displayCommentEvent, developerGroupId, timestamp, commentText, selectedCodeBlocks, imageURLs, videoURLs, audioURLs, id) {
+    constructor(displayCommentEvent, developerGroupId, timestamp, commentText, selectedCodeBlocks, imageURLs, videoURLs, audioURLs, id, linesAbove, linesBelow) {
         //if an id is supplied, use it
         if(id) {
             this.id = id;
@@ -22,6 +22,8 @@ class Comment {
         this.imageURLs = imageURLs;
         this.videoURLs = videoURLs;
         this.audioURLs = audioURLs;
+        this.linesAbove = linesAbove;
+        this.linesBelow = linesBelow;
     }
 
     generateId() {
