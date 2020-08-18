@@ -378,6 +378,7 @@ resize: none;
 .top-bar {
     background-color: rgb(112, 169, 255);
     padding: 5px;
+    width: 100vw;
 }
 
 .ui-slider-tick-mark {
@@ -424,7 +425,8 @@ resize: none;
 
 #helpButton{
     background: transparent;
-    float: right;
+    border: none;
+    /* float: right; */
     
 }
 
@@ -509,4 +511,26 @@ body.popup .toast-popup * {
 
 .blogModeLineInput{
     width: 40px;
+}
+
+.optionsButtonsGroup{
+    float: right;
+    bottom: 5px;
+}
+
+
+
+#codeMode,
+#blogMode{
+    box-shadow: none;
+    padding: 0px;
+}
+/* 
+.activeModeButton :hover{
+    text-decoration: none;
+} */
+
+.activeModeButton{
+    opacity: 0.5;
+    color: white;
 }

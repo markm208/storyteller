@@ -645,6 +645,24 @@ function setupEventListeners()
     $('#optionsModal').on('show.bs.modal', event => {
         document.getElementById('optionsModal').querySelector('.nav-item').click();
     })    
+
+    document.getElementById("blogMode").addEventListener('click', event => {
+        document.getElementById("codeMode").classList.remove("activeModeButton");
+        document.getElementById("blogMode").classList.add("activeModeButton");
+
+        document.querySelector(".codeView").style.display = "none";
+        document.querySelector(".blogView").style.display = "block";
+
+    })
+
+    document.getElementById("codeMode").addEventListener('click', event => {
+        document.getElementById("blogMode").classList.remove("activeModeButton");
+        document.getElementById("codeMode").classList.add("activeModeButton");
+
+        document.querySelector(".blogView").style.display = "none";
+        document.querySelector(".codeView").style.display = "block";
+
+    })
 }
 
 function setUpSlider(){
