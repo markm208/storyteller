@@ -57,19 +57,15 @@ suite('Project Tests', function () {
         //create a new project manager
         const projectManager = new ProjectManager(createProjectTestPath);
 
-        //test the default title and description
+        //test the default title
         assert.equal(projectManager.project.title, 'Playback');
-        assert.equal(projectManager.project.description, 'Playback Description');
 
-        //change the title and description
+        //change the title
         const title = 'Test Title';
-        const description = 'Test description';
-        projectManager.project.title = title;
-        projectManager.project.description = description;
+        projectManager.setTitle(title);
 
-        //verify the title and description in-memory and from the db is correct
+        //verify the title in-memory and from the db is correct
         assert.equal(projectManager.project.title, title);
-        assert.equal(projectManager.project.description, description);
 
         //get the current dev group
         const currentDevGroup = projectManager.developerManager.getCurrentDeveloperGroup();
@@ -81,7 +77,7 @@ suite('Project Tests', function () {
         //get the dev in the current dev group
         const currentDev = projectManager.developerManager.getDeveloperById(projectManager.developerManager.getCurrentDeveloperGroup().memberIds[0]);
         assert.equal(currentDev.userName, 'Anonymous Developer');
-        assert.equal(currentDev.email, '');
+        assert.equal(currentDev.email, 'anon@ourcodestories.com');
 
         //get all of the events 
         let allEvents = projectManager.eventManager.read();

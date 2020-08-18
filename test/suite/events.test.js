@@ -52,13 +52,16 @@ suite('Events Tests', function () {
         //add the create directory event
         eventManager.insertCreateDirectoryEvent(dirObj, timestamp, 'devGroupId-0', 'branchId-0', 'false');
         
+        //create the file
+        fs.writeFileSync(path.join(pathToTestDir, '/test.txt'), 'inserted text\r\n');
+        
         //next create a file
         const fileObj = fileSystemManager.addFile('/test.txt');
         
         //create an event for the new file
         eventManager.insertCreateFileEvent(fileObj, timestamp, 'devGroupId-0', 'branchId-0');
 
-        //add a group of 15 insert events
+        //add a group of 14 insert events (newlines count as one)
         eventManager.insertTextEvents(fileObj, timestamp, 'devGroupId-0', 'branchId-0', 'inserted text\r\n', 0, 0, [], 'false');
         
         //force the events in memory to go to the intermediate file
@@ -70,8 +73,8 @@ suite('Events Tests', function () {
         //read the data from the json file
         const allEvents = eventManager.read();
 
-        //there should be 17 events read from the file
-        assert.equal(allEvents.length, 17);
+        //there should be 16 events read from the file
+        assert.equal(allEvents.length, 16);
     });
 
     test('Create enough events to write to intermediate file', function() {
@@ -89,10 +92,13 @@ suite('Events Tests', function () {
         //add the create directory event
         eventManager.insertCreateDirectoryEvent(dirObj, timestamp, 'devGroupId-0', 'branchId-0', 'false');
         
+        //create the file
+        fs.writeFileSync(path.join(pathToTestDir, '/test.txt'), 'inserted text\r\ninserted text\r\ninserted text\r\ninserted text\r\ninserted text\r\ninserted text\r\ninserted text\r\n');
+
         //next create a file
         const fileObj = fileSystemManager.addFile('/test.txt');
         
-        //add 7 groups of 15 insert events should cause an automatic push of events into the intermediate file
+        //add 7 groups of 14 insert events (newlines count as one) should cause an automatic push of events into the intermediate file
         eventManager.insertTextEvents(fileObj, timestamp, 'devGroupId-0', 'branchId-0', 'inserted text\r\n', 0, 0, [], 'false');
         eventManager.insertTextEvents(fileObj, timestamp, 'devGroupId-0', 'branchId-0', 'inserted text\r\n', 0, 0, [], 'false');
         eventManager.insertTextEvents(fileObj, timestamp, 'devGroupId-0', 'branchId-0', 'inserted text\r\n', 0, 0, [], 'false');
@@ -111,8 +117,8 @@ suite('Events Tests', function () {
         //read the data from the json file
         const allEvents = eventManager.read();
 
-        //there should be 106 events read from the file
-        assert.equal(allEvents.length, 106);
+        //there should be 99 events read from the file
+        assert.equal(allEvents.length, 99);
     });
 
     test('Create events to write twice', function() {
@@ -130,16 +136,19 @@ suite('Events Tests', function () {
         //add the create directory event
         eventManager.insertCreateDirectoryEvent(dirObj, timestamp, 'devGroupId-0', 'branchId-0', 'false');
         
+        //create the file
+        fs.writeFileSync(path.join(pathToTestDir, '/test.txt'), 'inserted text\r\ninserted text\r\n');
+
         //next create a file
         const fileObj = fileSystemManager.addFile('/test.txt');
         
-        //add a group of 15 insert events
+        //add a group of 14 insert events (newlines count as one)
         eventManager.insertTextEvents(fileObj, timestamp, 'devGroupId-0', 'branchId-0', 'inserted text\r\n', 0, 0, [], 'false');
 
         //force the events in memory to go to the intermediate file
         eventManager.writeEventsBufferToFileSystem(true);
 
-        //add a group of 15 insert events
+        //add a group of 14 insert events (newlines count as one)
         eventManager.insertTextEvents(fileObj, timestamp, 'devGroupId-0', 'branchId-0', 'inserted text\r\n', 0, 0, [], 'false');
 
         //force the events in memory to go to the intermediate file
@@ -148,8 +157,8 @@ suite('Events Tests', function () {
         //read the intermediate file contents and turn them into events
         const fileContents = fs.readFileSync(eventManager.fullPathToIntermediateEventsFile, 'utf8');
         const allEventsInIntermediateFile = fileContents.split('\n').map(eventLine => JSON.parse(eventLine));
-        //make sure there are 31 events in the file
-        assert.equal(allEventsInIntermediateFile.length, 31);
+        //make sure there are 29 events in the file
+        assert.equal(allEventsInIntermediateFile.length, 29);
         
         //write from the intermediate file to the json file
         eventManager.write();
@@ -157,8 +166,8 @@ suite('Events Tests', function () {
         //read the data from the json file
         const allEvents = eventManager.read();
 
-        //there should be 31 events read from the file
-        assert.equal(allEvents.length, 31);
+        //there should be 29 events read from the file
+        assert.equal(allEvents.length, 29);
     });
 
     test('Simulate crash of system without proper writing of intermediate file', function() {
@@ -176,10 +185,13 @@ suite('Events Tests', function () {
         //add the create directory event
         eventManager.insertCreateDirectoryEvent(dirObj, timestamp, 'devGroupId-0', 'branchId-0', 'false');
         
+        //create the file
+        fs.writeFileSync(path.join(pathToTestDir, '/test.txt'), 'inserted text\r\ninserted text\r\n');
+        
         //next create a file
         const fileObj = fileSystemManager.addFile('/test.txt');
         
-        //add a group of 15 insert events
+        //add a group of 14 insert events (newlines count as one)
         eventManager.insertTextEvents(fileObj, timestamp, 'devGroupId-0', 'branchId-0', 'inserted text\r\n', 0, 0, [], 'false');
 
         //force the events in memory to go to the intermediate file
@@ -192,7 +204,7 @@ suite('Events Tests', function () {
         //create a new event manager (represents a restart)
         const eventManager2 = new EventManager(pathToTestDir, 'events', 'events.json');
         
-        //add a group of 15 insert events
+        //add a group of 14 insert events (newlines count as one)
         eventManager2.insertTextEvents(fileObj, timestamp, 'devGroupId-0', 'branchId-0', 'inserted text\r\n', 0, 0, [], 'false');
 
         //force the events in memory to go to the intermediate file
@@ -204,8 +216,8 @@ suite('Events Tests', function () {
         //read the data from the json file
         const allEvents = eventManager2.read();
 
-        //there should be 31 events read from the file
-        assert.equal(allEvents.length, 31);
+        //there should be 29 events read from the file
+        assert.equal(allEvents.length, 29);
     });
 
     // test('', function() {
