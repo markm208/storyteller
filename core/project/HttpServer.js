@@ -63,30 +63,21 @@ class HttpServer {
      */
     createRoutes(app) {
         //routes        
-        //title and description 
+        //title  
         app.get('/project', (req, res) => {
-            //return the project manager's 'project' which contains the title,
-            //description, and the branch id
+            //return the project manager's 'project' which contains the title
+            //and the branch id
             res.json(this.projectManager.project);
         });
 
         app.put('/project', (req, res) => {
-            //get an object with a title and description (comes from the user)
-            const titleDescription = req.body;
+            //get an object with a title (comes from the user)
+            const titleInfo = req.body;
 
             //title is required
-            if(titleDescription.title && titleDescription.title.trim()) {
+            if(titleInfo.title && titleInfo.title.trim()) {
                 //trim and store the title
-                this.projectManager.project.title = titleDescription.title.trim();
-
-                //if there is a description
-                if(titleDescription.description) {
-                    //trim and store the description
-                    this.projectManager.project.description = titleDescription.description.trim();
-                } else { //no description property
-                    //default to empty string
-                    this.projectManager.project.description = '';
-                }
+                this.projectManager.setTitle(titleInfo.title.trim());
 
                 //return the newly updated project
                 res.json(this.projectManager.project);
