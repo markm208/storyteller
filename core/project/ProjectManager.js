@@ -50,7 +50,7 @@ class ProjectManager extends FileBackedCollection {
             //read all of the project data from the file system
             this.read();
         } else { //no json file exists, this is a new project
-            //create a Project (title and initial 6 digit branch id)
+            //create a Project (title, description, and initial 6 digit branch id)
             this.project = new Project();
 
             //write the relevant data to the file
@@ -71,6 +71,7 @@ class ProjectManager extends FileBackedCollection {
         //pass in an object to be written to a json file
         super.write({
             title: this.project.title, 
+            description: this.project.description, 
             branchId: this.project.branchId
         });
     }
@@ -87,25 +88,13 @@ class ProjectManager extends FileBackedCollection {
     }
 
     /*
-     * Sets the title of the playback.
-     */
-    setTitle(title) {
-        //store the new title
-        this.project.title = title;
-
-        //update the data
-        this.write();
-    }
-    
-    /*
      * Writes all data to the file system.
      */
     stopStoryteller() {
         //write all of the project data to the file system
         this.developerManager.write();
-        this.fileSystemManager.updateLastModifiedDates();
         this.fileSystemManager.write();
-        //this.eventManager.writeEventsBufferToFileSystem();
+        this.eventManager.writeEventsBufferToFileSystem();
         this.eventManager.write();
         this.commentManager.write();
         this.write();
@@ -119,13 +108,8 @@ class ProjectManager extends FileBackedCollection {
      * modified date.
      */
     saveTextFileState() {
-        //write the state of the files to the disk
-        this.fileSystemManager.updateLastModifiedDates();
-        this.fileSystemManager.write();
-
         //write any events in memory to the intermediate event file
-        //this.eventManager.writeEventsBufferToFileSystem(true);
-        this.eventManager.write();
+        this.eventManager.writeEventsBufferToFileSystem(true);
     }
     
     /*

@@ -94,10 +94,6 @@ class CommentManager extends FileBackedCollection {
         } 
         //store the comment in the array
         this.comments[commentData.displayCommentEvent.id].push(newComment);
-
-        //update the data
-        this.write();
-
         return newComment;
     }
 
@@ -118,10 +114,6 @@ class CommentManager extends FileBackedCollection {
                     const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.id, commentData.linesAbove, commentData.linesBelow);
                     //update the comment
                     allCommentsForAnEvent[i] = updatedComment;
-
-                    //update the data
-                    this.write();
-
                     return updatedComment;
                 }
             }
@@ -158,9 +150,6 @@ class CommentManager extends FileBackedCollection {
                     //remove the array of comments for this event
                     delete this.comments[commentData.displayCommentEvent.id];
                 }
-
-                //update the data
-                this.write();
             }
         }
     }
@@ -187,9 +176,6 @@ class CommentManager extends FileBackedCollection {
 
                 //add it back in the new postion
                 arrayOfCommentsAtThisEvent.splice(updatedCommentPosition.newCommentPosition, 0, element);
-
-                //update the data
-                this.write();
             }
         }
     }

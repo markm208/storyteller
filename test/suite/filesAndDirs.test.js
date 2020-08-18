@@ -63,7 +63,7 @@ suite('File System Tests', function () {
     let dir3;
     let file4;
 
-    setup(function() {
+     setup(function() {
         //make a directory to hold the test data that is generated
         fs.mkdirSync(pathToTestDir, {recursive: true});
         
@@ -122,7 +122,7 @@ suite('File System Tests', function () {
         file4 = fsManager.addFile(testFile4.path);
     });
 
-    teardown(function() {
+     teardown(function() {
         //remove any previous data
         deleteAllHelper(pathToTestDir);
     });
@@ -289,7 +289,6 @@ suite('File System Tests', function () {
     test('Rename a file and dir', function() {
         //rename the directory /testDir2/ to /testDir2NEW/
         const newDirPath = '/testDir2NEW/';
-        fs.renameSync(path.join(pathToTestDir, 'testDir2'), path.join(pathToTestDir, 'testDir2NEW'));
         fsManager.renameDirectory(dir2.currentPath, newDirPath);
 
         //test that the files and dirs have new paths and the path to id mappings are correct
@@ -316,7 +315,6 @@ suite('File System Tests', function () {
     test('Move a file up a dir', function() {
         //move /testDir2/testDir3/test4.txt up to /test4.txt
         const newFilePath = '/test4.txt';
-        fs.renameSync(path.join(pathToTestDir, 'testDir2/testDir3/test4.txt'), path.join(pathToTestDir, 'test4.txt'));
         fsManager.moveFile(testFile4.path, newFilePath);
 
         //test that the files and dirs have new paths and the path to id mappings are correct
@@ -329,7 +327,6 @@ suite('File System Tests', function () {
     test('Move a file down a dir', function() {
         //move /test0.txt to /testDir1/test0.txt
         const newFilePath = '/testDir1/test0.txt';
-        fs.renameSync(path.join(pathToTestDir, 'test0.txt'), path.join(pathToTestDir, '/testDir1/test0.txt'));
         fsManager.moveFile(testFile0.path, newFilePath);
 
         //test that the files and dirs have new paths and the path to id mappings are correct
@@ -342,7 +339,6 @@ suite('File System Tests', function () {
     test('Move a dir up a dir', function() {
         //move /testDir2/testDir3/ to /
         const newDirPath = '/testDir3/';
-        //fs.renameSync(path.join(pathToTestDir, '/testDir2/testDir3'), path.join(pathToTestDir));
         fsManager.moveDirectory(testDir3.path, newDirPath);
 
         //test that the files and dirs have new paths and the path to id mappings are correct
@@ -360,7 +356,6 @@ suite('File System Tests', function () {
     test('Move a dir down a dir', function() {
         //move /testDir1/ to /testDir2/testDir1/
         const newDirPath = '/testDir2/testDir1/';
-        fs.renameSync(path.join(pathToTestDir, 'testDir1'), path.join(pathToTestDir, '/testDir2/testDir1'));
         fsManager.moveDirectory(testDir1.path, newDirPath);
 
         //test that the files and dirs have new paths and the path to id mappings are correct
@@ -409,7 +404,7 @@ suite('File System Tests', function () {
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
         file0.addInsertEventByPos('ev-1', 'b', 0, 1);
         file0.addInsertEventByPos('ev-2', 'c', 0, 2);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 3);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 3);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
         file0.addInsertEventByPos('ev-5', 'e', 1, 1);
         file0.addInsertEventByPos('ev-6', 'f', 1, 2);
@@ -424,7 +419,7 @@ suite('File System Tests', function () {
         file0.addInsertEventByPos('ev-6', 'f', 0, 0);
         file0.addInsertEventByPos('ev-5', 'e', 0, 0);
         file0.addInsertEventByPos('ev-4', 'd', 0, 0);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 0);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 0);
         file0.addInsertEventByPos('ev-2', 'c', 0, 0);
         file0.addInsertEventByPos('ev-1', 'b', 0, 0);
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
@@ -442,7 +437,7 @@ suite('File System Tests', function () {
         file0.addInsertEventByPos('ev-6', 'f', 0, 3);
         file0.addInsertEventByPos('ev-5', 'e', 0, 3);
         file0.addInsertEventByPos('ev-4', 'd', 0, 3);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 3);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 3);
 
         assert.equal(file0.getText(), 'abc\ndef');
     });
@@ -453,7 +448,7 @@ suite('File System Tests', function () {
         //def
         file0.addInsertEventByPos('ev-5', 'e', 0, 0);
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 1);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 1);
         file0.addInsertEventByPos('ev-6', 'f', 1, 1);
         file0.addInsertEventByPos('ev-1', 'b', 0, 1);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
@@ -466,7 +461,7 @@ suite('File System Tests', function () {
         //out of order
         //abc\n
         //def
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 0);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 0);
         file0.addInsertEventByPos('ev-5', 'e', 1, 0);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
         file0.addInsertEventByPos('ev-6', 'f', 1, 2);
@@ -483,17 +478,17 @@ suite('File System Tests', function () {
         //\n
         //abc\n
         //def\n\n
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 0);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 0);
         file0.addInsertEventByPos('ev-5', 'e', 1, 0);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
         file0.addInsertEventByPos('ev-6', 'f', 1, 2);
         file0.addInsertEventByPos('ev-1', 'b', 0, 0);
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
         file0.addInsertEventByPos('ev-2', 'c', 0, 2);
-        file0.addInsertEventByPos('ev-7', 'NEWLINE', 0, 0);
-        file0.addInsertEventByPos('ev-8', 'NEWLINE', 2, 3);
-        file0.addInsertEventByPos('ev-9', 'NEWLINE', 0, 0);
-        file0.addInsertEventByPos('ev-10', 'NEWLINE', 3, 4);
+        file0.addInsertEventByPos('ev-7', '\n', 0, 0);
+        file0.addInsertEventByPos('ev-8', '\n', 2, 3);
+        file0.addInsertEventByPos('ev-9', '\n', 0, 0);
+        file0.addInsertEventByPos('ev-10', '\n', 3, 4);
 
         assert.equal(file0.getText(), '\n\nabc\ndef\n\n');
     });
@@ -506,7 +501,7 @@ suite('File System Tests', function () {
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
         file0.addInsertEventByPos('ev-1', 'b', 0, 1);
         file0.addInsertEventByPos('ev-2', 'c', 0, 2);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 3);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 3);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
         file0.addInsertEventByPos('ev-5', 'e', 1, 1);
         file0.addInsertEventByPos('ev-6', 'f', 1, 2);
@@ -528,7 +523,7 @@ suite('File System Tests', function () {
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
         file0.addInsertEventByPos('ev-1', 'b', 0, 1);
         file0.addInsertEventByPos('ev-2', 'c', 0, 2);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 3);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 3);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
         file0.addInsertEventByPos('ev-5', 'e', 1, 1);
         file0.addInsertEventByPos('ev-6', 'f', 1, 2);
@@ -566,11 +561,11 @@ suite('File System Tests', function () {
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
         file0.addInsertEventByPos('ev-1', 'b', 0, 1);
         file0.addInsertEventByPos('ev-2', 'c', 0, 2);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 3);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 3);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
         file0.addInsertEventByPos('ev-5', 'e', 1, 1);
         file0.addInsertEventByPos('ev-6', 'f', 1, 2);
-        file0.addInsertEventByPos('ev-7', 'NEWLINE', 1, 3);
+        file0.addInsertEventByPos('ev-7', '\n', 1, 3);
 
         //verify the inserts were good
         assert.equal(file0.getText(), 'abc\ndef\n');
@@ -608,7 +603,7 @@ suite('File System Tests', function () {
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
         file0.addInsertEventByPos('ev-1', 'b', 0, 1);
         file0.addInsertEventByPos('ev-2', 'c', 0, 2);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 3);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 3);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
         file0.addInsertEventByPos('ev-5', 'e', 1, 1);
         file0.addInsertEventByPos('ev-6', 'f', 1, 2);
@@ -631,7 +626,7 @@ suite('File System Tests', function () {
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
         file0.addInsertEventByPos('ev-1', 'b', 0, 1);
         file0.addInsertEventByPos('ev-2', 'c', 0, 2);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 3);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 3);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
         file0.addInsertEventByPos('ev-5', 'e', 1, 1);
         file0.addInsertEventByPos('ev-6', 'f', 1, 2);
@@ -653,7 +648,7 @@ suite('File System Tests', function () {
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
         file0.addInsertEventByPos('ev-1', 'b', 0, 1);
         file0.addInsertEventByPos('ev-2', 'c', 0, 2);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 3);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 3);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
         file0.addInsertEventByPos('ev-5', 'e', 1, 1);
         file0.addInsertEventByPos('ev-6', 'f', 1, 2);
@@ -674,7 +669,7 @@ suite('File System Tests', function () {
         file0.addInsertEventByPos('ev-0', 'a', 0, 0);
         file0.addInsertEventByPos('ev-1', 'b', 0, 1);
         file0.addInsertEventByPos('ev-2', 'c', 0, 2);
-        file0.addInsertEventByPos('ev-3', 'NEWLINE', 0, 3);
+        file0.addInsertEventByPos('ev-3', '\n', 0, 3);
         file0.addInsertEventByPos('ev-4', 'd', 1, 0);
         file0.addInsertEventByPos('ev-5', 'e', 1, 1);
         file0.addInsertEventByPos('ev-6', 'f', 1, 2);

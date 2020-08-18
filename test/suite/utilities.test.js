@@ -32,12 +32,12 @@ suite('Utilities Tests', function () {
     test('Escapes and unescapes special characters', function () {
         assert.equal(utilities.escapeSpecialCharacter('m'), 'm');
         assert.equal(utilities.escapeSpecialCharacter('\n'), 'NEWLINE');
-        assert.equal(utilities.escapeSpecialCharacter('\r\n'), 'CR-LF');
+        assert.equal(utilities.escapeSpecialCharacter('\r'), 'CARRIAGE_RETURN');
         assert.equal(utilities.escapeSpecialCharacter('\t'), 'TAB');
 
         assert.equal(utilities.unescapeSpecialCharacter('m'), 'm');
         assert.equal(utilities.unescapeSpecialCharacter('NEWLINE'), '\n');
-        assert.equal(utilities.unescapeSpecialCharacter('CR-LF'), '\r\n');
+        assert.equal(utilities.unescapeSpecialCharacter('CARRIAGE_RETURN'), '\r');
         assert.equal(utilities.unescapeSpecialCharacter('TAB'), '\t');
     });
 

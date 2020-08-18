@@ -48,6 +48,9 @@ class FileSystemManager extends FileBackedCollection {
      * Writes the data to a json file.
      */
     write() {
+        //ask each file in the storyteller system to update its last modified date
+        this.updateLastModifiedDates();
+
         //pass in an object to be written to a json file
         super.write({
             allFiles: this.allFiles, 
@@ -121,9 +124,6 @@ class FileSystemManager extends FileBackedCollection {
 
                 //add the file to the object of all files
                 this.allFiles[newFile.id] = newFile;
-
-                //update the data
-                this.write();
             } else {
                 throw new Error(`A new file cannot be created because the parent dir ${newFileParentPath} does not exist`);
             }
@@ -149,9 +149,6 @@ class FileSystemManager extends FileBackedCollection {
 
             //update the file in the collection of all files to be marked as deleted
             this.allFiles[deletedFileId].isDeleted = 'true';
-
-            //update the data
-            this.write();
         } else {
             throw new Error(`File: ${deletedFilePath} not tracked, cannot be removed`);
         }
@@ -171,9 +168,6 @@ class FileSystemManager extends FileBackedCollection {
 
             //update the current name of the file in the collection of all files
             this.allFiles[fileId].currentPath = newFilePath;
-
-            //update the data
-            this.write();
         } else {
             throw new Error(`File: ${oldFilePath} not tracked, cannot be renamed`);
         }
@@ -202,9 +196,6 @@ class FileSystemManager extends FileBackedCollection {
                 this.allFiles[fileId].parentDirectoryId = this.getDirIdFromDirPath(newFileParentPath);
                 //update the current path of the file
                 this.allFiles[fileId].currentPath = newFilePath;
-
-                //update the data
-                this.write();
             } else {
                 throw new Error(`A new file cannot be moved because the new parent dir ${newFileParentPath} does not exist`);
             }
@@ -246,9 +237,6 @@ class FileSystemManager extends FileBackedCollection {
 
             //add the directory to the object of all directories
             this.allDirs[newDirectory.id] = newDirectory;
-
-            //update the data
-            this.write();
         } else {
             throw new Error(`A new directory cannot be created because on already exists at ${newDirPath}`);
         }
@@ -274,9 +262,6 @@ class FileSystemManager extends FileBackedCollection {
     
             //recursively remove the children files and dirs
             this.removeDirectoryHelper(deletedDirId);
-
-            //update the data
-            this.write();
         } else {
             throw new Error(`Dir: ${deletedDirPath} not tracked, cannot be deleted`);
         }
@@ -324,9 +309,6 @@ class FileSystemManager extends FileBackedCollection {
 
             //update the children recursively
             this.renameDirectoryHelper(dirId, oldDirPath, newDirPath);
-
-            //update the data
-            this.write();
         } else {
             throw new Error(`Dir: ${oldDirPath} not tracked, cannot be renamed`);
         }
@@ -411,9 +393,6 @@ class FileSystemManager extends FileBackedCollection {
         
                 //recursively update the child files and dirs
                 this.renameDirectoryHelper(dirId, oldDirPath, newDirPath);
-
-                //update the data
-                this.write();
             } else {
                 throw new Error(`A dir cannot be moved because the new parent dir ${newDirParentPath} does not exist`);
             }
