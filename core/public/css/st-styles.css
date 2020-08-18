@@ -506,3 +506,7 @@ body.popup .toast-popup * {
     z-Index: 100;
     width: 500px;
 }
+
+.blogModeLineInput{
+    width: 40px;
+}

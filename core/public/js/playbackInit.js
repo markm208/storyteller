@@ -404,6 +404,11 @@ function setupEventListeners()
         document.getElementById("viewCommentsTab").classList.remove("disabled");
 
         document.getElementById("viewCommentsTab").click();      
+
+        let blogModeInputs = [...document.querySelectorAll(".blogModeLineInput")];
+        for (let i = 0; i < blogModeInputs.length; i++){
+            blogModeInputs[i].value = "3";
+        }
     });
 
     document.getElementById('dragBar').addEventListener('mousedown', function (e){  
