@@ -79,11 +79,11 @@
                             <div class="btn-group-vertical" role="group">
                                 <div>
                                     <label for="blogModeExtraAbove">Blog mode lines (above):</label>
-                                    <input id="blogModeExtraAbove" title="Number of extra lines to be shown above selected code" class="blogModeLineInput" type="number" min="0" max="50" value="3"  >
+                                    <input id="blogModeExtraAbove" title="Number of extra lines to be shown above selected code" class="blogModeLineInput" type="number" min="0" max="50" value="3" onKeyDown="return false">
                                 </div>
                                 <div>
                                     <label for="blogModeExtraBelow">Blog mode lines (below):</label>
-                                    <input id="blogModeExtraBelow" title="Number of extra lines to be shown below selected code" class="blogModeLineInput" type="number" min="0" max="50" value="3" onKeyDown="return false" >
+                                    <input id="blogModeExtraBelow" title="Number of extra lines to be shown below selected code" class="blogModeLineInput" type="number" min="0" max="50" value="3" onKeyDown="return false">
                                 </div>
                             </div>
                         </div>
@@ -173,17 +173,14 @@
                           </svg>
                         </button>
                         <div id="currentDevsDiv" class="currentDevs">
-                        </div>
-                        <!-- TODO remove all tickmarks code from all files -->
-                        <datalist id="tickmarks" class="data-list-style">
-                            <option value="10" class="ui-slider-tick-mark"></option>
-                        </datalist>
+                        </div>                        
                     </div>         
                 </div>    
             </div>    
         </div>
         <div class="blogView testclass container" >
-            This is a test of blog mode
+            <div class="blogViewContent">
+            </div>
         </div>
 
 

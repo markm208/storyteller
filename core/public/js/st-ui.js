@@ -75,7 +75,7 @@ function displayAllComments(){
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
 
-    let commentCount = -1; // because the title and description do not count
+    let commentCount = -1; // because the description does not count
     let currentComment = 1;    
 
     //convert all string keys into numbers for proper sorting of comment sequence
@@ -1804,4 +1804,19 @@ function selectRange(rangeToSelect){
     const windowSelection = window.getSelection();
     windowSelection.removeAllRanges();
     windowSelection.addRange(rangeToSelect);
+}
+
+function displayAllBlogPost(){
+    playbackData;
+    const test = [...document.querySelectorAll('[data-commentid]')];
+
+    for (let i = 0; i < test.length; i++){
+        const eventId = test[i].getAttribute("data-commenteventid");
+        const commentIndex = playbackData.comments[eventId].findIndex(item => item.displayCommentEvent.id === test[i].getAttribute("data-commenteventid"))
+        const comment = playbackData.comments[eventId][commentIndex];
+
+        const blah = document.querySelector(".dafad");
+
+    }
+
 }

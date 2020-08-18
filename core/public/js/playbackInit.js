@@ -67,6 +67,8 @@ async function initializePlayback()
 
         //displays all comments
         displayAllComments();
+
+        displayAllBlogPost(); //TODO this wont go here
       
         //Sets up the event listeners for html elements on the page
         setupEventListeners();

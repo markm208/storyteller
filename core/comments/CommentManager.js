@@ -72,7 +72,7 @@ class CommentManager extends FileBackedCollection {
                 //get the raw comment data
                 const comment = this.comments[eventId][i];
                 //create the Comment object and add it to the array
-                allCommentsForAnEvent.push(new Comment(comment.displayCommentEvent, comment.developerGroupId, comment.timestamp, comment.commentText, comment.selectedCodeBlocks, comment.imageURLs, comment.videoURLs, comment.audioURLs, comment.id, comment.linesAbove, comment.linesBelow));
+                allCommentsForAnEvent.push(new Comment(comment.displayCommentEvent, comment.developerGroupId, comment.timestamp, comment.commentText, comment.selectedCodeBlocks, comment.imageURLs, comment.videoURLs, comment.audioURLs, comment.linesAbove, comment.linesBelow, comment.id));
             }
 
             //replace the raw object array with one filled with Comments
@@ -111,7 +111,7 @@ class CommentManager extends FileBackedCollection {
                 //find the correct comment based on its id
                 if(allCommentsForAnEvent[i].id === commentData.id) {
                     //create an updated comment object
-                    const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.id, commentData.linesAbove, commentData.linesBelow);
+                    const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.linesAbove, commentData.linesBelow, commentData.id);
                     //update the comment
                     allCommentsForAnEvent[i] = updatedComment;
                     return updatedComment;
