@@ -63,7 +63,7 @@ suite('File System Tests', function () {
     let dir3;
     let file4;
 
-     setup(function() {
+    setup(function() {
         //make a directory to hold the test data that is generated
         fs.mkdirSync(pathToTestDir, {recursive: true});
         
@@ -122,7 +122,7 @@ suite('File System Tests', function () {
         file4 = fsManager.addFile(testFile4.path);
     });
 
-     teardown(function() {
+    teardown(function() {
         //remove any previous data
         deleteAllHelper(pathToTestDir);
     });
