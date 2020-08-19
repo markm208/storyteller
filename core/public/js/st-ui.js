@@ -101,6 +101,9 @@ function displayAllComments(){
 
             commentGroupDiv.append(titleCard);
 
+            //add description to blog 
+            addBlogPost(commentBlock[0]);
+
             startingValue += 1;
         }
         else
@@ -138,6 +141,9 @@ function displayAllComments(){
         for (let i = startingValue; i < commentBlock.length; i++){
 
             const commentObject = commentBlock[i];
+
+            //add the comment to blog mode
+            addBlogPost(commentObject)
 
             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
             const commentCard = returnObject.cardObject;
@@ -1785,7 +1791,7 @@ function updateCurrentDeveloperGroupAvatars(devGroupId) {
         //get the div that holds the active devs
         const currentDevsDiv = document.getElementById('currentDevsDiv');
         
-        //remove the old images and add new ones 50px height
+        //remove the old images and add new ones 20px height
         currentDevsDiv.innerHTML = '';
         currentDevsDiv.append(getDevImages(activeDevs, 20));
     }
@@ -1806,17 +1812,46 @@ function selectRange(rangeToSelect){
     windowSelection.addRange(rangeToSelect);
 }
 
-function displayAllBlogPost(){
-    playbackData;
-    const test = [...document.querySelectorAll('[data-commentid]')];
+function addBlogPost(commentToAdd){
+    //const allPostedComments = [...document.querySelectorAll('[data-commentid]')];
+    const blogDiv = document.querySelector(".blogViewContent");
 
-    for (let i = 0; i < test.length; i++){
-        const eventId = test[i].getAttribute("data-commenteventid");
-        const commentIndex = playbackData.comments[eventId].findIndex(item => item.displayCommentEvent.id === test[i].getAttribute("data-commenteventid"))
-        const comment = playbackData.comments[eventId][commentIndex];
-
-        const blah = document.querySelector(".dafad");
-
+ 
+    const blogPost = document.createElement("div");
+    blogPost.classList.add("blogStyle");
+    if (commentToAdd.displayCommentEvent.id === "ev--1"){
+        blogPost.classList.add("descriptionBlogPost");
     }
+
+
+    blogPost.setAttribute("data-commentEventid", commentToAdd.displayCommentEvent.id);
+    blogPost.setAttribute("data-commentid", commentToAdd.id);
+
+    //TODO add posts in the right place
+
+    // const eventId = allPostedComments[i].getAttribute("data-commenteventid");
+    // const commentIndex = playbackData.comments[eventId].findIndex(item => item.id === allPostedComments[i].getAttribute("data-commentid"))
+    // const comment = playbackData.comments[eventId][commentIndex];
+
+
+    // //get the developers who authored the comment
+    // const commentAuthorGroup = getDevelopersInADevGroup(commentToAdd.developerGroupId);
+    // //create a div to hold the author info
+    // const commentAuthorsDiv = getDevImages(commentAuthorGroup, 50);
+
+    
+
+    const textDiv = document.createElement('div');
+    textDiv.classList.add("blogCommentText");
+    textDiv.innerHTML = commentToAdd.commentText;
+
+    //blogPost.append(commentAuthorsDiv);
+    blogPost.append(textDiv);
+
+    addMediaToCommentDiv(blogPost,commentToAdd)
+    
+    blogDiv.append(blogPost);
+    
+    
 
 }

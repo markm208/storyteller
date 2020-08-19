@@ -67,8 +67,6 @@ async function initializePlayback()
 
         //displays all comments
         displayAllComments();
-
-        displayAllBlogPost(); //TODO this wont go here
       
         //Sets up the event listeners for html elements on the page
         setupEventListeners();
@@ -130,8 +128,8 @@ function setupEventListeners()
         //TODO determine if this will be included or not
         // const sliderValue = Number(slider.noUiSlider.get());
         // //if the slider falls on a comment, click the comment
-        // if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
-        //     document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        // if (document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`)){              
+        //     document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`).click();
         // }
     });
 
@@ -142,8 +140,8 @@ function setupEventListeners()
         //TODO determine if this will be included or not
         // const sliderValue = Number(slider.noUiSlider.get());
         // //if the slider falls on a comment, click the comment
-        // if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
-        //     document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        // if (document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`)){              
+        //     document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`).click();
         // }
         stopAutomaticPlayback();
     });
@@ -215,6 +213,13 @@ function setupEventListeners()
         //make the selected text look like code by using a fixed width font
         document.execCommand('fontName', null, 'Courier');
     });
+
+    $("#URL-Toast").on("show.bs.toast", function() {
+        $(this).removeClass("d-none");
+    })
+    $("#URL-Toast").on("hidden.bs.toast", function() {
+        $(this).addClass("d-none");
+    })
     
     //make selected text into a clickable link
     let selectedRange = {};
@@ -601,7 +606,7 @@ function setupEventListeners()
             step(1);
             if (playbackData.comments[`ev-${playbackData.nextEventPosition - 1}`]){   
                 //get the comment card associated with the position             
-                const currentComment = document.querySelector(`[data-commenteventid="ev-${playbackData.nextEventPosition - 1}"]`);
+                const currentComment = document.querySelector(`.codeView [data-commenteventid="ev-${playbackData.nextEventPosition - 1}"]`);
 
                 //make it active by clicking it
                 currentComment.click();
@@ -658,8 +663,9 @@ function setupEventListeners()
         document.getElementById("blogMode").classList.add("activeModeButton");
 
 
-        document.querySelector(".codeView").classList.add('testclass');
-        document.querySelector(".blogView").classList.remove("testclass");
+        document.querySelector(".codeView").classList.add('modeFormat');
+        document.querySelector(".blogView").classList.remove("modeFormat");
+        document.body.style.backgroundColor = "grey";
 
 
 
@@ -669,8 +675,10 @@ function setupEventListeners()
         document.getElementById("blogMode").classList.remove("activeModeButton");
         document.getElementById("codeMode").classList.add("activeModeButton");
 
-        document.querySelector(".codeView").classList.remove('testclass');
-        document.querySelector(".blogView").classList.add("testclass");
+        document.querySelector(".codeView").classList.remove('modeFormat');
+        document.querySelector(".blogView").classList.add("modeFormat");
+        document.body.style.backgroundColor = "grey";
+
 
 
     })
@@ -700,11 +708,11 @@ function setUpSlider(){
 
         //TODO Determine if this will be included or not
         // //if the slider falls on a comment, click the comment
-        // if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
-        //     document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        // if (document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`)){              
+        //     document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`).click();
         // }
-        // else if (document.querySelector(`[data-commenteventid="ev-${sliderValue}"]`)){
-        //     document.querySelector(`[data-commenteventid="ev-${sliderValue}"]`).click();
+        // else if (document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue}"]`)){
+        //     document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue}"]`).click();
         // }
     });
 
@@ -770,7 +778,7 @@ function setUpClickableTickMarks(){
             //determine if the description tick mark was clicked   
             const eventNum = pipValue === 0 ? -1 : pipValue; 
 
-            document.querySelector(`[data-commenteventid="ev-${eventNum}"`).click();                               
+            document.querySelector(`.codeView [data-commenteventid="ev-${eventNum}"]`).click();                               
         })               
     }    
 }
@@ -829,7 +837,7 @@ function jumpToPreviousComment()
     //if activeComment hasn't been assigned, then no comment was found at, or behind the slider position
     //make the description active
     else{
-        document.querySelector(`[data-commenteventid="ev--1"`).click(); 
+        document.querySelector(`.codeView [data-commenteventid="ev--1"`).click(); 
     }      
 }
 

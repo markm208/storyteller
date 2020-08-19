@@ -535,6 +535,32 @@ body.popup .toast-popup * {
     color: white;
 }
 
-.testclass{
+.modeFormat{
     display: none;
+}
+
+.blogStyle{
+    margin-bottom: 40px;
+    /* background-color: lightgrey; */
+    border-radius: 40px;
+}
+
+.blogViewContent{
+    display: grid;    
+}
+
+.blogCommentText{
+    padding: 5px 40px;
+    margin-left: 40px;
+    margin-bottom: 10px;
+}
+
+.blogView{
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 100vh;   
+}
+
+.descriptionBlogPost{
+    margin-top: 10px
 }

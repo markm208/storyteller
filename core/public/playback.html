@@ -178,9 +178,8 @@
                 </div>    
             </div>    
         </div>
-        <div class="blogView testclass container" >
-            <div class="blogViewContent">
-            </div>
+        <div class="blogView modeFormat container" >
+            <div class="blogViewContent"></div>
         </div>
 
 
@@ -255,18 +254,16 @@
             </div>
         </div>
 
-        <div class='container' >
-            <div class="toast toast-popup" id='URL-Toast' data-autohide="false">
-              <div class="toast-header toast-popup">
+        <div class="toast d-none toast-popup" id='URL-Toast' data-autohide="false" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header toast-popup">
                 <strong class="mr-auto text-primary">Enter the URL</strong>      
-              <button type="button" id='URL-Close' class="ml-2 mb-1 close toast-popup" data-dismiss="toast">&times;</button>
-              </div>
-              <div class="toast-body toast-popup">
-                <div class="form-control toast-popup" id="URL" contenteditable="true" > </div>
-                 <button type="button" id ='URL-Confirm' class="float-right btn btn-outline-primary toast-popup">Submit</button>
-              </div>
+                <button type="button" id='URL-Close' class="ml-2 mb-1 close toast-popup" data-dismiss="toast">&times;</button>
             </div>
-        </div>
+            <div class="toast-body toast-popup">
+                <div class="form-control toast-popup" id="URL" contenteditable="true" > </div>
+                <button type="button" id ='URL-Confirm' class="float-right btn btn-outline-primary toast-popup">Submit</button>
+            </div>
+        </div>        
 
         <!-- Creating the options modal -->
         <div id="optionsModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
