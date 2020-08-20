@@ -63,7 +63,7 @@ class ProjectManager extends FileBackedCollection {
             this.commentManager.addComment({
                 commentText: 'Enter a playback description',
                 timestamp: new Date().getTime(),
-                displayCommentEvent: this.eventManager.read()[0]/* grab the one and only event created so far *//*{id: 'ev--1', eventSequenceNumber: -1}*/,
+                displayCommentEvent: this.eventManager.read()[0], /* grab the one and only event created so far */
                 developerGroupId: this.developerManager.anonymousDeveloperGroup.id, 
                 selectedCodeBlocks: [],
                 imageURLs: [],

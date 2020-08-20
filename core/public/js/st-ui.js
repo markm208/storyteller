@@ -1036,7 +1036,7 @@ function makeDraggable(param, key){
             const commentPositionObject = {                
                 eventId: comment.displayCommentEvent.id,
                 oldCommentPosition,
-                newCommentPosition: key === /*-1*/ 0 ? newCommentPosition + 2 : newCommentPosition
+                newCommentPosition: key === 0 ? newCommentPosition + 2 : newCommentPosition
             };
 
             //update playbackData with the changes

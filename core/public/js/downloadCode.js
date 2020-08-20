@@ -191,9 +191,6 @@ async function addStorytellerProjectHistoryToZip(events, zip, withComments) {
  * information from the events. 
  */
 function collectDataAboutEvents(events, zipPlaybackData) {
-    //store the description comment block
-    //storeCommentData(playbackData.comments['ev--1'], 'ev--1', zipPlaybackData);
-
     //start at the beginning and move until the pause point in the playback
     for(let i = 0;i < events.length;i++) {
         //grab the next event

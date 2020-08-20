@@ -20,16 +20,6 @@ async function initializePlayback()
     setUpSlider();
     step(playbackData.numNonRelevantEvents);
 
-    // if (!playbackData.comments['ev--1'])
-    // {
-    //     const newDescription = createCommentObject('Insert DESCRIPTION here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], []);
-
-    //     const descrFromServer = await sendCommentToServer(newDescription);
-
-    //     playbackData.comments['ev--1'] = [];
-    //     playbackData.comments['ev--1'].push(descrFromServer);
-    // }
-
     //displays all comments
     displayAllComments();
     
@@ -300,20 +290,10 @@ function setupEventListeners()
         if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length)
         {
             //get the event to playback this comment
-            let eventIndex = playbackData.nextEventPosition - 1;
+            const eventIndex = playbackData.nextEventPosition - 1;
 
-            let commentEvent = playbackData.events[eventIndex];
+            const commentEvent = playbackData.events[eventIndex];
 
-            //accounts for comments at event -1
-            // if (eventIndex >= 0)
-            // {
-            //     commentEvent = playbackData.events[eventIndex];
-            // }
-            // else
-            // {
-            //     commentEvent = {id: 'ev--1', eventSequenceNumber: -1};
-            // }
-          
             //create an object that has all of the comment info
             const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder)
 
@@ -452,7 +432,7 @@ function setupEventListeners()
                 commentBlock = playbackData.comments["ev-" + eventNum];
 
                 //if the description doesn't have a comment, ignore it
-                if (eventNum++ === 0/*-1*/ && commentBlock.length === 1){
+                if (eventNum++ === 0 && commentBlock.length === 1){
                     commentBlock = null;
                 }
             }
@@ -651,7 +631,7 @@ function setUpSliderTickMarks(){
         const firstCommentAtPoint = allCommentsAtPoint[0];       
         
         //if this is not the description comment
-        if(firstCommentAtPoint.displayCommentEvent.eventSequenceNumber !== 0/*-1*/) {
+        if(firstCommentAtPoint.displayCommentEvent.eventSequenceNumber !== 0) {
             //comment tick marks are numbered to slide into the comment
             commentPositions.push(firstCommentAtPoint.displayCommentEvent.eventSequenceNumber + 1);
         }
@@ -694,7 +674,7 @@ function setUpClickableTickMarks(){
         //add the clickable element that will bring us to the comment
         tickMark.addEventListener('click', event => { 
             //determine if the description tick mark was clicked   
-            const eventNum = /*pipValue === 0 ? -1 :*/ pipValue; 
+            const eventNum = pipValue; 
 
             document.querySelector(`[data-commenteventid="ev-${eventNum}"`).click();                               
         })               
@@ -1017,8 +997,8 @@ async function updateComment(){
         const newComment = await updateCommentOnServer(comment);        
 
 
-        //TODO ternary never true???
-        for (let i = newComment.displayCommentEvent.id === -1 ? 2 : 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
+        //replace the old comment with the new one
+        for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
             if (playbackData.comments[newComment.displayCommentEvent.id][i].id === newComment.id){
                 playbackData.comments[newComment.displayCommentEvent.id].splice(i , 1, newComment);
                 break;
