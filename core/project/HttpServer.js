@@ -62,7 +62,18 @@ class HttpServer {
      * Creates the routes that this server responds to
      */
     createRoutes(app) {
-        //routes        
+        //routes
+        
+        //builds a js file that loads the data for playback
+        app.get('/js/loadPlayback.js', (req, res) => {
+            //get the text for a function that loads the playback data
+            const playbackData = this.projectManager.getPlaybackData();
+
+            //send the function back to the browser
+            res.type('application/javascript');
+            res.status('200').send(`${playbackData}`);
+        });
+
         //title  
         app.get('/project', (req, res) => {
             //return the project manager's 'project' which contains the title
