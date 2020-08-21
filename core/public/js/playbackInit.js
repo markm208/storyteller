@@ -338,14 +338,16 @@ function setupEventListeners()
 
         let rangeArray = [];
         for (let i = 0; i < ranges.length; i++){
-            let rangeObj = {};
-            rangeObj.fileId = playbackData.activeEditorFileId,
-            rangeObj.selectedText = editor.getSession().getTextRange(ranges[i]),
-            rangeObj.startRow = ranges[i].start.row
-            rangeObj.startColumn = ranges[i].start.column;
-            rangeObj.endRow = ranges[i].end.row;
-            rangeObj.endColumn = ranges[i].end.column;
-            rangeArray.push(rangeObj);
+            if (editor.getSession().getTextRange(ranges[i]) !== ""){
+                let rangeObj = {};
+                rangeObj.fileId = playbackData.activeEditorFileId,
+                rangeObj.selectedText = editor.getSession().getTextRange(ranges[i]),
+                rangeObj.startRow = ranges[i].start.row
+                rangeObj.startColumn = ranges[i].start.column;
+                rangeObj.endRow = ranges[i].end.row;
+                rangeObj.endColumn = ranges[i].end.column;
+                rangeArray.push(rangeObj);
+            }            
         }  
        
         //if there was a comment, or at least one media file
@@ -388,6 +390,9 @@ function setupEventListeners()
             setUpSliderTickMarks();
 
             document.getElementById("CancelUpdateButton").click();
+
+            //add comment to blog
+            insertBlogPost(newComment);
         }
     });
 
@@ -677,11 +682,13 @@ function setupEventListeners()
 
         document.querySelector(".codeView").classList.remove('modeFormat');
         document.querySelector(".blogView").classList.add("modeFormat");
-        document.body.style.backgroundColor = "grey";
+        document.body.style.backgroundColor = "white";
 
 
 
     })
+
+
 }
 
 function setUpSlider(){

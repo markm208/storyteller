@@ -102,7 +102,7 @@ function displayAllComments(){
             commentGroupDiv.append(titleCard);
 
             //add description to blog 
-            addBlogPost(commentBlock[0]);
+            addBlogPost(commentBlock[0], null);
 
             startingValue += 1;
         }
@@ -142,8 +142,7 @@ function displayAllComments(){
 
             const commentObject = commentBlock[i];
 
-            //add the comment to blog mode
-            addBlogPost(commentObject)
+
 
             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
             const commentCard = returnObject.cardObject;
@@ -151,6 +150,9 @@ function displayAllComments(){
 
             commentGroupDiv.append(commentCard);
             
+            //add the comment to blog mode
+            const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+            addBlogPost(commentObject, editor)
 
 
             if (playbackData.isEditable){
@@ -263,7 +265,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
 
     //if this is not here the play button does not work, because the card will have no functionality
-    cardFinal.addEventListener('click', function (e){ 
+    cardFinal.addEventListener('click', function (){ 
         
         stopAutomaticPlayback();
 
@@ -449,6 +451,8 @@ function updateActiveComment(commentToMakeActive)
     if (!commentAlreadyActive && !groupAlreadyActive){
         //scroll to the new active comment
         document.getElementById("commentContentDiv").scrollTop = commentToMakeActive.offsetTop - 100;      
+        //scroll to the comment in blogView
+        document.querySelector(".blogView").scrollTop = document.querySelector(`.blogView [data-commentid="${commentToMakeActive.getAttribute("data-commentid")}"]`).offsetTop - 100;
     }     
 }
 
@@ -1812,8 +1816,20 @@ function selectRange(rangeToSelect){
     windowSelection.addRange(rangeToSelect);
 }
 
-function addBlogPost(commentToAdd){
-    //const allPostedComments = [...document.querySelectorAll('[data-commentid]')];
+function addBlogPost(commentToAdd, currentEditor){
+    const allPostedComments = [...document.querySelectorAll('.codeView [data-commentid]')];
+    let allBlogPosts = [...document.querySelectorAll('.blogStyle')];
+
+    let tempCommentID = commentToAdd.id;
+    let testIndex = allBlogPosts.findIndex(item => commentToAdd.id === item.getAttribute("data-commentid"));
+
+    // //catch because when a new comment is added, displayAllComments is called again
+    // if (testIndex !== -1){
+    //     return;
+    // }
+
+    const neededIndexTest = allPostedComments.findIndex(item => item.getAttribute("data-commentid") === commentToAdd.id);
+
     const blogDiv = document.querySelector(".blogViewContent");
 
  
@@ -1846,12 +1862,130 @@ function addBlogPost(commentToAdd){
     textDiv.innerHTML = commentToAdd.commentText;
 
     //blogPost.append(commentAuthorsDiv);
+
+    //addMediaToCommentDiv(blogPost,commentToAdd)
+
+   
     blogPost.append(textDiv);
 
-    addMediaToCommentDiv(blogPost,commentToAdd)
-    
+    if (commentToAdd.imageURLs.length){
+        let imagesDiv = document.createElement('div');
+        imagesDiv.classList.add("blogModeImageDiv");
+
+        for (let i = 0; i < commentToAdd.imageURLs.length; i++){
+            const imageTestDiv = document.createElement('div');
+            imageTestDiv.classList.add("fakeTest");
+            const img = document.createElement('img');
+            img.classList.add("testImgClass")
+            img.src = commentToAdd.imageURLs[i];
+            imageTestDiv.append(img);
+            imagesDiv.append(imageTestDiv);
+           
+            img.addEventListener('click', function() {
+                document.getElementById('imgToExpand').src = img.src;
+                $('#imgExpandModal').modal('show');      
+            });
+            
+        }    
+        blogPost.append(imagesDiv);
+        
+    }
+
+    if (commentToAdd.selectedCodeBlocks.length){
+         //get the active editor
+
+        let sliderPosition =  Math.round(document.getElementById('slider').noUiSlider.get());
+        let commenttest = commentToAdd.displayCommentEvent.eventSequenceNumber + 1;
+
+        step(commenttest - sliderPosition)
+        
+        const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+        editor.session.selection.clearSelection()
+
+        let aceDivtest = document.createElement('div')
+        aceDivtest.classList.add("bla")
+
+        let testEditor = ace.edit(aceDivtest);
+
+        //testEditor.setValue("");
+        //let valueTest = editor.getSelectedText();
+
+
+        var editorLineCount = editor.session.doc.getAllLines().length - 1; //TODO this is an inndex not a count
+
+        //determining how big to make the new editor
+        let startRow = commentToAdd.selectedCodeBlocks[0].startRow - Number(commentToAdd.linesAbove) > 0 ? commentToAdd.selectedCodeBlocks[0].startRow - Number(commentToAdd.linesAbove) : 0;
+
+        let selectedBlocks = commentToAdd.selectedCodeBlocks;
+        let endRow = selectedBlocks[selectedBlocks.length - 1].endRow + Number(commentToAdd.linesBelow) <= editorLineCount ? selectedBlocks[selectedBlocks.length - 1].endRow + Number(commentToAdd.linesBelow) : editorLineCount;
+
+
+        let selection = new ace.Range(startRow,0,endRow , 100 ) //TODO calculate out that 100 instead of hard coding
+        editor.session.selection.addRange(selection);
+
+        let startLineTest = editor.getSelectionRange().start.row;
+
+        //prevents extra line due to the '\n'
+        let sectionTest = editor.getSelectedText();
+        sectionTest = sectionTest.endsWith('\n') ? sectionTest.substring(0, sectionTest.lastIndexOf('\n')) : sectionTest;
+        
+
+        // let testbutton = document.getElementById('blogMode')
+        // document.getElementById('blogMode').click();
+        testEditor.setValue(sectionTest)
+
+        editor.session.selection.clearSelection()
+        testEditor.session.selection.clearSelection()
+
+
+
+        for (let i = 0; i < commentToAdd.selectedCodeBlocks.length; i++){
+            let selection = commentToAdd.selectedCodeBlocks[i];
+            testEditor.getSession().addMarker(new ace.Range(selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn), 'highlight', 'text', true);
+        }
+
+
+        testEditor.setReadOnly(true);
+        testEditor.setTheme('ace/theme/monokai');
+        testEditor.setFontSize(16);
+        testEditor.setShowPrintMargin(false);
+        //TODO more efficient way of doing this?
+        testEditor.getSession().setMode(editor.session.$modeId);
+        testEditor.getSession().setUseWorker(false);
+        testEditor.setOption("firstLineNumber", startRow + 1);
+
+        step(-(commenttest - sliderPosition));
+        
+        let newLlineCount = testEditor.session.doc.getAllLines().length;
+
+        aceDivtest.style.height = newLlineCount * 22 + "px"  //TODO might cause cut off 
+
+        aceDivtest.append(testEditor);
+
+        blogPost.append(aceDivtest);       
+    }
+ //TODO  scroll stuff
+
+
+   
+
     blogDiv.append(blogPost);
     
+    allBlogPosts = [...document.querySelectorAll('.blogStyle')];
+    const blah = document.getElementById("dadfa");
     
+
+
+
+}
+
+function insertBlogPost(commentToInsert){
+    const allPostedComments = [...document.querySelectorAll('.codeView [data-commentid]')];
+    const allBlogPosts = [...document.querySelectorAll('.blogStyle')];
+
+    let testIndex = allPostedComments.findIndex(item => item.getAttribute("data-commentid") === commentToInsert.id)
+
+    const blah = document.getElementById("dadfa");
 
 }
