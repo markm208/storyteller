@@ -474,6 +474,8 @@ function createEditCommentButton(commentObject, buttonText){
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
+        document.getElementById("blogModeExtraAbove").value = commentObject.linesAbove;
+        document.getElementById("blogModeExtraBelow").value = commentObject.linesBelow;
 
         //reselect in ace all highlighted code from the original comment
         for (let i = 0; i < commentObject.selectedCodeBlocks.length; i++){
@@ -539,6 +541,7 @@ function createEditCommentButton(commentObject, buttonText){
         updateCommentButton.addEventListener('click' , event => {
             pauseMedia();
             updateComment();
+            document.querySelector(".blogViewContent").innerHTML = "";
 
             document.getElementById("CancelUpdateButton").click();
         })
@@ -708,6 +711,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             //if there are other comments left in the commentBlock, only remove the deleted comment
             card.remove();
         }
+        deleteBlogPost(comment);
         deleteCommentFromServer(comment);
 
         //rebuild the slider with the new comment pip
@@ -1816,7 +1820,7 @@ function selectRange(rangeToSelect){
     windowSelection.addRange(rangeToSelect);
 }
 
-function addBlogPost(commentToAdd, currentEditor){
+function addBlogPost(commentToAdd){
     const allPostedComments = [...document.querySelectorAll('.codeView [data-commentid]')];
     let allBlogPosts = [...document.querySelectorAll('.blogStyle')];
 
@@ -1891,6 +1895,88 @@ function addBlogPost(commentToAdd, currentEditor){
         
     }
 
+    if (commentToAdd.audioURLs.length){
+        for (let i = 0; i < commentToAdd.audioURLs.length; i ++){
+            //create a audio and add the required classes
+            const newAudio = document.createElement('audio');
+            newAudio.setAttribute('src', commentToAdd.audioURLs[i]);
+            newAudio.setAttribute('controls', '');
+            newAudio.setAttribute('preload', 'metadata');
+
+            //pause any media that is playing
+            newAudio.onplay = function(){
+                pauseMedia();
+
+                if (newAudio.closest(".commentCard")){
+                    //make the comment the audio is in active
+                    newAudio.closest(".commentCard").click();
+                }        
+                newAudio.classList.add("playing");
+            }
+
+            //removes the playing class from a media file
+            $(newAudio).on('pause ended', function(){
+                newAudio.classList.remove("playing");
+            })    
+
+            
+         
+            newAudio.classList.add('mediaResizable');
+            //cardBody.classList.add("textLeft");
+            
+
+            newAudio.style.height = 40 + 'px';
+
+            const speedControlDiv = createSpeedControlButtonDivForMedia(newAudio);
+            speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
+
+            speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
+            speedControlDiv.classList.add("blogAudioFile");
+            blogPost.append(speedControlDiv);
+
+        }
+       
+    }
+
+    if (commentToAdd.videoURLs.length){
+        for (let i = 0; i < commentToAdd.videoURLs.length; i++){
+            //create a video and add the required classes
+            const newVideo = document.createElement('video');
+            newVideo.setAttribute('src', commentToAdd.videoURLs[i]);
+            newVideo.setAttribute('controls', '');
+            newVideo.setAttribute('preload', 'metadata');   
+
+            //when a video is played, pause any other media that is playing
+            newVideo.onplay = function(){
+                pauseMedia();
+
+                if (newVideo.closest(".commentCard")){
+                    //make the comment the video is in active
+                    newVideo.closest(".commentCard").click();
+                }
+                newVideo.classList.add("playing");
+            };
+        
+            $(newVideo).on('pause ended', function(){
+                newVideo.classList.remove("playing");
+            });
+
+            
+            newVideo.classList.add('mediaResizable');
+                
+
+            const speedControlDiv = createSpeedControlButtonDivForMedia(newVideo);
+            speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
+
+            speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
+            speedControlDiv.classList.add("blogVideoFile");
+
+            blogPost.append(speedControlDiv);
+        }
+        
+
+    }
+
     if (commentToAdd.selectedCodeBlocks.length){
          //get the active editor
 
@@ -1954,6 +2040,7 @@ function addBlogPost(commentToAdd, currentEditor){
         testEditor.getSession().setMode(editor.session.$modeId);
         testEditor.getSession().setUseWorker(false);
         testEditor.setOption("firstLineNumber", startRow + 1);
+        testEditor.setHighlightActiveLine(false);
 
         step(-(commenttest - sliderPosition));
         
@@ -1980,6 +2067,12 @@ function addBlogPost(commentToAdd, currentEditor){
 
 }
 
+function deleteBlogPost(commentToDelete){
+    const allBlogPosts = getAllBlogPosts();
+    const indexToDelete = allBlogPosts.findIndex(item => item.getAttribute("data-commentid") === commentToDelete.id);
+    allBlogPosts[indexToDelete].remove();    
+}
+
 function insertBlogPost(commentToInsert){
     const allPostedComments = [...document.querySelectorAll('.codeView [data-commentid]')];
     const allBlogPosts = [...document.querySelectorAll('.blogStyle')];
@@ -1988,4 +2081,13 @@ function insertBlogPost(commentToInsert){
 
     const blah = document.getElementById("dadfa");
 
+}
+
+
+function getAllComments(){
+    return [...document.querySelectorAll('.codeView [data-commentid]')];
+}
+
+function getAllBlogPosts(){
+    return [...document.querySelectorAll(".blogView [data-commentid]")];
 }

@@ -382,6 +382,8 @@ function setupEventListeners()
             const newComment = await sendCommentToServer(comment);        
 
             playbackData.comments[commentEvent.id].push(newComment);
+            document.querySelector(".blogViewContent").innerHTML = "";
+
             //display a newly added comment on the current event
             displayAllComments();
             updateAllCommentHeaderCounts();
@@ -1078,14 +1080,16 @@ async function updateComment(){
 
     let rangeArray = [];
     for (let i = 0; i < ranges.length; i++){
-        let rangeObj = {};
-        rangeObj.fileId = playbackData.activeEditorFileId,
-        rangeObj.selectedText = editor.getSession().getTextRange(ranges[i]),
-        rangeObj.startRow = ranges[i].start.row
-        rangeObj.startColumn = ranges[i].start.column;
-        rangeObj.endRow = ranges[i].end.row;
-        rangeObj.endColumn = ranges[i].end.column;
-        rangeArray.push(rangeObj);
+        if (editor.getSession().getTextRange(ranges[i]) !== ""){
+            let rangeObj = {};
+            rangeObj.fileId = playbackData.activeEditorFileId,
+            rangeObj.selectedText = editor.getSession().getTextRange(ranges[i]),
+            rangeObj.startRow = ranges[i].start.row
+            rangeObj.startColumn = ranges[i].start.column;
+            rangeObj.endRow = ranges[i].end.row;
+            rangeObj.endColumn = ranges[i].end.column;
+            rangeArray.push(rangeObj);
+        }
     }  
    
     //if there was a comment, or at least one media file

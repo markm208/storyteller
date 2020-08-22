@@ -594,3 +594,17 @@ body.popup .toast-popup * {
 .bla{
     height: 22em;
 }
+
+
+.blogAudioFile{
+   margin-bottom: 10px;
+}
+
+.blogAudioGroup{
+    float: right;
+    margin-right: 28px;
+}
+
+.blogVideoFile{
+    color: red;
+}
