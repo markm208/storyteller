@@ -79,7 +79,7 @@ async function downloadZip(zip) {
     zipStatus.innerHTML = '';
 
     //create a filename
-    let zipFileName = 'st.zip';
+    let zipFileName = 'stProject.zip';
 
     //create a downloadable blob
     const blob = new Blob([blobbedZip], {type: 'application/zip'});
@@ -478,13 +478,20 @@ function createProjectFile(zipPlaybackData, zip) {
  * Fetch each media element and store it in the zip
  */
 async function createCommentMedia(commentMediaURLs, zip) {
-    //fetch the media and turn them into blobs
-    const mediaResults = await Promise.all(commentMediaURLs.map(url => fetch(url)));
-    const mediaBlobs = await Promise.all(mediaResults.map(mediaResult => mediaResult.blob()));
+    try {
+        //fetch the media and turn them into blobs
+        const mediaResults = await Promise.all(commentMediaURLs.map(url => fetch(url)));
+        const mediaBlobs = await Promise.all(mediaResults.map(mediaResult => mediaResult.blob()));
 
-    //add the media blobs to the zip
-    for(let i = 0;i < mediaBlobs.length;i++) {
-        zip.file(`.storyteller/comments${commentMediaURLs[i]}`, mediaBlobs[i]);
+        //add the media blobs to the zip
+        for(let i = 0;i < mediaBlobs.length;i++) {
+            zip.file(`.storyteller/comments${commentMediaURLs[i]}`, mediaBlobs[i]);
+        }
+    } catch (error) {
+        console.log(error);
+        //set an error message
+        const zipStatus = document.getElementById('zipStatus');
+        zipStatus.innerHTML = 'A zip file cannot be created because the media server is not serving files. If you can copy';
     }
 }
 /*

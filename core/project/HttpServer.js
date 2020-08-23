@@ -67,7 +67,7 @@ class HttpServer {
         //builds a js file that loads the data for playback
         app.get('/js/loadPlayback.js', (req, res) => {
             //get the text for a function that loads the playback data
-            const playbackData = this.projectManager.getPlaybackData();
+            const playbackData = this.projectManager.getPlaybackData(true);
 
             //send the function back to the browser
             res.type('application/javascript');

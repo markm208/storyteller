@@ -337,9 +337,11 @@ function createTitleCard(descriptionInfo)
     descriptionFooter.classList.add("card-footer","small", "p-0", "commentCardBodyColor");
     descriptionFooter.style.textAlign = "right";
 
-    const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
-
-    descriptionFooter.append(editDescriptionButton);
+    //only if the playback is editable should the edit button show up 
+    if(playbackData.isEditable) {
+        const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
+        descriptionFooter.append(editDescriptionButton);
+    }
 
     //assemble the pieces of the card
     titleCard.append(descriptionFooter);

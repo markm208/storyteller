@@ -26,8 +26,11 @@ async function initializePlayback()
     //Sets up the event listeners for html elements on the page
     setupEventListeners();
 
-    //grab any existing media from the server and display it in the media control modal
-    initImageGallery();
+    //if this is an editable playback
+    if(playbackData.isEditable) {
+        //grab any existing media from the server and display it in the media control modal
+        initImageGallery();
+    }
 
     console.log('Success Initializing Playback');
 }
@@ -413,7 +416,7 @@ function setupEventListeners()
         stopAutomaticPlayback();
 
         //generate a list of all comment divs
-        const allCommentDivs = [...document.getElementsByClassName("drag")];
+        const allCommentDivs = [...document.querySelectorAll('[data-commenteventid]:not(#title-card)')];
 
         //get the currently selected comment div, if any
         const selectedComment = document.getElementsByClassName("activeComment")[0];      
