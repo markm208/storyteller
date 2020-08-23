@@ -2073,17 +2073,74 @@ function deleteBlogPost(commentToDelete){
     allBlogPosts[indexToDelete].remove();    
 }
 
-function insertBlogPost(commentToInsert){
-    const allPostedComments = [...document.querySelectorAll('.codeView [data-commentid]')];
-    const allBlogPosts = [...document.querySelectorAll('.blogStyle')];
+//TODO
+// function insertBlogPost(commentToInsert){
+//     const allPostedComments = [...document.querySelectorAll('.codeView [data-commentid]')];
+//     const allBlogPosts = [...document.querySelectorAll('.blogStyle')];
 
-    let testIndex = allPostedComments.findIndex(item => item.getAttribute("data-commentid") === commentToInsert.id)
+//     let testIndex = allPostedComments.findIndex(item => item.getAttribute("data-commentid") === commentToInsert.id)
 
-    const blah = document.getElementById("dadfa");
+//     const blah = document.getElementById("dadfa");
+
+// }
+
+let aceTempMarker;
+function highlightBlogModeVisibleArea(comment){
+    //clearHighlights();
+    clearNewCodeHighlights();
+    clearInsertLineNumbers();
+    clearDeleteLineNumbers();
+    clearHighlightChangedFiles();
+
+    blogModeHighlightHelper();
+
+    document.querySelectorAll(".blogModeLineInput").forEach(function(button){
+        button.addEventListener('input', blogModeHighlightHelper);
+    });
+
+    document.querySelector(".codePanel").addEventListener('mouseup', blogModeHighlightHelper);
 
 }
 
 
+function blogModeHighlightHelper(){
+    const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+    const selection = editor.getSelectedText();
+
+    if (selection !== ""){
+        const numbersAbove = Number(document.getElementById("blogModeExtraAbove").value); //TODO set these as globals so i dont have to query for them each time
+        const numbersBelow = Number(document.getElementById("blogModeExtraBelow").value);
+        
+        const ranges = editor.getSession().getSelection().getAllRanges();
+        editor.session.removeMarker(aceTempMarker)
+
+        let endRow = ranges[ranges.length - 1].end.row + numbersBelow;
+
+        endRow = ranges[ranges.length - 1].end.column === 0 ? endRow - 1 : endRow;
+
+        const higlightedRange = new ace.Range(ranges[0].start.row - numbersAbove, 0, endRow, 100);
+
+        aceTempMarker = editor.session.addMarker(higlightedRange, 'highlight', 'text', true);
+    }else{
+        editor.session.removeMarker(aceTempMarker)
+    }
+}
+
+function undoBlogModeHighlightHelper(){
+   
+
+    const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+    editor.session.removeMarker(aceTempMarker)
+    aceTempMarker = "";
+    
+    document.querySelectorAll(".blogModeLineInput").forEach(function(button){
+        button.removeEventListener('input', blogModeHighlightHelper)
+    })
+
+    document.querySelector(".codePanel").removeEventListener('mouseup', blogModeHighlightHelper)
+}
+
+//TODO need ones with and without descrition?
 function getAllComments(){
     return [...document.querySelectorAll('.codeView [data-commentid]')];
 }

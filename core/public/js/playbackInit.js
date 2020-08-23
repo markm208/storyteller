@@ -291,9 +291,8 @@ function setupEventListeners()
     };
 
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
-        stopAutomaticPlayback();
+        stopAutomaticPlayback();        
         
-
         const textCommentTextArea = document.getElementById('textCommentTextArea');
     
         
@@ -400,6 +399,7 @@ function setupEventListeners()
 
     document.getElementById("CancelUpdateButton").addEventListener('click', event => {
         stopAutomaticPlayback();
+        undoBlogModeHighlightHelper();
 
         const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
         const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
@@ -576,6 +576,9 @@ function setupEventListeners()
 
     document.getElementById("mainAddCommentButton").addEventListener('click', event => {     
         stopAutomaticPlayback();
+
+        highlightBlogModeVisibleArea();
+
 
         document.getElementById("addCommentTab").click();
         document.getElementById('textCommentTextArea').focus();

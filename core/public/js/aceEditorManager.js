@@ -108,7 +108,7 @@ function highlightNewCode(newCodeMarkers) {
                 //get a range to highlight
                 const range = newCodeMarkers[fileId][i];
                 //create an Ace marker in the right range
-                const marker = editSession.addMarker(new AceRange(range.startRow, range.startColumn, range.endRow, range.endColumn), 'newCodeHighlight', 'text', false);            
+                const marker = editSession.addMarker(new AceRange(range.startRow, range.startColumn, range.endRow, range.endColumn), 'newCodeHighlight', 'text', false);    //TODO shouldn't this be new ace.Range ??         
                 
                 //if an array of markers does not exist for the file in the global playbackData object
                 if(!playbackData.newCodeHighlights[fileId]) {
