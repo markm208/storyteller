@@ -465,14 +465,16 @@ function createEditCommentButton(commentObject, buttonText){
     editCommentButton.title = buttonText;
 
     editCommentButton.addEventListener('click', event => {
+        //prevents the edit button from triggering the event listeners of its parent divs
+        event.preventDefault();
+        event.stopPropagation();
+        
         stopAutomaticPlayback();
 
         if (event.target.closest(".drag")){
-            event.target.closest(".drag").click();
-        }
+            event.target.closest(".drag").click();        }
 
-        highlightBlogModeVisibleArea(commentObject);
-
+        
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
@@ -547,6 +549,9 @@ function createEditCommentButton(commentObject, buttonText){
 
             document.getElementById("CancelUpdateButton").click();
         })
+
+        highlightBlogModeVisibleArea(commentObject);
+
     });
     return editCommentButton;
 }
