@@ -69,6 +69,11 @@
                 "command": "storyteller.zipProject",
                 "title": "Zip and Share Folder",
                 "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.zipViewablePlayback",
+                "title": "Zip and Share a Playback",
+                "category": "Storyteller"
             }
         ]
     },

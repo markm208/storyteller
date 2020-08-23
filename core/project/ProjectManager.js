@@ -58,6 +58,19 @@ class ProjectManager extends FileBackedCollection {
 
             //create the root dir, /
             this.createDirectory(this.storytellerDirPath, false);
+            
+            //add the description comment
+            this.commentManager.addComment({
+                commentText: 'Enter a playback description',
+                timestamp: new Date().getTime(),
+                displayCommentEvent: this.eventManager.read()[0], /* grab the one and only event created so far */
+                developerGroupId: this.developerManager.anonymousDeveloperGroup.id, 
+                selectedCodeBlocks: [],
+                imageURLs: [],
+                videoURLs: [],
+                audioURLs: []
+            });
+
         }
 
         //create an http server to listen for editors and playbacks
@@ -523,6 +536,33 @@ class ProjectManager extends FileBackedCollection {
         } catch(ex) {
             console.log(`Error on delete text: ${ex}`);
         }
+    }
+
+    /*
+     * This function creates the text for a js function that will be served
+     * during playback. This returns a function and not just json so that 
+     * playbacks can be served from the file system without requiring a
+     * web server. Otherwise, we would have had a route that returns json.
+     */
+    getPlaybackData(makeEditable) {
+        //get all the events from the file
+        const events = this.eventManager.read();
+
+        //create the text for a js function that loads the playback into a global called playbackData
+        const func = 
+`
+function loadPlaybackData() {
+    playbackData.events = ${JSON.stringify(events)};
+    playbackData.comments = ${JSON.stringify(this.commentManager.comments)};
+    playbackData.numEvents = ${events.length};
+    playbackData.isEditable = ${makeEditable ? 'true' : 'false'};
+    playbackData.developers = ${JSON.stringify(this.developerManager.allDevelopers)};
+    playbackData.developerGroups = ${JSON.stringify(this.developerManager.allDeveloperGroups)};
+    playbackData.playbackTitle = '${this.project.title}';
+    playbackData.branchId = '${this.project.branchId}';
+}`;
+//TODO add an exports at the end
+        return func;
     }
 }
 
