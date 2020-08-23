@@ -471,6 +471,8 @@ function createEditCommentButton(commentObject, buttonText){
             event.target.closest(".drag").click();
         }
 
+        highlightBlogModeVisibleArea(commentObject);
+
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
@@ -2085,23 +2087,26 @@ function deleteBlogPost(commentToDelete){
 // }
 
 let aceTempMarker;
+let aceTempRanges = [];
 function highlightBlogModeVisibleArea(comment){
-    //clearHighlights();
     clearNewCodeHighlights();
-    clearInsertLineNumbers();
-    clearDeleteLineNumbers();
-    clearHighlightChangedFiles();
-
+    
     blogModeHighlightHelper();
 
     document.querySelectorAll(".blogModeLineInput").forEach(function(button){
         button.addEventListener('input', blogModeHighlightHelper);
     });
 
+    document.querySelector(".codePanel").addEventListener('keyup', blogModeHighlightHelperShiftArrow);
     document.querySelector(".codePanel").addEventListener('mouseup', blogModeHighlightHelper);
-
 }
 
+function blogModeHighlightHelperShiftArrow(event){
+    if (event.shiftKey && (event.key === "ArrowRight" || event.key === "ArrowLeft" || event.key === "ArrowDown" || event.key === "ArrowUp")){
+        aceTempRanges = [];
+        blogModeHighlightHelper();
+    }       
+}
 
 function blogModeHighlightHelper(){
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
@@ -2109,34 +2114,37 @@ function blogModeHighlightHelper(){
 
     if (selection !== ""){
         const numbersAbove = Number(document.getElementById("blogModeExtraAbove").value); //TODO set these as globals so i dont have to query for them each time
-        const numbersBelow = Number(document.getElementById("blogModeExtraBelow").value);
-        
-        const ranges = editor.getSession().getSelection().getAllRanges();
+        const numbersBelow = Number(document.getElementById("blogModeExtraBelow").value);        
+      
+        aceTempRanges.push(editor.getSelectionRange());        
+        aceTempRanges.sort((a,b) => (a.start.row >= b.start.row && a.end.row > b.end.row) ? 1 : -1);
+
         editor.session.removeMarker(aceTempMarker)
 
-        let endRow = ranges[ranges.length - 1].end.row + numbersBelow;
+        let endRow = aceTempRanges[aceTempRanges.length - 1].end.row + numbersBelow;
+        endRow = aceTempRanges[aceTempRanges.length - 1].end.column === 0 ? endRow - 1 : endRow;
 
-        endRow = ranges[ranges.length - 1].end.column === 0 ? endRow - 1 : endRow;
-
-        const higlightedRange = new ace.Range(ranges[0].start.row - numbersAbove, 0, endRow, 100);
+        const higlightedRange = new ace.Range(aceTempRanges[0].start.row - numbersAbove, 0, endRow, 100);
 
         aceTempMarker = editor.session.addMarker(higlightedRange, 'highlight', 'text', true);
     }else{
         editor.session.removeMarker(aceTempMarker)
+        playbackData;
+        clearHighlights();
+        aceTempRanges = [];
     }
 }
 
 function undoBlogModeHighlightHelper(){
-   
-
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
     editor.session.removeMarker(aceTempMarker)
-    aceTempMarker = "";
-    
+    aceTempRanges = [];
+
     document.querySelectorAll(".blogModeLineInput").forEach(function(button){
         button.removeEventListener('input', blogModeHighlightHelper)
     })
 
+    document.querySelector(".codePanel").removeEventListener('keyup', blogModeHighlightHelperShiftArrow);
     document.querySelector(".codePanel").removeEventListener('mouseup', blogModeHighlightHelper)
 }
 
