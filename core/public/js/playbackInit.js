@@ -677,7 +677,7 @@ function setUpClickableTickMarks(){
         //add the clickable element that will bring us to the comment
         tickMark.addEventListener('click', event => { 
             //determine if the description tick mark was clicked   
-            const eventNum = pipValue; 
+            const eventNum = pipValue === playbackData.numNonRelevantEvents - 1 ? 0 : pipValue; 
 
             document.querySelector(`[data-commenteventid="ev-${eventNum}"`).click();                               
         })               

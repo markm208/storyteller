@@ -308,8 +308,8 @@ function createTitleCard(descriptionInfo)
     titleCard.setAttribute('id', 'title-card');
 
     titleCard.addEventListener('click', function (e){ 
-        //step to the event this comment is at
-        step(descriptionInfo.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+        //step back to the first relevant event
+        step(playbackData.numNonRelevantEvents - playbackData.nextEventPosition);
 
         updateActiveComment(titleCard);
     });
