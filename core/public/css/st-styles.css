@@ -554,11 +554,14 @@ body.popup .toast-popup * {
 .blogViewContent{
     display: grid;    
     padding-bottom: 50px;
+    background-color: rgb(37,37,37);
+    color: white;
+    padding: 10px 30px;
 }
 
 .blogCommentText{
-    padding: 5px 40px;
-    margin-left: 40px;
+    /* padding: 5px 40px;
+    margin-left: 40px; */
     margin-bottom: 10px;
 }
 
@@ -566,6 +569,8 @@ body.popup .toast-popup * {
     overflow-y: scroll;
     overflow-x: hidden;
     height: 100vh;   
+    
+    background-color: rgb(51,51,51) !important;
     
 }
 
@@ -607,4 +612,13 @@ body.popup .toast-popup * {
 
 .blogVideoFile{
     color: red;
+}
+
+
+.markerTest{
+    background-color: red;
+}
+
+.blogTitle{
+    text-align: center;
 }

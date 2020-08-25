@@ -110,6 +110,7 @@ function setupEventListeners()
 
     const topBar = document.getElementById('top-bar');
 
+
     //Get references to the tabs and where the tabs get their content
     const tabsList = document.getElementById('tabsList');
     const tabContent = document.getElementById('tabContent');
@@ -391,9 +392,8 @@ function setupEventListeners()
             setUpSliderTickMarks();
 
             document.getElementById("CancelUpdateButton").click();
+            
 
-            //add comment to blog
-            insertBlogPost(newComment);
         }
     });
 
@@ -675,7 +675,7 @@ function setupEventListeners()
 
         document.querySelector(".codeView").classList.add('modeFormat');
         document.querySelector(".blogView").classList.remove("modeFormat");
-        document.body.style.backgroundColor = "grey";
+        document.body.style.backgroundColor = "rgb(51,51,51)";
 
 
 
@@ -687,13 +687,16 @@ function setupEventListeners()
 
         document.querySelector(".codeView").classList.remove('modeFormat');
         document.querySelector(".blogView").classList.add("modeFormat");
-        document.body.style.backgroundColor = "white";
+         document.body.style.backgroundColor = "white";
 
 
 
     })
+    
 
-
+    document.querySelectorAll(".blogModeLineInput").forEach(function(button){
+        button.addEventListener('input', blogModeHighlightHelper);
+    });
 }
 
 function setUpSlider(){

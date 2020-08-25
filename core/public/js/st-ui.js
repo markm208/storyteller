@@ -550,7 +550,7 @@ function createEditCommentButton(commentObject, buttonText){
             document.getElementById("CancelUpdateButton").click();
         })
 
-        highlightBlogModeVisibleArea(commentObject);
+        highlightBlogModeVisibleArea();
 
     });
     return editCommentButton;
@@ -1777,7 +1777,7 @@ function getDevelopersInADevGroup(devGroupId) {
             if(dev) {
                 devs.push(dev);
             }
-        }
+        } 
     }
     return devs;
 }
@@ -1828,18 +1828,18 @@ function selectRange(rangeToSelect){
 }
 
 function addBlogPost(commentToAdd){
-    const allPostedComments = [...document.querySelectorAll('.codeView [data-commentid]')];
-    let allBlogPosts = [...document.querySelectorAll('.blogStyle')];
+    //const allPostedComments = [...document.querySelectorAll('.codeView [data-commentid]')];
+    let allBlogPosts = getAllBlogPosts();
 
-    let tempCommentID = commentToAdd.id;
-    let testIndex = allBlogPosts.findIndex(item => commentToAdd.id === item.getAttribute("data-commentid"));
+    // let tempCommentID = commentToAdd.id;
+    // let testIndex = allBlogPosts.findIndex(item => commentToAdd.id === item.getAttribute("data-commentid"));
 
     // //catch because when a new comment is added, displayAllComments is called again
     // if (testIndex !== -1){
     //     return;
     // }
 
-    const neededIndexTest = allPostedComments.findIndex(item => item.getAttribute("data-commentid") === commentToAdd.id);
+    //const neededIndexTest = allPostedComments.findIndex(item => item.getAttribute("data-commentid") === commentToAdd.id);
 
     const blogDiv = document.querySelector(".blogViewContent");
 
@@ -1877,6 +1877,20 @@ function addBlogPost(commentToAdd){
     //addMediaToCommentDiv(blogPost,commentToAdd)
 
    
+    const titleDivOuter = document.createElement('div');
+    titleDivOuter.classList.add("h1", "blogTitle");
+    const titleTextDiv = document.createElement('div');
+    titleTextDiv.innerHTML = playbackData.title;
+    const titleDevelperDiv = document.createElement('div');
+
+
+    titleDivOuter.append(titleTextDiv)
+    //titleDivOuter.append(titleDevelperDiv)
+
+    blogPost.append(titleDivOuter)
+
+
+
     blogPost.append(textDiv);
 
     if (commentToAdd.imageURLs.length){
@@ -1999,9 +2013,9 @@ function addBlogPost(commentToAdd){
         let aceDivtest = document.createElement('div')
         aceDivtest.classList.add("bla")
 
-        let testEditor = ace.edit(aceDivtest);
+        let blogPostCodeEditor = ace.edit(aceDivtest);
 
-        //testEditor.setValue("");
+        //blogPostCodeEditor.setValue("");
         //let valueTest = editor.getSelectedText();
 
 
@@ -2012,12 +2026,18 @@ function addBlogPost(commentToAdd){
 
         let selectedBlocks = commentToAdd.selectedCodeBlocks;
         let endRow = selectedBlocks[selectedBlocks.length - 1].endRow + Number(commentToAdd.linesBelow) <= editorLineCount ? selectedBlocks[selectedBlocks.length - 1].endRow + Number(commentToAdd.linesBelow) : editorLineCount;
+       
 
+        endRow = selectedBlocks[selectedBlocks.length - 1].endColumn === 0 ? endRow - 1 : endRow;
+        let endCol = editor.session.getLine(endRow).length;
 
-        let selection = new ace.Range(startRow,0,endRow , 100 ) //TODO calculate out that 100 instead of hard coding
+        
+        //TODO IF start.column.length === start.column , ignore the line
+
+        let selection = new ace.Range(startRow,0,endRow , endCol) 
         editor.session.selection.addRange(selection);
 
-        let startLineTest = editor.getSelectionRange().start.row;
+        //let startLineTest = editor.getSelectionRange().start.row;
 
         //prevents extra line due to the '\n'
         let sectionTest = editor.getSelectedText();
@@ -2026,40 +2046,40 @@ function addBlogPost(commentToAdd){
 
         // let testbutton = document.getElementById('blogMode')
         // document.getElementById('blogMode').click();
-        testEditor.setValue(sectionTest)
+        blogPostCodeEditor.setValue(sectionTest);
 
         editor.session.selection.clearSelection()
-        testEditor.session.selection.clearSelection()
+        blogPostCodeEditor.session.selection.clearSelection()
 
 
 
         for (let i = 0; i < commentToAdd.selectedCodeBlocks.length; i++){
             let selection = commentToAdd.selectedCodeBlocks[i];
-            testEditor.getSession().addMarker(new ace.Range(selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn), 'highlight', 'text', true);
+            blogPostCodeEditor.getSession().addMarker(new ace.Range(selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn), 'highlight', 'text', true);
         }
 
+        step(-(commenttest - sliderPosition));        
 
-        testEditor.setReadOnly(true);
-        testEditor.setTheme('ace/theme/monokai');
-        testEditor.setFontSize(16);
-        testEditor.setShowPrintMargin(false);
-        //TODO more efficient way of doing this?
-        testEditor.getSession().setMode(editor.session.$modeId);
-        testEditor.getSession().setUseWorker(false);
-        testEditor.setOption("firstLineNumber", startRow + 1);
-        testEditor.setHighlightActiveLine(false);
+        blogPostCodeEditor.setOptions({
+            readOnly: true,
+            theme: 'ace/theme/monokai',
+            maxLines: blogPostCodeEditor.session.getLength(),
+            fontSize: 16,
+            firstLineNumber: startRow + 1,
+            highlightActiveLine: false,
+            showPrintMargin: false
+       });
 
-        step(-(commenttest - sliderPosition));
-        
-        let newLlineCount = testEditor.session.doc.getAllLines().length;
+       blogPostCodeEditor.session.setOptions({
+           mode: editor.session.$modeId,
+           useWorker: false
+       });
 
-        aceDivtest.style.height = newLlineCount * 22 + "px"  //TODO might cause cut off 
-
-        aceDivtest.append(testEditor);
+        aceDivtest.append(blogPostCodeEditor);
 
         blogPost.append(aceDivtest);       
     }
- //TODO  scroll stuff
+    //TODO  scroll stuff
 
 
    
@@ -2091,67 +2111,85 @@ function deleteBlogPost(commentToDelete){
 
 // }
 
-let aceTempMarker;
-let aceTempRanges = [];
-function highlightBlogModeVisibleArea(comment){
+function highlightBlogModeVisibleArea(){
     clearNewCodeHighlights();
     
     blogModeHighlightHelper();
 
-    document.querySelectorAll(".blogModeLineInput").forEach(function(button){
-        button.addEventListener('input', blogModeHighlightHelper);
-    });
-
     document.querySelector(".codePanel").addEventListener('keyup', blogModeHighlightHelperShiftArrow);
-    document.querySelector(".codePanel").addEventListener('mouseup', blogModeHighlightHelper);
+    
+    document.querySelector(".codePanel").addEventListener('mouseup', waitToGetSelection);
 }
 
 function blogModeHighlightHelperShiftArrow(event){
     if (event.shiftKey && (event.key === "ArrowRight" || event.key === "ArrowLeft" || event.key === "ArrowDown" || event.key === "ArrowUp")){
         aceTempRanges = [];
-        blogModeHighlightHelper();
-    }       
+        waitToGetSelection();
+    }
 }
 
-function blogModeHighlightHelper(){
+//without a small wait, the selection isn't updated fast enough
+function waitToGetSelection(){
+    setTimeout(blogModeHighlightHelper, 5);
+}
+
+let aceTempMarker;
+function blogModeHighlightHelper(){    
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+    
     const selection = editor.getSelectedText();
 
     if (selection !== ""){
-        const numbersAbove = Number(document.getElementById("blogModeExtraAbove").value); //TODO set these as globals so i dont have to query for them each time
-        const numbersBelow = Number(document.getElementById("blogModeExtraBelow").value);        
-      
-        aceTempRanges.push(editor.getSelectionRange());        
-        aceTempRanges.sort((a,b) => (a.start.row >= b.start.row && a.end.row > b.end.row) ? 1 : -1);
+        const numbersAbove = Number(blogModeNumberAboveSelector.value);
+        const numbersBelow = Number(blogModeNumberBelowSelector.value);       
 
-        editor.session.removeMarker(aceTempMarker)
+        let linesTest = editor.session.getLength() - 1
 
-        let endRow = aceTempRanges[aceTempRanges.length - 1].end.row + numbersBelow;
-        endRow = aceTempRanges[aceTempRanges.length - 1].end.column === 0 ? endRow - 1 : endRow;
+        const ranges = editor.getSession().getSelection().getAllRanges();
 
-        const higlightedRange = new ace.Range(aceTempRanges[0].start.row - numbersAbove, 0, endRow, 100);
+        editor.session.removeMarker(aceTempMarker);
+
+        const startRow = ranges[0].start.row - numbersAbove; //TODO check this
+        let endRow = ranges[ranges.length - 1].end.row + numbersBelow;
+        endRow = ranges[ranges.length - 1].end.column === 0 ? endRow - 1 : endRow;
+        const endCol = editor.session.getLine(endRow).length;
+        //TODO IF start.column.length === start.column , ignore the line  ?
+
+
+        blogModeNumberAboveSelector.max = ranges[0].start.row;
+        blogModeNumberAboveSelector.value =  blogModeNumberAboveSelector.max > numbersAbove ? numbersAbove : blogModeNumberAboveSelector.max;
+        blogModeNumberBelowSelector.max =  ranges[ranges.length - 1].end.column === 0 ? linesTest - ranges[ranges.length - 1].end.row + 1: linesTest - ranges[ranges.length - 1].end.row; //TODO clean this up
+        blogModeNumberBelowSelector.value =  blogModeNumberBelowSelector.max > numbersBelow ? numbersBelow : blogModeNumberBelowSelector.max;
+
+        const higlightedRange = new ace.Range(startRow, 0, endRow, endCol); 
 
         aceTempMarker = editor.session.addMarker(higlightedRange, 'highlight', 'text', true);
     }else{
-        editor.session.removeMarker(aceTempMarker)
-        playbackData;
+        editor.session.removeMarker(aceTempMarker);
         clearHighlights();
-        aceTempRanges = [];
+
+        blogModeNumberAboveSelector.max = 50;
+        blogModeNumberBelowSelector.max = 50;
     }
 }
 
 function undoBlogModeHighlightHelper(){
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
     editor.session.removeMarker(aceTempMarker)
-    aceTempRanges = [];
+    editor.clearSelection();
 
-    document.querySelectorAll(".blogModeLineInput").forEach(function(button){
-        button.removeEventListener('input', blogModeHighlightHelper)
-    })
+    const codePanel = document.querySelector(".codePanel");
 
-    document.querySelector(".codePanel").removeEventListener('keyup', blogModeHighlightHelperShiftArrow);
-    document.querySelector(".codePanel").removeEventListener('mouseup', blogModeHighlightHelper)
+    codePanel.removeEventListener('keyup', blogModeHighlightHelperShiftArrow);    
+    codePanel.removeEventListener('mouseup', waitToGetSelection);
+
+    blogModeNumberAboveSelector.max = 50; 
+    blogModeNumberBelowSelector.max = 50;
+    blogModeNumberAboveSelector.value = 3;
+    blogModeNumberBelowSelector.value = 3;
 }
+
 
 //TODO need ones with and without descrition?
 function getAllComments(){
