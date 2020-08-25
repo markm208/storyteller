@@ -548,12 +548,24 @@ class ProjectManager extends FileBackedCollection {
         //get all the events from the file
         const events = this.eventManager.read();
 
+        //make sure the comment urls don't have a leading slash
+        const copyOfComments = Object.assign({}, this.commentManager.comments);
+        for(let eventId in copyOfComments) {
+            const comments = copyOfComments[eventId];
+            for(let i = 0;i < comments.length;i++) {
+                const comment = comments[i];
+                comment.imageURLs = comment.imageURLs.map(imageURL => imageURL[0] === '/' ? imageURL.substring(1) : imageURL);
+                comment.videoURLs = comment.videoURLs.map(videoURL => videoURL[0] === '/' ? videoURL.substring(1) : videoURL);
+                comment.audioURLs = comment.audioURLs.map(audioURL => audioURL[0] === '/' ? audioURL.substring(1) : audioURL);
+            }
+        }
+
         //create the text for a js function that loads the playback into a global called playbackData
         const func = 
 `
 function loadPlaybackData() {
     playbackData.events = ${JSON.stringify(events)};
-    playbackData.comments = ${JSON.stringify(this.commentManager.comments)};
+    playbackData.comments = ${JSON.stringify(copyOfComments)};
     playbackData.numEvents = ${events.length};
     playbackData.isEditable = ${makeEditable ? 'true' : 'false'};
     playbackData.developers = ${JSON.stringify(this.developerManager.allDevelopers)};

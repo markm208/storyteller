@@ -1252,7 +1252,7 @@ function zipProjectHelper(dirPath, zip) {
             normalizedFilePath = normalizedFilePath.substr(1);
 
             //read the contents of the file
-            const fileContents = fs.readFileSync(fullPathToFileOrDir, 'utf8');
+            const fileContents = fs.readFileSync(fullPathToFileOrDir);
             
             //add the file to the zip
             zip.file(normalizedFilePath, fileContents);
@@ -1357,7 +1357,7 @@ function zipPublicHelper(dirPath, zip) {
         //if this is a file
         if(stats.isFile()) {
             //read the contents of the file
-            const fileContents = fs.readFileSync(fullPathToFileOrDir, 'utf8');
+            const fileContents = fs.readFileSync(fullPathToFileOrDir);
             
             //add the file to the zip
             zip.file(relativePathToFileOrDir, fileContents);
