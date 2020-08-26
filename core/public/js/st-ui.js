@@ -452,16 +452,15 @@ function updateActiveComment(commentToMakeActive)
     //and an already active comment block from scrolling to the new active comment
     if (!commentAlreadyActive && !groupAlreadyActive){
         //scroll to the new active comment
-        document.getElementById("commentContentDiv").scrollTop = commentToMakeActive.offsetTop - 100;      
-
-
-        //TODO might not need this
-        if (document.getElementById("codeMode").classList.contains("activeModeButton")){
-            //scroll to the comment in blogView
-            document.querySelector(".blogView").scrollTop = document.querySelector(`.blogView [data-commentid="${commentToMakeActive.getAttribute("data-commentid")}"]`).offsetTop - 100;
-        }
-
+        document.getElementById("commentContentDiv").scrollTop = commentToMakeActive.offsetTop - 100;            
     }     
+
+    //if we're in code view, scroll blog mode to the new active comment
+    //TODO might not need this
+    if (!playbackData.isInBlogMode){
+        //scroll to the comment in blogView
+        document.querySelector(".blogView").scrollTop = document.querySelector(`.blogView [data-commentid="${commentToMakeActive.getAttribute("data-commentid")}"]`).offsetTop - 100;
+    }
 }
 
 //Creates the edit button at the bottom of each card
@@ -480,9 +479,9 @@ function createEditCommentButton(commentObject, buttonText){
         stopAutomaticPlayback();
 
         if (event.target.closest(".drag")){
-            event.target.closest(".drag").click();        }
+            event.target.closest(".drag").click();        
+        }
 
-        
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
@@ -524,9 +523,8 @@ function createEditCommentButton(commentObject, buttonText){
                 makeDraggable(imageCard);
         
                 addCancelButtonToImage(imageCard,imagePreviewDiv );
-                }
-            imagePreviewDiv.removeAttribute("style");
-    
+            }
+            imagePreviewDiv.removeAttribute("style");    
         }
     
         if (commentObject.audioURLs.length){
@@ -1836,7 +1834,7 @@ function selectRange(rangeToSelect){
 }
 
 
-
+let latestVisableBlogPostID;
 function addBlogPost(commentToAdd){
     //const allPostedComments = [...document.querySelectorAll('.codeView [data-commentid]')];
     let allBlogPosts = getAllBlogPosts();
@@ -1872,13 +1870,12 @@ function addBlogPost(commentToAdd){
     //create an observer that will detect when the comment text is fully in view
     //it will then make the equivalent comment active in comment mode and scroll to it
     const observer = new IntersectionObserver(function(entries) {
-        if(document.getElementById("blogMode").classList.contains("activeModeButton") && entries[0].isIntersecting === true){
-            document.querySelector(`.codeView [data-commentid="${commentToAdd.id}"]`).click(); //TODO save this instead of querying twice
-            document.getElementById("commentContentDiv").scrollTop =  document.querySelector(`.codeView [data-commentid="${commentToAdd.id}"]`).offsetTop - 100;               
+        if(playbackData.isInBlogMode && entries[0].isIntersecting === true){
+            latestVisableBlogPostID = commentToAdd.id;
+          
         }           
     }, { threshold: [1] });
     observer.observe(textDiv);
-
 
     blogPost.setAttribute("data-commentEventid", commentToAdd.displayCommentEvent.id);
     blogPost.setAttribute("data-commentid", commentToAdd.id);
@@ -1949,6 +1946,43 @@ function addBlogPost(commentToAdd){
         
     }
 
+    if (commentToAdd.videoURLs.length){
+        for (let i = 0; i < commentToAdd.videoURLs.length; i++){
+            //create a video and add the required classes
+            const newVideo = document.createElement('video');
+            newVideo.setAttribute('src', commentToAdd.videoURLs[i]);
+            newVideo.setAttribute('controls', '');
+            newVideo.setAttribute('preload', 'metadata');   
+
+            //when a video is played, pause any other media that is playing
+            newVideo.onplay = function(){
+                pauseMedia();
+
+                if (newVideo.closest(".commentCard")){
+                    //make the comment the video is in active
+                    newVideo.closest(".commentCard").click();
+                }
+                newVideo.classList.add("playing");
+            };
+        
+            $(newVideo).on('pause ended', function(){
+                newVideo.classList.remove("playing");
+            });
+
+            
+            newVideo.classList.add('mediaResizable');
+                
+
+            const speedControlDiv = createSpeedControlButtonDivForMedia(newVideo);
+            speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
+
+            speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
+            speedControlDiv.classList.add("blogVideoFile");
+
+            blogPost.append(speedControlDiv);
+        }
+    }
+
     if (commentToAdd.audioURLs.length){
         for (let i = 0; i < commentToAdd.audioURLs.length; i ++){
             //create a audio and add the required classes
@@ -1987,49 +2021,9 @@ function addBlogPost(commentToAdd){
             speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
             speedControlDiv.classList.add("blogAudioFile");
             blogPost.append(speedControlDiv);
-
-        }
-       
+        }       
     }
-
-    if (commentToAdd.videoURLs.length){
-        for (let i = 0; i < commentToAdd.videoURLs.length; i++){
-            //create a video and add the required classes
-            const newVideo = document.createElement('video');
-            newVideo.setAttribute('src', commentToAdd.videoURLs[i]);
-            newVideo.setAttribute('controls', '');
-            newVideo.setAttribute('preload', 'metadata');   
-
-            //when a video is played, pause any other media that is playing
-            newVideo.onplay = function(){
-                pauseMedia();
-
-                if (newVideo.closest(".commentCard")){
-                    //make the comment the video is in active
-                    newVideo.closest(".commentCard").click();
-                }
-                newVideo.classList.add("playing");
-            };
-        
-            $(newVideo).on('pause ended', function(){
-                newVideo.classList.remove("playing");
-            });
-
-            
-            newVideo.classList.add('mediaResizable');
-                
-
-            const speedControlDiv = createSpeedControlButtonDivForMedia(newVideo);
-            speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
-
-            speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
-            speedControlDiv.classList.add("blogVideoFile");
-
-            blogPost.append(speedControlDiv);
-        }
-        
-
-    }
+ 
 
     if (commentToAdd.selectedCodeBlocks.length){
          //get the active editor

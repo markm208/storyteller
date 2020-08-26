@@ -394,7 +394,7 @@ function setupEventListeners()
 
             document.getElementById("CancelUpdateButton").click();
             document.querySelector(`.codeView [data-commentid="${newComment.id}"]`).click();
-
+            
         }
     });
 
@@ -666,28 +666,40 @@ function setupEventListeners()
     })    
 
     document.getElementById("blogMode").addEventListener('click', event => {
-        document.getElementById("codeMode").classList.remove("activeModeButton");
-        document.getElementById("blogMode").classList.add("activeModeButton");
+        if (!playbackData.isInBlogMode){
+            document.getElementById("codeMode").classList.remove("activeModeButton"); //TODO save this instead of querying twice
+            document.getElementById("blogMode").classList.add("activeModeButton");
 
 
-        document.querySelector(".codeView").classList.add('modeFormat');
-        document.querySelector(".blogView").classList.remove("modeFormat");
-        document.body.style.backgroundColor = "rgb(51,51,51)";
-        
+            document.querySelector(".codeView").classList.add('modeFormat');
+            document.querySelector(".blogView").classList.remove("modeFormat");
 
 
+            document.body.classList.remove("codeViewBody")
+            document.body.classList.add("blogModeBody")
+
+            playbackData.isInBlogMode = true;
+
+        }
     })
 
     document.getElementById("codeMode").addEventListener('click', event => {
-        document.getElementById("blogMode").classList.remove("activeModeButton");
-        document.getElementById("codeMode").classList.add("activeModeButton");
+        if (playbackData.isInBlogMode){
+            document.querySelector(`.codeView [data-commentid="${latestVisableBlogPostID}"]`).click(); //TODO save this instead of querying twice
+            document.getElementById("commentContentDiv").scrollTop =  document.querySelector(`.codeView [data-commentid="${latestVisableBlogPostID}"]`).offsetTop - 100;     
+    
+            document.getElementById("blogMode").classList.remove("activeModeButton");
+            document.getElementById("codeMode").classList.add("activeModeButton");
+    
+            document.querySelector(".codeView").classList.remove('modeFormat');
+            document.querySelector(".blogView").classList.add("modeFormat");
 
-        document.querySelector(".codeView").classList.remove('modeFormat');
-        document.querySelector(".blogView").classList.add("modeFormat");
-         document.body.style.backgroundColor = "white";
+            document.body.classList.add("codeViewBody");
+            document.body.classList.remove("blogModeBody");
 
+            playbackData.isInBlogMode = false;
 
-
+        }
     })
     
 

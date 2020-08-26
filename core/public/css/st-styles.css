@@ -630,6 +630,17 @@ body.popup .toast-popup * {
     padding-bottom: 50px;
 
 }
+
+
+.blogModeBody{
+    background-color: rgb(51,51,51);
+}
+
+.codeViewBody{
+    background-color: white;
+}
+
+
 /* scrollbar-color: rgb(51,51,51) rgb(37,37,37); */
 
 /* * {
