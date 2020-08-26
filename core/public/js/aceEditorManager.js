@@ -55,6 +55,7 @@ function addHighlight(fileId, startRow, startColumn, endRow, endColumn) {
     if(editor) {
         //create a marker in the right range
         const marker = editor.getSession().addMarker(new AceRange(startRow, startColumn, endRow, endColumn), 'highlight', 'text', true);
+        //editor.session.selection.addRange(new ace.Range(startRow, startColumn, endRow, endColumn));
         
         //if there is not an entry for this file yet
         if(!playbackData.highlights[fileId]) {

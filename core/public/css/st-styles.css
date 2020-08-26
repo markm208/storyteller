@@ -93,7 +93,8 @@
     overflow-y: scroll;
     height: 85vh;
     word-wrap: break-word;
-    width: 23.9vw;
+    width: 23.9vw; 
+    /* TODO experiment with making this width higher */
 }
 
 .commentGroupSpacing {
@@ -180,7 +181,7 @@
     position:absolute;
     z-index:20; /* place in a layer above anything with a lower z-index */
     background-color:limegreen;
-    opacity: 20%;
+    opacity: 10%;
 }
 
 .imageCancelButton{
@@ -286,7 +287,7 @@
     position:absolute;
     z-index:10; /* place in a layer above anything with a lower z-index */
     background-color:rgb(150, 194, 219);
-    opacity: 20%;
+    opacity: 5%;
 }
 
 /* .playbackDirNameLabel {
@@ -378,7 +379,8 @@ resize: none;
 }
 
 .top-bar {
-    background-color: rgb(112, 169, 255);
+    background-color: rgb(45,62,43);
+    color: rgb(229,244,223);
     padding: 5px;
     width: 100vw;
 }
@@ -557,6 +559,7 @@ body.popup .toast-popup * {
     background-color: rgb(37,37,37);
     color: white;
     padding: 10px 30px;
+    
 }
 
 .blogCommentText{
@@ -568,14 +571,16 @@ body.popup .toast-popup * {
 .blogView{
     overflow-y: scroll;
     overflow-x: hidden;
-    height: 100vh;   
+    height: 96vh;   
     
     background-color: rgb(51,51,51) !important;
-    
+    /* scrollbar-color: rgb(51,51,51) rgb(37,37,37); */
 }
 
+
 .descriptionBlogPost{
-    margin-top: 10px
+    margin-top: 10px;
+    font-size: 1.25em;
 }
 
 .testImgClass{
@@ -583,6 +588,7 @@ body.popup .toast-popup * {
    max-height: 100%;
    margin-bottom: 5px;
    cursor: zoom-in;
+   border-radius: .5rem!important;
 }
 
 .blogModeImageDiv{
@@ -621,4 +627,27 @@ body.popup .toast-popup * {
 
 .blogTitle{
     text-align: center;
+    padding-bottom: 50px;
+
 }
+/* scrollbar-color: rgb(51,51,51) rgb(37,37,37); */
+
+/* * {
+    scrollbar-width: thin;
+    scrollbar-color: blue orange;
+  } */
+
+  /* chrome coloring for the scrollbars. affects all scroll bars unlike the one for firefox */
+  /* *::-webkit-scrollbar {
+    width: 16px;
+    height: 100vh;
+  }
+  *::-webkit-scrollbar-track {
+    background: rgb(37,37,37);
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background-color: rgb(51,51,51);
+    border: 3px solid rgb(37,37,37);
+  }
+   */

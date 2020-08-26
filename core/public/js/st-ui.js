@@ -101,8 +101,8 @@ function displayAllComments(){
 
             commentGroupDiv.append(titleCard);
 
-            //add description to blog 
-            addBlogPost(commentBlock[0], null);
+            //add description to blog             
+            addBlogPost(commentBlock[0]);
 
             startingValue += 1;
         }
@@ -152,7 +152,9 @@ function displayAllComments(){
             
             //add the comment to blog mode
             const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
-            addBlogPost(commentObject, editor)
+
+
+            addBlogPost(commentObject)
 
 
             if (playbackData.isEditable){
@@ -451,8 +453,14 @@ function updateActiveComment(commentToMakeActive)
     if (!commentAlreadyActive && !groupAlreadyActive){
         //scroll to the new active comment
         document.getElementById("commentContentDiv").scrollTop = commentToMakeActive.offsetTop - 100;      
-        //scroll to the comment in blogView
-        document.querySelector(".blogView").scrollTop = document.querySelector(`.blogView [data-commentid="${commentToMakeActive.getAttribute("data-commentid")}"]`).offsetTop - 100;
+
+
+        //TODO might not need this
+        if (document.getElementById("codeMode").classList.contains("activeModeButton")){
+            //scroll to the comment in blogView
+            document.querySelector(".blogView").scrollTop = document.querySelector(`.blogView [data-commentid="${commentToMakeActive.getAttribute("data-commentid")}"]`).offsetTop - 100;
+        }
+
     }     
 }
 
@@ -1827,6 +1835,8 @@ function selectRange(rangeToSelect){
     windowSelection.addRange(rangeToSelect);
 }
 
+
+
 function addBlogPost(commentToAdd){
     //const allPostedComments = [...document.querySelectorAll('.codeView [data-commentid]')];
     let allBlogPosts = getAllBlogPosts();
@@ -1846,9 +1856,28 @@ function addBlogPost(commentToAdd){
  
     const blogPost = document.createElement("div");
     blogPost.classList.add("blogStyle");
+
     if (commentToAdd.displayCommentEvent.id === "ev--1"){
         blogPost.classList.add("descriptionBlogPost");
+
+
+
+       
     }
+
+    const textDiv = document.createElement('div');
+    textDiv.classList.add("blogCommentText");
+    textDiv.innerHTML = commentToAdd.commentText;
+
+    //create an observer that will detect when the comment text is fully in view
+    //it will then make the equivalent comment active in comment mode and scroll to it
+    const observer = new IntersectionObserver(function(entries) {
+        if(document.getElementById("blogMode").classList.contains("activeModeButton") && entries[0].isIntersecting === true){
+            document.querySelector(`.codeView [data-commentid="${commentToAdd.id}"]`).click(); //TODO save this instead of querying twice
+            document.getElementById("commentContentDiv").scrollTop =  document.querySelector(`.codeView [data-commentid="${commentToAdd.id}"]`).offsetTop - 100;               
+        }           
+    }, { threshold: [1] });
+    observer.observe(textDiv);
 
 
     blogPost.setAttribute("data-commentEventid", commentToAdd.displayCommentEvent.id);
@@ -1868,26 +1897,30 @@ function addBlogPost(commentToAdd){
 
     
 
-    const textDiv = document.createElement('div');
-    textDiv.classList.add("blogCommentText");
-    textDiv.innerHTML = commentToAdd.commentText;
 
     //blogPost.append(commentAuthorsDiv);
 
     //addMediaToCommentDiv(blogPost,commentToAdd)
 
-   
-    const titleDivOuter = document.createElement('div');
-    titleDivOuter.classList.add("h1", "blogTitle");
-    const titleTextDiv = document.createElement('div');
-    titleTextDiv.innerHTML = playbackData.title;
-    const titleDevelperDiv = document.createElement('div');
+    //TODO this isn't good            
+    if (document.querySelector(".blogViewContent").innerHTML === "") {
+        const titleDivOuter = document.createElement('div');
+        titleDivOuter.classList.add("h1", "blogTitle");
+        const titleTextDiv = document.createElement('div');
+        titleTextDiv.innerHTML = playbackData.playbackTitle;
+        // const titleDevelperDiv = document.createElement('div');
+        // const commentAuthorGroup = getDevelopersInADevGroup(commentToAdd.developerGroupId);
+        // const commentAuthorsDiv = getDevImages(commentAuthorGroup, 50);
+
+        //titleDevelperDiv.append(commentAuthorsDiv);
 
 
-    titleDivOuter.append(titleTextDiv)
-    //titleDivOuter.append(titleDevelperDiv)
+        titleDivOuter.append(titleTextDiv)
+        //titleDivOuter.append(titleDevelperDiv)
 
-    blogPost.append(titleDivOuter)
+        blogPost.append(titleDivOuter)
+    }
+
 
 
 

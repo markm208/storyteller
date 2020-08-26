@@ -387,12 +387,13 @@ function setupEventListeners()
             //display a newly added comment on the current event
             displayAllComments();
             updateAllCommentHeaderCounts();
+            
 
             //rebuild the slider with the new comment pip
             setUpSliderTickMarks();
 
             document.getElementById("CancelUpdateButton").click();
-            
+            document.querySelector(`.codeView [data-commentid="${newComment.id}"]`).click();
 
         }
     });
@@ -423,11 +424,7 @@ function setupEventListeners()
         document.getElementById("viewCommentsTab").classList.remove("disabled");
 
         document.getElementById("viewCommentsTab").click();      
-
-        let blogModeInputs = [...document.querySelectorAll(".blogModeLineInput")];
-        for (let i = 0; i < blogModeInputs.length; i++){
-            blogModeInputs[i].value = "3";
-        }
+        
     });
 
     document.getElementById('dragBar').addEventListener('mousedown', function (e){  
@@ -676,7 +673,7 @@ function setupEventListeners()
         document.querySelector(".codeView").classList.add('modeFormat');
         document.querySelector(".blogView").classList.remove("modeFormat");
         document.body.style.backgroundColor = "rgb(51,51,51)";
-
+        
 
 
     })
