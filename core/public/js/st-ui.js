@@ -2106,6 +2106,7 @@ function addBlogPost(commentToAdd){
 
         blogPost.append(aceDivtest);       
     }
+    //TODO  scroll stuff
 
 
    
@@ -2182,7 +2183,11 @@ function blogModeHighlightHelper(){
         //TODO IF start.column.length === start.column , ignore the line  ?
 
 
-  
+        blogModeNumberAboveSelector.max = ranges[0].start.row;
+        blogModeNumberAboveSelector.value =  blogModeNumberAboveSelector.max > numbersAbove ? numbersAbove : blogModeNumberAboveSelector.max;
+        blogModeNumberBelowSelector.max =  ranges[ranges.length - 1].end.column === 0 ? linesTest - ranges[ranges.length - 1].end.row + 1: linesTest - ranges[ranges.length - 1].end.row; //TODO clean this up
+        blogModeNumberBelowSelector.value =  blogModeNumberBelowSelector.max > numbersBelow ? numbersBelow : blogModeNumberBelowSelector.max;
+
         const higlightedRange = new ace.Range(startRow, 0, endRow, endCol); 
 
         aceTempMarker = editor.session.addMarker(higlightedRange, 'highlight', 'text', true);
@@ -2190,8 +2195,8 @@ function blogModeHighlightHelper(){
         editor.session.removeMarker(aceTempMarker);
         clearHighlights();
 
-        // blogModeNumberAboveSelector.max = 50;
-        // blogModeNumberBelowSelector.max = 50;
+        blogModeNumberAboveSelector.max = 50;
+        blogModeNumberBelowSelector.max = 50;
     }
 }
 
@@ -2206,10 +2211,10 @@ function undoBlogModeHighlightHelper(){
     codePanel.removeEventListener('keyup', blogModeHighlightHelperShiftArrow);    
     codePanel.removeEventListener('mouseup', waitToGetSelection);
 
-    // blogModeNumberAboveSelector.max = 50; 
-    // blogModeNumberBelowSelector.max = 50;
-    // blogModeNumberAboveSelector.value = 3;
-    // blogModeNumberBelowSelector.value = 3;
+    blogModeNumberAboveSelector.max = 50; 
+    blogModeNumberBelowSelector.max = 50;
+    blogModeNumberAboveSelector.value = 3;
+    blogModeNumberBelowSelector.value = 3;
 }
 
 
