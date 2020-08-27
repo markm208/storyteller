@@ -76,30 +76,17 @@
                                     <button id="addMediaButton" class="btn btn-outline-secondary">Add Media</button>
                                 </div>
                             </div>
-                            <div class="btn-group-vertical testGroup" role="group">
+                            <div class="btn-group-vertical" role="group">
                                 <div>
                                     <label for="blogModeExtraAbove">Blog mode lines (above):</label>
-                                    <div class="number-input">
-                                       
-                                        <button class="lineButtonDown" onclick="this.parentNode.querySelector('input[type=number]').stepDown()" ></button>
-                                        
-                                        <input id="blogModeExtraAbove" class="blogModeLineInput" min="0" max="50" value="3" type="number" onKeyDown="return false">
-                                        <button class="lineButtonUp plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()" ></button>
-                                      </div>
+                                    <input id="blogModeExtraAbove" title="Number of extra lines to be shown above selected code" class="blogModeLineInput" type="number" min="0" max="50" value="3" onKeyDown="return false">
                                 </div>
                                 <div>
                                     <label for="blogModeExtraBelow">Blog mode lines (below):</label>
-                                    <div class="number-input test">
-                                       
-                                        <button class="lineButtonDown" onclick="this.parentNode.querySelector('input[type=number]').stepDown()" ></button>
-                                        
-                                        <input id="blogModeExtraBelow" class="blogModeLineInput" min="0" max="50" value="3" type="number" onKeyDown="return false">
-                                        <button class="lineButtonUp plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"></button>
-                                      </div>
+                                    <input id="blogModeExtraBelow" title="Number of extra lines to be shown below selected code" class="blogModeLineInput" type="number" min="0" max="50" value="3" onKeyDown="return false">
                                 </div>
                             </div>
                         </div>
-                        
                         <div id="commentPreview">
                             <div class="image-preview commentBox border hidden" style="display:none;"><h5>Images</h5></div>
                             <div class="video-preview commentBox border hidden" style="display:none;"><h5>Videos</h5></div>

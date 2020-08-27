@@ -706,77 +706,7 @@ function setupEventListeners()
     document.querySelectorAll(".blogModeLineInput").forEach(function(button){
         button.addEventListener('input', blogModeHighlightHelper);
     });
-
-
-
-    let timer = null;
-
-    // Set up an event handler for mousedown
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
-        button.addEventListener("mousedown", function(){
-            timer = setInterval(function(){
-                console.log("Mouse is down!");
-                button.parentNode.querySelector('input[type=number]').stepUp()
-            }, 150);
-        });
-    }) 
-
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
-        button.addEventListener("mouseup", function(){
-            clearInterval(timer);
-            console.log("Mouse is up!");
-            
-        })
-    }) 
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
-       button.addEventListener("mouseleave", function(){
-        clearInterval(timer);
-  
-        console.log("Mouse is no longer on element!");
-       })
-    });
-
-
-      // Set up an event handler for mousedown
-      document.querySelector(".testGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
-        button.addEventListener("mousedown", function(){
-            timer = setInterval(function(){
-                console.log("Mouse is down!");
-                button.parentNode.querySelector('input[type=number]').stepDown()
-            }, 150);
-        });
-    }) 
-
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
-        button.addEventListener("mouseup", function(){
-            clearInterval(timer);
-            console.log("Mouse is up!");
-            
-        })
-    }) 
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
-       button.addEventListener("mouseleave", function(){
-        clearInterval(timer);
-  
-        console.log("Mouse is no longer on element!");
-       })
-    });
-
 }
-
-// function testFunc(event){
-//     let button = event.parentNode.querySelector('input[type=number]')
-//     button.addEventListener("mousedown", function(){
-//         // Start a timer that fires a function at 50 millisecond intervals
-//         timer = setInterval(function(){
-//             // the function can do whatever you need it to
-//             console.log("Mouse is down!");
-//             event.parentNode.querySelector('input[type=number]').stepUp()
-//         }, 50);
-//     });
-    
-
-// }
 
 function setUpSlider(){
     const slider = document.getElementById('slider');
