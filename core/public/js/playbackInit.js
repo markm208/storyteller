@@ -67,6 +67,8 @@ async function initializePlayback()
 
         //displays all comments
         displayAllComments();
+
+        displayAllBlogPosts();
       
         //Sets up the event listeners for html elements on the page
         setupEventListeners();
@@ -173,6 +175,7 @@ function setupEventListeners()
 
         editTitleButton.style.display = "none";
         acceptTitleChanges.style.display = "inline-block";
+
     });
 
     acceptTitleChanges.addEventListener('click', event => {
@@ -190,6 +193,8 @@ function setupEventListeners()
 
         acceptTitleChanges.style.display = "none";
         editTitleButton.style.display = "inline-block";
+
+        document.querySelector('.blogTitle').innerHTML = titleData;
 
     });
 
@@ -382,12 +387,12 @@ function setupEventListeners()
             const newComment = await sendCommentToServer(comment);        
 
             playbackData.comments[commentEvent.id].push(newComment);
-            document.querySelector(".blogViewContent").innerHTML = "";
 
             //display a newly added comment on the current event
             displayAllComments();
             updateAllCommentHeaderCounts();
             
+            insertBlogPost(newComment);
 
             //rebuild the slider with the new comment pip
             setUpSliderTickMarks();
@@ -667,26 +672,29 @@ function setupEventListeners()
 
     document.getElementById("blogMode").addEventListener('click', event => {
         if (!playbackData.isInBlogMode){
-            document.getElementById("codeMode").classList.remove("activeModeButton"); //TODO save this instead of querying twice
-            document.getElementById("blogMode").classList.add("activeModeButton");
+            stopAutomaticPlayback();
+            pauseMedia();
 
+            document.getElementById("codeMode").classList.remove("activeModeButton");
+            document.getElementById("blogMode").classList.add("activeModeButton");
 
             document.querySelector(".codeView").classList.add('modeFormat');
             document.querySelector(".blogView").classList.remove("modeFormat");
-
 
             document.body.classList.remove("codeViewBody")
             document.body.classList.add("blogModeBody")
 
             playbackData.isInBlogMode = true;
-
         }
     })
 
     document.getElementById("codeMode").addEventListener('click', event => {
         if (playbackData.isInBlogMode){
-            document.querySelector(`.codeView [data-commentid="${latestVisableBlogPostID}"]`).click(); //TODO save this instead of querying twice
-            document.getElementById("commentContentDiv").scrollTop =  document.querySelector(`.codeView [data-commentid="${latestVisableBlogPostID}"]`).offsetTop - 100;     
+            pauseMedia();
+
+            const commentToMakeActive = document.querySelector(`.codeView [data-commentid="${latestVisableBlogPostID}"]`);
+            commentToMakeActive.click(); 
+            document.getElementById("commentContentDiv").scrollTop =  commentToMakeActive.offsetTop - 100;     
     
             document.getElementById("blogMode").classList.remove("activeModeButton");
             document.getElementById("codeMode").classList.add("activeModeButton");
@@ -698,22 +706,22 @@ function setupEventListeners()
             document.body.classList.remove("blogModeBody");
 
             playbackData.isInBlogMode = false;
-
         }
     })
-    
-
-
-
 
     let timer = null;
 
     // Set up an event handler for mousedown
     document.querySelector(".testGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
         button.addEventListener("mousedown", function(){
+            const buttonParent = button.parentNode.querySelector('input[type=number]');
+            buttonParent.stepUp();
+
+            blogModeHighlightHelper();
+
             timer = setInterval(function(){
-                blogModeHighlightHelper()
-                button.parentNode.querySelector('input[type=number]').stepUp()
+                buttonParent.stepUp();
+                blogModeHighlightHelper();                
             }, 150);
         });
     }) 
@@ -721,27 +729,28 @@ function setupEventListeners()
     document.querySelector(".testGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
         button.addEventListener("mouseup", function(){
             clearInterval(timer);
-            blogModeHighlightHelper()
-
-            
+            blogModeHighlightHelper();            
         })
     }) 
+
     document.querySelector(".testGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
        button.addEventListener("mouseleave", function(){
         clearInterval(timer);
-        blogModeHighlightHelper()
-
+        blogModeHighlightHelper();
        })
     });
 
-
-      // Set up an event handler for mousedown
-      document.querySelector(".testGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
+    // Set up an event handler for mousedown
+    document.querySelector(".testGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
         button.addEventListener("mousedown", function(){
-            timer = setInterval(function(){
-                blogModeHighlightHelper()
+            const buttonParent = button.parentNode.querySelector('input[type=number]');
+            buttonParent.stepDown();
 
-                button.parentNode.querySelector('input[type=number]').stepDown()
+            blogModeHighlightHelper();
+
+            timer = setInterval(function(){
+                buttonParent.stepDown();
+                blogModeHighlightHelper();
             }, 150);
         });
     }) 
@@ -749,21 +758,17 @@ function setupEventListeners()
     document.querySelector(".testGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
         button.addEventListener("mouseup", function(){
             clearInterval(timer);
-            blogModeHighlightHelper()
-
-            
+            blogModeHighlightHelper();            
         })
     }) 
+
     document.querySelector(".testGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
        button.addEventListener("mouseleave", function(){
         clearInterval(timer);
-        blogModeHighlightHelper()
-
+        blogModeHighlightHelper();
        })
     });
-
 }
-
 
 function setUpSlider(){
     const slider = document.getElementById('slider');
@@ -1198,6 +1203,7 @@ async function updateComment(){
 
         //display a newly added comment on the current event
         displayAllComments();
+        updateBlogPost(newComment);
       
         //reset the comment previews
         $('.audio-preview')[0].style.display='none';

@@ -180,8 +180,8 @@
 .highlight {
     position:absolute;
     z-index:20; /* place in a layer above anything with a lower z-index */
-    background-color:limegreen;
-    opacity: 10%;
+    background-color:rgb(111, 177, 119);
+    opacity: 20%;
 }
 
 .imageCancelButton{
@@ -615,7 +615,7 @@ body.popup .toast-popup * {
 
 .blogAudioGroup{
     float: right;
-    margin-right: 28px;
+    margin-right: 25px;
 }
 
 .blogVideoFile{
@@ -708,7 +708,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 
-.test{
+#lowerInputgroup{
     margin-top: 20px;
 }
 

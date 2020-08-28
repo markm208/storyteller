@@ -79,23 +79,19 @@
                             <div class="btn-group-vertical testGroup" role="group">
                                 <div>
                                     <label for="blogModeExtraAbove">Blog mode lines (above):</label>
-                                    <div class="number-input">
-                                       
-                                        <button class="lineButtonDown" onclick="this.parentNode.querySelector('input[type=number]').stepDown()" ></button>
-                                        
+                                    <div class="number-input">                                       
+                                        <button class="lineButtonDown" ></button>                                        
                                         <input id="blogModeExtraAbove" class="blogModeLineInput" min="0" max="50" value="3" type="number" onKeyDown="return false">
-                                        <button class="lineButtonUp plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()" ></button>
-                                      </div>
+                                        <button class="lineButtonUp plus" ></button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label for="blogModeExtraBelow">Blog mode lines (below):</label>
-                                    <div class="number-input test">
-                                       
-                                        <button class="lineButtonDown" onclick="this.parentNode.querySelector('input[type=number]').stepDown()" ></button>
-                                        
+                                    <div id="lowerInputgroup" class="number-input">                                       
+                                        <button class="lineButtonDown"  ></button>                                        
                                         <input id="blogModeExtraBelow" class="blogModeLineInput" min="0" max="50" value="3" type="number" onKeyDown="return false">
-                                        <button class="lineButtonUp plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"></button>
-                                      </div>
+                                        <button class="lineButtonUp plus"></button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
