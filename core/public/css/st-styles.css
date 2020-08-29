@@ -725,8 +725,25 @@ input[type=number]::-webkit-outer-spin-button {
 
 
 
+.blogUserName{
+    margin-top: -5px;
+}
 
+.blogDevImage{
+    margin-right: 10px;
+}
 
+.blogDeveloperDiv{
+    margin-bottom: 10px;
+}
+
+.devEmail{
+    cursor: pointer;
+}
+
+.devDescriptionSeparater{
+    border-top: 5px solid rgb(51,51,51)
+}
 
 /* scrollbar-color: rgb(51,51,51) rgb(37,37,37); */
 
