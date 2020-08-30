@@ -405,7 +405,7 @@ function setupEventListeners()
 
     document.getElementById("CancelUpdateButton").addEventListener('click', event => {
         stopAutomaticPlayback();
-        undoBlogModeHighlightHelper();
+        undoBlogModeHighlight();
 
         const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
         const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];

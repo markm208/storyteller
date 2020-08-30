@@ -456,7 +456,6 @@ function updateActiveComment(commentToMakeActive)
     }     
 
     //if we're in code view, scroll blog mode to the new active comment
-    //TODO might not need this
     if (!playbackData.isInBlogMode){
         //scroll to the comment in blogView
         document.querySelector(".blogView").scrollTop = document.querySelector(`.blogView [data-commentid="${commentToMakeActive.getAttribute("data-commentid")}"]`).offsetTop - 100;
@@ -1833,7 +1832,7 @@ function selectRange(rangeToSelect){
     windowSelection.addRange(rangeToSelect);
 }
 
-
+//creates and displays the blog mode title, description, and all blog posts
 function displayAllBlogPosts(){
     const blogDiv = document.querySelector(".blogViewContent");
     blogDiv.innerHTML = "";
@@ -1862,8 +1861,9 @@ function displayAllBlogPosts(){
     }
 }
 
+//update the blog mode list of authors who have contributed to a comment
 function updateBlogPostDevelopersDiv(){
-    let outerDevDiv = document.querySelector(".blogDevelopersDiv");
+    const outerDevDiv = document.querySelector(".blogDevelopersDiv");
     outerDevDiv.innerHTML = "";
     //get all unique contributing developerGroupIDs from the comments
     let developerGroupIDs = new Set();
@@ -1877,13 +1877,11 @@ function updateBlogPostDevelopersDiv(){
     let developerIDs = new Set();
     developerGroupIDs.forEach(developerGroupID => {
         const groupMembers = playbackData.developerGroups[developerGroupID].memberIds;
-        groupMembers.forEach(member => developerIDs.add(member));
+        groupMembers.forEach(memberId => developerIDs.add(memberId));
     })
     
     //create a developer div for each developer
-    let tempDeveloperGroup = [];
-    
-
+    let tempDeveloperGroup = [];    
     developerIDs.forEach(developerID => {
         if (playbackData.developers[developerID].userName === "Anonymous Developer"){
             return;
@@ -1900,6 +1898,7 @@ function updateBlogPostDevelopersDiv(){
 
         developerDiv.append(devUserName);
 
+        //allows an author to not include their email
         if (playbackData.developers[developerID].email !== ""){
             const devEmail = document.createElement('a');
             devEmail.setAttribute('href', `mailto:${playbackData.developers[developerID].email}`);
@@ -1919,12 +1918,14 @@ function updateBlogPostDevelopersDiv(){
     outerDevDiv.append(separater);
 }
 
-let latestVisableBlogPostID;
+let latestVisableBlogPostID; //the id of the last blog post that has been scrolled to. helpful when switching back to code mode
+
+//create a single blog post from a comment
 function createBlogPost(commentToAdd){
     const blogPost = document.createElement("div");
     blogPost.classList.add("blogStyle");
 
-    if (commentToAdd.displayCommentEvent.id === "ev--1"){ //TODO SHOULD THIS GO IN ALLBLOGPOSTS?
+    if (commentToAdd.displayCommentEvent.id === "ev--1"){ 
         blogPost.classList.add("descriptionBlogPost");       
     }
 
@@ -1951,13 +1952,13 @@ function createBlogPost(commentToAdd){
         imagesDiv.classList.add("blogModeImageDiv");
 
         for (let i = 0; i < commentToAdd.imageURLs.length; i++){
-            const imageTestDiv = document.createElement('div');
-            imageTestDiv.classList.add("fakeTest");
+            const imgDiv = document.createElement('div');
+            imgDiv.classList.add("blogImageDiv");
             const img = document.createElement('img');
-            img.classList.add("testImgClass")
+            img.classList.add("blogImage")
             img.src = commentToAdd.imageURLs[i];
-            imageTestDiv.append(img);
-            imagesDiv.append(imageTestDiv);
+            imgDiv.append(img);
+            imagesDiv.append(imgDiv);
            
             img.addEventListener('click', function() {
                 document.getElementById('imgToExpand').src = img.src;
@@ -2036,24 +2037,23 @@ function createBlogPost(commentToAdd){
             speedControlDiv.classList.add("blogAudioFile");
             blogPost.append(speedControlDiv);
         }       
-    }
- 
+    } 
 
     if (commentToAdd.selectedCodeBlocks.length){
 
         const sliderPosition =  Math.round(document.getElementById('slider').noUiSlider.get());
-        let commenttest = commentToAdd.displayCommentEvent.eventSequenceNumber + 1;
+        const commentPosition = commentToAdd.displayCommentEvent.eventSequenceNumber + 1;
 
-        step(commenttest - sliderPosition)
+        step(commentPosition - sliderPosition)
         
         const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
 
         editor.session.selection.clearSelection()
 
-        const aceDivtest = document.createElement('div')
-        aceDivtest.classList.add("bla") //TODO change this name
+        const blogPostEditor = document.createElement('div')
+        blogPostEditor.classList.add("blogEditorDiv") 
 
-        let blogPostCodeEditor = ace.edit(aceDivtest);
+        let blogPostCodeEditor = ace.edit(blogPostEditor);
         
         const editorLineCount =  editor.session.getLength() - 1;
 
@@ -2070,15 +2070,15 @@ function createBlogPost(commentToAdd){
         
         //TODO IF start.column.length === start.column , ignore the line
 
-        let selection = new ace.Range(startRow,0,endRow , endCol) 
+        const selection = new ace.Range(startRow,0,endRow , endCol) 
         editor.session.selection.addRange(selection);
 
 
         //prevents extra line due to the '\n'
-        let sectionTest = editor.getSelectedText();
-        sectionTest = sectionTest.endsWith('\n') ? sectionTest.substring(0, sectionTest.lastIndexOf('\n')) : sectionTest;
+        let blogEditorValue = editor.getSelectedText();
+        blogEditorValue = blogEditorValue.endsWith('\n') ? blogEditorValue.substring(0, blogEditorValue.lastIndexOf('\n')) : blogEditorValue;
        
-        blogPostCodeEditor.setValue(sectionTest);
+        blogPostCodeEditor.setValue(blogEditorValue);
 
         editor.session.selection.clearSelection();
         blogPostCodeEditor.session.selection.clearSelection();
@@ -2088,7 +2088,7 @@ function createBlogPost(commentToAdd){
             blogPostCodeEditor.getSession().addMarker(new ace.Range(selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn), 'highlight', 'text', true);
         }
 
-        step(-(commenttest - sliderPosition));        
+        step(-(commentPosition - sliderPosition));        
 
         blogPostCodeEditor.setOptions({
             readOnly: true,
@@ -2105,9 +2105,9 @@ function createBlogPost(commentToAdd){
            useWorker: false
        });
 
-        aceDivtest.append(blogPostCodeEditor);
+        blogPostEditor.append(blogPostCodeEditor);
 
-        blogPost.append(aceDivtest);       
+        blogPost.append(blogPostEditor);       
        
     }
     return blogPost;
@@ -2141,9 +2141,10 @@ function updateBlogPost(commentToEdit){
     const allBlogPosts = getAllBlogPosts();
     const indexOfEdit = allBlogPosts.findIndex(item => item.getAttribute('data-commentid') === commentToEdit.id);
     allBlogPosts[indexOfEdit].parentNode.replaceChild(createBlogPost(commentToEdit), allBlogPosts[indexOfEdit]);
-    updateBlogPostDevelopersDiv();
+    //updateBlogPostDevelopersDiv();
 }
 
+//handles the highlighting of a blog mode preview selection by mouse dragging or by shift+arrow
 function highlightBlogModeVisibleArea(){
     clearNewCodeHighlights();
     
@@ -2154,6 +2155,7 @@ function highlightBlogModeVisibleArea(){
     codePanel.addEventListener('mouseup', waitToGetSelection);
 }
 
+//handles selection of text using shift+arrow 
 function blogModeHighlightHelperShiftArrow(event){
     if (event.shiftKey && (event.key === "ArrowRight" || event.key === "ArrowLeft" || event.key === "ArrowDown" || event.key === "ArrowUp")){
         aceTempRanges = [];
@@ -2167,6 +2169,7 @@ function waitToGetSelection(){
 }
 
 let aceTempMarker;
+//helper function to assist in the highligting of a blog mode preview
 function blogModeHighlightHelper(){    
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
     
@@ -2176,7 +2179,7 @@ function blogModeHighlightHelper(){
         const numbersAbove = Number(blogModeNumberAboveSelector.value);
         const numbersBelow = Number(blogModeNumberBelowSelector.value);       
 
-        let linesTest = editor.session.getLength() - 1
+        const totalLines = editor.session.getLength() - 1
 
         const ranges = editor.getSession().getSelection().getAllRanges();
 
@@ -2190,7 +2193,7 @@ function blogModeHighlightHelper(){
 
         blogModeNumberAboveSelector.max = ranges[0].start.row;
         blogModeNumberAboveSelector.value =  blogModeNumberAboveSelector.max > numbersAbove ? numbersAbove : blogModeNumberAboveSelector.max;
-        blogModeNumberBelowSelector.max =  ranges[ranges.length - 1].end.column === 0 ? linesTest - ranges[ranges.length - 1].end.row + 1 : linesTest - ranges[ranges.length - 1].end.row; //TODO clean this up
+        blogModeNumberBelowSelector.max =  ranges[ranges.length - 1].end.column === 0 ? totalLines - ranges[ranges.length - 1].end.row + 1 : totalLines - ranges[ranges.length - 1].end.row; //TODO clean this up
         blogModeNumberBelowSelector.value =  blogModeNumberBelowSelector.max > numbersBelow ? numbersBelow : blogModeNumberBelowSelector.max;
 
         const higlightedRange = new ace.Range(startRow, 0, endRow, endCol); 
@@ -2205,7 +2208,10 @@ function blogModeHighlightHelper(){
     }
 }
 
-function undoBlogModeHighlightHelper(){
+//clears any blog mode preview highlights or selections
+//removes any event listeners added to the editor for selection
+//resets the line above/below buttons to their default states
+function undoBlogModeHighlight(){
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
 
     editor.session.removeMarker(aceTempMarker)
