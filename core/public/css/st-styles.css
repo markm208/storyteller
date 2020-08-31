@@ -53,6 +53,7 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+    cursor: zoom-in;
 }
 
 .codePanel{
@@ -92,7 +93,8 @@
     overflow-y: scroll;
     height: 85vh;
     word-wrap: break-word;
-    width: 23.9vw;
+    width: 23.9vw; 
+    /* TODO experiment with making this width higher */
 }
 
 .commentGroupSpacing {
@@ -178,7 +180,7 @@
 .highlight {
     position:absolute;
     z-index:20; /* place in a layer above anything with a lower z-index */
-    background-color:limegreen;
+    background-color:rgb(111, 177, 119);
     opacity: 20%;
 }
 
@@ -285,7 +287,7 @@
     position:absolute;
     z-index:10; /* place in a layer above anything with a lower z-index */
     background-color:rgb(150, 194, 219);
-    opacity: 10%;
+    opacity: 5%;
 }
 
 /* .playbackDirNameLabel {
@@ -299,6 +301,7 @@
 
 .playbackWindow {
     height: calc(100vh - 160px);   
+    width: 100vw;
    
     /* overflow-y: scroll; */
 }
@@ -376,8 +379,10 @@ resize: none;
 }
 
 .top-bar {
-    background-color: rgb(112, 169, 255);
+    background-color: rgb(45,62,43);
+    color: rgb(229,244,223);
     padding: 5px;
+    width: 100vw;
 }
 
 .ui-slider-tick-mark {
@@ -424,7 +429,8 @@ resize: none;
 
 #helpButton{
     background: transparent;
-    float: right;
+    border: none;
+    /* float: right; */
     
 }
 
@@ -506,3 +512,265 @@ body.popup .toast-popup * {
     z-Index: 100;
     width: 500px;
 }
+
+.blogModeLineInput{
+    width: 40px;
+    border: none !important;
+}
+
+
+.optionsButtonsGroup{
+    float: right;
+    bottom: 5px;
+}
+
+
+
+#codeMode,
+#blogMode{
+    box-shadow: none;
+    padding: 0px;
+}
+/* 
+.activeModeButton :hover{
+    text-decoration: none;
+} */
+
+.activeModeButton{
+    opacity: 0.5;
+    color: white;
+}
+
+.modeFormat{
+    /* hide the position instead of setting display:none.
+    when an element has the attribute display:none, it cannot be scrolled */
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+}
+
+.blogStyle{
+    margin-bottom: 40px;
+    /* background-color: lightgrey; */
+    border-radius: 40px;
+}
+
+.blogViewContent{
+    display: grid;    
+    padding-bottom: 50px;
+    background-color: rgb(37,37,37);
+    color: white;
+    padding: 10px 30px;
+    
+}
+
+.blogCommentText{
+    /* padding: 5px 40px;
+    margin-left: 40px; */
+    margin-bottom: 10px;
+}
+
+.blogView{
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 96vh;   
+    
+    background-color: rgb(51,51,51) !important;
+    /* scrollbar-color: rgb(51,51,51) rgb(37,37,37); */
+}
+
+
+.descriptionBlogPost{
+    margin-top: 10px;
+    font-size: 1.25em;
+}
+
+.blogImage{
+   max-width: 100%;
+   max-height: 100%;
+   margin-bottom: 5px;
+   cursor: zoom-in;
+   border-radius: .5rem!important;
+}
+
+.blogModeImageDiv{
+    /* height: 500px; */
+    text-align: center;     
+}
+
+.blogImageDiv{
+    height: 500px;
+    margin-bottom: 5px;
+    padding: 10px;   
+}
+
+.blogEditorDiv{
+    /* height: 22em;  */
+    
+    
+}
+
+
+.blogAudioFile{
+   margin-bottom: 10px;
+}
+
+.blogAudioGroup{
+    float: right;
+    margin-right: 25px;
+}
+
+.blogVideoFile{
+    color: red;
+}
+
+.blogTitle{
+    text-align: center;
+    padding-bottom: 50px;
+
+}
+
+
+.blogModeBody{
+    background-color: rgb(51,51,51);
+}
+
+.codeViewBody{
+    background-color: white;
+}
+
+
+input[type="number"] {
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  width: 40px !important;
+  outline: none;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.number-input {
+  border: 2px solid #ddd;
+  display: inline-flex;
+  
+}
+
+.number-input,
+.number-input * {
+  box-sizing: border-box;
+}
+
+.number-input button {
+  outline:none;
+  -webkit-appearance: none;
+  background-color: transparent;
+  border: none;
+  align-items: center;
+  justify-content: center;
+  /* width: 2rem; */
+  /* height: 30rem;  */
+  cursor: pointer;
+  margin: 0;
+  position: relative;
+}
+
+.number-input button:before,
+.number-input button:after {
+  display: inline-block;
+  position: absolute;
+  content: '';
+  width: .6rem;
+  height: 1px;
+  background-color: #212121;
+  transform: translate(-50%, -50%);
+}
+.number-input button.plus:after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.number-input input[type=number] {
+  font-family: sans-serif;
+  /* max-width: 5rem; */
+  padding: .5rem;
+  border: solid #ddd;
+  border-width: 0 2px;
+  font-size: 1rem;
+  height: 3rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+
+#lowerInputgroup{
+    margin-top: 20px;
+}
+
+/* TODO wont need these when code view gets dark mode */
+.blogSpeedButton{
+    background-color: rgb(51,51,51);
+    color: grey;
+    background: transparent;
+    padding: 0;   
+    border: none;
+}
+
+.blogSpeedButton:hover,.blogSpeedButton:focus,.blogSpeedButton:active{
+    background: lightgrey;
+    background-color: lightgray;
+    outline: none !important;
+    box-shadow: none;
+}
+
+
+.lineButtonUp:active,
+.lineButtonDown:active{    
+    opacity: .5;    
+}
+
+
+
+.blogUserName{
+    margin-top: -5px;
+}
+
+.blogDevImage{
+    margin-right: 10px;
+}
+
+.blogDeveloperDiv{
+    margin-bottom: 10px;
+}
+
+.devEmail{
+    cursor: pointer;
+}
+
+.devDescriptionSeparater{
+    border-top: 5px solid rgb(51,51,51)
+}
+
+/* scrollbar-color: rgb(51,51,51) rgb(37,37,37); */
+
+ * {
+    scrollbar-width: thin;
+    /* scrollbar-color: blue orange; */
+  } 
+
+  /* chrome coloring for the scrollbars. affects all scroll bars unlike the one for firefox */
+*::-webkit-scrollbar {
+    width: 16px;
+    height: 100vh;
+  }
+  *::-webkit-scrollbar-track {
+    background: rgb(37,37,37);
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background-color: rgb(51,51,51);
+    border: 3px solid rgb(37,37,37);
+  }
+  

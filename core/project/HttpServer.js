@@ -63,7 +63,6 @@ class HttpServer {
      */
     createRoutes(app) {
         //routes
-        
         //builds a js file that loads the data for playback
         app.get('/js/loadPlayback.js', (req, res) => {
             //get the text for a function that loads the playback data
@@ -74,21 +73,29 @@ class HttpServer {
             res.status('200').send(`${playbackData}`);
         });
 
-        //title  
         app.get('/project', (req, res) => {
-            //return the project manager's 'project' which contains the title
-            //and the branch id
+            //return the project manager's 'project' which contains the title,
+            //description, and the branch id
             res.json(this.projectManager.project);
         });
 
         app.put('/project', (req, res) => {
-            //get an object with a title (comes from the user)
-            const titleInfo = req.body;
+            //get an object with a title and description (comes from the user)
+            const titleDescription = req.body;
 
             //title is required
-            if(titleInfo.title && titleInfo.title.trim()) {
+            if(titleDescription.title && titleDescription.title.trim()) {
                 //trim and store the title
-                this.projectManager.setTitle(titleInfo.title.trim());
+                this.projectManager.project.title = titleDescription.title.trim();
+
+                //if there is a description
+                if(titleDescription.description) {
+                    //trim and store the description
+                    this.projectManager.project.description = titleDescription.description.trim();
+                } else { //no description property
+                    //default to empty string
+                    this.projectManager.project.description = '';
+                }
 
                 //return the newly updated project
                 res.json(this.projectManager.project);

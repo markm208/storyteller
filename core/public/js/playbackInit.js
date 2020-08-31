@@ -10,8 +10,7 @@ async function initializePlayback()
     for (let i = 0; i < playbackData.events.length; i++){
         if (playbackData.events[i].permanentRelevance === "never relevant"){
             playbackData.numNonRelevantEvents++;               
-        }
-        else{
+        } else {
             break;
         }
     }
@@ -22,7 +21,10 @@ async function initializePlayback()
 
     //displays all comments
     displayAllComments();
-    
+
+    //create the blog view of the playback
+    displayAllBlogPosts();
+
     //Sets up the event listeners for html elements on the page
     setupEventListeners();
 
@@ -36,7 +38,7 @@ async function initializePlayback()
 }
 
 // Puts together a full comment object to be pushed to the server
-function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs)
+function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow)
 {
     const comment = {
         commentText,
@@ -45,7 +47,9 @@ function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidUR
         selectedCodeBlocks: selectedCode,            
         imageURLs: imgURLs,
         videoURLs: vidURLs,
-        audioURLs: audioURLs
+        audioURLs: audioURLs,
+        linesAbove: linesAbove,
+        linesBelow: linesBelow
     };    
 
     return comment;
@@ -60,6 +64,7 @@ function setupEventListeners()
     const fastForwardButton = document.getElementById("fastForwardButton");
 
     const topBar = document.getElementById('top-bar');
+
 
     //Get references to the tabs and where the tabs get their content
     const tabsList = document.getElementById('tabsList');
@@ -79,8 +84,8 @@ function setupEventListeners()
         //TODO determine if this will be included or not
         // const sliderValue = Number(slider.noUiSlider.get());
         // //if the slider falls on a comment, click the comment
-        // if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
-        //     document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        // if (document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`)){              
+        //     document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`).click();
         // }
     });
 
@@ -91,8 +96,8 @@ function setupEventListeners()
         //TODO determine if this will be included or not
         // const sliderValue = Number(slider.noUiSlider.get());
         // //if the slider falls on a comment, click the comment
-        // if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
-        //     document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        // if (document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`)){              
+        //     document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`).click();
         // }
         stopAutomaticPlayback();
     });
@@ -123,6 +128,7 @@ function setupEventListeners()
 
         editTitleButton.style.display = "none";
         acceptTitleChanges.style.display = "inline-block";
+
     });
 
     acceptTitleChanges.addEventListener('click', event => {
@@ -140,6 +146,8 @@ function setupEventListeners()
 
         acceptTitleChanges.style.display = "none";
         editTitleButton.style.display = "inline-block";
+
+        document.querySelector('.blogTitle').innerHTML = titleData;
 
     });
 
@@ -164,6 +172,13 @@ function setupEventListeners()
         //make the selected text look like code by using a fixed width font
         document.execCommand('fontName', null, 'Courier');
     });
+
+    $("#URL-Toast").on("show.bs.toast", function() {
+        $(this).removeClass("d-none");
+    })
+    $("#URL-Toast").on("hidden.bs.toast", function() {
+        $(this).addClass("d-none");
+    })
     
     //make selected text into a clickable link
     let selectedRange = {};
@@ -235,9 +250,8 @@ function setupEventListeners()
     };
 
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
-        stopAutomaticPlayback();
+        stopAutomaticPlayback();        
         
-
         const textCommentTextArea = document.getElementById('textCommentTextArea');
     
         
@@ -271,6 +285,9 @@ function setupEventListeners()
         //get all text and html from the comment text box
         const commentText = textCommentTextArea.innerHTML;
 
+        const linesAboveValue = document.getElementById("blogModeExtraAbove").value;
+        const linesBelowValue = document.getElementById("blogModeExtraBelow").value;
+
         //get the active editor
         const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
 
@@ -279,14 +296,16 @@ function setupEventListeners()
 
         let rangeArray = [];
         for (let i = 0; i < ranges.length; i++){
-            let rangeObj = {};
-            rangeObj.fileId = playbackData.activeEditorFileId,
-            rangeObj.selectedText = editor.getSession().getTextRange(ranges[i]),
-            rangeObj.startRow = ranges[i].start.row
-            rangeObj.startColumn = ranges[i].start.column;
-            rangeObj.endRow = ranges[i].end.row;
-            rangeObj.endColumn = ranges[i].end.column;
-            rangeArray.push(rangeObj);
+            if (editor.getSession().getTextRange(ranges[i]) !== ""){
+                let rangeObj = {};
+                rangeObj.fileId = playbackData.activeEditorFileId,
+                rangeObj.selectedText = editor.getSession().getTextRange(ranges[i]),
+                rangeObj.startRow = ranges[i].start.row
+                rangeObj.startColumn = ranges[i].start.column;
+                rangeObj.endRow = ranges[i].end.row;
+                rangeObj.endColumn = ranges[i].end.column;
+                rangeArray.push(rangeObj);
+            }            
         }  
        
         //if there was a comment, or at least one media file
@@ -298,7 +317,7 @@ function setupEventListeners()
             const commentEvent = playbackData.events[eventIndex];
 
             //create an object that has all of the comment info
-            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder)
+            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue)
 
             //determine if any comments already exist for this event 
             //if so add the new comment
@@ -311,19 +330,25 @@ function setupEventListeners()
             const newComment = await sendCommentToServer(comment);        
 
             playbackData.comments[commentEvent.id].push(newComment);
+
             //display a newly added comment on the current event
             displayAllComments();
             updateAllCommentHeaderCounts();
+            
+            insertBlogPost(newComment);
 
             //rebuild the slider with the new comment pip
             setUpSliderTickMarks();
 
             document.getElementById("CancelUpdateButton").click();
+            document.querySelector(`.codeView [data-commentid="${newComment.id}"]`).click();
+            
         }
     });
 
     document.getElementById("CancelUpdateButton").addEventListener('click', event => {
         stopAutomaticPlayback();
+        undoBlogModeHighlight();
 
         const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
         const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
@@ -347,6 +372,7 @@ function setupEventListeners()
         document.getElementById("viewCommentsTab").classList.remove("disabled");
 
         document.getElementById("viewCommentsTab").click();      
+        
     });
 
     document.getElementById('dragBar').addEventListener('mousedown', function (e){  
@@ -496,6 +522,9 @@ function setupEventListeners()
     document.getElementById("mainAddCommentButton").addEventListener('click', event => {     
         stopAutomaticPlayback();
 
+        highlightBlogModeVisibleArea();
+
+
         document.getElementById("addCommentTab").click();
         document.getElementById('textCommentTextArea').focus();
         document.getElementById("viewCommentsTab").classList.add("disabled");
@@ -532,7 +561,7 @@ function setupEventListeners()
             step(1);
             if (playbackData.comments[`ev-${playbackData.nextEventPosition - 1}`]){   
                 //get the comment card associated with the position             
-                const currentComment = document.querySelector(`[data-commenteventid="ev-${playbackData.nextEventPosition - 1}"]`);
+                const currentComment = document.querySelector(`.codeView [data-commenteventid="ev-${playbackData.nextEventPosition - 1}"]`);
 
                 //make it active by clicking it
                 currentComment.click();
@@ -583,6 +612,105 @@ function setupEventListeners()
     $('#optionsModal').on('show.bs.modal', event => {
         document.getElementById('optionsModal').querySelector('.nav-item').click();
     })    
+
+    document.getElementById("blogMode").addEventListener('click', event => {
+        if (!playbackData.isInBlogMode){
+            stopAutomaticPlayback();
+            pauseMedia();
+
+            document.getElementById("codeMode").classList.remove("activeModeButton");
+            document.getElementById("blogMode").classList.add("activeModeButton");
+
+            document.querySelector(".codeView").classList.add('modeFormat');
+            document.querySelector(".blogView").classList.remove("modeFormat");
+
+            document.body.classList.remove("codeViewBody")
+            document.body.classList.add("blogModeBody")
+
+            playbackData.isInBlogMode = true;
+        }
+    })
+
+    document.getElementById("codeMode").addEventListener('click', event => {
+        if (playbackData.isInBlogMode){
+            pauseMedia();
+
+            const commentToMakeActive = document.querySelector(`.codeView [data-commentid="${latestVisableBlogPostID}"]`);
+            commentToMakeActive.click(); 
+            document.getElementById("commentContentDiv").scrollTop =  commentToMakeActive.offsetTop - 100;     
+    
+            document.getElementById("blogMode").classList.remove("activeModeButton");
+            document.getElementById("codeMode").classList.add("activeModeButton");
+    
+            document.querySelector(".codeView").classList.remove('modeFormat');
+            document.querySelector(".blogView").classList.add("modeFormat");
+
+            document.body.classList.add("codeViewBody");
+            document.body.classList.remove("blogModeBody");
+
+            playbackData.isInBlogMode = false;
+        }
+    })
+
+    let timer = null;
+
+    // Set up an event handler for mousedown
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
+        button.addEventListener("mousedown", function(){
+            const buttonParent = button.parentNode.querySelector('input[type=number]');
+            buttonParent.stepUp();
+
+            blogModeHighlightHelper();
+
+            timer = setInterval(function(){
+                buttonParent.stepUp();
+                blogModeHighlightHelper();                
+            }, 150);
+        });
+    }) 
+
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
+        button.addEventListener("mouseup", function(){
+            clearInterval(timer);
+            blogModeHighlightHelper();            
+        })
+    }) 
+
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
+       button.addEventListener("mouseleave", function(){
+        clearInterval(timer);
+        blogModeHighlightHelper();
+       })
+    });
+
+    // Set up an event handler for mousedown
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
+        button.addEventListener("mousedown", function(){
+            const buttonParent = button.parentNode.querySelector('input[type=number]');
+            buttonParent.stepDown();
+
+            blogModeHighlightHelper();
+
+            timer = setInterval(function(){
+                buttonParent.stepDown();
+                blogModeHighlightHelper();
+            }, 150);
+        });
+    }) 
+
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
+        button.addEventListener("mouseup", function(){
+            clearInterval(timer);
+            blogModeHighlightHelper();            
+        })
+    }) 
+
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
+       button.addEventListener("mouseleave", function(){
+        clearInterval(timer);
+        blogModeHighlightHelper();
+       })
+    });
 }
 
 function setUpSlider(){
@@ -609,11 +737,11 @@ function setUpSlider(){
 
         //TODO Determine if this will be included or not
         // //if the slider falls on a comment, click the comment
-        // if (document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`)){              
-        //     document.querySelector(`[data-commenteventid="ev-${sliderValue - 1}"]`).click();
+        // if (document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`)){              
+        //     document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue - 1}"]`).click();
         // }
-        // else if (document.querySelector(`[data-commenteventid="ev-${sliderValue}"]`)){
-        //     document.querySelector(`[data-commenteventid="ev-${sliderValue}"]`).click();
+        // else if (document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue}"]`)){
+        //     document.querySelector(`.codeView [data-commenteventid="ev-${sliderValue}"]`).click();
         // }
     });
 
@@ -679,7 +807,7 @@ function setUpClickableTickMarks(){
             //determine if the description tick mark was clicked   
             const eventNum = pipValue === playbackData.numNonRelevantEvents - 1 ? 0 : pipValue; 
 
-            document.querySelector(`[data-commenteventid="ev-${eventNum}"`).click();                               
+            document.querySelector(`.codeView [data-commenteventid="ev-${eventNum}"]`).click();                               
         })               
     }    
 }
@@ -738,7 +866,7 @@ function jumpToPreviousComment()
     //if activeComment hasn't been assigned, then no comment was found at, or behind the slider position
     //make the description active
     else{
-        document.querySelector(`[data-commenteventid="ev-0"`).click(); 
+        document.querySelector(`.codeView [data-commenteventid="ev-0"`).click(); 
     }      
 }
 
@@ -931,6 +1059,9 @@ async function updateComment(){
     const index = commentGroup.findIndex(item => item.id === commentId);
     const commentObject = commentGroup[index];
 
+    const linesAboveValue = document.getElementById("blogModeExtraAbove").value;
+    const linesBelowValue = document.getElementById("blogModeExtraBelow").value;
+
     //getting all video files in order
     const videoFiles = document.getElementsByClassName('video-preview')[0].children;
     const currentVideoOrder = [];
@@ -969,14 +1100,16 @@ async function updateComment(){
 
     let rangeArray = [];
     for (let i = 0; i < ranges.length; i++){
-        let rangeObj = {};
-        rangeObj.fileId = playbackData.activeEditorFileId,
-        rangeObj.selectedText = editor.getSession().getTextRange(ranges[i]),
-        rangeObj.startRow = ranges[i].start.row
-        rangeObj.startColumn = ranges[i].start.column;
-        rangeObj.endRow = ranges[i].end.row;
-        rangeObj.endColumn = ranges[i].end.column;
-        rangeArray.push(rangeObj);
+        if (editor.getSession().getTextRange(ranges[i]) !== ""){
+            let rangeObj = {};
+            rangeObj.fileId = playbackData.activeEditorFileId,
+            rangeObj.selectedText = editor.getSession().getTextRange(ranges[i]),
+            rangeObj.startRow = ranges[i].start.row
+            rangeObj.startColumn = ranges[i].start.column;
+            rangeObj.endRow = ranges[i].end.row;
+            rangeObj.endColumn = ranges[i].end.column;
+            rangeArray.push(rangeObj);
+        }
     }  
    
     //if there was a comment, or at least one media file
@@ -984,7 +1117,7 @@ async function updateComment(){
     {     
       
         //create an object that has all of the comment info
-        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder)
+        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue)
         //add the developer group id to the comment object and its id
         comment.developerGroupId = commentObject.developerGroupId;
         comment.id = commentObject.id;
@@ -1014,6 +1147,7 @@ async function updateComment(){
 
         //display a newly added comment on the current event
         displayAllComments();
+        updateBlogPost(newComment);
       
         //reset the comment previews
         $('.audio-preview')[0].style.display='none';

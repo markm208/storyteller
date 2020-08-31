@@ -128,10 +128,7 @@ class DeveloperManager extends FileBackedCollection {
             //add the new dev and dev group
             this.allDevelopers[newDeveloper.id] = newDeveloper;
             this.allDeveloperGroups[newDeveloperGroup.id] = newDeveloperGroup;
-            
-            //update the data
-            this.write();
-            
+
             return newDeveloper;
         } else {
             throw `Developer with the user name: ${userName} already exists`;
@@ -158,10 +155,6 @@ class DeveloperManager extends FileBackedCollection {
             const newDevGroup = new DeveloperGroup();
             newDevGroup.addDeveloperByIds(devIds);
             this.allDeveloperGroups[newDevGroup.id] = newDevGroup;
-            
-            //update the data
-            this.write();
-            
             retVal = newDevGroup;
         } else {
             //store the existing dev group
@@ -306,8 +299,6 @@ class DeveloperManager extends FileBackedCollection {
             this.allDeveloperGroups[newDevGroup.id] = newDevGroup;
             this.currentDeveloperGroupId = newDevGroup.id;
         }
-        //update the data
-        this.write();
     }
 
     /*
@@ -363,8 +354,6 @@ class DeveloperManager extends FileBackedCollection {
         if(this.allDeveloperGroups[devGroupId]) {
             //store it
             this.currentDeveloperGroupId = devGroupId;
-            //update the data
-            this.write();
         } else { //no dev group with that id exists
             throw 'Cannot change the developer group to one that is not being tracked';
         }

@@ -75,7 +75,7 @@ function displayAllComments(){
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
 
-    let commentCount = -1; // because the title and description do not count
+    let commentCount = -1; // because the description does not count
     let currentComment = 1;    
 
     //convert all string keys into numbers for proper sorting of comment sequence
@@ -100,6 +100,9 @@ function displayAllComments(){
             const titleCard = createTitleCard(descriptionInfo);
 
             commentGroupDiv.append(titleCard);
+
+            //add description to blog             
+            //addBlogPost(commentBlock[0]);
 
             startingValue += 1;
         }
@@ -139,12 +142,19 @@ function displayAllComments(){
 
             const commentObject = commentBlock[i];
 
+
+
             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
             const commentCard = returnObject.cardObject;
             currentComment = returnObject.count;
 
             commentGroupDiv.append(commentCard);
             
+            //add the comment to blog mode
+            const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+
+            //addBlogPost(commentObject)
 
 
             if (playbackData.isEditable){
@@ -257,7 +267,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
 
     //if this is not here the play button does not work, because the card will have no functionality
-    cardFinal.addEventListener('click', function (e){ 
+    cardFinal.addEventListener('click', function (){ 
         
         stopAutomaticPlayback();
 
@@ -444,8 +454,14 @@ function updateActiveComment(commentToMakeActive)
     //and an already active comment block from scrolling to the new active comment
     if (!commentAlreadyActive && !groupAlreadyActive){
         //scroll to the new active comment
-        document.getElementById("commentContentDiv").scrollTop = commentToMakeActive.offsetTop - 100;      
+        document.getElementById("commentContentDiv").scrollTop = commentToMakeActive.offsetTop - 100;            
     }     
+
+    //if we're in code view, scroll blog mode to the new active comment
+    if (!playbackData.isInBlogMode){
+        //scroll to the comment in blogView
+        document.querySelector(".blogView").scrollTop = document.querySelector(`.blogView [data-commentid="${commentToMakeActive.getAttribute("data-commentid")}"]`).offsetTop - 100;
+    }
 }
 
 //Creates the edit button at the bottom of each card
@@ -457,15 +473,21 @@ function createEditCommentButton(commentObject, buttonText){
     editCommentButton.title = buttonText;
 
     editCommentButton.addEventListener('click', event => {
+        //prevents the edit button from triggering the event listeners of its parent divs
+        event.preventDefault();
+        event.stopPropagation();
+        
         stopAutomaticPlayback();
 
         if (event.target.closest(".drag")){
-            event.target.closest(".drag").click();
+            event.target.closest(".drag").click();        
         }
 
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
+        document.getElementById("blogModeExtraAbove").value = commentObject.linesAbove;
+        document.getElementById("blogModeExtraBelow").value = commentObject.linesBelow;
 
         //reselect in ace all highlighted code from the original comment
         for (let i = 0; i < commentObject.selectedCodeBlocks.length; i++){
@@ -502,9 +524,8 @@ function createEditCommentButton(commentObject, buttonText){
                 makeDraggable(imageCard);
         
                 addCancelButtonToImage(imageCard,imagePreviewDiv );
-                }
-            imagePreviewDiv.removeAttribute("style");
-    
+            }
+            imagePreviewDiv.removeAttribute("style");    
         }
     
         if (commentObject.audioURLs.length){
@@ -531,9 +552,13 @@ function createEditCommentButton(commentObject, buttonText){
         updateCommentButton.addEventListener('click' , event => {
             pauseMedia();
             updateComment();
+            //document.querySelector(".blogViewContent").innerHTML = "";
 
             document.getElementById("CancelUpdateButton").click();
         })
+
+        highlightBlogModeVisibleArea();
+
     });
     return editCommentButton;
 }
@@ -700,6 +725,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             //if there are other comments left in the commentBlock, only remove the deleted comment
             card.remove();
         }
+        deleteBlogPost(comment);
         deleteCommentFromServer(comment);
 
         //rebuild the slider with the new comment pip
@@ -904,11 +930,11 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
 
 //pauses any currently playing videos or audio
 function pauseMedia(){
-    const playing = document.getElementsByClassName('playing');
+    const playing = document.querySelector('.playing');
  
-    if (playing.length){
-        playing[0].pause();
-        playing[0].classList.remove('playing');
+    if (playing){
+        playing.pause();
+        playing.classList.remove('playing');
     }
 }
 
@@ -1758,7 +1784,7 @@ function getDevelopersInADevGroup(devGroupId) {
             if(dev) {
                 devs.push(dev);
             }
-        }
+        } 
     }
     return devs;
 }
@@ -1787,7 +1813,7 @@ function updateCurrentDeveloperGroupAvatars(devGroupId) {
         //get the div that holds the active devs
         const currentDevsDiv = document.getElementById('currentDevsDiv');
         
-        //remove the old images and add new ones 50px height
+        //remove the old images and add new ones 20px height
         currentDevsDiv.innerHTML = '';
         currentDevsDiv.append(getDevImages(activeDevs, 20));
     }
@@ -1806,4 +1832,420 @@ function selectRange(rangeToSelect){
     const windowSelection = window.getSelection();
     windowSelection.removeAllRanges();
     windowSelection.addRange(rangeToSelect);
+}
+
+//creates and displays the blog mode title, description, and all blog posts
+function displayAllBlogPosts(){
+    const blogDiv = document.querySelector(".blogViewContent");
+    blogDiv.innerHTML = "";
+
+    const allComments = getAllComments();
+
+    const titleDivOuter = document.createElement('div');
+    titleDivOuter.classList.add("h1", "blogTitle");
+    const titleTextDiv = document.createElement('div');
+    titleTextDiv.innerHTML = playbackData.playbackTitle;
+    titleDivOuter.append(titleTextDiv)
+    blogDiv.append(titleDivOuter);
+    
+    const outerDeveloperDiv = document.createElement('div');
+    outerDeveloperDiv.classList.add("blogDevelopersDiv");
+    blogDiv.append(outerDeveloperDiv);
+    updateBlogPostDevelopersDiv();
+  
+    for (let i = 0; i < allComments.length; i++){
+        const eventID = allComments[i].getAttribute('data-commenteventid');
+
+        const indexOfComment = playbackData.comments[eventID].findIndex(item => item.id === allComments[i].getAttribute('data-commentid'))
+        const comment = playbackData.comments[eventID][indexOfComment];
+
+        blogDiv.append(createBlogPost(comment));
+    }
+}
+
+//update the blog mode list of authors who have contributed to a comment
+function updateBlogPostDevelopersDiv(){
+    const outerDevDiv = document.querySelector(".blogDevelopersDiv");
+    outerDevDiv.innerHTML = "";
+    //get all unique contributing developerGroupIDs from the comments
+    let developerGroupIDs = new Set();
+    for (const comment in playbackData.comments){
+        for (let i = 0; i < playbackData.comments[comment].length; i++){
+            developerGroupIDs.add(playbackData.comments[comment][i].developerGroupId);
+        }
+    }
+
+    //get all unique members of all the contributing groups
+    let developerIDs = new Set();
+    developerGroupIDs.forEach(developerGroupID => {
+        const groupMembers = playbackData.developerGroups[developerGroupID].memberIds;
+        groupMembers.forEach(memberId => developerIDs.add(memberId));
+    })
+    
+    //create a developer div for each developer
+    let tempDeveloperGroup = [];    
+    developerIDs.forEach(developerID => {
+        if (playbackData.developers[developerID].userName === "Anonymous Developer"){
+            return;
+        }
+
+        tempDeveloperGroup.push(playbackData.developers[developerID]);
+        const developerDiv = getDevImages(tempDeveloperGroup, 30);
+        developerDiv.classList.add('blogDeveloperDiv');
+        developerDiv.firstChild.classList.add("blogDevImage");
+        
+        const devUserName = document.createElement('div');
+        devUserName.classList.add("blogUserName");
+        devUserName.innerHTML = playbackData.developers[developerID].userName;
+
+        developerDiv.append(devUserName);
+
+        //allows an author to not include their email
+        if (playbackData.developers[developerID].email !== ""){
+            const devEmail = document.createElement('a');
+            devEmail.setAttribute('href', `mailto:${playbackData.developers[developerID].email}`);
+            devEmail.classList.add("devEmail");
+            devEmail.title = "Click to send email";
+            devEmail.innerHTML = playbackData.developers[developerID].email;      
+            developerDiv.append(devEmail);
+        }        
+        
+        outerDevDiv.append(developerDiv);
+        
+        tempDeveloperGroup = [];        
+    })
+
+    const separater = document.createElement('hr');
+    separater.classList.add("devDescriptionSeparater");
+    outerDevDiv.append(separater);
+}
+
+let latestVisableBlogPostID; //the id of the last blog post that has been scrolled to. helpful when switching back to code mode
+
+//create a single blog post from a comment
+function createBlogPost(commentToAdd){
+    const blogPost = document.createElement("div");
+    blogPost.classList.add("blogStyle");
+
+    if (commentToAdd.displayCommentEvent.id === "ev--1"){ 
+        blogPost.classList.add("descriptionBlogPost");       
+    }
+
+    const textDiv = document.createElement('div');
+    textDiv.classList.add("blogCommentText");
+    textDiv.innerHTML = commentToAdd.commentText;
+
+    //create an observer that will detect when the comment text is fully on the screen
+    //it will then make the equivalent comment active in comment mode and scroll to it
+    const observer = new IntersectionObserver(function(entries) {
+        if(playbackData.isInBlogMode && entries[0].isIntersecting === true){
+            latestVisableBlogPostID = commentToAdd.id;          
+        }           
+    }, { threshold: [1] });
+    observer.observe(textDiv);
+
+    blogPost.setAttribute("data-commentEventid", commentToAdd.displayCommentEvent.id);
+    blogPost.setAttribute("data-commentid", commentToAdd.id);
+
+    blogPost.append(textDiv);
+
+    if (commentToAdd.imageURLs.length){
+        let imagesDiv = document.createElement('div');
+        imagesDiv.classList.add("blogModeImageDiv");
+
+        for (let i = 0; i < commentToAdd.imageURLs.length; i++){
+            const imgDiv = document.createElement('div');
+            imgDiv.classList.add("blogImageDiv");
+            const img = document.createElement('img');
+            img.classList.add("blogImage");
+            img.src = commentToAdd.imageURLs[i];
+
+            imgDiv.style.height = img.height > 500 ? "500px" : img.height + "px";
+
+            imgDiv.append(img);
+            imagesDiv.append(imgDiv);
+           
+            img.addEventListener('click', function() {
+                document.getElementById('imgToExpand').src = img.src;
+                $('#imgExpandModal').modal('show');      
+            });            
+        }    
+        blogPost.append(imagesDiv);        
+    }
+
+    if (commentToAdd.videoURLs.length){
+        for (let i = 0; i < commentToAdd.videoURLs.length; i++){
+            //create a video and add the required classes
+            const newVideo = document.createElement('video');
+            newVideo.setAttribute('src', commentToAdd.videoURLs[i]);
+            newVideo.setAttribute('controls', '');
+            newVideo.setAttribute('preload', 'metadata');   
+
+            //when a video is played, pause any other media that is playing
+            newVideo.onplay = function(){
+                pauseMedia();
+
+                if (newVideo.closest(".commentCard")){
+                    //make the comment the video is in active
+                    newVideo.closest(".commentCard").click();
+                }
+                newVideo.classList.add("playing");
+            };
+        
+            $(newVideo).on('pause ended', function(){
+                newVideo.classList.remove("playing");
+            });
+            
+            newVideo.classList.add('mediaResizable');                
+
+            const speedControlDiv = createSpeedControlButtonDivForMedia(newVideo);
+
+            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.add("blogSpeedButton")});
+            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.remove("speedButton")}); //TODO this wont be needed when code view gets a dark mode
+
+            speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
+
+            speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
+            speedControlDiv.classList.add("blogVideoFile");
+
+            blogPost.append(speedControlDiv);
+        }
+    }
+
+    if (commentToAdd.audioURLs.length){
+        for (let i = 0; i < commentToAdd.audioURLs.length; i ++){
+            //create a audio and add the required classes
+            const newAudio = document.createElement('audio');
+            newAudio.setAttribute('src', commentToAdd.audioURLs[i]);
+            newAudio.setAttribute('controls', '');
+            newAudio.setAttribute('preload', 'metadata');
+
+            //pause any media that is playing
+            newAudio.onplay = function(){
+                pauseMedia();
+
+                if (newAudio.closest(".commentCard")){
+                    //make the comment the audio is in active
+                    newAudio.closest(".commentCard").click();
+                }        
+                newAudio.classList.add("playing");
+            }
+
+            //removes the playing class from a media file
+            $(newAudio).on('pause ended', function(){
+                newAudio.classList.remove("playing");
+            })                
+         
+            newAudio.classList.add('mediaResizable');
+            newAudio.style.height = 40 + 'px';
+
+            const speedControlDiv = createSpeedControlButtonDivForMedia(newAudio);
+
+            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.add("blogSpeedButton")});
+            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.remove("speedButton")}); //TODO this wont be needed when code view gets a dark mode
+
+            speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
+
+            speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
+            speedControlDiv.classList.add("blogAudioFile");
+            blogPost.append(speedControlDiv);
+        }       
+    } 
+
+    if (commentToAdd.selectedCodeBlocks.length){
+
+        const sliderPosition =  Math.round(document.getElementById('slider').noUiSlider.get());
+        const commentPosition = commentToAdd.displayCommentEvent.eventSequenceNumber + 1;
+
+        step(commentPosition - sliderPosition)
+        
+        const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+        editor.session.selection.clearSelection()
+
+        const blogPostEditor = document.createElement('div')
+        blogPostEditor.classList.add("blogEditorDiv") 
+
+        let blogPostCodeEditor = ace.edit(blogPostEditor);
+        
+        const editorLineCount =  editor.session.getLength() - 1;
+
+        //determining how big to make the new editor
+        let startRow = commentToAdd.selectedCodeBlocks[0].startRow - Number(commentToAdd.linesAbove) > 0 ? commentToAdd.selectedCodeBlocks[0].startRow - Number(commentToAdd.linesAbove) : 0;
+
+        let selectedBlocks = commentToAdd.selectedCodeBlocks;
+        let endRow = selectedBlocks[selectedBlocks.length - 1].endRow + Number(commentToAdd.linesBelow) <= editorLineCount ? selectedBlocks[selectedBlocks.length - 1].endRow + Number(commentToAdd.linesBelow) : editorLineCount;
+       
+
+        endRow = selectedBlocks[selectedBlocks.length - 1].endColumn === 0 ? endRow - 1 : endRow;
+        let endCol = editor.session.getLine(endRow).length;
+
+        
+        //TODO IF start.column.length === start.column , ignore the line
+
+        const selection = new ace.Range(startRow,0,endRow , endCol) 
+        editor.session.selection.addRange(selection);
+
+
+        //prevents extra line due to the '\n'
+        let blogEditorValue = editor.getSelectedText();
+        blogEditorValue = blogEditorValue.endsWith('\n') ? blogEditorValue.substring(0, blogEditorValue.lastIndexOf('\n')) : blogEditorValue;
+       
+        blogPostCodeEditor.setValue(blogEditorValue);
+
+        editor.session.selection.clearSelection();
+        blogPostCodeEditor.session.selection.clearSelection();
+
+        for (let i = 0; i < commentToAdd.selectedCodeBlocks.length; i++){
+            const selection = commentToAdd.selectedCodeBlocks[i];
+            blogPostCodeEditor.getSession().addMarker(new ace.Range(selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn), 'highlight', 'text', true);
+        }
+
+        step(-(commentPosition - sliderPosition));        
+
+        blogPostCodeEditor.setOptions({
+            readOnly: true,
+            theme: 'ace/theme/monokai',
+            maxLines: blogPostCodeEditor.session.getLength(),
+            fontSize: 16,
+            firstLineNumber: startRow + 1,
+            highlightActiveLine: false,
+            showPrintMargin: false
+       });
+
+       blogPostCodeEditor.session.setOptions({
+           mode: editor.session.$modeId,
+           useWorker: false
+       });
+
+        blogPostEditor.append(blogPostCodeEditor);
+
+        blogPost.append(blogPostEditor);       
+       
+    }
+    return blogPost;
+}
+
+//delete a blog post from blog mode
+function deleteBlogPost(commentToDelete){
+    const allBlogPosts = getAllBlogPosts();
+    const indexToDelete = allBlogPosts.findIndex(item => item.getAttribute("data-commentid") === commentToDelete.id);
+    allBlogPosts[indexToDelete].remove();    
+    updateBlogPostDevelopersDiv();
+}
+
+//add a blog post to blog blog mode
+function insertBlogPost(commentToInsert){
+    const allPostedComments = getAllComments();
+    const allBlogPosts = getAllBlogPosts();
+    const indexOfInsertion = allPostedComments.findIndex(item => item.getAttribute("data-commentid") === commentToInsert.id)
+
+    if (indexOfInsertion !== allPostedComments.length - 1){
+        allBlogPosts[0].parentNode.insertBefore(createBlogPost(commentToInsert), allBlogPosts[indexOfInsertion]);
+    }
+    else{
+        allBlogPosts[0].parentNode.appendChild(createBlogPost(commentToInsert));
+    }
+    updateBlogPostDevelopersDiv();
+}
+
+//edit a blog post
+function updateBlogPost(commentToEdit){
+    const allBlogPosts = getAllBlogPosts();
+    const indexOfEdit = allBlogPosts.findIndex(item => item.getAttribute('data-commentid') === commentToEdit.id);
+    allBlogPosts[indexOfEdit].parentNode.replaceChild(createBlogPost(commentToEdit), allBlogPosts[indexOfEdit]);
+    //updateBlogPostDevelopersDiv();
+}
+
+//handles the highlighting of a blog mode preview selection by mouse dragging or by shift+arrow
+function highlightBlogModeVisibleArea(){
+    clearNewCodeHighlights();
+    
+    blogModeHighlightHelper();
+
+    const codePanel = document.querySelector(".codePanel");
+    codePanel.addEventListener('keyup', blogModeHighlightHelperShiftArrow);    
+    codePanel.addEventListener('mouseup', waitToGetSelection);
+}
+
+//handles selection of text using shift+arrow 
+function blogModeHighlightHelperShiftArrow(event){
+    if (event.shiftKey && (event.key === "ArrowRight" || event.key === "ArrowLeft" || event.key === "ArrowDown" || event.key === "ArrowUp")){
+        aceTempRanges = [];
+        waitToGetSelection();
+    }
+}
+
+//without a small wait, the selection isn't updated fast enough
+function waitToGetSelection(){
+    setTimeout(blogModeHighlightHelper, 5);
+}
+
+let aceTempMarker;
+//helper function to assist in the highligting of a blog mode preview
+function blogModeHighlightHelper(){    
+    const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+    
+    const selection = editor.getSelectedText();
+
+    if (selection !== ""){
+        const numbersAbove = Number(blogModeNumberAboveSelector.value);
+        const numbersBelow = Number(blogModeNumberBelowSelector.value);       
+
+        const totalLines = editor.session.getLength() - 1
+
+        const ranges = editor.getSession().getSelection().getAllRanges();
+
+        editor.session.removeMarker(aceTempMarker);
+
+        const startRow = ranges[0].start.row - numbersAbove; //TODO check this
+        let endRow = ranges[ranges.length - 1].end.row + numbersBelow;
+        endRow = ranges[ranges.length - 1].end.column === 0 ? endRow - 1 : endRow;
+        const endCol = editor.session.getLine(endRow).length;
+        //TODO IF start.column.length === start.column , ignore the line  ?
+
+        blogModeNumberAboveSelector.max = ranges[0].start.row;
+        blogModeNumberAboveSelector.value =  blogModeNumberAboveSelector.max > numbersAbove ? numbersAbove : blogModeNumberAboveSelector.max;
+        blogModeNumberBelowSelector.max =  ranges[ranges.length - 1].end.column === 0 ? totalLines - ranges[ranges.length - 1].end.row + 1 : totalLines - ranges[ranges.length - 1].end.row; //TODO clean this up
+        blogModeNumberBelowSelector.value =  blogModeNumberBelowSelector.max > numbersBelow ? numbersBelow : blogModeNumberBelowSelector.max;
+
+        const higlightedRange = new ace.Range(startRow, 0, endRow, endCol); 
+
+        aceTempMarker = editor.session.addMarker(higlightedRange, 'highlight', 'text', true);
+    }else{
+        editor.session.removeMarker(aceTempMarker);
+        clearHighlights();
+
+        blogModeNumberAboveSelector.max = 50;
+        blogModeNumberBelowSelector.max = 50;
+    }
+}
+
+//clears any blog mode preview highlights or selections
+//removes any event listeners added to the editor for selection
+//resets the line above/below buttons to their default states
+function undoBlogModeHighlight(){
+    const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+    editor.session.removeMarker(aceTempMarker)
+    editor.clearSelection();
+
+    const codePanel = document.querySelector(".codePanel");
+    codePanel.removeEventListener('keyup', blogModeHighlightHelperShiftArrow);    
+    codePanel.removeEventListener('mouseup', waitToGetSelection);
+
+    blogModeNumberAboveSelector.max = 50; 
+    blogModeNumberBelowSelector.max = 50;
+    blogModeNumberAboveSelector.value = 3;
+    blogModeNumberBelowSelector.value = 3;
+}
+
+
+//TODO need ones with and without description?
+function getAllComments(){
+    return [...document.querySelectorAll('.codeView [data-commentid]')];
+}
+
+function getAllBlogPosts(){
+    return [...document.querySelectorAll(".blogView [data-commentid]")];
 }

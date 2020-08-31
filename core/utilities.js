@@ -51,8 +51,6 @@ function unescapeSpecialCharacter(character) {
     
     if(character === 'NEWLINE') {
         retVal = '\n';
-    } else if (character === 'CR-LF') {
-        retVal = '\r\n';
     } else if (character === 'TAB') {
         retVal = '\t';
     }
