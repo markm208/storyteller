@@ -712,7 +712,7 @@ function setupEventListeners()
     let timer = null;
 
     // Set up an event handler for mousedown
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
         button.addEventListener("mousedown", function(){
             const buttonParent = button.parentNode.querySelector('input[type=number]');
             buttonParent.stepUp();
@@ -726,14 +726,14 @@ function setupEventListeners()
         });
     }) 
 
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
         button.addEventListener("mouseup", function(){
             clearInterval(timer);
             blogModeHighlightHelper();            
         })
     }) 
 
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
        button.addEventListener("mouseleave", function(){
         clearInterval(timer);
         blogModeHighlightHelper();
@@ -741,7 +741,7 @@ function setupEventListeners()
     });
 
     // Set up an event handler for mousedown
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
         button.addEventListener("mousedown", function(){
             const buttonParent = button.parentNode.querySelector('input[type=number]');
             buttonParent.stepDown();
@@ -755,14 +755,14 @@ function setupEventListeners()
         });
     }) 
 
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
         button.addEventListener("mouseup", function(){
             clearInterval(timer);
             blogModeHighlightHelper();            
         })
     }) 
 
-    document.querySelector(".testGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
+    document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonDown").forEach(function(button){
        button.addEventListener("mouseleave", function(){
         clearInterval(timer);
         blogModeHighlightHelper();

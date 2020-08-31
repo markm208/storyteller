@@ -1955,8 +1955,11 @@ function createBlogPost(commentToAdd){
             const imgDiv = document.createElement('div');
             imgDiv.classList.add("blogImageDiv");
             const img = document.createElement('img');
-            img.classList.add("blogImage")
+            img.classList.add("blogImage");
             img.src = commentToAdd.imageURLs[i];
+
+            imgDiv.style.height = img.height > 500 ? "500px" : img.height + "px";
+
             imgDiv.append(img);
             imagesDiv.append(imgDiv);
            
@@ -1994,6 +1997,10 @@ function createBlogPost(commentToAdd){
             newVideo.classList.add('mediaResizable');                
 
             const speedControlDiv = createSpeedControlButtonDivForMedia(newVideo);
+
+            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.add("blogSpeedButton")});
+            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.remove("speedButton")}); //TODO this wont be needed when code view gets a dark mode
+
             speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
 
             speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
@@ -2031,6 +2038,10 @@ function createBlogPost(commentToAdd){
             newAudio.style.height = 40 + 'px';
 
             const speedControlDiv = createSpeedControlButtonDivForMedia(newAudio);
+
+            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.add("blogSpeedButton")});
+            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.remove("speedButton")}); //TODO this wont be needed when code view gets a dark mode
+
             speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
 
             speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");

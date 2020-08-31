@@ -595,13 +595,13 @@ body.popup .toast-popup * {
 
 .blogModeImageDiv{
     /* height: 500px; */
-    text-align: center;
-    
+    text-align: center;     
 }
 
 .blogImageDiv{
     height: 500px;
     margin-bottom: 5px;
+    padding: 10px;   
 }
 
 .blogEditorDiv{
@@ -709,10 +709,21 @@ input[type=number]::-webkit-outer-spin-button {
     margin-top: 20px;
 }
 
+/* TODO wont need these when code view gets dark mode */
+.blogSpeedButton{
+    background-color: rgb(51,51,51);
+    color: grey;
+    background: transparent;
+    padding: 0;   
+    border: none;
+}
 
-
-
-
+.blogSpeedButton:hover,.blogSpeedButton:focus,.blogSpeedButton:active{
+    background: lightgrey;
+    background-color: lightgray;
+    outline: none !important;
+    box-shadow: none;
+}
 
 
 .lineButtonUp:active,
