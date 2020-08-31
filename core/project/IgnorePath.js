@@ -62,6 +62,10 @@ class IgnorePath {
         //ignore changes to the file named /st-ignore.json in the project dir
         } else if(pathToFileOrDir === `${utilities.storytellerPathSeparator}st-ignore.json`) {
             retVal = true;
+        } else if(pathToFileOrDir.endsWith('.DS_Store')) {
+            retVal = true;
+        } else if(pathToFileOrDir.endsWith('.zip')) {
+            retVal = true;
         //if there was a st-ignore file read in on startup
         } else if(this.stIgnoreFileIsPresent === true) {
             //pick apart the file/dir path

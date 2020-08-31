@@ -22,9 +22,9 @@ class CommentManager extends FileBackedCollection {
         this.pathToTempDir = path.join(this.fullPathToParentDir, 'media', '.tmp');
 
         //create web paths to the media directories to return relative urls of media
-        this.webPathToImagesDir = path.posix.join(path.posix.sep, 'media', 'images');
-        this.webPathToVideosDir = path.posix.join(path.posix.sep, 'media', 'videos');
-        this.webPathToAudiosDir = path.posix.join(path.posix.sep, 'media', 'audios');
+        this.webPathToImagesDir = path.posix.join('media', 'images');
+        this.webPathToVideosDir = path.posix.join('media', 'videos');
+        this.webPathToAudiosDir = path.posix.join('media', 'audios');
 
         //if the json file exists
         if(this.fileExists()) {

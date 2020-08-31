@@ -58,6 +58,7 @@ function activate(context) {
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.addDevelopersToActiveGroup', addDevelopersToActiveGroup));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.removeDevelopersFromActiveGroup', removeDevelopersFromActiveGroup));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipProject', zipProject));
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipViewablePlayback', zipViewablePlayback));
 
     //if there is an open workspace then attempt to open storyteller without requiring user interaction
     if(vscode.workspace.workspaceFolders) {
@@ -1198,7 +1199,7 @@ async function zipProject() {
             canSelectFolders: true,
             canSelectMany: false,
             defaultUri: vscode.workspace.workspaceFolders[0].uri,
-            openLabel: 'Save st.zip',
+            openLabel: 'Save stProject.zip',
             title: 'Choose a folder to store the Storyteller zip'
         });
 
@@ -1220,15 +1221,16 @@ async function zipProject() {
                 compressionOptions: {
                     level: 9
                 }
-            }).pipe(fs.createWriteStream(path.join(zipStorageFolders[0].fsPath, 'st.zip'))).on('finish', function () {
+            }).pipe(fs.createWriteStream(path.join(zipStorageFolders[0].fsPath, 'stProject.zip'))).on('finish', function () {
                 //notify user that the zip is complete
-                vscode.window.showInformationMessage(`A new zip file, st.zip, has been added to the ${zipStorageFolders[0].fsPath} directory. You can share this file with others.`);
+                vscode.window.showInformationMessage(`A new zip file, stProject.zip, has been added to the ${zipStorageFolders[0].fsPath} directory. You can share this file with others.`);
             });
         }
     }
 }
 /*
- * Helper that recursively moves through the file system
+ * Helper that recursively moves through the file system and copies files and
+ * directories from the project directory.
  */
 function zipProjectHelper(dirPath, zip) {
     //get all of the files and dirs in the passed in directory
@@ -1250,7 +1252,7 @@ function zipProjectHelper(dirPath, zip) {
             normalizedFilePath = normalizedFilePath.substr(1);
 
             //read the contents of the file
-            const fileContents = fs.readFileSync(fullPathToFileOrDir, 'utf8');
+            const fileContents = fs.readFileSync(fullPathToFileOrDir);
             
             //add the file to the zip
             zip.file(normalizedFilePath, fileContents);
@@ -1265,6 +1267,126 @@ function zipProjectHelper(dirPath, zip) {
             //recurse and add the files in the dir to the zip
             zipProjectHelper(fullPathToFileOrDir, zip);
         }
+    }
+}
+/*
+ * Used to create a zip file of the static files needed to view a playback in a 
+ * browser from the file system without requiring a web server. 
+ * These can be shared with others who would like to view a playback but do not
+ * have the extension installed.
+ */
+async function zipViewablePlayback() {
+    //if st is active
+    if(isStorytellerCurrentlyActive) {
+        //prompt for where to store the zip file
+        let zipStorageFolders = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            defaultUri: vscode.workspace.workspaceFolders[0].uri,
+            openLabel: 'Save playbackOnly.zip',
+            title: 'Choose a folder to store the playback zip'
+        });
+
+        //if there was a selected location
+        if(zipStorageFolders.length > 0) {
+            //create an instance of jszip
+            const zip = new JSZip();
+
+            //get the path to the open project and the hidden st directory
+            const projectDirPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+            //add the required static file for playback to the zip
+            zipPlaybackHelper(projectDirPath, zip);
+
+            //create and save the zip in the .storyteller dir
+            zip.generateNodeStream({
+                streamFiles: true,
+                compression: 'DEFLATE',
+                compressionOptions: {
+                    level: 9
+                }
+            }).pipe(fs.createWriteStream(path.join(zipStorageFolders[0].fsPath, 'playbackOnly.zip'))).on('finish', function () {
+                //notify user that the zip is complete
+                vscode.window.showInformationMessage(`A new zip file, playbackOnly.zip, has been added to the ${zipStorageFolders[0].fsPath} directory. You can share this file with others.`);
+            });
+        }
+    }
+}
+/*
+ * Helper that adds the static files necessary for playback to a zip. It copies
+ * the files from the 'public' directory and adds the media files. In addition, 
+ * it adds a file, js/loadPlayback.js with all of the playback data in it.
+ * This way a playback can be viewed from the file system without requiring a 
+ * web server
+ */
+function zipPlaybackHelper(projectDirPath, zip) {
+    //copy the public folder from this project to the zip
+    const publicDirPath = path.join(__dirname, 'core', 'public');
+    
+    //zip up the public directory in this repo 
+    zipPublicHelper(publicDirPath, zip);
+
+    //add the file loadPlayback.js to the zip
+    zip.file('js/loadPlayback.js', projectManager.getPlaybackData(false));
+    
+    //add the media files
+    addMediaToZip(projectDirPath, 'images', zip);
+    addMediaToZip(projectDirPath, 'videos', zip);
+    addMediaToZip(projectDirPath, 'audios', zip);
+}
+/* 
+ * Copies the js files required for playback (minus the storyteller data file) 
+ * to the the zip.
+ */
+function zipPublicHelper(dirPath, zip) {
+    //copy the public folder to the zip
+    const publicDirPath = path.join(__dirname, 'core', 'public');
+    //get all of the files and dirs in the public directory
+    const allFilesAndDirs = fs.readdirSync(dirPath);
+    
+    //go through the contents of the public dir
+    for (let i = 0; i < allFilesAndDirs.length; i++) {
+        const fileOrDirName = allFilesAndDirs[i];
+        //get the full path to the file or directory
+        const fullPathToFileOrDir = path.join(dirPath, fileOrDirName);
+        const relativePathToFileOrDir = fullPathToFileOrDir.substring(publicDirPath.length + 1).split('\\').join('/');
+        //get some stats about the file/dir
+        const stats = fs.statSync(fullPathToFileOrDir);
+
+        //if this is a file
+        if(stats.isFile()) {
+            //read the contents of the file
+            const fileContents = fs.readFileSync(fullPathToFileOrDir);
+            
+            //add the file to the zip
+            zip.file(relativePathToFileOrDir, fileContents);
+        } else if(stats.isDirectory()) {
+            //add the folder to the zip (for empty dirs)
+            zip.folder(relativePathToFileOrDir);
+
+            //recurse and add the files in the dir to the zip
+            zipPublicHelper(fullPathToFileOrDir, zip);
+        }
+    }
+}
+/* 
+ * Adds the comments media files to the zip
+ */
+function addMediaToZip(dirPath, mediaType, zip) {
+    //get the full path to the media directory in the st project 
+    const pathToImageMedia = path.join(dirPath, '.storyteller', 'comments', 'media', mediaType);
+    //get all of the media files in the directory
+    const allFiles = fs.readdirSync(pathToImageMedia);
+    
+    //go through the contents of the dir
+    for (let i = 0; i < allFiles.length; i++) {
+        const fileName = allFiles[i];
+        //get the full path to the file or directory
+        const fullPathToFile = path.join(pathToImageMedia, fileName);
+        //read the file and store it in the zip
+        const fileBuffer = fs.readFileSync(fullPathToFile);
+        zip.file(`media/${mediaType}/${fileName}`, fileBuffer);
     }
 }
 

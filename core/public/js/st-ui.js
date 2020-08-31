@@ -94,7 +94,7 @@ function displayAllComments(){
 
         let startingValue = 0;        
 
-        if (`ev-${key}` === 'ev--1')
+        if (`ev-${key}` === 'ev-0')
         {
             const descriptionInfo = commentBlock[0];
             const titleCard = createTitleCard(descriptionInfo);
@@ -171,9 +171,9 @@ function displayAllComments(){
         outerCommentGroup.append(commentGroupDiv);
         commentsDiv.append(outerCommentGroup);
 
-        const atEventNegOne = `ev-${key}` === 'ev--1';
+        const isDescriptionComment = `ev-${key}` === 'ev-0';
 
-        const displayEditCommentButton = (atEventNegOne && commentBlock.length > 1) || !atEventNegOne;
+        const displayEditCommentButton = (isDescriptionComment && commentBlock.length > 1) || !isDescriptionComment;
         if (playbackData.isEditable && displayEditCommentButton){
             
             //create the edit Comment button
@@ -188,7 +188,7 @@ function displayAllComments(){
                 stopAutomaticPlayback();
 
                 //for each element with class "drag", make draggable as long as there is more than 1 comment in the comment block   
-                if ((atEventNegOne && commentBlock.length > 2 ) || (!atEventNegOne && commentBlock.length > 1)){
+                if ((isDescriptionComment && commentBlock.length > 2 ) || (!isDescriptionComment && commentBlock.length > 1)){
                     $('.drag', "#" + commentGroupDiv.id).each(function(){                    
                         makeDraggable(this, key);
                     });
@@ -318,8 +318,8 @@ function createTitleCard(descriptionInfo)
     titleCard.setAttribute('id', 'title-card');
 
     titleCard.addEventListener('click', function (e){ 
-        //step to the event this comment is at
-        step(descriptionInfo.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+        //step back to the first relevant event
+        step(playbackData.numNonRelevantEvents - playbackData.nextEventPosition);
 
         updateActiveComment(titleCard);
     });
@@ -347,9 +347,11 @@ function createTitleCard(descriptionInfo)
     descriptionFooter.classList.add("card-footer","small", "p-0", "commentCardBodyColor");
     descriptionFooter.style.textAlign = "right";
 
-    const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
-
-    descriptionFooter.append(editDescriptionButton);
+    //only if the playback is editable should the edit button show up 
+    if(playbackData.isEditable) {
+        const editDescriptionButton = createEditCommentButton(descriptionInfo, "Edit Description");
+        descriptionFooter.append(editDescriptionButton);
+    }
 
     //assemble the pieces of the card
     titleCard.append(descriptionFooter);
@@ -710,7 +712,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
 
         //TODO might not need this anymore
         //remove the accept button if there are no more comments but leave description
-        if (eventID === "ev--1" && commentBlock.length < 2){
+        if (eventID === "ev-0" && commentBlock.length < 2){
             $('#' + "accept" + uniqueNumber).remove();
         }
 
@@ -1062,7 +1064,7 @@ function makeDraggable(param, key){
             const commentPositionObject = {                
                 eventId: comment.displayCommentEvent.id,
                 oldCommentPosition,
-                newCommentPosition: key === -1 ? newCommentPosition + 2 : newCommentPosition
+                newCommentPosition: key === 0 ? newCommentPosition + 2 : newCommentPosition
             };
 
             //update playbackData with the changes

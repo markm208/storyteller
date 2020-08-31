@@ -1,87 +1,40 @@
-//this is a sample js file that can be served for playback. All js files added
-//for playback should be placed in /core/public/js/ and the storyteller server
-//will serve these. 
-
-
-//We can use classes here instead of plain functions
-
+/*
+ *
+ */
 async function initializePlayback()
 {
-
-    try {
-        const playbackInfo = await Promise.all([
-            fetch('/event'),
-            fetch('/comment'),
-            fetch('/playbackEditable'),
-            fetch('/developer'),
-            fetch('/developerGroup'),
-            fetch('/project')
-
-        ]);
-        
-
-        const results = await Promise.all([
-            playbackInfo[0].json(),
-            playbackInfo[1].json(),
-            playbackInfo[2].json(),
-            playbackInfo[3].json(),
-            playbackInfo[4].json(),
-            playbackInfo[5].json()
-        ]);       
-
-        playbackData.events = results[0];
-        playbackData.comments = results[1];
-        playbackData.numEvents = playbackData.events.length;
-        playbackData.isEditable = results[2].editable;
-        playbackData.developers = results[3];
-        playbackData.developerGroups = results[4];
-        playbackData.playbackTitle = results[5].title;
-        playbackData.branchId = results[5].branchId;
-
-        //determines how many non-relevant events there are
-        for (let i = 0; i < playbackData.events.length; i++){
-            if (playbackData.events[i].permanentRelevance === "never relevant"){
-                playbackData.numNonRelevantEvents++;               
-            }
-            else{
-                break;
-            }
+    //call the function to load the playbackData object with data
+    loadPlaybackData();
+    
+    //determines how many non-relevant events there are
+    for (let i = 0; i < playbackData.events.length; i++){
+        if (playbackData.events[i].permanentRelevance === "never relevant"){
+            playbackData.numNonRelevantEvents++;               
+        } else {
+            break;
         }
+    }
 
-        setUpSlider();
-        step(playbackData.numNonRelevantEvents);
+    //set up the slider and move to the first relevant event
+    setUpSlider();
+    step(playbackData.numNonRelevantEvents);
 
+    //displays all comments
+    displayAllComments();
 
-        if (!playbackData.comments['ev--1'])
-        {
-            const newDescription = createCommentObject('Insert DESCRIPTION here.', {id: 'ev--1', eventSequenceNumber: -1}, [], [], [], [], 0, 0);
+    //create the blog view of the playback
+    displayAllBlogPosts();
 
-            const descrFromServer = await sendCommentToServer(newDescription);
+    //Sets up the event listeners for html elements on the page
+    setupEventListeners();
 
-            playbackData.comments['ev--1'] = [];
-            playbackData.comments['ev--1'].push(descrFromServer);
-
-        }
-
-        console.log(playbackData.comments);
-
-        //displays all comments
-        displayAllComments();
-
-        displayAllBlogPosts();
-      
-        //Sets up the event listeners for html elements on the page
-        setupEventListeners();
-
+    //if this is an editable playback
+    if(playbackData.isEditable) {
         //grab any existing media from the server and display it in the media control modal
         initImageGallery();
+    }
 
-
-        console.log('Success Initializing Playback');
-
-    } catch(err) {
-        console.log(err);
-    } 
+    console.log('Success Initializing Playback');
 }
 
 // Puts together a full comment object to be pushed to the server
@@ -359,20 +312,10 @@ function setupEventListeners()
         if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length)
         {
             //get the event to playback this comment
-            let eventIndex = playbackData.nextEventPosition - 1;
+            const eventIndex = playbackData.nextEventPosition - 1;
 
-            let commentEvent;
+            const commentEvent = playbackData.events[eventIndex];
 
-            //accounts for comments at event -1
-            if (eventIndex >= 0)
-            {
-                commentEvent = playbackData.events[eventIndex];
-            }
-            else
-            {
-                commentEvent = {id: 'ev--1', eventSequenceNumber: -1};
-            }
-          
             //create an object that has all of the comment info
             const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue)
 
@@ -499,7 +442,7 @@ function setupEventListeners()
         stopAutomaticPlayback();
 
         //generate a list of all comment divs
-        const allCommentDivs = [...document.getElementsByClassName("drag")];
+        const allCommentDivs = [...document.querySelectorAll('[data-commenteventid]:not(#title-card)')];
 
         //get the currently selected comment div, if any
         const selectedComment = document.getElementsByClassName("activeComment")[0];      
@@ -518,7 +461,7 @@ function setupEventListeners()
                 commentBlock = playbackData.comments["ev-" + eventNum];
 
                 //if the description doesn't have a comment, ignore it
-                if (eventNum++ === -1 && commentBlock.length === 1){
+                if (eventNum++ === 0 && commentBlock.length === 1){
                     commentBlock = null;
                 }
             }
@@ -819,7 +762,7 @@ function setUpSliderTickMarks(){
         const firstCommentAtPoint = allCommentsAtPoint[0];       
         
         //if this is not the description comment
-        if(firstCommentAtPoint.displayCommentEvent.eventSequenceNumber !== -1) {
+        if(firstCommentAtPoint.displayCommentEvent.eventSequenceNumber !== 0) {
             //comment tick marks are numbered to slide into the comment
             commentPositions.push(firstCommentAtPoint.displayCommentEvent.eventSequenceNumber + 1);
         }
@@ -862,7 +805,7 @@ function setUpClickableTickMarks(){
         //add the clickable element that will bring us to the comment
         tickMark.addEventListener('click', event => { 
             //determine if the description tick mark was clicked   
-            const eventNum = pipValue === 0 ? -1 : pipValue; 
+            const eventNum = pipValue === playbackData.numNonRelevantEvents - 1 ? 0 : pipValue; 
 
             document.querySelector(`.codeView [data-commenteventid="ev-${eventNum}"]`).click();                               
         })               
@@ -923,7 +866,7 @@ function jumpToPreviousComment()
     //if activeComment hasn't been assigned, then no comment was found at, or behind the slider position
     //make the description active
     else{
-        document.querySelector(`.codeView [data-commenteventid="ev--1"`).click(); 
+        document.querySelector(`.codeView [data-commenteventid="ev-0"`).click(); 
     }      
 }
 
@@ -1190,7 +1133,8 @@ async function updateComment(){
         const newComment = await updateCommentOnServer(comment);        
 
 
-        for (let i = newComment.displayCommentEvent.id === -1 ? 2 : 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
+        //replace the old comment with the new one
+        for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
             if (playbackData.comments[newComment.displayCommentEvent.id][i].id === newComment.id){
                 playbackData.comments[newComment.displayCommentEvent.id].splice(i , 1, newComment);
                 break;
