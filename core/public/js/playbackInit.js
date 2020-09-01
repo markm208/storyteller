@@ -38,7 +38,7 @@ async function initializePlayback()
 }
 
 // Puts together a full comment object to be pushed to the server
-function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow)
+function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText)
 {
     const comment = {
         commentText,
@@ -49,7 +49,9 @@ function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidUR
         videoURLs: vidURLs,
         audioURLs: audioURLs,
         linesAbove: linesAbove,
-        linesBelow: linesBelow
+        linesBelow: linesBelow,
+        currentFilePath: currentFilePath,
+        viewableBlogText: viewableBlogText  
     };    
 
     return comment;
@@ -308,6 +310,14 @@ function setupEventListeners()
             }            
         }  
        
+        let viewableBlogText = "";
+        if (rangeArray.length){
+            editor.selection.setRange(aceTempRange)
+            viewableBlogText = editor.getSelectedText();    
+        }
+
+       const currentFilePath = document.querySelector(".st-editor-tab.active").title;
+
         //if there was a comment, or at least one media file
         if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length)
         {
@@ -317,7 +327,7 @@ function setupEventListeners()
             const commentEvent = playbackData.events[eventIndex];
 
             //create an object that has all of the comment info
-            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue)
+            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText);
 
             //determine if any comments already exist for this event 
             //if so add the new comment
@@ -341,8 +351,7 @@ function setupEventListeners()
             setUpSliderTickMarks();
 
             document.getElementById("CancelUpdateButton").click();
-            document.querySelector(`.codeView [data-commentid="${newComment.id}"]`).click();
-            
+            document.querySelector(`.codeView [data-commentid="${newComment.id}"]`).click();            
         }
     });
 
@@ -394,6 +403,7 @@ function setupEventListeners()
         const keyPressed = e.key;
         const shiftPressed = e.shiftKey;
         const ctrlPressed = e.ctrlKey;
+        const altPressed = e.altKey;
 
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
@@ -434,6 +444,12 @@ function setupEventListeners()
                     jumpToPreviousComment();
                 }
             }
+        }
+        else if (keyPressed === "c" && altPressed){
+            document.getElementById('mainAddCommentButton').click();
+        }
+        else if (keyPressed === "Escape"){
+           document.activeElement.blur();
         }
     });
 
@@ -622,7 +638,7 @@ function setupEventListeners()
             document.getElementById("blogMode").classList.add("activeModeButton");
 
             document.querySelector(".codeView").classList.add('modeFormat');
-            document.querySelector(".blogView").classList.remove("modeFormat");
+            document.querySelector(".blogView").classList.remove("modeFormat");            
 
             document.body.classList.remove("codeViewBody")
             document.body.classList.add("blogModeBody")
@@ -1111,13 +1127,19 @@ async function updateComment(){
             rangeArray.push(rangeObj);
         }
     }  
+
+    let viewableBlogText = "";
+    if (rangeArray.length){
+        editor.selection.setRange(aceTempRange)
+        viewableBlogText = editor.getSelectedText();
+    }
+
+   const currentFilePath = document.querySelector(".st-editor-tab.active").title;
    
     //if there was a comment, or at least one media file
-    if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length)
-    {     
-      
+    if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length){   
         //create an object that has all of the comment info
-        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue)
+        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText);
         //add the developer group id to the comment object and its id
         comment.developerGroupId = commentObject.developerGroupId;
         comment.id = commentObject.id;

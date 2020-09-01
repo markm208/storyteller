@@ -1927,7 +1927,7 @@ function createBlogPost(commentToAdd){
     const blogPost = document.createElement("div");
     blogPost.classList.add("blogStyle");
 
-    if (commentToAdd.displayCommentEvent.id === "ev--1"){ 
+    if (commentToAdd.displayCommentEvent.id === "ev-0"){ 
         blogPost.classList.add("descriptionBlogPost");       
     }
 
@@ -1960,15 +1960,17 @@ function createBlogPost(commentToAdd){
             img.classList.add("blogImage");
             img.src = commentToAdd.imageURLs[i];
 
-            imgDiv.style.height = img.height > 500 ? "500px" : img.height + "px";
+            img.addEventListener('load', function(){
+                imgDiv.style.height = img.height > 500 ? "500px" : img.height + "px";
+            });
 
-            imgDiv.append(img);
-            imagesDiv.append(imgDiv);
-           
             img.addEventListener('click', function() {
                 document.getElementById('imgToExpand').src = img.src;
                 $('#imgExpandModal').modal('show');      
-            });            
+            });       
+
+            imgDiv.append(img);
+            imagesDiv.append(imgDiv);     
         }    
         blogPost.append(imagesDiv);        
     }
@@ -2052,13 +2054,7 @@ function createBlogPost(commentToAdd){
         }       
     } 
 
-    if (commentToAdd.selectedCodeBlocks.length){
-
-        const sliderPosition =  Math.round(document.getElementById('slider').noUiSlider.get());
-        const commentPosition = commentToAdd.displayCommentEvent.eventSequenceNumber + 1;
-
-        step(commentPosition - sliderPosition)
-        
+    if (commentToAdd.viewableBlogText && commentToAdd.viewableBlogText.length){
         const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
 
         editor.session.selection.clearSelection()
@@ -2067,31 +2063,15 @@ function createBlogPost(commentToAdd){
         blogPostEditor.classList.add("blogEditorDiv") 
 
         let blogPostCodeEditor = ace.edit(blogPostEditor);
-        
-        const editorLineCount =  editor.session.getLength() - 1;
 
+        const blogPostFileNameDiv = document.createElement('div');
+        blogPostFileNameDiv.classList.add("blogPostFileName")
+        blogPostFileNameDiv.innerText = commentToAdd.currentFilePath;
+        
         //determining how big to make the new editor
         let startRow = commentToAdd.selectedCodeBlocks[0].startRow - Number(commentToAdd.linesAbove) > 0 ? commentToAdd.selectedCodeBlocks[0].startRow - Number(commentToAdd.linesAbove) : 0;
-
-        let selectedBlocks = commentToAdd.selectedCodeBlocks;
-        let endRow = selectedBlocks[selectedBlocks.length - 1].endRow + Number(commentToAdd.linesBelow) <= editorLineCount ? selectedBlocks[selectedBlocks.length - 1].endRow + Number(commentToAdd.linesBelow) : editorLineCount;
-       
-
-        endRow = selectedBlocks[selectedBlocks.length - 1].endColumn === 0 ? endRow - 1 : endRow;
-        let endCol = editor.session.getLine(endRow).length;
-
         
-        //TODO IF start.column.length === start.column , ignore the line
-
-        const selection = new ace.Range(startRow,0,endRow , endCol) 
-        editor.session.selection.addRange(selection);
-
-
-        //prevents extra line due to the '\n'
-        let blogEditorValue = editor.getSelectedText();
-        blogEditorValue = blogEditorValue.endsWith('\n') ? blogEditorValue.substring(0, blogEditorValue.lastIndexOf('\n')) : blogEditorValue;
-       
-        blogPostCodeEditor.setValue(blogEditorValue);
+        blogPostCodeEditor.setValue(commentToAdd.viewableBlogText);
 
         editor.session.selection.clearSelection();
         blogPostCodeEditor.session.selection.clearSelection();
@@ -2100,8 +2080,6 @@ function createBlogPost(commentToAdd){
             const selection = commentToAdd.selectedCodeBlocks[i];
             blogPostCodeEditor.getSession().addMarker(new ace.Range(selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn), 'highlight', 'text', true);
         }
-
-        step(-(commentPosition - sliderPosition));        
 
         blogPostCodeEditor.setOptions({
             readOnly: true,
@@ -2114,12 +2092,13 @@ function createBlogPost(commentToAdd){
        });
 
        blogPostCodeEditor.session.setOptions({
-           mode: editor.session.$modeId,
+           mode: getEditorModeForFilePath(commentToAdd.currentFilePath),
            useWorker: false
        });
 
         blogPostEditor.append(blogPostCodeEditor);
 
+        blogPost.append(blogPostFileNameDiv);
         blogPost.append(blogPostEditor);       
        
     }
@@ -2182,6 +2161,7 @@ function waitToGetSelection(){
 }
 
 let aceTempMarker;
+let aceTempRange;
 //helper function to assist in the highligting of a blog mode preview
 function blogModeHighlightHelper(){    
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
@@ -2210,6 +2190,7 @@ function blogModeHighlightHelper(){
         blogModeNumberBelowSelector.value =  blogModeNumberBelowSelector.max > numbersBelow ? numbersBelow : blogModeNumberBelowSelector.max;
 
         const higlightedRange = new ace.Range(startRow, 0, endRow, endCol); 
+        aceTempRange = higlightedRange;
 
         aceTempMarker = editor.session.addMarker(higlightedRange, 'highlight', 'text', true);
     }else{

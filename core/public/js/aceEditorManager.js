@@ -9,6 +9,13 @@ function setEditorMode(thisEditor, filePath){
     //sets the passed Ace editor to the correct mode
     thisEditor.session.setMode(mode);
 }
+
+//Returns the correct mode for the passed in filePath
+function getEditorModeForFilePath(filePath){
+    const modelist = ace.require("ace/ext/modelist");
+    return modelist.getModeForPath(filePath).mode;
+}
+
 /*
  * Creates an Ace editor
  */
