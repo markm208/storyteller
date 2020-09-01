@@ -774,3 +774,17 @@ input[type=number]::-webkit-outer-spin-button {
     border: 3px solid rgb(37,37,37);
   }
   
+
+  .blogPostFileName{
+    color: grey;
+    text-align: right;
+  }
+
+  .imgExpandHeader{
+    background-color: rgb(31,31,31);
+    border-bottom: none;
+  }
+
+  .imgExpandBody{
+    background-color: rgb(31,31,31);
+  }
