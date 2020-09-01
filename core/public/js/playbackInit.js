@@ -403,6 +403,7 @@ function setupEventListeners()
         const keyPressed = e.key;
         const shiftPressed = e.shiftKey;
         const ctrlPressed = e.ctrlKey;
+        const altPressed = e.altKey;
 
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
@@ -443,6 +444,12 @@ function setupEventListeners()
                     jumpToPreviousComment();
                 }
             }
+        }
+        else if (keyPressed === "c" && altPressed){
+            document.getElementById('mainAddCommentButton').click();
+        }
+        else if (keyPressed === "Escape"){
+           document.activeElement.blur();
         }
     });
 
