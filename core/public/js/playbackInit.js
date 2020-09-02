@@ -1,3 +1,5 @@
+
+
 /*
  *
  */
@@ -396,14 +398,13 @@ function setupEventListeners()
     document.addEventListener('keydown', function(e){    
 
         //prevent keyboard presses within the comment textbox from triggering actions 
-        if (e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv'){
+        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv'){
             return;
         }
        
         const keyPressed = e.key;
         const shiftPressed = e.shiftKey;
         const ctrlPressed = e.ctrlKey;
-        const altPressed = e.altKey;
 
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
@@ -445,11 +446,11 @@ function setupEventListeners()
                 }
             }
         }
-        else if (keyPressed === "c" && altPressed){
+        else if (keyPressed === "c" && ctrlPressed){
             document.getElementById('mainAddCommentButton').click();
         }
-        else if (keyPressed === "Escape"){
-           document.activeElement.blur();
+        else if (keyPressed === "Escape"){            
+            document.getElementById("CancelUpdateButton").click();
         }
     });
 
