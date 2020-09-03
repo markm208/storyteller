@@ -118,7 +118,7 @@ function setupEventListeners()
     //Setup the title buttons and data
     const playbackTitleDiv = document.getElementById('playbackTitleDiv');
     playbackTitleDiv.innerHTML = playbackData.playbackTitle;
-    const editTitleButton = document.getElementById('editTitleButton');
+    //const editTitleButton = document.getElementById('editTitleButton');
 
     // editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
 
