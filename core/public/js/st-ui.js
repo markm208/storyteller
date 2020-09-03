@@ -347,13 +347,13 @@ function createTitleCard(descriptionInfo)
        acceptTitleChanges.classList.remove("titleButtonNonActive");
 
        titleDiv.addEventListener('keydown', function(e) {
-        if (e.key === "Enter"){
-            e.preventDefault();
-            e.stopPropagation(); //TODO figure out why this is triggering twice
-            acceptTitleChanges.click();
-            document.activeElement.blur();
-        }
-    })
+            if (e.key === "Enter"){
+                e.preventDefault();
+                e.stopPropagation(); //TODO figure out why this is triggering twice
+                acceptTitleChanges.click();
+                document.activeElement.blur();
+            }
+        })
 
     });
 
@@ -2071,9 +2071,6 @@ function createBlogPost(commentToAdd){
 
             const speedControlDiv = createSpeedControlButtonDivForMedia(newVideo);
 
-            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.add("blogSpeedButton")});
-            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.remove("speedButton")}); //TODO this wont be needed when code view gets a dark mode
-
             speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
 
             speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
@@ -2111,9 +2108,6 @@ function createBlogPost(commentToAdd){
             newAudio.style.height = 40 + 'px';
 
             const speedControlDiv = createSpeedControlButtonDivForMedia(newAudio);
-
-            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.add("blogSpeedButton")});
-            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.remove("speedButton")}); //TODO this wont be needed when code view gets a dark mode
 
             speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
 

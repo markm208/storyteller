@@ -313,6 +313,7 @@
 .playbackViewFileOrDirList
 {
     list-style-type: none;
+    color: grey;
 }
 
 .playbackWindow {
@@ -333,10 +334,10 @@
 }
 
 .speedButton{
-    color: black;
+    background-color: rgb(51,51,51);
+    color: grey;
     background: transparent;
-    padding: 0;
-    background: whitesmoke;
+    padding: 0;   
     border: none;
 }
 
@@ -361,7 +362,15 @@
     min-height: 200px;
     overflow: auto;
     resize: vertical;
+    background-color: rgb(51, 51, 51);
+    color: grey;
 }
+
+.storytellerCommentEditable:focus{
+    background-color: rgb(51, 51, 51);
+    color: grey;
+}
+
 /* Create an active/current tablink class */
 .tab button.active {
     background-color: #ccc;
@@ -885,4 +894,39 @@ input[type=number]::-webkit-outer-spin-button {
 
   .titleButtonNonActive{
     display: none;
+  }
+
+  .card-body{
+    background-color: rgb(31,31,31);
+  }
+
+  .modal-body{
+      background-color: rgb(31,31,31);
+      
+  }
+
+  .modal-header{
+      color: grey;
+      background-color: rgb(51,51,51);
+  }
+
+  .modal-header .close{
+      color: grey;
+  }
+
+  .blogModeLinesGroup{
+      color: grey;
+  }
+
+  .toast-popup{
+      background-color: rgb(51,51,51);
+  }
+
+  .toast-popup:focus{
+      background-color: rgb(51,51,51);
+      color: grey;
+  }
+
+  .mr-auto{
+      color: grey;
   }
