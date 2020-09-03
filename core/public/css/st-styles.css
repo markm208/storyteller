@@ -72,7 +72,7 @@
 .commentBlockBackground {
     background-color: rgb(51,51,51);
     padding-bottom: 1px;
-    width: 100%;
+    width: 98%;
     text-align: center;
 }
 
@@ -109,7 +109,7 @@
     overflow-y: scroll;
     height: 85vh;
     word-wrap: break-word;
-    width: 26.9vw; 
+    /* width: 23.9vw;  */
     /* TODO experiment with making this width higher */
 }
 
@@ -498,7 +498,7 @@ resize: none;
     height: 1.5em;
     width: 1.5em;
     border: none;    
-    
+    margin-right: 15px;    
   }
 
 .editCommentButton{
