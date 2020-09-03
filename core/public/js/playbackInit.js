@@ -120,40 +120,40 @@ function setupEventListeners()
     playbackTitleDiv.innerHTML = playbackData.playbackTitle;
     const editTitleButton = document.getElementById('editTitleButton');
 
-    editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    // editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
 
-    const acceptTitleChanges = document.getElementById('acceptTitleChanges');
-    acceptTitleChanges.classList.add("btn", "btn-outline-dark", "btn-sm");
-    acceptTitleChanges.style.display = "none";
+    // const acceptTitleChanges = document.getElementById('acceptTitleChanges');
+    // acceptTitleChanges.classList.add("btn", "btn-outline-dark", "btn-sm");
+    // acceptTitleChanges.style.display = "none";
 
-    editTitleButton.addEventListener('click', event => {
-        stopAutomaticPlayback();
-        playbackTitleDiv.setAttribute("contenteditable", "true");
+    // editTitleButton.addEventListener('click', event => {
+    //     stopAutomaticPlayback();
+    //     playbackTitleDiv.setAttribute("contenteditable", "true");
 
-        editTitleButton.style.display = "none";
-        acceptTitleChanges.style.display = "inline-block";
+    //     editTitleButton.style.display = "none";
+    //     acceptTitleChanges.style.display = "inline-block";
 
-    });
+    // });
 
-    acceptTitleChanges.addEventListener('click', event => {
+    // acceptTitleChanges.addEventListener('click', event => {
 
-        const titleData = playbackTitleDiv.innerHTML;
+    //     const titleData = playbackTitleDiv.innerHTML;
 
-        updateTitle(titleData);
+    //     updateTitle(titleData);
 
-        playbackData.playbackTitle = titleData;
+    //     playbackData.playbackTitle = titleData;
 
-        const titleCardHeader = document.getElementById('descriptionHeader');
-        titleCardHeader.innerHTML = playbackData.playbackTitle;
+    //     const titleCardHeader = document.getElementById('descriptionHeader');
+    //     titleCardHeader.innerHTML = playbackData.playbackTitle;
 
-        playbackTitleDiv.setAttribute("contenteditable", "false");
+    //     playbackTitleDiv.setAttribute("contenteditable", "false");
 
-        acceptTitleChanges.style.display = "none";
-        editTitleButton.style.display = "inline-block";
+    //     acceptTitleChanges.style.display = "none";
+    //     editTitleButton.style.display = "inline-block";
 
-        document.querySelector('.blogTitle').innerHTML = titleData;
+    //     document.querySelector('.blogTitle').innerHTML = titleData;
 
-    });
+    // });
 
     if (!playbackData.isEditable)
     {

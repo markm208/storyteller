@@ -327,8 +327,16 @@ function createTitleCard(descriptionInfo)
     //create the header for the title card which holds the title text
     const cardHeader = document.createElement('div');
     cardHeader.setAttribute('id', 'descriptionHeader');
-    cardHeader.classList.add('card-header', 'text-center', 'titleCardHeaderStyle');
+
+    const editTitleButton = document.createElement('button');
+    editTitleButton.classList.add("editTitleButton")
+
+    editTitleButton.setAttribute("title", "Edit title");
+
+
+    cardHeader.classList.add('text-center', 'titleCardHeaderStyle');
     cardHeader.innerHTML = playbackData.playbackTitle;
+    cardHeader.append(editTitleButton);
 
     //create the body for the card which holds the description text
     const cardBody = document.createElement('div');
@@ -448,6 +456,7 @@ function updateActiveComment(commentToMakeActive)
         }
     }
     commentToMakeActive.classList.add("activeComment");
+
     commentToMakeActive.closest(".commentGroupSpacing").classList.add("activeGroup");
 
     //prevents an already active comment from being scrolled to again
