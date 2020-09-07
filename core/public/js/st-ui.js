@@ -328,75 +328,73 @@ function createTitleCard(descriptionInfo)
     const cardHeader = document.createElement('div');
     cardHeader.setAttribute('id', 'descriptionHeader');
 
-    const editTitleButton = document.createElement('button');
-    editTitleButton.classList.add("editTitleButton", "btn", "btn-outline-dark", "btn-sm");
-
-    const acceptTitleChanges = document.createElement('button');
-    acceptTitleChanges.classList.add("acceptTitleButton", "btn", "btn-outline-dark", "btn-sm", "titleButtonNonActive");
-
+    if (playbackData.isEditable){
+        const editTitleButton = document.createElement('button');
+        editTitleButton.classList.add("editTitleButton", "btn", "btn-outline-dark", "btn-sm");
     
-    editTitleButton.addEventListener('click', event => {
-        stopAutomaticPlayback();
-        const titleDiv = document.getElementById('descriptionHeader');
-        titleDiv.setAttribute("contenteditable", "true");
-        titleDiv.focus();
-
-        //editTitleButton.style.display = "none";
-       // acceptTitleChanges.style.display = "inline-block";
-       editTitleButton.classList.add("titleButtonNonActive");
-       acceptTitleChanges.classList.remove("titleButtonNonActive");
-
-       titleDiv.addEventListener('keydown', function(e) {
-            if (e.key === "Enter"){
-                e.preventDefault();
-                e.stopPropagation(); //TODO figure out why this is triggering twice
-                acceptTitleChanges.click();
-                document.activeElement.blur();
-            }
-        })
-
-    });
-
- 
-
-    //acceptTitleChanges.style.display = "none"; //TODO use classes 
-
+        const acceptTitleChanges = document.createElement('button');
+        acceptTitleChanges.classList.add("acceptTitleButton", "btn", "btn-outline-dark", "btn-sm", "titleButtonNonActive");
     
-    acceptTitleChanges.addEventListener('click', event => {
-
-        const titleDiv = document.getElementById('descriptionHeader');
-        const titleData = titleDiv.textContent;
-
-        updateTitle(titleData);
-
-        playbackData.playbackTitle = titleData;
-
-        //const titleCardHeader = document.getElementById('descriptionHeader');
-       // titleCardHeader.textContent = playbackData.playbackTitle;
-
-       titleDiv.setAttribute("contenteditable", "false");
-
-        //acceptTitleChanges.style.display = "none";
-        //editTitleButton.style.display = "inline-block";
-
-        acceptTitleChanges.classList.add("titleButtonNonActive");
-        editTitleButton.classList.remove("titleButtonNonActive");
         
-        document.getElementById("playbackTitleDiv").innerHTML = titleData;
-        document.querySelector('.blogTitle').innerHTML = titleData;
-
-    });
-
-
-
-    editTitleButton.setAttribute("title", "Edit title");
-    acceptTitleChanges.setAttribute("title", "Confirm changes");
-
+        editTitleButton.addEventListener('click', event => {
+            stopAutomaticPlayback();
+            const titleDiv = document.getElementById('descriptionHeader');
+            titleDiv.setAttribute("contenteditable", "true");
+            titleDiv.focus();
+    
+            //editTitleButton.style.display = "none";
+           // acceptTitleChanges.style.display = "inline-block";
+           editTitleButton.classList.add("titleButtonNonActive");
+           acceptTitleChanges.classList.remove("titleButtonNonActive");
+    
+           titleDiv.addEventListener('keydown', function(e) {
+                if (e.key === "Enter"){
+                    e.preventDefault();
+                    e.stopPropagation(); //TODO figure out why this is triggering twice
+                    acceptTitleChanges.click();
+                    document.activeElement.blur();
+                }
+            })
+    
+        });      
+        
+        acceptTitleChanges.addEventListener('click', event => {
+    
+            const titleDiv = document.getElementById('descriptionHeader');
+            const titleData = titleDiv.textContent;
+    
+            updateTitle(titleData);
+    
+            playbackData.playbackTitle = titleData;
+    
+            //const titleCardHeader = document.getElementById('descriptionHeader');
+           // titleCardHeader.textContent = playbackData.playbackTitle;
+    
+           titleDiv.setAttribute("contenteditable", "false");
+    
+            //acceptTitleChanges.style.display = "none";
+            //editTitleButton.style.display = "inline-block";
+    
+            acceptTitleChanges.classList.add("titleButtonNonActive");
+            editTitleButton.classList.remove("titleButtonNonActive");
+            
+            document.getElementById("playbackTitleDiv").innerHTML = titleData;
+            document.querySelector('.blogTitle').innerHTML = titleData;
+    
+        });    
+    
+        editTitleButton.setAttribute("title", "Edit title");
+        acceptTitleChanges.setAttribute("title", "Confirm changes");
+    
+        cardHeader.append(editTitleButton);
+        cardHeader.append(acceptTitleChanges);    
+    }
+   
 
     cardHeader.classList.add('text-center', 'titleCardHeaderStyle');
     cardHeader.innerHTML = playbackData.playbackTitle;
-    cardHeader.append(editTitleButton);
-    cardHeader.append(acceptTitleChanges);
+    
+ 
 
     //create the body for the card which holds the description text
     const cardBody = document.createElement('div');
@@ -646,9 +644,11 @@ function createCarousel(){
     carouselOuter.setAttribute('id', 'mycarousel' + currentCarousel++);
     carouselOuter.setAttribute('data-interval','false');
     carouselOuter.setAttribute('data-keyboard', 'false');
-    carouselOuter.classList.add('carousel');
+    carouselOuter.classList.add('carousel','slide');
+    carouselOuter.setAttribute('data-ride', 'carousel');
 
     const carouselInner = document.createElement('div');
+    carouselInner.classList.add("carousel-inner");
     carouselOuter.append(carouselInner);
     return carouselOuter;
 }
