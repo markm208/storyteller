@@ -646,7 +646,7 @@ function createCarousel(){
     carouselOuter.setAttribute('id', 'mycarousel' + currentCarousel++);
     carouselOuter.setAttribute('data-interval','false');
     carouselOuter.setAttribute('data-keyboard', 'false');
-    carouselOuter.classList.add('carousel','slide');
+    carouselOuter.classList.add('carousel');
 
     const carouselInner = document.createElement('div');
     carouselOuter.append(carouselInner);
