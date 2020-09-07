@@ -155,11 +155,11 @@ function setupEventListeners()
 
     // });
 
-    if (!playbackData.isEditable)
-    {
-        editTitleButton.style.display = 'none';
-        acceptTitleChanges.style.display = 'none';
-    }
+    // if (!playbackData.isEditable)
+    // {
+    //     editTitleButton.style.display = 'none';
+    //     acceptTitleChanges.style.display = 'none';
+    // }
 
     //bold button
     document.querySelector('#boldCommentButton').addEventListener('click', event => {

@@ -825,6 +825,10 @@ input[type=number]::-webkit-outer-spin-button {
     text-align: right;
   }
 
+  .img{
+    background-color: rgb(51,51,51);
+  }
+
   .imgExpandHeader{
     background-color: rgb(31,31,31);
     border-bottom: none;
