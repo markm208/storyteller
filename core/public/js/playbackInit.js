@@ -33,7 +33,11 @@ async function initializePlayback()
     //if this is an editable playback
     if(playbackData.isEditable) {
         //grab any existing media from the server and display it in the media control modal
-        initImageGallery();
+        initImageGallery();        
+        document.getElementById("mainAddCommentButton").classList.remove("mainAddCommentButtonNoEdit");
+    }
+    else{
+        commentsDiv.style.height = "99vh";
     }
 
     console.log('Success Initializing Playback');
@@ -447,7 +451,10 @@ function setupEventListeners()
             }
         }
         else if (keyPressed === "c" && ctrlPressed){
-            document.getElementById('mainAddCommentButton').click();
+            if (playbackData.isEditable){
+                document.getElementById('mainAddCommentButton').click();
+            }
+           
         }
         else if (keyPressed === "Escape"){            
             document.getElementById("CancelUpdateButton").click();

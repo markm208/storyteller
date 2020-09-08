@@ -327,6 +327,8 @@ function createTitleCard(descriptionInfo)
     //create the header for the title card which holds the title text
     const cardHeader = document.createElement('div');
     cardHeader.setAttribute('id', 'descriptionHeader');
+    cardHeader.classList.add('text-center', 'titleCardHeaderStyle');
+    cardHeader.innerHTML = playbackData.playbackTitle;
 
     if (playbackData.isEditable){
         const editTitleButton = document.createElement('button');
@@ -388,13 +390,7 @@ function createTitleCard(descriptionInfo)
     
         cardHeader.append(editTitleButton);
         cardHeader.append(acceptTitleChanges);    
-    }
-   
-
-    cardHeader.classList.add('text-center', 'titleCardHeaderStyle');
-    cardHeader.innerHTML = playbackData.playbackTitle;
-    
- 
+    } 
 
     //create the body for the card which holds the description text
     const cardBody = document.createElement('div');

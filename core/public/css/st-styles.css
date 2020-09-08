@@ -63,6 +63,7 @@
     height: 100%;
     object-fit: contain;
     cursor: zoom-in;
+    background-color: rgb(51,51,51);
 }
 
 .codePanel{
@@ -110,7 +111,7 @@
     height: 85vh;
     word-wrap: break-word;
     width: 490px; 
-    /* TODO experiment with making this width higher */
+    /* TODO should this not be pixels? */
 }
 
 .commentGroupSpacing {
@@ -824,11 +825,7 @@ input[type=number]::-webkit-outer-spin-button {
     color: grey;
     text-align: right;
   }
-
-  .img{
-    background-color: rgb(51,51,51);
-  }
-
+  
   .imgExpandHeader{
     background-color: rgb(31,31,31);
     border-bottom: none;
@@ -934,3 +931,7 @@ input[type=number]::-webkit-outer-spin-button {
   .mr-auto{
       color: grey;
   }
+
+.mainAddCommentButtonNoEdit{
+    display: none;
+}
