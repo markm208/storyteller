@@ -944,3 +944,14 @@ input[type=number]::-webkit-outer-spin-button {
 .automaticPlaybackInactive{
     display: none;
 }
+
+.commentCardBodyColor span{
+    color: lightgray !important;
+    font-size: 11pt !important;
+
+}
+
+.blogCommentText span{
+    color: lightgray !important;
+    font-size: 11pt !important;
+}
