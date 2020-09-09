@@ -98,7 +98,7 @@
     color: lightgray;
 }
 
-..noUi-touch-area{
+.noUi-touch-area{
     background: rgb(0,0,0);
 }
 
@@ -278,8 +278,8 @@
 }
 
 .mediaSelected {
-    background-color: rgb(188, 204, 218);
-    border-color: rgb(88, 137, 153);
+    background-color: rgb(188, 204, 218) !important;
+    border-color: rgb(88, 137, 153) !important;
     
 }
 
@@ -356,7 +356,7 @@
 
 .storytellerCommentEditable:empty:before{ 
     content:attr(data-ph);
-    color: grey;
+    color: lightgrey;
 }
 
 .storytellerCommentEditable {
@@ -364,12 +364,12 @@
     overflow: auto;
     resize: vertical;
     background-color: rgb(51, 51, 51);
-    color: grey;
+    color: lightgrey;
 }
 
 .storytellerCommentEditable:focus{
     background-color: rgb(51, 51, 51);
-    color: grey;
+    color: lightgrey;
 }
 
 /* Create an active/current tablink class */
@@ -900,37 +900,47 @@ input[type=number]::-webkit-outer-spin-button {
     background-color: rgb(31,31,31);
   }
 
-  .modal-body{
-      background-color: rgb(31,31,31);
-      
-  }
+.modal-body{
+    background-color: rgb(31,31,31);
+    color: lightgrey;
+    
+}
 
-  .modal-header{
-      color: grey;
-      background-color: rgb(51,51,51);
-  }
+.modal-header{
+    color: grey;
+    background-color: rgb(51,51,51);
+}
 
-  .modal-header .close{
-      color: grey;
-  }
+.modal-footer{
+    color: grey;
+    background-color: rgb(51,51,51);
+}
 
-  .blogModeLinesGroup{
-      color: grey;
-  }
+.modal-header .close{
+    color: grey;
+}
 
-  .toast-popup{
-      background-color: rgb(51,51,51);
-  }
+.blogModeLinesGroup{
+    color: grey;
+}
 
-  .toast-popup:focus{
-      background-color: rgb(51,51,51);
-      color: grey;
-  }
+.toast-popup{
+    background-color: rgb(51,51,51);
+}
 
-  .mr-auto{
-      color: grey;
-  }
+.toast-popup:focus{
+    background-color: rgb(51,51,51);
+    color: grey;
+}
+
+.mr-auto{
+    color: lightgrey !important;
+}
 
 .mainAddCommentButtonNoEdit{
+    display: none;
+}
+
+.automaticPlaybackInactive{
     display: none;
 }

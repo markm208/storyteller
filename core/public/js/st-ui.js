@@ -511,14 +511,7 @@ function updateActiveComment(commentToMakeActive)
     }
     commentToMakeActive.classList.add("activeComment");
 
-    commentToMakeActive.closest(".commentGroupSpacing").classList.add("activeGroup");
-
-    //prevents an already active comment from being scrolled to again
-    //and an already active comment block from scrolling to the new active comment
-    if (!commentAlreadyActive && !groupAlreadyActive){
-        //scroll to the new active comment
-        document.getElementById("commentContentDiv").scrollTop = commentToMakeActive.offsetTop - 100;            
-    }     
+    commentToMakeActive.closest(".commentGroupSpacing").classList.add("activeGroup"); 
 
     //if we're in code view, scroll blog mode to the new active comment
     if (!playbackData.isInBlogMode){

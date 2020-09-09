@@ -37,7 +37,7 @@ async function initializePlayback()
         document.getElementById("mainAddCommentButton").classList.remove("mainAddCommentButtonNoEdit");
     }
     else{
-        commentsDiv.style.height = "99vh";
+        commentsDiv.style.height = "92vh";
     }
 
     console.log('Success Initializing Playback');
@@ -459,6 +459,16 @@ function setupEventListeners()
         else if (keyPressed === "Escape"){            
             document.getElementById("CancelUpdateButton").click();
         }
+        else if (e.code === "Space"){
+            const playButton = document.getElementById("continuousPlayButton");
+            const pauseButton = document.getElementById("pausePlayButton");
+            if (pauseButton.classList.contains("automaticPlaybackInactive")){
+                playButton.click();
+            }
+            else{
+                pauseButton.click();
+            }
+        }
     });
 
     //moves forward in the playback comment by comment
@@ -578,17 +588,18 @@ function setupEventListeners()
 
     document.getElementById("continuousPlayButton").addEventListener('click', event => {
         removeActiveCommentAndGroup();
+        document.getElementById("continuousPlayButton").classList.add("automaticPlaybackInactive");
+        document.getElementById("pausePlayButton").classList.remove("automaticPlaybackInactive");
 
-        document.getElementById("continuousPlayButton").style.display = "none";
-        document.getElementById("pausePlayButton").style.display = "block";
         playbackInterval = setInterval(function(){
             step(1);
             if (playbackData.comments[`ev-${playbackData.nextEventPosition - 1}`]){   
                 //get the comment card associated with the position             
                 const currentComment = document.querySelector(`.codeView [data-commenteventid="ev-${playbackData.nextEventPosition - 1}"]`);
 
-                //make it active by clicking it
+                //make it active by clicking it and then scroll to it
                 currentComment.click();
+                document.getElementById("commentContentDiv").scrollTop = currentComment.offsetTop - 100;    
 
                 //stop the automatic playback
                 stopAutomaticPlayback();
@@ -830,15 +841,17 @@ function setUpClickableTickMarks(){
         tickMark.addEventListener('click', event => { 
             //determine if the description tick mark was clicked   
             const eventNum = pipValue === playbackData.numNonRelevantEvents - 1 ? 0 : pipValue; 
-
-            document.querySelector(`.codeView [data-commenteventid="ev-${eventNum}"]`).click();                               
+            
+            const comment = document.querySelector(`.codeView [data-commenteventid="ev-${eventNum}"]`);
+            document.getElementById("commentContentDiv").scrollTop = comment.offsetTop - 100;    
+            comment.click();      
         })               
     }    
 }
 
 function stopAutomaticPlayback(){
-    document.getElementById("continuousPlayButton").style.display = "block";
-    document.getElementById("pausePlayButton").style.display = "none";
+    document.getElementById("continuousPlayButton").classList.remove("automaticPlaybackInactive")
+    document.getElementById("pausePlayButton").classList.add("automaticPlaybackInactive");
     clearInterval(playbackInterval);
 }
 
