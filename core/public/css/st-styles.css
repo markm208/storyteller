@@ -185,7 +185,7 @@
     color: black;
 }
 .fileUpdated::before {
-    content: '\2B57';
+    content: '*';
 }
 .hiddenDirectory {
     display: none;

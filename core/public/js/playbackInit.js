@@ -40,6 +40,19 @@ async function initializePlayback()
         commentsDiv.style.height = "92vh";
     }
 
+    //get the query string params from the url
+    const queryStringParams = new URLSearchParams(window.location.search);
+    //get the view param (if there is one)
+    const defaultView = queryStringParams.get('view');
+    //if the user wants to see the playback in blog view
+    if(defaultView && defaultView === 'blog') {
+        //switch to the blog view
+        document.getElementById('blogMode').click();
+    } else { //code view
+        //update the url for code view
+        window.history.replaceState({view: 'code'}, '', '?view=code');
+    }
+
     console.log('Success Initializing Playback');
 }
 
@@ -663,6 +676,9 @@ function setupEventListeners()
             document.body.classList.add("blogModeBody")
 
             playbackData.isInBlogMode = true;
+            
+            //update url with blog view
+            window.history.replaceState({view: 'blog'}, '', '?view=blog');
         }
     })
 
@@ -684,6 +700,10 @@ function setupEventListeners()
             document.body.classList.remove("blogModeBody");
 
             playbackData.isInBlogMode = false;
+
+            //update url with code view
+            window.history.replaceState({view: 'code'}, '', '?view=code');
+
         }
     })
 
