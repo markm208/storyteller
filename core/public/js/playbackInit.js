@@ -44,8 +44,8 @@ async function initializePlayback()
     const queryStringParams = new URLSearchParams(window.location.search);
     //get the view param (if there is one)
     const defaultView = queryStringParams.get('view');
-    //if the user wants to see the playback in blog view
-    if(defaultView && defaultView === 'blog') {
+    //if the user wants to see the playback in blog view OR the screen is small
+    if((defaultView && defaultView === 'blog') || (window.screen.availWidth <= 650)) {
         //switch to the blog view
         document.getElementById('blogMode').click();
     } else { //code view
