@@ -415,7 +415,7 @@ function setupEventListeners()
     document.addEventListener('keydown', function(e){    
 
         //prevent keyboard presses within the comment textbox from triggering actions 
-        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv'){
+        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader'){
             return;
         }
        
