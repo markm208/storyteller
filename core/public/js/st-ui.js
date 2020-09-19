@@ -113,8 +113,6 @@ function displayAllComments(){
 
         //give each commentGroup a unique id 
         commentGroupDiv.setAttribute('id','CG' + uniqueCommentGroupID);
-
-
         
         //create an outer group to hold the edit button
         //this keeps the dragging of cards from changing the position of the button
@@ -149,13 +147,6 @@ function displayAllComments(){
             currentComment = returnObject.count;
 
             commentGroupDiv.append(commentCard);
-            
-            //add the comment to blog mode
-            const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
-
-
-            //addBlogPost(commentObject)
-
 
             if (playbackData.isEditable){
                //gives each card a class to later access it
@@ -558,6 +549,12 @@ function createEditCommentButton(commentObject, buttonText){
             //select in ace the comments highlighted code
             editor.getSession().selection.addRange(newRange);          
         };
+
+        commentObject.commentTags.sort();
+        //add comment tags
+        commentObject.commentTags.forEach(tag => {
+            addCommentTag(tag);
+        })
     
         const addCommentButton =  document.getElementById("addCommentButton");
         const updateCommentButton = document.getElementById("UpdateCommentButton");
@@ -2281,4 +2278,23 @@ function getAllComments(){
 
 function getAllBlogPosts(){
     return [...document.querySelectorAll(".blogView [data-commentid]")];
+}
+
+function addCommentTag(tagText){    
+    let newTag = document.createElement("a");
+    newTag.classList.add("dropdown-item", "commentTagDropDownItem");
+    newTag.href = "#";
+    newTag.appendChild(document.createTextNode(tagText));
+    newTag.setAttribute("title", "Click to remove tag");
+
+    newTag.addEventListener("click", function(){
+        newTag.remove();
+
+      
+        const index = tempTags.indexOf(tagText);
+        tempTags.splice(index, 1);
+        
+
+    })
+    document.querySelector(".dropdown-menu").appendChild(newTag);
 }

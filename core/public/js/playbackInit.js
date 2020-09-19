@@ -57,7 +57,7 @@ async function initializePlayback()
 }
 
 // Puts together a full comment object to be pushed to the server
-function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText)
+function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags)
 {
     const comment = {
         commentText,
@@ -70,7 +70,8 @@ function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidUR
         linesAbove: linesAbove,
         linesBelow: linesBelow,
         currentFilePath: currentFilePath,
-        viewableBlogText: viewableBlogText  
+        viewableBlogText: viewableBlogText,
+        commentTags: commentTags
     };    
 
     return comment;
@@ -270,6 +271,26 @@ function setupEventListeners()
         document.body.classList.remove('popup');
     };
 
+    document.getElementById("addCommentTagButton").addEventListener('click', function(){
+        const text = document.getElementById("tagInput").value;
+
+        if (text !== '' && !tempTags.includes(text)){ //TODO limit amount of tags?
+            tempTags.push(text);
+            tempTags.sort();
+            document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove());
+            tempTags.forEach(tag =>{ //display an alphabetized list
+                addCommentTag(tag);
+            })
+        }
+
+        document.getElementById("tagInput").value = '';
+    })
+
+    // Prevents menu from closing when clicked inside 
+    document.querySelector(".dropdown-menu").addEventListener('click', function (event) { 
+        event.stopPropagation(); 
+    }); 
+
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
         stopAutomaticPlayback();        
         
@@ -340,13 +361,15 @@ function setupEventListeners()
         //if there was a comment, or at least one media file
         if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length)
         {
+            //let commentTags = ;
+
             //get the event to playback this comment
             const eventIndex = playbackData.nextEventPosition - 1;
 
             const commentEvent = playbackData.events[eventIndex];
 
             //create an object that has all of the comment info
-            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText);
+            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tempTags);
 
             //determine if any comments already exist for this event 
             //if so add the new comment
@@ -385,9 +408,11 @@ function setupEventListeners()
         audioPreviewDiv.style.display='none';
         audioPreviewDiv.innerHTML = '';
         videoPreviewDiv.style.display='none';
-        videoPreviewDiv.innerHTML = '';
+        videoPreviewDiv.innerHTML = ''; 
         imagePreviewDiv.style.display='none';
         imagePreviewDiv.innerHTML = '';
+        tempTags = []; //reset the list of temporary comment tags
+        document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove()); //empty the list of comment tags
 
         //clear out the text area
         textCommentTextArea.innerHTML = '';
@@ -415,7 +440,7 @@ function setupEventListeners()
     document.addEventListener('keydown', function(e){    
 
         //prevent keyboard presses within the comment textbox from triggering actions 
-        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader'){
+        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput'){
             return;
         }
        
@@ -1180,7 +1205,7 @@ async function updateComment(){
     //if there was a comment, or at least one media file
     if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length){   
         //create an object that has all of the comment info
-        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText);
+        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tempTags);
         //add the developer group id to the comment object and its id
         comment.developerGroupId = commentObject.developerGroupId;
         comment.id = commentObject.id;
