@@ -550,12 +550,12 @@ function createEditCommentButton(commentObject, buttonText){
             editor.getSession().selection.addRange(newRange);          
         };
 
-        commentObject.commentTags.sort();
-        //add comment tags
+        commentObject.commentTags.sort(); //alphabetize tags
         commentObject.commentTags.forEach(tag => {
-            addCommentTag(tag);
-        })
-    
+            addCommentTag(tag); //add comment tags to drop down menu
+            tempTags.push(tag); //add comment tags to temp tags array
+        }); 
+
         const addCommentButton =  document.getElementById("addCommentButton");
         const updateCommentButton = document.getElementById("UpdateCommentButton");
         addCommentButton.style.display = "none";
@@ -2288,13 +2288,9 @@ function addCommentTag(tagText){
     newTag.setAttribute("title", "Click to remove tag");
 
     newTag.addEventListener("click", function(){
-        newTag.remove();
-
-      
+        newTag.remove();      
         const index = tempTags.indexOf(tagText);
         tempTags.splice(index, 1);
-        
-
     })
     document.querySelector(".dropdown-menu").appendChild(newTag);
 }

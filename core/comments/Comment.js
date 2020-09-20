@@ -13,6 +13,11 @@ class Comment {
             //generate an id
             this.id = this.generateId();
         }
+        if (commentTags){
+            this.commentTags = commentTags;
+        } else{
+            this.commentTags = [];
+        }
         //store the comment data
         this.displayCommentEvent = displayCommentEvent;
         this.developerGroupId = developerGroupId; 
@@ -26,7 +31,7 @@ class Comment {
         this.linesBelow = linesBelow;
         this.currentFilePath = currentFilePath;
         this.viewableBlogText = viewableBlogText;
-        this.commentTags = commentTags;
+        //this.commentTags = commentTags;
     }
 
     generateId() {

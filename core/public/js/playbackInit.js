@@ -272,18 +272,25 @@ function setupEventListeners()
     };
 
     document.getElementById("addCommentTagButton").addEventListener('click', function(){
-        const text = document.getElementById("tagInput").value;
+        const tagInput = document.getElementById("tagInput");
+        let text = tagInput.value;  
 
-        if (text !== '' && !tempTags.includes(text)){ //TODO limit amount of tags?
-            tempTags.push(text);
-            tempTags.sort();
-            document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove());
-            tempTags.forEach(tag =>{ //display an alphabetized list
-                addCommentTag(tag);
-            })
+        if (text !== '' && !tempTags.includes(text)){ 
+
+            //a reminder to the user that the tag wont actually be added until the update 
+            //of the comment is confirmed
+            if (document.getElementById("addCommentButton").style.display === 'none'){ //TODO this will change to using classes at some point
+                text += " (Pending Update)";
+            }
+
+            document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove()); //clear out old drop down list
+
+            tempTags.push(text); //add new tag
+            tempTags.sort(); //alphabetize list
+            tempTags.forEach(tag => addCommentTag(tag)); //add updated, sorted tags to the drop down list
         }
 
-        document.getElementById("tagInput").value = '';
+        tagInput.value = '';
     })
 
     // Prevents menu from closing when clicked inside 
@@ -413,6 +420,7 @@ function setupEventListeners()
         imagePreviewDiv.innerHTML = '';
         tempTags = []; //reset the list of temporary comment tags
         document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove()); //empty the list of comment tags
+        document.getElementById("tagInput").value = '';
 
         //clear out the text area
         textCommentTextArea.innerHTML = '';
@@ -791,6 +799,13 @@ function setupEventListeners()
         blogModeHighlightHelper();
        })
     });
+
+    document.getElementById("tagInput").addEventListener("keydown", event =>{
+        const keyPressed = event.key;
+        if (keyPressed === "Enter"){
+            document.getElementById("addCommentTagButton").click();
+        }
+    })
 }
 
 function setUpSlider(){
@@ -1204,6 +1219,15 @@ async function updateComment(){
    
     //if there was a comment, or at least one media file
     if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length){   
+
+        //if the user entered a tag but forgot to add it, add it now
+        document.getElementById("addCommentTagButton").click(); 
+
+        //remove any "pending update" from tags
+        tempTags.forEach(function(tag, index){
+            tempTags[index] = tag.replace(" (Pending Update)", '')
+        })
+
         //create an object that has all of the comment info
         const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tempTags);
         //add the developer group id to the comment object and its id
@@ -1244,6 +1268,8 @@ async function updateComment(){
         $('.video-preview')[0].innerHTML = '';
         $('.image-preview')[0].style.display='none';
         $('.image-preview')[0].innerHTML = '';
+
+        tempTags = [];
     }
 }
 
