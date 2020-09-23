@@ -822,6 +822,19 @@ function setupEventListeners()
             document.getElementById("addCommentTagButton").click();
         }
     })
+
+    document.addEventListener("click", function (e) {
+        //closeAllLists(e.target);
+    });
+
+    document.getElementById("myInput").addEventListener('click',function(){
+        autocomplete(document.getElementById("myInput"), Object.keys(allCommentTagsWithCommentId));
+
+    })
+
+    document.getElementById("myInput").addEventListener('blur',function(){
+//alert("blured")
+    })
 }
 
 function setUpSlider(){
