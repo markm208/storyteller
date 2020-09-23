@@ -101,8 +101,19 @@ function displayAllComments(){
 
             commentGroupDiv.append(titleCard);
 
-            //add description to blog             
-            //addBlogPost(commentBlock[0]);
+            //collect all comment tags in a single variable
+            commentBlock.forEach(comment =>{
+                comment.commentTags.forEach(commentTag =>{
+                    if (getFormattedCommentTag(commentTag) in allCommentTagsWithCommentId){
+                        allCommentTagsWithCommentId[getFormattedCommentTag(commentTag)].push(comment.id);
+                    }
+                    else{
+                        allCommentTagsWithCommentId[getFormattedCommentTag(commentTag)] = [comment.id];
+                    }
+                })
+            })
+
+
 
             startingValue += 1;
         }
@@ -140,6 +151,15 @@ function displayAllComments(){
 
             const commentObject = commentBlock[i];
 
+            //collect all comment tags in a single variable
+            commentObject.commentTags.forEach(commentTag =>{
+                if (getFormattedCommentTag(commentTag) in allCommentTagsWithCommentId){
+                    allCommentTagsWithCommentId[getFormattedCommentTag(commentTag)].push(commentObject.id);
+                }
+                else{
+                    allCommentTagsWithCommentId[getFormattedCommentTag(commentTag)] = [commentObject.id];
+                }
+            })
 
 
             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
@@ -550,11 +570,15 @@ function createEditCommentButton(commentObject, buttonText){
             editor.getSession().selection.addRange(newRange);          
         };
 
-        commentObject.commentTags.sort(); //alphabetize tags
-        commentObject.commentTags.forEach(tag => {
-            addCommentTag(tag); //add comment tags to drop down menu
-            tempTags.push(tag); //add comment tags to temp tags array
-        }); 
+        //add all current comment tags to comment tag drop down menu
+        //excluding any tags in this comment
+        populateCommentTagDropDownList(commentObject.commentTags);
+
+        //populate this comments tags list
+        commentObject.commentTags.forEach(tag => addCommentTagForThisComment(tag));    
+
+        //a backup of the comment tags of this comment before any chagnes are made
+        const thisCommentsTempTags = tempTags;    
 
         const addCommentButton =  document.getElementById("addCommentButton");
         const updateCommentButton = document.getElementById("UpdateCommentButton");
@@ -605,13 +629,27 @@ function createEditCommentButton(commentObject, buttonText){
         updateCommentButton.addEventListener('click' , event => {
             pauseMedia();
             updateComment();
-            //document.querySelector(".blogViewContent").innerHTML = "";
+            
+            //get the id of the active comment
+            const activeCommentId = document.querySelector(".activeComment").getAttribute('data-commentId');
+        
+            //for each of the original tags in this comment, see if it has been deleted from this comment
+            //if it has, remove this comment the list of comments that have this tag
+            //if no comments have this tag anymore, delete the tag unless the tag is in the permanent list
+            thisCommentsTempTags.forEach(tag => {
+                if (!tempTags.includes(tag)){                        
+                    allCommentTagsWithCommentId[tag] = allCommentTagsWithCommentId[tag].filter(id => id !== activeCommentId); 
 
+                    if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
+                        delete allCommentTagsWithCommentId[tag];
+                    }
+                }
+            })    
+            
             document.getElementById("CancelUpdateButton").click();
         })
 
         highlightBlogModeVisibleArea();
-
     });
     return editCommentButton;
 }
@@ -764,6 +802,14 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
                 break;
             }
         }
+
+        //remove this comments tags from the main list of tags
+        commentObject.commentTags.forEach(tag =>{
+            allCommentTagsWithCommentId[tag] = allCommentTagsWithCommentId[tag].filter(id => id !== comment.id); 
+            if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
+                delete allCommentTagsWithCommentId[tag];
+            }
+        })
 
         //TODO might not need this anymore
         //remove the accept button if there are no more comments but leave description
@@ -2270,7 +2316,6 @@ function undoBlogModeHighlight(){
     blogModeNumberBelowSelector.value = 3;
 }
 
-
 //TODO need ones with and without description?
 function getAllComments(){
     return [...document.querySelectorAll('.codeView [data-commentid]')];
@@ -2280,17 +2325,100 @@ function getAllBlogPosts(){
     return [...document.querySelectorAll(".blogView [data-commentid]")];
 }
 
-function addCommentTag(tagText){    
-    let newTag = document.createElement("a");
-    newTag.classList.add("dropdown-item", "commentTagDropDownItem");
-    newTag.href = "#";
-    newTag.appendChild(document.createTextNode(tagText));
-    newTag.setAttribute("title", "Click to remove tag");
+function emptyCommentTagDropDownMenu(){
+    document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove()); //empty the list of comment tags
+}
 
-    newTag.addEventListener("click", function(){
-        newTag.remove();      
-        const index = tempTags.indexOf(tagText);
-        tempTags.splice(index, 1);
+//build the drop down list of comment tags when adding or editing a comment
+function populateCommentTagDropDownList(tagsToExclude){    
+    emptyCommentTagDropDownMenu();
+    const tags = Object.keys(allCommentTagsWithCommentId).sort();
+
+    tags.forEach(tag => {
+        //if the current tag is meant to be excluded from the dropdown list
+        if (tagsToExclude && tagsToExclude.includes(tag)){
+            return;
+        }
+
+        let newTag = document.createElement("a");
+        newTag.classList.add("dropdown-item", "commentTagDropDownItem");
+        newTag.href = "#";
+        newTag.appendChild(document.createTextNode(tag));
+        //newTag.setAttribute("title", "Click to remove tag");
+    
+        //if it was added to the comments tag list, remove it from the drop down
+        newTag.addEventListener("click", function(){         
+            //if a comment is being updated, remind user that the added tag isn't permanent until the entire comment is updated
+            if (document.getElementById("addCommentButton").style.display === 'none'){ //TODO this will change to using classes at some point
+                tag += " (Pending Update)";
+            }
+
+            addCommentTagForThisComment(tag);
+            newTag.remove();
+            
+        })
+        document.querySelector(".dropdown-menu").appendChild(newTag);
     })
-    document.querySelector(".dropdown-menu").appendChild(newTag);
+}
+
+//format tags as lower case with dashes connecting words
+function getFormattedCommentTag(commentTag){
+    return commentTag.toLowerCase().replaceAll(' ', '-')
+}
+
+function getAllSortedCommentTags(){
+    return Object.keys(allCommentTagsWithCommentId).sort();
+}
+
+//add a new tag to a comments tag list when adding or editing a comment
+function addCommentTagForThisComment(commentTag){
+
+    //determine if passed tag is already in the list
+    const allCommentTagSpans = [...document.querySelectorAll(".commentTagSpan")];
+
+    let tagAlreadyIncluded = false;
+    allCommentTagSpans.forEach(span => {
+        if (tagAlreadyIncluded){
+            return;
+        }
+        else{
+            if (span.innerHTML === commentTag){
+                tagAlreadyIncluded = true;
+            }
+        }
+    })
+
+    if (tagAlreadyIncluded){
+        return;
+    }
+
+    tempTags.push(commentTag);
+    tempTags.sort();
+
+    let tagDiv = document.createElement("div");
+
+    let commentSpan = document.createElement('span');
+    commentSpan.classList.add("commentTagSpan");
+    commentSpan.innerHTML = commentTag;
+    //TODO red X
+
+    let deleteButton = document.createElement('button');
+    deleteButton.classList.add('close');
+    deleteButton.setAttribute('aria-label', 'close');
+    deleteButton.innerHTML ='&times;';
+    deleteButton.setAttribute('title', "Remove tag from comment");
+
+    deleteButton.addEventListener("click", function(){
+
+        tempTags = tempTags.filter(tag => tag !== commentTag);
+
+        //rebuild the drop down menu with the returned tag
+        populateCommentTagDropDownList(tempTags);
+        tagDiv.remove();
+    })
+
+    tagDiv.append(deleteButton);
+    tagDiv.append(commentSpan)
+
+    document.querySelector(".tagsInComment").append(tagDiv);
 }

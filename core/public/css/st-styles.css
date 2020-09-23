@@ -144,6 +144,7 @@
     align-items: center;
     display: flex;
     margin-left: -10px;
+    margin-right: 25px;
 }
 
 .data-list-style {
@@ -479,7 +480,9 @@ resize: none;
 }
 
 #slider{
-    width: 70vw;
+    /* TODO I'm experimenting with this width
+    and will have to dynamically change in on dragbar drag */
+    width: 58vw; 
     margin-left: 8px;
     background-color: rgb(59,76,98);
 }
@@ -658,9 +661,9 @@ body.popup .toast-popup * {
     background-color: rgb(51, 51, 51);
 }
 
-.noUi-pips{
+/* .noUi-pips{
     background-color: rgb(51, 51, 51)
-}
+} */
 
 
 .blogAudioFile{
@@ -968,4 +971,20 @@ input[type=number]::-webkit-outer-spin-button {
 
 .dropdown-menu{
     overflow-y: auto;
+}
+
+.autocomplete{
+    width: 300px;
+}
+
+#myInput{
+    background-color: darkgrey;
+}
+
+
+.commentTagSpan{
+    color: darkblue;
+    background-color: lightblue;
+    margin: 5px;
+    padding: 5px;
 }

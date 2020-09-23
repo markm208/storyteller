@@ -1,5 +1,3 @@
-
-
 /*
  *
  */
@@ -52,6 +50,12 @@ async function initializePlayback()
         //update the url for code view
         window.history.replaceState({view: 'code'}, '', '?view=code');
     }
+
+    //add permanent comment tags to allCommentTagsWithCommentId
+    permanentCommentTags.forEach(tag =>{
+        allCommentTagsWithCommentId[tag] = [];
+    })
+
 
     console.log('Success Initializing Playback');
 }
@@ -271,11 +275,21 @@ function setupEventListeners()
         document.body.classList.remove('popup');
     };
 
-    document.getElementById("addCommentTagButton").addEventListener('click', function(){
+    document.getElementById("addCommentTagButton").addEventListener('click', event =>{
+        //get the new tag
         const tagInput = document.getElementById("tagInput");
         let text = tagInput.value;  
 
+        //if there is a tag and it's not already included
         if (text !== '' && !tempTags.includes(text)){ 
+            text = getFormattedCommentTag(text);
+
+            //if the tag is in the drop down list, remove it 
+            let dropDownListTags = [...document.querySelectorAll(".commentTagDropDownItem")]
+            const index = dropDownListTags.findIndex(item => item.innerHTML === text);
+            if (index !== -1){
+                dropDownListTags[index].remove(); 
+            }
 
             //a reminder to the user that the tag wont actually be added until the update 
             //of the comment is confirmed
@@ -283,13 +297,8 @@ function setupEventListeners()
                 text += " (Pending Update)";
             }
 
-            document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove()); //clear out old drop down list
-
-            tempTags.push(text); //add new tag
-            tempTags.sort(); //alphabetize list
-            tempTags.forEach(tag => addCommentTag(tag)); //add updated, sorted tags to the drop down list
+           addCommentTagForThisComment(text);
         }
-
         tagInput.value = '';
     })
 
@@ -300,9 +309,11 @@ function setupEventListeners()
 
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
         stopAutomaticPlayback();        
-        
-        const textCommentTextArea = document.getElementById('textCommentTextArea');
-    
+
+        //if the user entered a tag but forgot to add it, add it now
+        document.getElementById("addCommentTagButton").click(); 
+
+        const textCommentTextArea = document.getElementById('textCommentTextArea');    
         
         //getting all video files in order
         const videoFiles = document.getElementsByClassName('video-preview')[0].children;
@@ -376,7 +387,7 @@ function setupEventListeners()
             const commentEvent = playbackData.events[eventIndex];
 
             //create an object that has all of the comment info
-            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tempTags);
+            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tempTags.sort());
 
             //determine if any comments already exist for this event 
             //if so add the new comment
@@ -418,8 +429,10 @@ function setupEventListeners()
         videoPreviewDiv.innerHTML = ''; 
         imagePreviewDiv.style.display='none';
         imagePreviewDiv.innerHTML = '';
+
+        document.querySelector(".tagsInComment").innerHTML = '';
         tempTags = []; //reset the list of temporary comment tags
-        document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove()); //empty the list of comment tags
+        emptyCommentTagDropDownMenu();
         document.getElementById("tagInput").value = '';
 
         //clear out the text area
@@ -601,6 +614,9 @@ function setupEventListeners()
 
     document.getElementById("mainAddCommentButton").addEventListener('click', event => {     
         stopAutomaticPlayback();
+
+        //add all current comment tags to drop down list of tags
+        populateCommentTagDropDownList();
 
         highlightBlogModeVisibleArea();
 
@@ -1223,13 +1239,14 @@ async function updateComment(){
         //if the user entered a tag but forgot to add it, add it now
         document.getElementById("addCommentTagButton").click(); 
 
-        //remove any "pending update" from tags
+        //remove any "pending update" from tags //TODO figure this out
         tempTags.forEach(function(tag, index){
             tempTags[index] = tag.replace(" (Pending Update)", '')
         })
+        
 
         //create an object that has all of the comment info
-        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tempTags);
+        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tempTags.sort());
         //add the developer group id to the comment object and its id
         comment.developerGroupId = commentObject.developerGroupId;
         comment.id = commentObject.id;
@@ -1270,9 +1287,12 @@ async function updateComment(){
         $('.image-preview')[0].innerHTML = '';
 
         tempTags = [];
+
+        document.querySelector(".tagsInComment").innerHTML = '';
     }
 }
 
 function updateTitle(newTitle){
     updateTitleOnServer(newTitle);
 }
+
