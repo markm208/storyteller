@@ -121,7 +121,7 @@ function displayAllComments(){
                     searchData.commentText[comment.commentText] = [comment.id];
                     
                     comment.selectedCodeBlocks.forEach(block =>[
-                        searchData.highlightedCode[block.selectedText] = commnet.id
+                        searchData.highlightedCode[block.selectedText] = [commnet.id]
                     ])
                 })
             }
@@ -181,7 +181,7 @@ function displayAllComments(){
                 searchData.commentText[commentObject.commentText] = [commentObject.id];
                     
                 commentObject.selectedCodeBlocks.forEach(block =>[
-                    searchData.highlightedCode[block.selectedText] = commentObject.id
+                    searchData.highlightedCode[block.selectedText] = [commentObject.id]
                 ])
             }
 
@@ -2570,7 +2570,6 @@ function showAllComments(){
 
 function buildSearchResultsDiv(selection){
 
-    searchData;
     let searchArea = '';
     switch (document.getElementById("searchCriteriaDropDown").value) {
         case "Comment Tags":

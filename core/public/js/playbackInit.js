@@ -426,10 +426,11 @@ function setupEventListeners()
                     searchData.tags[tag] = [newComment.id];
                 }
             })
+            //TODO make these check
             newComment.selectedCodeBlocks.forEach(block =>{
-                searchData.highlightedCode[block.selectedText] = newComment.id;
+                searchData.highlightedCode[block.selectedText] = [newComment.id];
             })
-            searchData.commentText[newComment.commentText] = newComment.id
+            searchData.commentText[newComment.commentText] = [newComment.id]
 
 
 
