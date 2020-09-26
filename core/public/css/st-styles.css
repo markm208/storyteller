@@ -973,9 +973,9 @@ input[type=number]::-webkit-outer-spin-button {
     overflow-y: auto;
 }
 
-.autocomplete{
+/* .autocomplete{
     width: 300px;
-}
+} */
 
 #myInput{
     background-color: darkgrey;
@@ -990,8 +990,12 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .autocomplete {
-    position: relative;
-    display: inline-block;
+    /* position: relative; */
+    /* display: inline-block; */
+    margin-left: 10%;
+    margin-top: 10px;
+    width: 80%;
+    margin-bottom: 5px;
   }
   
   input {
@@ -1014,7 +1018,7 @@ input[type=number]::-webkit-outer-spin-button {
   
   .autocomplete-items {
     position: absolute;
-    border: 1px solid #d4d4d4;
+    border: 1px solid #d4d4d4 !important;
     border-bottom: none;
     border-top: none;
     z-index: 99;
@@ -1023,6 +1027,16 @@ input[type=number]::-webkit-outer-spin-button {
     left: 0;
     right: 0;
   }
+
+  #myInput:focus {
+    border-color: #f1f1f1 !important;
+
+    /* outline: black;
+    border: black !important;
+    -webkit-box-shadow: black !important;
+    -moz-box-shadow: black !important; */
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 1.075) inset, 0 0 8px rgba(0, 0, 0, 5.6);
+}
   
   .autocomplete-items div {
     padding: 10px;
@@ -1042,3 +1056,40 @@ input[type=number]::-webkit-outer-spin-button {
     background-color: DodgerBlue !important; 
     color: #ffffff; 
   }
+
+  /* #input_img {
+    position:absolute;
+    bottom:2px;
+    left:5px;
+    width:24px;
+    height:24px;
+}
+
+
+#myInput {
+    margin:0;
+    padding-left: 30px;
+    width: 100%;
+} */
+
+
+
+.hiddenComment{
+    display: none;
+}
+
+.searchDivScroll{
+    overflow-y: scroll;
+    height: 95vh;
+    word-wrap: break-word;
+    width: 490px; 
+}
+
+
+.hiddenButton{
+    visibility: hidden;
+}
+
+#commentSearchBar{
+    width: 30%;
+}

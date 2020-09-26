@@ -71,6 +71,7 @@ function deleteEditor(fileId) {
  *
  * Displays all the comments.
  */
+let firstTimeThrough = true;
 function displayAllComments(){
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
@@ -101,19 +102,29 @@ function displayAllComments(){
 
             commentGroupDiv.append(titleCard);
 
-            //collect all comment tags in a single variable
-            commentBlock.forEach(comment =>{
-                comment.commentTags.forEach(commentTag =>{
-                    if (getFormattedCommentTag(commentTag) in allCommentTagsWithCommentId){
-                        allCommentTagsWithCommentId[getFormattedCommentTag(commentTag)].push(comment.id);
-                    }
-                    else{
-                        allCommentTagsWithCommentId[getFormattedCommentTag(commentTag)] = [comment.id];
-                    }
+            if (firstTimeThrough){
+                //collect all comment tags in a single variable
+                commentBlock.forEach(comment =>{
+                    comment.commentTags.forEach(commentTag =>{
+                        if (searchData.tags[commentTag]){
+                            if (!searchData.tags[commentTag].includes(comment.id)){
+                                searchData.tags[commentTag].push(comment.id)
+                            }
+                        }
+                        else{
+                            searchData.tags[commentTag] = [comment.id];
+                        }
+                    })
+
+                    //TODO check to see if these exist already
+
+                    searchData.commentText[comment.commentText] = [comment.id];
+                    
+                    comment.selectedCodeBlocks.forEach(block =>[
+                        searchData.highlightedCode[block.selectedText] = commnet.id
+                    ])
                 })
-            })
-
-
+            }
 
             startingValue += 1;
         }
@@ -150,17 +161,29 @@ function displayAllComments(){
         for (let i = startingValue; i < commentBlock.length; i++){
 
             const commentObject = commentBlock[i];
+            
+            if (firstTimeThrough){
+                //collect all comment tags in a single variable
+                commentObject.commentTags.forEach(commentTag =>{
+                    if (searchData.tags[commentTag]){
+                        if (!searchData.tags[commentTag].includes(commentObject.id)){
+                            searchData.tags[commentTag].push(commentObject.id)
+                        }
+                    }
+                    else{
+                        searchData.tags[commentTag] = [commentObject.id];
+                    }
 
-            //collect all comment tags in a single variable
-            commentObject.commentTags.forEach(commentTag =>{
-                if (getFormattedCommentTag(commentTag) in allCommentTagsWithCommentId){
-                    allCommentTagsWithCommentId[getFormattedCommentTag(commentTag)].push(commentObject.id);
-                }
-                else{
-                    allCommentTagsWithCommentId[getFormattedCommentTag(commentTag)] = [commentObject.id];
-                }
-            })
 
+                })
+
+                //TODO check to see if these exist already
+                searchData.commentText[commentObject.commentText] = [commentObject.id];
+                    
+                commentObject.selectedCodeBlocks.forEach(block =>[
+                    searchData.highlightedCode[block.selectedText] = commentObject.id
+                ])
+            }
 
             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
             const commentCard = returnObject.cardObject;
@@ -244,6 +267,8 @@ function displayAllComments(){
         uniqueCommentGroupID++;
     })    
     updateAllCommentHeaderCounts();
+    firstTimeThrough = false;
+
 }
 
 /* CREATE COMMENT CARD
@@ -577,9 +602,6 @@ function createEditCommentButton(commentObject, buttonText){
         //populate this comments tags list
         commentObject.commentTags.forEach(tag => addCommentTagForThisComment(tag));    
 
-        //a backup of the comment tags of this comment before any chagnes are made
-        const thisCommentsTempTags = tempTags;    
-
         const addCommentButton =  document.getElementById("addCommentButton");
         const updateCommentButton = document.getElementById("UpdateCommentButton");
         addCommentButton.style.display = "none";
@@ -636,15 +658,16 @@ function createEditCommentButton(commentObject, buttonText){
             //for each of the original tags in this comment, see if it has been deleted from this comment
             //if it has, remove this comment the list of comments that have this tag
             //if no comments have this tag anymore, delete the tag unless the tag is in the permanent list
-            thisCommentsTempTags.forEach(tag => {
-                if (!tempTags.includes(tag)){                        
-                    allCommentTagsWithCommentId[tag] = allCommentTagsWithCommentId[tag].filter(id => id !== activeCommentId); 
+            commentObject.commentTags.forEach(tag => {
+                if (!getAllCommentTags().includes(tag)){                        
+                    allCommentTagsWithCommentId[tag] = allCommentTagsWithCommentId[tag].filter(id => id !== activeCommentId); //TODO Use index
 
                     if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
                         delete allCommentTagsWithCommentId[tag];
                     }
                 }
             })    
+
             
             document.getElementById("CancelUpdateButton").click();
         })
@@ -2357,7 +2380,7 @@ function populateCommentTagDropDownList(tagsToExclude){
             newTag.remove();
             
         })
-        document.querySelector(".dropdown-menu").appendChild(newTag);
+        document.querySelector(".commentTagDropDown").appendChild(newTag);
     })
 }
 
@@ -2374,10 +2397,10 @@ function getAllSortedCommentTags(){
 function addCommentTagForThisComment(commentTag){
 
     //determine if passed tag is already in the list
-    const allCommentTagSpans = [...document.querySelectorAll(".commentTagSpan")];
+   // const allCommentTagSpans = [...document.querySelectorAll(".commentTagSpan")];
 
     let tagAlreadyIncluded = false;
-    allCommentTagSpans.forEach(span => {
+    getAllCommentTags().forEach(span => {
         if (tagAlreadyIncluded){
             return;
         }
@@ -2392,8 +2415,8 @@ function addCommentTagForThisComment(commentTag){
         return;
     }
 
-    tempTags.push(commentTag);
-    tempTags.sort();
+    // tempTags.push(commentTag);
+    // tempTags.sort();
 
     let tagDiv = document.createElement("div");
 
@@ -2410,11 +2433,12 @@ function addCommentTagForThisComment(commentTag){
 
     deleteButton.addEventListener("click", function(){
 
-        tempTags = tempTags.filter(tag => tag !== commentTag);
+        //tempTags = tempTags.filter(tag => tag !== commentTag);
+
+        tagDiv.remove();
 
         //rebuild the drop down menu with the returned tag
-        populateCommentTagDropDownList(tempTags);
-        tagDiv.remove();
+        populateCommentTagDropDownList(getAllCommentTags());
     })
 
     tagDiv.append(deleteButton);
@@ -2423,16 +2447,14 @@ function addCommentTagForThisComment(commentTag){
     document.querySelector(".tagsInComment").append(tagDiv);
 }
 
-
-
-
 function autocomplete(inp, arr) {
     /*the autocomplete function takes two arguments,
     the text field element and an array of possible autocompleted values:*/
     var currentFocus;
+
     /*execute a function when someone writes in the text field:*/
-    inp.addEventListener("input", function(e) {
-        var a, b, i, val = this.value;
+    inp.addEventListener("input", function() {
+        let a, b, i, val = this.value;
         /*close any already open lists of autocompleted values*/
         closeAllLists();
         if (!val) { return false;}
@@ -2461,14 +2483,20 @@ function autocomplete(inp, arr) {
                 /*close the list of autocompleted values,
                 (or any other open lists of autocompleted values:*/
                 closeAllLists();
+
+                document.getElementById("removeAllFilters").classList.remove("hiddenButton");
+                document.getElementById("commentSearchBar").disabled = true;
+                buildSearchResultsDiv(inp.value);
+
             });
             a.appendChild(b);
           }
         }
     });
-    /*execute a function presses a key on the keyboard:*/
+
+    /*execute a function on input of text:*/
     inp.addEventListener("keydown", function(e) {
-        var x = document.getElementById(this.id + "autocomplete-list");
+        let x = document.getElementById(this.id + "autocomplete-list");
         if (x) x = x.getElementsByTagName("div");
         if (e.keyCode == 40) {
           /*If the arrow DOWN key is pressed,
@@ -2487,10 +2515,18 @@ function autocomplete(inp, arr) {
           e.preventDefault();
           if (currentFocus > -1) {
             /*and simulate a click on the "active" item:*/
-            if (x) x[currentFocus].click();
+            if (x) {
+                x[currentFocus].click();
+            }
           }
         }
     });
+
+    //on focus, trigger auto complete of any text left in the input
+    inp.addEventListener("focus", function(){
+        inp.dispatchEvent(new Event('input'));
+    })
+    
     function addActive(x) {
       /*a function to classify an item as "active":*/
       if (!x) return false;
@@ -2521,4 +2557,62 @@ function autocomplete(inp, arr) {
     document.addEventListener("click", function (e) {
         closeAllLists(e.target);
     });
-  }
+    
+}
+
+function hideAllComments(){
+    getAllComments().forEach(comment => comment.classList.add("hiddenComment"));
+}
+
+function showAllComments(){
+    document.querySelectorAll(".hiddenComment").forEach(comment => comment.classList.remove("hiddenComment"));
+}
+
+function buildSearchResultsDiv(selection){
+
+
+    // switch (document.getElementById("searchCriteriaDropDown").value) {
+
+
+
+    // }
+    alert(Object.keys(searchData.tags).includes(selection))
+
+    //TODO casting it to a set is because of a bug where the same comment id can end up in the object more than once
+    const selectedComments = [...new Set(allCommentTagsWithCommentId[selection])]; 
+
+    const contentDiv = document.getElementById("searchContentDiv");
+
+    selectedComments.forEach(commentId =>{
+        let clone = document.querySelector(`.codeView [data-commentid="${commentId}"]`).cloneNode(true);
+        setUpSearchResultComment(clone)
+        contentDiv.append(clone);
+    })
+
+}
+
+function setUpSearchResultComment(commentDiv){
+    const commentId = commentDiv.getAttribute("data-commentid");
+    const eventId = commentDiv.getAttribute("data-commentEventid")
+    const commentBlock = playbackData.comments[eventId];
+
+    const index = commentBlock.findIndex(item => item.id === commentId);
+    const commentObject = commentBlock[index];
+
+
+    commentDiv.addEventListener('click', function() {
+        //commentDiv.classList.add("activeComment", "activeCommentBorder")
+        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+
+    })
+
+}
+
+function getAllCommentTags(){
+    const spans = [...document.querySelectorAll(".commentTagSpan")];
+    let retVal = [];
+    spans.forEach(span => retVal.push(span.textContent));
+    return retVal;
+}
+
+

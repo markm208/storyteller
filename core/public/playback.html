@@ -19,11 +19,7 @@
         <!-- <button id="editTitleButton" style="border: none;">edit title</button> -->
         <!-- <button id="acceptTitleChanges" style="border: none;">accept changes</button> -->
         <div class="btn-group optionsButtonsGroup" role="group" aria-label="Options Button Group">
-            <form autocomplete="off" action="/action_page.php">
-                <div class="autocomplete">
-                  <input id="myInput" type="text" placeholder="Search Comments">
-                </div>
-              </form>
+
               
             <button id="codeMode" type="button" class="btn activeModeButton" title="Code View"> <svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-code-square" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" d="M14 1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
@@ -49,7 +45,7 @@
                     <ul class="nav nav-tabs" id="commentTab">
                         <li class="nav-item">
                             <a class="nav-link active" href="#ViewCommentPanel" role="tab" data-toggle="tab"
-                                id="viewCommentsTab">View Comments</a>
+                                id="viewCommentsTab">Comments</a>
                         </li>
     
                         <li class="nav-item" style="display:none">
@@ -59,18 +55,56 @@
 
                         <li class="nav-item">
                             <a class="nav-link" href="#fsViewPanel" role="tab" data-toggle="tab" 
-                                id="fsViewTabTab">File System View</a>
+                                id="fsViewTabTab">File System</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <!-- <a class="nav-link" role="tab" data-toggle="tab"  -->
+
+                                <a class="nav-link" href="#searchTab" role="tab" data-toggle="tab" 
+                                id="searchCommentTab">Search Comments</a>
+
+                              
+
+
+                            <!-- </a> -->
                         </li>
 
                     </ul>
                 </div>
                 <div class="tab-content" id="commentTabContent">
                     <div id="ViewCommentPanel" class="tab-pane active">
+
+
                         <div id="commentContentDiv" class="commentsDivScroll"></div>
                         <button id="mainAddCommentButton" class="btn addCommentButton mainAddCommentButtonNoEdit" type="button" style="float: right;">Add New Comment</button>
                     </div>
+
+                    <div class="tab-pane" id="searchTab">
+                        <!-- search bar and controls -->
+                        <div class="input-group autocomplete">
+                            <input type="text" id="commentSearchBar" class="form-control" placeholder="Search Comments" aria-label="Text input with segmented dropdown button" autocomplete="off">
+                               <!-- <button type="button" title="Choose filter options" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> -->
+                                    <select class="form-control" id="searchCriteriaDropDown">
+                                        <option >All</option>
+                                        <option>Comment Tags</option>
+                                        <option>Comment Text</option>
+                                        <option>Highlighted Code</option>
+                                    </select>
+                              <button type="button" id="removeAllFilters" class="btn btn-outline-secondary hiddenButton" title="Remove all Filters">X</button>
+                                <span class="sr-only">Toggle Dropdown</span>
+                              </button>
+                              <!-- <div class="dropdown-menu">
+                                  
+                              </div> -->
+                        </div>                         
+                        <div id="searchContentDiv" class="searchDivScroll"></div>
+
+
+                    </div>
     
                     <div id="addCommentPanel" class="tab-pane commentsDivScroll">
+                        
                         <div class="form-group">
                             <div id="textCommentTextArea" contenteditable="true" class="form-control storytellerCommentEditable" data-ph="Comment Text"></div>
                             <div class="input-group input-group-sm mb-3">
@@ -106,7 +140,7 @@
                                   <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split"  title="Existing Tags" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span class="sr-only">Toggle Dropdown</span>
                                   </button>
-                                  <div class="dropdown-menu">
+                                  <div class="dropdown-menu commentTagDropDown">
                                   </div>
                                 </div>
                                 <input type="text" id="tagInput" class="form-control" aria-label="Text input with segmented dropdown button" placeholder="Comment Tag">
@@ -387,7 +421,6 @@
         const AceRange = ace.require('ace/range').Range;
 
         const commentsDiv = document.getElementById('commentContentDiv');
-
         
         const blogModeNumberAboveSelector = document.getElementById("blogModeExtraAbove");
         const blogModeNumberBelowSelector = document.getElementById("blogModeExtraBelow");
@@ -398,16 +431,14 @@
         //indicates whether the change can from the textarea not editing in ace
         let changeOutsideEditor = false;
 
-        //holds temporary comment tags before they're added to a comment
-        let tempTags = [];
-
         //holds all current comment tags as the key and all comments that have that tag as the value
         let allCommentTagsWithCommentId = {}; 
+
+        let searchData = {};
 
         //an array of comment tags that cannot be deleted 
         //added to allCommentTagsWithCommentId in initializePlayback()
         let permanentCommentTags = ['all-tests-pass', 'successful-run', 'version-control-commit'];
-
 
         document.addEventListener('DOMContentLoaded', event => {
           initializePlayback();     

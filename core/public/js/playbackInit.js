@@ -19,6 +19,21 @@ async function initializePlayback()
     setUpSlider();
     step(playbackData.numNonRelevantEvents);
 
+    searchData ={
+        tags: {},
+        commentText: {},
+        highlightedCode: {}
+    }
+    //add permanent comment tags to searchData
+    permanentCommentTags.forEach(tag =>{
+        searchData.tags[tag] = [];
+        allCommentTagsWithCommentId[tag] = [];
+    })
+
+
+
+
+
     //displays all comments
     displayAllComments();
 
@@ -51,11 +66,9 @@ async function initializePlayback()
         window.history.replaceState({view: 'code'}, '', '?view=code');
     }
 
-    //add permanent comment tags to allCommentTagsWithCommentId
-    permanentCommentTags.forEach(tag =>{
-        allCommentTagsWithCommentId[tag] = [];
-    })
 
+    //seed autocomplete with all criteria
+    loadCommentSearchBarWithAllCriteria();
 
     console.log('Success Initializing Playback');
 }
@@ -280,8 +293,8 @@ function setupEventListeners()
         const tagInput = document.getElementById("tagInput");
         let text = tagInput.value;  
 
-        //if there is a tag and it's not already included
-        if (text !== '' && !tempTags.includes(text)){ 
+        //if there is an entered tag and it's not already included in the tags list
+        if (text !== '' && !getAllCommentTags().includes(text)){ 
             text = getFormattedCommentTag(text);
 
             //if the tag is in the drop down list, remove it 
@@ -379,15 +392,18 @@ function setupEventListeners()
         //if there was a comment, or at least one media file
         if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length)
         {
-            //let commentTags = ;
 
             //get the event to playback this comment
             const eventIndex = playbackData.nextEventPosition - 1;
 
             const commentEvent = playbackData.events[eventIndex];
 
+
+            let tags = getAllCommentTags();
+
             //create an object that has all of the comment info
-            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tempTags.sort());
+            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags);
+            
 
             //determine if any comments already exist for this event 
             //if so add the new comment
@@ -398,6 +414,24 @@ function setupEventListeners()
 
             //send comment to server and recieve back a full comment with id and developerGroup
             const newComment = await sendCommentToServer(comment);        
+
+            //update searchData
+            tags.forEach(tag => {
+                if(searchData.tags[tag]){
+                    if (!searchData.tags[tag].includes(newComment.id)){
+                        searchData.tags[tag].push(newComment.id)
+                    }
+                }
+                else{
+                    searchData.tags[tag] = [newComment.id];
+                }
+            })
+            newComment.selectedCodeBlocks.forEach(block =>{
+                searchData.highlightedCode[block.selectedText] = newComment.id;
+            })
+            searchData.commentText[newComment.commentText] = newComment.id
+
+
 
             playbackData.comments[commentEvent.id].push(newComment);
 
@@ -431,7 +465,7 @@ function setupEventListeners()
         imagePreviewDiv.innerHTML = '';
 
         document.querySelector(".tagsInComment").innerHTML = '';
-        tempTags = []; //reset the list of temporary comment tags
+        //tempTags = []; //reset the list of temporary comment tags
         emptyCommentTagDropDownMenu();
         document.getElementById("tagInput").value = '';
 
@@ -823,18 +857,62 @@ function setupEventListeners()
         }
     })
 
-    document.addEventListener("click", function (e) {
-        //closeAllLists(e.target);
+    //listen for a change in the comment search filters
+    $('#searchCriteriaDropDown').on('change', function(){
+        switch (this.value) {
+            case "Comment Tags":
+                autocomplete(document.getElementById("commentSearchBar"), Object.keys(searchData.tags));
+                break;
+            case "Comment Text":
+                autocomplete(document.getElementById("commentSearchBar"), Object.keys(searchData.commentText));
+                break;
+            case "Highlighted Code":
+                autocomplete(document.getElementById("commentSearchBar"), Object.keys(searchData.highlightedCode));
+                break;        
+            default:
+                loadCommentSearchBarWithAllCriteria();
+                break;
+        }
     });
 
-    document.getElementById("myInput").addEventListener('click',function(){
-        autocomplete(document.getElementById("myInput"), Object.keys(allCommentTagsWithCommentId));
 
-    })
+    // //TODO try storing the last value and if the new value matches the old value, return
+    // document.getElementById("commentSearchBar").addEventListener('click',function(){
+    //     //TODO concat all lists and send that
 
-    document.getElementById("myInput").addEventListener('blur',function(){
-//alert("blured")
+    //     switch (document.getElementById("searchCriteriaDropDown").value) {
+    //         case "Comment Tags":
+    //             //autocomplete(document.getElementById("commentSearchBar"), Object.keys(searchData.tags));
+    //             // alert("searching only tags")
+    //             break;
+        
+    //         default:
+    //             // let allCriteria = [];
+    //             // const keys = Object.keys(searchData);
+
+    //             // //build an array of all keys of all criteria
+    //             // keys.forEach(key => allCriteria = allCriteria.concat(Object.keys(searchData[key])));
+
+    //             // autocomplete(document.getElementById("commentSearchBar"), allCriteria);
+    //             // alert("searching all criteria")
+
+
+    //         break;
+    //     }
+    // })
+
+    
+
+    document.getElementById("removeAllFilters").addEventListener("click", event =>{
+        const input = document.getElementById("commentSearchBar");
+        input.disabled = false;
+        input.value = '';
+
+        document.getElementById("removeAllFilters").classList.add("hiddenButton");
+        document.getElementById("searchContentDiv").innerHTML = '';
     })
+    
+    
 }
 
 function setUpSlider(){
@@ -1157,6 +1235,7 @@ function doDrag(event){
         boxA.style.flexGrow = 0;
         $('#codePanel').css('width', screen.width - pointerRelativeXpos);
         commentsDiv.style.width = event.pageX + 'px';
+        document.getElementById("searchContentDiv").style.width = event.pageX + 'px'; //changing width of searched comment panel
         addCommentPanel.style.width = event.pageX + 'px';
         document.getElementById("fsViewPanel").style.width = event.pageX + 'px';
     }
@@ -1252,14 +1331,16 @@ async function updateComment(){
         //if the user entered a tag but forgot to add it, add it now
         document.getElementById("addCommentTagButton").click(); 
 
+        tags = []
         //remove any "pending update" from tags //TODO figure this out
-        tempTags.forEach(function(tag, index){
-            tempTags[index] = tag.replace(" (Pending Update)", '')
+        getAllCommentTags().forEach(function(tag, index){
+           tags.push(tag.replace(" (Pending Update)", ''))
         })
         
+        // tempTags = [...new Set(tempTags)].sort();
 
         //create an object that has all of the comment info
-        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tempTags.sort());
+        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags);
         //add the developer group id to the comment object and its id
         comment.developerGroupId = commentObject.developerGroupId;
         comment.id = commentObject.id;
@@ -1273,7 +1354,6 @@ async function updateComment(){
 
         //send comment to server and recieve back a full comment with id and developerGroup
         const newComment = await updateCommentOnServer(comment);        
-
 
         //replace the old comment with the new one
         for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
@@ -1299,7 +1379,7 @@ async function updateComment(){
         $('.image-preview')[0].style.display='none';
         $('.image-preview')[0].innerHTML = '';
 
-        tempTags = [];
+        //tempTags = [];
 
         document.querySelector(".tagsInComment").innerHTML = '';
     }
@@ -1307,5 +1387,15 @@ async function updateComment(){
 
 function updateTitle(newTitle){
     updateTitleOnServer(newTitle);
+}
+
+function loadCommentSearchBarWithAllCriteria(){
+    let allCriteria = [];
+    const keys = Object.keys(searchData);
+
+    //build an array of all keys of all criteria
+    keys.forEach(key => allCriteria = allCriteria.concat(Object.keys(searchData[key])));
+
+    autocomplete(document.getElementById("commentSearchBar"), allCriteria);
 }
 
