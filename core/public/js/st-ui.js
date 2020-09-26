@@ -2570,19 +2570,32 @@ function showAllComments(){
 
 function buildSearchResultsDiv(selection){
 
+    searchData;
+    let searchArea = '';
+    switch (document.getElementById("searchCriteriaDropDown").value) {
+        case "Comment Tags":
+            searchArea = 'tags';
+            break;
+        case "Comment Text":
+            searchArea = 'commentText';
+            break;
+        case "Highlighted Code":
+            searchArea = 'highlightedCode';
+            break;        
+        default:
+            searchArea = 'tags'; //TODO fix this
+            break;
 
-    // switch (document.getElementById("searchCriteriaDropDown").value) {
+
+    }
 
 
-
-    // }
-
-    //TODO casting it to a set is because of a bug where the same comment id can end up in the object more than once
-    const selectedComments = [...new Set(allCommentTagsWithCommentId[selection])]; 
+    // //TODO casting it to a set is because of a bug where the same comment id can end up in the object more than once
+    // const selectedComments = [...new Set(allCommentTagsWithCommentId[selection])]; 
 
     const contentDiv = document.getElementById("searchContentDiv");
 
-    selectedComments.forEach(commentId =>{
+    searchData[searchArea][selection].forEach(commentId =>{
         let clone = document.querySelector(`.codeView [data-commentid="${commentId}"]`).cloneNode(true);
         setUpSearchResultComment(clone)
         contentDiv.append(clone);
