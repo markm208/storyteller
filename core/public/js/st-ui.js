@@ -2576,7 +2576,6 @@ function buildSearchResultsDiv(selection){
 
 
     // }
-    alert(Object.keys(searchData.tags).includes(selection))
 
     //TODO casting it to a set is because of a bug where the same comment id can end up in the object more than once
     const selectedComments = [...new Set(allCommentTagsWithCommentId[selection])]; 
