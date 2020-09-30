@@ -2006,6 +2006,84 @@ function createBlogPost(commentToAdd){
     blogPost.setAttribute("data-commentEventid", commentToAdd.displayCommentEvent.id);
     blogPost.setAttribute("data-commentid", commentToAdd.id);
 
+
+    blogPost.append(textDiv);
+
+    if (commentToAdd.videoURLs.length){
+        for (let i = 0; i < commentToAdd.videoURLs.length; i++){
+            //create a video and add the required classes
+            const newVideo = document.createElement('video');
+            newVideo.setAttribute('src', commentToAdd.videoURLs[i]);
+            newVideo.setAttribute('controls', '');
+            newVideo.setAttribute('preload', 'metadata');   
+
+            //when a video is played, pause any other media that is playing
+            newVideo.onplay = function(){
+                pauseMedia();
+
+                if (newVideo.closest(".commentCard")){
+                    //make the comment the video is in active
+                    newVideo.closest(".commentCard").click();
+                }
+                newVideo.classList.add("playing");
+            };
+        
+            $(newVideo).on('pause ended', function(){
+                newVideo.classList.remove("playing");
+            });
+            
+            newVideo.classList.add('mediaResizable');                
+
+            const speedControlDiv = createSpeedControlButtonDivForMedia(newVideo);
+
+            speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
+
+            speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
+            speedControlDiv.classList.add("blogVideoFile");
+
+            blogPost.append(speedControlDiv);
+        }
+    }
+
+    if (commentToAdd.audioURLs.length){
+        for (let i = 0; i < commentToAdd.audioURLs.length; i ++){
+            //create a audio and add the required classes
+            const newAudio = document.createElement('audio');
+            newAudio.setAttribute('src', commentToAdd.audioURLs[i]);
+            newAudio.setAttribute('controls', '');
+            newAudio.setAttribute('preload', 'metadata');
+
+            //pause any media that is playing
+            newAudio.onplay = function(){
+                pauseMedia();
+
+                if (newAudio.closest(".commentCard")){
+                    //make the comment the audio is in active
+                    newAudio.closest(".commentCard").click();
+                }        
+                newAudio.classList.add("playing");
+            }
+
+            //removes the playing class from a media file
+            $(newAudio).on('pause ended', function(){
+                newAudio.classList.remove("playing");
+            })                
+         
+            newAudio.classList.add('mediaResizable');
+            newAudio.style.height = 40 + 'px';
+
+            const speedControlDiv = createSpeedControlButtonDivForMedia(newAudio);
+
+            speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
+
+            speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
+            speedControlDiv.classList.add("blogAudioFile");
+            blogPost.append(speedControlDiv);
+        }       
+    } 
+
+
+
     if (commentToAdd.viewableBlogText && commentToAdd.viewableBlogText.length){
         const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
 
@@ -2081,83 +2159,6 @@ function createBlogPost(commentToAdd){
         }    
         blogPost.append(imagesDiv);        
     }
-
-    blogPost.append(textDiv);
-
-
-    if (commentToAdd.videoURLs.length){
-        for (let i = 0; i < commentToAdd.videoURLs.length; i++){
-            //create a video and add the required classes
-            const newVideo = document.createElement('video');
-            newVideo.setAttribute('src', commentToAdd.videoURLs[i]);
-            newVideo.setAttribute('controls', '');
-            newVideo.setAttribute('preload', 'metadata');   
-
-            //when a video is played, pause any other media that is playing
-            newVideo.onplay = function(){
-                pauseMedia();
-
-                if (newVideo.closest(".commentCard")){
-                    //make the comment the video is in active
-                    newVideo.closest(".commentCard").click();
-                }
-                newVideo.classList.add("playing");
-            };
-        
-            $(newVideo).on('pause ended', function(){
-                newVideo.classList.remove("playing");
-            });
-            
-            newVideo.classList.add('mediaResizable');                
-
-            const speedControlDiv = createSpeedControlButtonDivForMedia(newVideo);
-
-            speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
-
-            speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
-            speedControlDiv.classList.add("blogVideoFile");
-
-            blogPost.append(speedControlDiv);
-        }
-    }
-
-    if (commentToAdd.audioURLs.length){
-        for (let i = 0; i < commentToAdd.audioURLs.length; i ++){
-            //create a audio and add the required classes
-            const newAudio = document.createElement('audio');
-            newAudio.setAttribute('src', commentToAdd.audioURLs[i]);
-            newAudio.setAttribute('controls', '');
-            newAudio.setAttribute('preload', 'metadata');
-
-            //pause any media that is playing
-            newAudio.onplay = function(){
-                pauseMedia();
-
-                if (newAudio.closest(".commentCard")){
-                    //make the comment the audio is in active
-                    newAudio.closest(".commentCard").click();
-                }        
-                newAudio.classList.add("playing");
-            }
-
-            //removes the playing class from a media file
-            $(newAudio).on('pause ended', function(){
-                newAudio.classList.remove("playing");
-            })                
-         
-            newAudio.classList.add('mediaResizable');
-            newAudio.style.height = 40 + 'px';
-
-            const speedControlDiv = createSpeedControlButtonDivForMedia(newAudio);
-
-            speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
-
-            speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
-            speedControlDiv.classList.add("blogAudioFile");
-            blogPost.append(speedControlDiv);
-        }       
-    } 
-
  
     return blogPost;
 }
