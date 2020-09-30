@@ -2000,10 +2000,63 @@ function createBlogPost(commentToAdd){
             latestVisableBlogPostID = commentToAdd.id;          
         }           
     }, { threshold: [1] });
+    
     observer.observe(textDiv);
 
     blogPost.setAttribute("data-commentEventid", commentToAdd.displayCommentEvent.id);
     blogPost.setAttribute("data-commentid", commentToAdd.id);
+
+    if (commentToAdd.viewableBlogText && commentToAdd.viewableBlogText.length){
+        const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+        editor.session.selection.clearSelection()
+
+        const blogPostEditor = document.createElement('div')
+        blogPostEditor.classList.add("blogEditorDiv") 
+
+        let blogPostCodeEditor = ace.edit(blogPostEditor);
+
+        const blogPostFileNameDiv = document.createElement('div');
+        blogPostFileNameDiv.classList.add("blogPostFileName")
+        blogPostFileNameDiv.innerText = commentToAdd.currentFilePath;
+        
+        //determining how big to make the new editor
+        let startRow = commentToAdd.selectedCodeBlocks[0].startRow - Number(commentToAdd.linesAbove) > 0 ? commentToAdd.selectedCodeBlocks[0].startRow - Number(commentToAdd.linesAbove) : 0;
+        
+        blogPostCodeEditor.setValue(commentToAdd.viewableBlogText);
+
+        editor.session.selection.clearSelection();
+        blogPostCodeEditor.session.selection.clearSelection();
+
+        for (let i = 0; i < commentToAdd.selectedCodeBlocks.length; i++){
+            const selection = commentToAdd.selectedCodeBlocks[i];
+            blogPostCodeEditor.getSession().addMarker(new ace.Range(selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn), 'highlight', 'text', true);
+        }
+
+        blogPostCodeEditor.setOptions({
+            readOnly: true,
+            theme: 'ace/theme/monokai',
+            maxLines: blogPostCodeEditor.session.getLength(),
+            fontSize: 16,
+            firstLineNumber: startRow + 1,
+            highlightActiveLine: false,
+            showPrintMargin: false
+       });
+
+       blogPostCodeEditor.session.setOptions({
+           mode: getEditorModeForFilePath(commentToAdd.currentFilePath),
+           useWorker: false
+       });
+
+        blogPostEditor.append(blogPostCodeEditor);
+
+        blogPost.append(blogPostFileNameDiv);
+        blogPost.append(blogPostEditor);       
+       
+    }
+
+
+    
 
     blogPost.append(textDiv);
 
@@ -2106,54 +2159,7 @@ function createBlogPost(commentToAdd){
         }       
     } 
 
-    if (commentToAdd.viewableBlogText && commentToAdd.viewableBlogText.length){
-        const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
-
-        editor.session.selection.clearSelection()
-
-        const blogPostEditor = document.createElement('div')
-        blogPostEditor.classList.add("blogEditorDiv") 
-
-        let blogPostCodeEditor = ace.edit(blogPostEditor);
-
-        const blogPostFileNameDiv = document.createElement('div');
-        blogPostFileNameDiv.classList.add("blogPostFileName")
-        blogPostFileNameDiv.innerText = commentToAdd.currentFilePath;
-        
-        //determining how big to make the new editor
-        let startRow = commentToAdd.selectedCodeBlocks[0].startRow - Number(commentToAdd.linesAbove) > 0 ? commentToAdd.selectedCodeBlocks[0].startRow - Number(commentToAdd.linesAbove) : 0;
-        
-        blogPostCodeEditor.setValue(commentToAdd.viewableBlogText);
-
-        editor.session.selection.clearSelection();
-        blogPostCodeEditor.session.selection.clearSelection();
-
-        for (let i = 0; i < commentToAdd.selectedCodeBlocks.length; i++){
-            const selection = commentToAdd.selectedCodeBlocks[i];
-            blogPostCodeEditor.getSession().addMarker(new ace.Range(selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn), 'highlight', 'text', true);
-        }
-
-        blogPostCodeEditor.setOptions({
-            readOnly: true,
-            theme: 'ace/theme/monokai',
-            maxLines: blogPostCodeEditor.session.getLength(),
-            fontSize: 16,
-            firstLineNumber: startRow + 1,
-            highlightActiveLine: false,
-            showPrintMargin: false
-       });
-
-       blogPostCodeEditor.session.setOptions({
-           mode: getEditorModeForFilePath(commentToAdd.currentFilePath),
-           useWorker: false
-       });
-
-        blogPostEditor.append(blogPostCodeEditor);
-
-        blogPost.append(blogPostFileNameDiv);
-        blogPost.append(blogPostEditor);       
-       
-    }
+ 
     return blogPost;
 }
 
