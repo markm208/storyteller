@@ -2053,12 +2053,8 @@ function createBlogPost(commentToAdd){
         blogPost.append(blogPostFileNameDiv);
         blogPost.append(blogPostEditor);       
        
-    }
+    }    
 
-
-    
-
-    blogPost.append(textDiv);
 
     if (commentToAdd.imageURLs.length){
         let imagesDiv = document.createElement('div');
@@ -2085,6 +2081,9 @@ function createBlogPost(commentToAdd){
         }    
         blogPost.append(imagesDiv);        
     }
+
+    blogPost.append(textDiv);
+
 
     if (commentToAdd.videoURLs.length){
         for (let i = 0; i < commentToAdd.videoURLs.length; i++){
