@@ -83,9 +83,9 @@
                     <div class="tab-pane" id="searchTab">
                         <!-- search bar and controls -->
                         <div class="input-group autocomplete">
-                            <input type="text" id="commentSearchBar" class="form-control" placeholder="Search Comments" aria-label="Text input with segmented dropdown button" autocomplete="off">
+                            <!-- <input type="text" id="commentSearchBar" class="form-control" placeholder="Search Comments" aria-label="Text input with segmented dropdown button"> -->
                                <!-- <button type="button" title="Choose filter options" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> -->
-                                    <select class="form-control selectpicker" id="searchCriteriaDropDown">
+                                    <!-- <select class="form-control" id="searchCriteriaDropDown">
                                         <option >All</option>
                                         <option>Comment Tags</option>
                                         <option>Comment Text</option>
@@ -93,10 +93,36 @@
                                     </select>
                               <button type="button" id="removeAllFilters" class="btn btn-outline-secondary hiddenButton" title="Remove all Filters">X</button>
                                 <span class="sr-only">Toggle Dropdown</span>
-                              </button>
-                              <!-- <div class="dropdown-menu">
-                                  
-                              </div> -->
+                              </button> -->
+              
+                            <div class="input-group" id="searchCriteriaDropDown">
+
+                                    <button class="btn btn-outline-secondary" id="commentSearchButton" type="button" title="Search">
+                                        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-search" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M10.442 10.442a1 1 0 0 1 1.415 0l3.85 3.85a1 1 0 0 1-1.414 1.415l-3.85-3.85a1 1 0 0 1 0-1.415z"/>
+                                            <path fill-rule="evenodd" d="M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM13 6.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/>
+                                          </svg>
+                                        
+                                    </button>
+
+                                <input type="text" id="commentSearchBar" class="form-control" placeholder="Search All Attributes" autocomplete="off">
+                                <div class="input-group-append">
+                                  <button class="btn btn-outline-secondary dropdown-toggle" title="Select Search Criteria" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                  <div class="dropdown-menu">
+                                    <!-- <a class="dropdown-item commentSearchOption" href="#">Choose Criteria</a>
+
+                                    <div role="separator" class="dropdown-divider"></div> -->
+
+                                    <a class="dropdown-item commentSearchOption active" href="#">All</a>
+                                    <a class="dropdown-item commentSearchOption" href="#">Comment Tags</a>
+                                    <a class="dropdown-item commentSearchOption" href="#">Comment Text</a>
+                                    <a class="dropdown-item commentSearchOption" href="#">Highlighted Code</a>
+                                  </div>
+                                </div>
+
+                                <button class="btn btn-outline-secondary" id="searchTabClearButton" title="Clear" type="button">X</button>
+                            </div>
+
                         </div>                         
                         <div id="searchContentDiv" class="searchDivScroll"></div>
 
@@ -432,9 +458,12 @@
         let changeOutsideEditor = false;
 
         //holds all current comment tags as the key and all comments that have that tag as the value
-        let allCommentTagsWithCommentId = {}; 
+        let allCommentTagsWithCommentId = {};  //TODO delete
 
+        //holds all of the search data for all comments for fast reference
         let searchData = {};
+
+        let wordSearchData = {};
 
         //an array of comment tags that cannot be deleted 
         //added to allCommentTagsWithCommentId in initializePlayback()

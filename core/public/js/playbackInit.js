@@ -19,11 +19,15 @@ async function initializePlayback()
     setUpSlider();
     step(playbackData.numNonRelevantEvents);
 
+    //the stored data for comment searches
     searchData ={
         tags: {},
         commentText: {},
-        highlightedCode: {}
+        highlightedCode: {},
+        words: {}
     }
+
+  
     //add permanent comment tags to searchData
     permanentCommentTags.forEach(tag =>{
         searchData.tags[tag] = [];
@@ -65,10 +69,6 @@ async function initializePlayback()
         //update the url for code view
         window.history.replaceState({view: 'code'}, '', '?view=code');
     }
-
-
-    //seed autocomplete with all criteria
-    loadCommentSearchBarWithAllCriteria();
 
     console.log('Success Initializing Playback');
 }
@@ -316,7 +316,7 @@ function setupEventListeners()
     })
 
     // Prevents menu from closing when clicked inside 
-    document.querySelector(".dropdown-menu").addEventListener('click', function (event) { 
+    document.querySelector(".commentTagDropDown").addEventListener('click', function (event) { 
         event.stopPropagation(); 
     }); 
 
@@ -392,14 +392,12 @@ function setupEventListeners()
         //if there was a comment, or at least one media file
         if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length)
         {
-
             //get the event to playback this comment
             const eventIndex = playbackData.nextEventPosition - 1;
 
             const commentEvent = playbackData.events[eventIndex];
 
-
-            let tags = getAllCommentTags();
+            const tags = getAllCommentTags();
 
             //create an object that has all of the comment info
             const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags);
@@ -414,6 +412,8 @@ function setupEventListeners()
 
             //send comment to server and recieve back a full comment with id and developerGroup
             const newComment = await sendCommentToServer(comment);        
+
+            buildSearchData(newComment);
 
             //update searchData
             tags.forEach(tag => {
@@ -484,6 +484,14 @@ function setupEventListeners()
         
     });
 
+    //When switching to viewCommentsTab, scroll to the active comment
+    $('a[id="viewCommentsTab"]').on('shown.bs.tab', function () {
+        const activeComment = document.querySelector(".codeView .activeComment");
+        if (activeComment){
+            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
+        }
+    })
+
     document.getElementById('dragBar').addEventListener('mousedown', function (e){  
     
         //add listeners for moving and releasing the drag and disable selection of text  
@@ -496,7 +504,7 @@ function setupEventListeners()
     document.addEventListener('keydown', function(e){    
 
         //prevent keyboard presses within the comment textbox from triggering actions 
-        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput'){
+        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar'){
             return;
         }
        
@@ -654,7 +662,6 @@ function setupEventListeners()
         populateCommentTagDropDownList();
 
         highlightBlogModeVisibleArea();
-
 
         document.getElementById("addCommentTab").click();
         document.getElementById('textCommentTextArea').focus();
@@ -858,62 +865,88 @@ function setupEventListeners()
         }
     })
 
-    //listen for a change in the comment search filters
-    $('#searchCriteriaDropDown').on('change', function(){
-        switch (this.value) {
-            case "Comment Tags":
-                autocomplete(document.getElementById("commentSearchBar"), Object.keys(searchData.tags));
-                break;
-            case "Comment Text":
-                autocomplete(document.getElementById("commentSearchBar"), Object.keys(searchData.commentText));
-                break;
-            case "Highlighted Code":
-                autocomplete(document.getElementById("commentSearchBar"), Object.keys(searchData.highlightedCode));
-                break;        
-            default:
-                loadCommentSearchBarWithAllCriteria();
-                break;
-        }
-    });
+    document.querySelectorAll(".commentSearchOption").forEach(option =>{
+        option.addEventListener('click', event=>{
+           //handleSearchCriteriaDropdown(event.currentTarget.innerText);   
 
+            document.querySelector(".commentSearchOption.active").classList.remove("active");           
+            event.currentTarget.classList.add("active");
 
-    // //TODO try storing the last value and if the new value matches the old value, return
-    // document.getElementById("commentSearchBar").addEventListener('click',function(){
-    //     //TODO concat all lists and send that
+            handleCommentSearchDropDownOptions();
 
-    //     switch (document.getElementById("searchCriteriaDropDown").value) {
-    //         case "Comment Tags":
-    //             //autocomplete(document.getElementById("commentSearchBar"), Object.keys(searchData.tags));
-    //             // alert("searching only tags")
-    //             break;
-        
-    //         default:
-    //             // let allCriteria = [];
-    //             // const keys = Object.keys(searchData);
-
-    //             // //build an array of all keys of all criteria
-    //             // keys.forEach(key => allCriteria = allCriteria.concat(Object.keys(searchData[key])));
-
-    //             // autocomplete(document.getElementById("commentSearchBar"), allCriteria);
-    //             // alert("searching all criteria")
-
-
-    //         break;
-    //     }
-    // })
-
-    
-
-    document.getElementById("removeAllFilters").addEventListener("click", event =>{
-        const input = document.getElementById("commentSearchBar");
-        input.disabled = false;
-        input.value = '';
-
-        document.getElementById("removeAllFilters").classList.add("hiddenButton");
-        document.getElementById("searchContentDiv").innerHTML = '';
+            //TODO handle this smarter
+            //focus the search bar but dont delete the value
+            let searchBar = document.getElementById("commentSearchBar");
+            let originalVal = searchBar.value;
+            searchBar.focus();           
+            searchBar.value = originalVal;
+        })
     })
-    
-    
+
+    document.getElementById("searchTabClearButton").addEventListener("click", event=>{
+        document.getElementById("searchContentDiv").innerHTML = '';
+        document.getElementById("commentSearchBar").value = '';
+    })
+
+    document.getElementById("commentSearchButton").addEventListener("click", event=>{
+        //change all unwanted characters to spaces, then remove extra spaces
+        //if unwanted character were changed to '', words would be incorrectly concatenated
+
+        document.getElementById("searchContentDiv").innerHTML = '';
+        //TODO call striphtml
+        const searchValue = document.getElementById("commentSearchBar").value.toLowerCase().replaceAll(/[.,\/#!$%+-\^&\*;:\\{}=-\@_`~()"|]/g," ").trim().replaceAll(/ +(?= )/g,'');
+        const words = searchValue.split(" ");
+        const searchType = handleCommentSearchDropDownOptions();
+        const results = new Set();
+
+        if (searchType !== "All"){
+            words.forEach(word =>{
+                if (wordSearchData[word]){
+                    if(searchType in wordSearchData[word]){
+                        wordSearchData[word][searchType].forEach(commentId =>{
+                            results.add(commentId);
+                        })
+                    }
+                }
+            })
+        }
+        else{
+            words.forEach(word =>{
+                if (wordSearchData[word]){ //if the word is found
+                    Object.keys(wordSearchData[word]).forEach(key =>{ //search all the criteria where the word was found
+                        wordSearchData[word][key].forEach(commentId =>{ //add all the commentIds
+                            results.add(commentId);
+                        })
+                    })
+                }
+            })
+        }
+
+        const contentDiv = document.getElementById("searchContentDiv");
+        getAllComments().forEach(comment =>{
+            const commentId = comment.getAttribute("data-commentid");
+            if (results.has(commentId)){
+                const clone = document.querySelector(`.codeView [data-commentid="${commentId}"]`).cloneNode(true);
+                setUpSearchResultComment(clone);
+
+                let searchResultOuterDiv = document.createElement("div");
+
+                contentDiv.append(clone);
+            }
+        })
+
+    })
+
+    document.getElementById("commentSearchBar").addEventListener('keyup', event=>{
+        event.stopPropagation();
+        if (event.key === "Enter"){
+            document.getElementById("commentSearchButton").click();
+        }
+    })
+
+    document.getElementById("commentSearchBar").addEventListener('focus', event=>{
+        document.getElementById("commentSearchBar").value = '';
+    })
 }
 
 function setUpSlider(){
@@ -1007,6 +1040,9 @@ function setUpClickableTickMarks(){
        
         //add the clickable element that will bring us to the comment
         tickMark.addEventListener('click', event => { 
+            //click back into comments view 
+            document.getElementById("viewCommentsTab").click();
+
             //determine if the description tick mark was clicked   
             const eventNum = pipValue === playbackData.numNonRelevantEvents - 1 ? 0 : pipValue; 
             
@@ -1254,7 +1290,7 @@ function disableSelect(event) {
     event.preventDefault();
 }
 
-async function updateComment(){
+async function updateComment(oldComment){
     const textCommentTextArea = document.querySelector('#textCommentTextArea');
 
     const activeComment = document.getElementsByClassName("activeComment")[0];
@@ -1354,7 +1390,10 @@ async function updateComment(){
         }
 
         //send comment to server and recieve back a full comment with id and developerGroup
-        const newComment = await updateCommentOnServer(comment);        
+        const newComment = await updateCommentOnServer(comment);
+
+        deleteWordsFromSearchData(oldComment, newComment);
+        buildSearchData(newComment);
 
         //replace the old comment with the new one
         for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
@@ -1366,7 +1405,6 @@ async function updateComment(){
 
         //clear out the text area
         textCommentTextArea.innerHTML = '';
-    
 
         //display a newly added comment on the current event
         displayAllComments();
@@ -1390,13 +1428,4 @@ function updateTitle(newTitle){
     updateTitleOnServer(newTitle);
 }
 
-function loadCommentSearchBarWithAllCriteria(){
-    let allCriteria = [];
-    const keys = Object.keys(searchData);
-
-    //build an array of all keys of all criteria
-    keys.forEach(key => allCriteria = allCriteria.concat(Object.keys(searchData[key])));
-
-    autocomplete(document.getElementById("commentSearchBar"), allCriteria);
-}
 

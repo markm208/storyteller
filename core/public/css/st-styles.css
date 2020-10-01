@@ -3,7 +3,8 @@
 }
 
 
-.activeCommentBorder > .commentCardBodyColor{
+.activeCommentBorder > .commentCardBodyColor
+{
 
     background-color: rgb(59,76,98);
 }
@@ -15,6 +16,23 @@
 
 .activeGroup > .commentBlockBackground{
     background-color: gray;
+}
+
+.activeSearchResultComment > .commentCardBodyColor
+{
+    background-color: rgb(59,76,98);
+    margin: 5px;
+
+}
+
+.activeSearchResultComment {
+    background-color: rgb(59,76,98);
+
+}
+
+.activeSearchResultComment > .commentCardHeaderColor {
+
+    background-color: rgb(59,76,98);
 }
 
 .addCommentButton {
@@ -115,7 +133,7 @@
     overflow-y: scroll;
     height: 85vh;
     word-wrap: break-word;
-    width: 490px; 
+    /* width: 490px;  */
     /* TODO should this not be pixels? */
 }
 
@@ -1080,9 +1098,9 @@ input[type=number]::-webkit-outer-spin-button {
 
 .searchDivScroll{
     overflow-y: scroll;
-    height: 95vh;
+    height: 88vh;
     word-wrap: break-word;
-    width: 490px; 
+    /* width: 490px;  */
 }
 
 
@@ -1092,4 +1110,12 @@ input[type=number]::-webkit-outer-spin-button {
 
 #commentSearchBar{
     width: 30%;
+}
+
+.commentSearchOption:hover{
+    background-color: dodgerblue;
+}
+
+.test{
+    background-color: red;
 }

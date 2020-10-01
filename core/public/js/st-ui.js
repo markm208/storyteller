@@ -102,27 +102,9 @@ function displayAllComments(){
 
             commentGroupDiv.append(titleCard);
 
-            if (firstTimeThrough){
-                //collect all comment tags in a single variable
+            if (firstTimeThrough){            
                 commentBlock.forEach(comment =>{
-                    comment.commentTags.forEach(commentTag =>{
-                        if (searchData.tags[commentTag]){
-                            if (!searchData.tags[commentTag].includes(comment.id)){
-                                searchData.tags[commentTag].push(comment.id)
-                            }
-                        }
-                        else{
-                            searchData.tags[commentTag] = [comment.id];
-                        }
-                    })
-
-                    //TODO check to see if these exist already
-
-                    searchData.commentText[comment.commentText] = [comment.id];
-                    
-                    comment.selectedCodeBlocks.forEach(block =>[
-                        searchData.highlightedCode[block.selectedText] = [commnet.id]
-                    ])
+                    buildSearchData(comment)               
                 })
             }
 
@@ -162,27 +144,8 @@ function displayAllComments(){
 
             const commentObject = commentBlock[i];
             
-            if (firstTimeThrough){
-                //collect all comment tags in a single variable
-                commentObject.commentTags.forEach(commentTag =>{
-                    if (searchData.tags[commentTag]){
-                        if (!searchData.tags[commentTag].includes(commentObject.id)){
-                            searchData.tags[commentTag].push(commentObject.id)
-                        }
-                    }
-                    else{
-                        searchData.tags[commentTag] = [commentObject.id];
-                    }
-
-
-                })
-
-                //TODO check to see if these exist already
-                searchData.commentText[commentObject.commentText] = [commentObject.id];
-                    
-                commentObject.selectedCodeBlocks.forEach(block =>[
-                    searchData.highlightedCode[block.selectedText] = [commentObject.id]
-                ])
+            if (firstTimeThrough){                
+                buildSearchData(commentObject)
             }
 
             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
@@ -498,8 +461,10 @@ function addMediaToCommentDiv(commentDivToAddTo, commentObject)
                 $('#imgExpandModal').modal('show')                   
             }
         });     
-                
+        
         commentDivToAddTo.append(carousel);
+
+        
     }
     
     for (let i = 0; i < commentObject.videoURLs.length; i++){
@@ -650,24 +615,7 @@ function createEditCommentButton(commentObject, buttonText){
 
         updateCommentButton.addEventListener('click' , event => {
             pauseMedia();
-            updateComment();
-            
-            //get the id of the active comment
-            const activeCommentId = document.querySelector(".activeComment").getAttribute('data-commentId');
-        
-            //for each of the original tags in this comment, see if it has been deleted from this comment
-            //if it has, remove this comment the list of comments that have this tag
-            //if no comments have this tag anymore, delete the tag unless the tag is in the permanent list
-            commentObject.commentTags.forEach(tag => {
-                if (!getAllCommentTags().includes(tag)){                        
-                    allCommentTagsWithCommentId[tag] = allCommentTagsWithCommentId[tag].filter(id => id !== activeCommentId); //TODO Use index
-
-                    if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
-                        delete allCommentTagsWithCommentId[tag];
-                    }
-                }
-            })    
-
+            updateComment(commentObject);
             
             document.getElementById("CancelUpdateButton").click();
         })
@@ -827,7 +775,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
         }
 
         //remove this comments tags from the main list of tags
-        commentObject.commentTags.forEach(tag =>{
+        commentObject.commentTags.forEach(tag =>{ //TODO use indexes
             allCommentTagsWithCommentId[tag] = allCommentTagsWithCommentId[tag].filter(id => id !== comment.id); 
             if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
                 delete allCommentTagsWithCommentId[tag];
@@ -850,6 +798,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             card.remove();
         }
         deleteBlogPost(comment);
+        deleteCommentFromSearchData(comment);
         deleteCommentFromServer(comment);
 
         //rebuild the slider with the new comment pip
@@ -2355,9 +2304,8 @@ function emptyCommentTagDropDownMenu(){
 //build the drop down list of comment tags when adding or editing a comment
 function populateCommentTagDropDownList(tagsToExclude){    
     emptyCommentTagDropDownMenu();
-    const tags = Object.keys(allCommentTagsWithCommentId).sort();
 
-    tags.forEach(tag => {
+    getAllSortedCommentTags().forEach(tag => {
         //if the current tag is meant to be excluded from the dropdown list
         if (tagsToExclude && tagsToExclude.includes(tag)){
             return;
@@ -2395,9 +2343,8 @@ function getAllSortedCommentTags(){
 
 //add a new tag to a comments tag list when adding or editing a comment
 function addCommentTagForThisComment(commentTag){
-
     //determine if passed tag is already in the list
-   // const allCommentTagSpans = [...document.querySelectorAll(".commentTagSpan")];
+    // const allCommentTagSpans = [...document.querySelectorAll(".commentTagSpan")];
 
     let tagAlreadyIncluded = false;
     getAllCommentTags().forEach(span => {
@@ -2447,183 +2394,270 @@ function addCommentTagForThisComment(commentTag){
     document.querySelector(".tagsInComment").append(tagDiv);
 }
 
-function autocomplete(inp, arr) {
-    /*the autocomplete function takes two arguments,
-    the text field element and an array of possible autocompleted values:*/
-    var currentFocus;
 
-    /*execute a function when someone writes in the text field:*/
-    inp.addEventListener("input", function() {
-        let a, b, i, val = this.value;
-        /*close any already open lists of autocompleted values*/
-        closeAllLists();
-        if (!val) { return false;}
-        currentFocus = -1;
-        /*create a DIV element that will contain the items (values):*/
-        a = document.createElement("DIV");
-        a.setAttribute("id", this.id + "autocomplete-list");
-        a.setAttribute("class", "autocomplete-items");
-        /*append the DIV element as a child of the autocomplete container:*/
-        this.parentNode.appendChild(a);
-        /*for each item in the array...*/
-        for (i = 0; i < arr.length; i++) {
-          /*check if the item starts with the same letters as the text field value:*/
-          if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-            /*create a DIV element for each matching element:*/
-            b = document.createElement("DIV");
-            /*make the matching letters bold:*/
-            b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
-            b.innerHTML += arr[i].substr(val.length);
-            /*insert a input field that will hold the current array item's value:*/
-            b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-            /*execute a function when someone clicks on the item value (DIV element):*/
-            b.addEventListener("click", function(e) {
-                /*insert the value for the autocomplete text field:*/
-                inp.value = this.getElementsByTagName("input")[0].value;
-                /*close the list of autocompleted values,
-                (or any other open lists of autocompleted values:*/
-                closeAllLists();
-
-                document.getElementById("removeAllFilters").classList.remove("hiddenButton");
-                document.getElementById("commentSearchBar").disabled = true;
-                buildSearchResultsDiv(inp.value);
-
-            });
-            a.appendChild(b);
-          }
-        }
-    });
-
-    /*execute a function on input of text:*/
-    inp.addEventListener("keydown", function(e) {
-        let x = document.getElementById(this.id + "autocomplete-list");
-        if (x) x = x.getElementsByTagName("div");
-        if (e.keyCode == 40) {
-          /*If the arrow DOWN key is pressed,
-          increase the currentFocus variable:*/
-          currentFocus++;
-          /*and and make the current item more visible:*/
-          addActive(x);
-        } else if (e.keyCode == 38) { //up
-          /*If the arrow UP key is pressed,
-          decrease the currentFocus variable:*/
-          currentFocus--;
-          /*and and make the current item more visible:*/
-          addActive(x);
-        } else if (e.keyCode == 13) {
-          /*If the ENTER key is pressed, prevent the form from being submitted,*/
-          e.preventDefault();
-          if (currentFocus > -1) {
-            /*and simulate a click on the "active" item:*/
-            if (x) {
-                x[currentFocus].click();
-            }
-          }
-        }
-    });
-
-    //on focus, trigger auto complete of any text left in the input
-    inp.addEventListener("focus", function(){
-        inp.dispatchEvent(new Event('input'));
-    })
-    
-    function addActive(x) {
-      /*a function to classify an item as "active":*/
-      if (!x) return false;
-      /*start by removing the "active" class on all items:*/
-      removeActive(x);
-      if (currentFocus >= x.length) currentFocus = 0;
-      if (currentFocus < 0) currentFocus = (x.length - 1);
-      /*add class "autocomplete-active":*/
-      x[currentFocus].classList.add("autocomplete-active");
-    }
-    function removeActive(x) {
-      /*a function to remove the "active" class from all autocomplete items:*/
-      for (var i = 0; i < x.length; i++) {
-        x[i].classList.remove("autocomplete-active");
-      }
-    }
-    function closeAllLists(elmnt) {
-      /*close all autocomplete lists in the document,
-      except the one passed as an argument:*/
-      var x = document.getElementsByClassName("autocomplete-items");
-      for (var i = 0; i < x.length; i++) {
-        if (elmnt != x[i] && elmnt != inp) {
-          x[i].parentNode.removeChild(x[i]);
-        }
-      }
-    }
-    /*execute a function when someone clicks in the document:*/
-    document.addEventListener("click", function (e) {
-        closeAllLists(e.target);
-    });
-    
-}
-
-function hideAllComments(){
-    getAllComments().forEach(comment => comment.classList.add("hiddenComment"));
-}
-
-function showAllComments(){
-    document.querySelectorAll(".hiddenComment").forEach(comment => comment.classList.remove("hiddenComment"));
-}
-
-function buildSearchResultsDiv(selection){
-
-    let searchArea = '';
-    switch (document.getElementById("searchCriteriaDropDown").value) {
-        case "Comment Tags":
-            searchArea = 'tags';
-            break;
-        case "Comment Text":
-            searchArea = 'commentText';
-            break;
-        case "Highlighted Code":
-            searchArea = 'highlightedCode';
-            break;        
-        default:
-            searchArea = 'tags'; //TODO fix this
-            break;
-
-
-    }
-
-
-    // //TODO casting it to a set is because of a bug where the same comment id can end up in the object more than once
-    // const selectedComments = [...new Set(allCommentTagsWithCommentId[selection])]; 
-
-    const contentDiv = document.getElementById("searchContentDiv");
-
-    searchData[searchArea][selection].forEach(commentId =>{
-        let clone = document.querySelector(`.codeView [data-commentid="${commentId}"]`).cloneNode(true);
-        setUpSearchResultComment(clone)
-        contentDiv.append(clone);
-    })
-
-}
-
+//TODO takes a clone
 function setUpSearchResultComment(commentDiv){
     const commentId = commentDiv.getAttribute("data-commentid");
-    const eventId = commentDiv.getAttribute("data-commentEventid")
-    const commentBlock = playbackData.comments[eventId];
+    // const eventId = commentDiv.getAttribute("data-commentEventid");
+    // const commentBlock = playbackData.comments[eventId];
 
-    const index = commentBlock.findIndex(item => item.id === commentId);
-    const commentObject = commentBlock[index];
+    // const index = commentBlock.findIndex(item => item.id === commentId);
+    // const commentObject = commentBlock[index];
 
+    //remove any active classes from the original comment
+    commentDiv.classList.remove("activeComment");
+    commentDiv.classList.remove("activeCommentBorder");
+        let bafd = playbackData.comments[commentDiv.getAttribute("data-commenteventid")][playbackData.comments[commentDiv.getAttribute("data-commenteventid")].findIndex(item => item.id == commentDiv.getAttribute("data-commentid"))]
+       // addMediaToCommentDiv(commentDiv, bafd)
+    //images
+    //adding the image expand listener to all images
+    let carousel = commentDiv.querySelector(".carousel")
+    if (carousel){
+        while (carousel.firstChild)
+        carousel.removeChild(carousel.firstChild)
+    }
+
+    let audioTest = commentDiv.querySelectorAll(".textLeft")
+    if (audioTest.length){
+        audioTest.forEach(audio =>{
+            audio.remove()
+        })
+
+    }
+
+    [...commentDiv.querySelectorAll(".card-body")].forEach(video =>
+        video.remove())
+    addMediaToCommentDiv(commentDiv, bafd)
+
+        // while (audioTest.firstChild)
+        // audioTest.removeChild(audioTest.firstChild)
+    //     let test = audioTest.parentNode
+    //    // test.removeChild(audioTest)
+    //    audioTest.parentNode.removeChild(audioTest)
+    //     let test2 = audioTest.parentNode
+
+
+    
+   // addMediaToCommentDiv(commentDiv, )
+
+    // commentDiv.querySelectorAll(".carousel").forEach(carousel =>{
+    //     let test = carousel.querySelector(".carousel-inner");
+    //     // while (carousel.firstChild) {
+    //     //     carousel.removeChild(carousel.firstChild);
+    //     // }
+    //     let newCarousel = createCarousel();
+        
+
+    // //    test = makeCarouselControls(test);
+    // //     [...carousel.getElementsByTagName("img")].forEach(img =>
+    // //         img.addEventListener("click", function(){
+    // //             document.getElementById('imgToExpand').src = img.src;
+    // //             $('#imgExpandModal').modal('show');      
+    // //             fadf
+    // //         }
+    // //     ))}
+    // )
 
     commentDiv.addEventListener('click', function() {
-        //commentDiv.classList.add("activeComment", "activeCommentBorder")
-        step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+        //commentDiv.classList.add( "activeCommentBorder")
+       // step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+        document.querySelector(`.drag[data-commentid="${commentId}"]`).click();
+
+        if (document.querySelector(".activeSearchResultComment")){
+            document.querySelector(".activeSearchResultComment").classList.remove("activeSearchResultComment");
+        }
+        this.classList.add("activeSearchResultComment")
+
 
     })
 
 }
 
-function getAllCommentTags(){
+function getAllCommentTags(){ //TODO change this title to reflect that they come from the screen
     const spans = [...document.querySelectorAll(".commentTagSpan")];
     let retVal = [];
     spans.forEach(span => retVal.push(span.textContent));
     return retVal;
 }
 
+function buildSearchData(commentObject){
+    if (commentObject.commentText.length > 2){
+        const commentText = stripHTMLFromString(commentObject.commentText);
+        const words = commentText.split(/[\s ]+/);
 
+        words.forEach(word =>{
+            buildSearchDataHelper(word, "commentText", commentObject.id)
+        })
+    }
+
+    if (commentObject.commentTags.length){
+        commentObject.commentTags.forEach(tag =>{
+            tag = tag.replaceAll('-', ' ');
+            words = tag.split(' ');
+
+            words.forEach(word =>{
+                buildSearchDataHelper(word, "commentTags", commentObject.id)
+            })
+        })
+    }
+
+    if (commentObject.selectedCodeBlocks.length){
+        commentObject.selectedCodeBlocks.forEach(block =>{
+            const codeWords = block.selectedText.trim().split(/[\s ]+/);
+            codeWords.forEach(word =>{
+                buildSearchDataHelper(word, "highlightedCode", commentObject.id)
+            })
+        })
+    }
+}
+
+function deleteWordsFromSearchData(oldComment, newComment){
+    if (oldComment.commentText !== newComment.commentText){
+        const oldCommentText = stripHTMLFromString(oldComment.commentText);
+        const oldWords = oldCommentText.split(/[\s ]+/);
+
+        const newCommentText = stripHTMLFromString(newComment.commentText);
+        const newWords = newCommentText.split(/[\s ]+/);
+        const deletedWords = [...new Set(oldWords.filter(e => !newWords.includes(e)))]; //array of words that were in the oldComment but not in the newComment
+
+        deletedWords.forEach(word =>{            
+            deleteWordsFromSearchDataHelper(word, "commentText", oldComment.id);
+        })
+    }
+
+    if (oldComment.commentTags.sort().toString() !== newComment.commentTags.sort().toString()){
+        const deletedTags = [...new Set(oldComment.commentTags.filter(e => !newComment.commentTags.includes(e)))]
+        deletedTags.forEach(tag =>{
+            tag = stripHTMLFromString(tag);
+
+            const tagWords = oldCommentText.split(/[\s ]+/);
+
+            tagWords.forEach(tagWord =>{
+                deleteWordsFromSearchDataHelper(tagWord, "commentTags", oldComment.id)
+            })
+        })
+    }
+
+    const oldSelectedTextWords = [];
+    oldComment.selectedCodeBlocks.forEach(block =>{
+        const fullText = stripHTMLFromString(block.selectedText)
+        const words = fullText.split(/[\s ]+/);
+
+        words.forEach(word =>{
+            oldSelectedTextWords.push(word);
+        })       
+    })
+
+    const newSelectedTextWords = [];
+    newComment.selectedCodeBlocks.forEach(block =>{
+        const fullText = stripHTMLFromString(block.selectedText)
+        const words = fullText.split(/[\s ]+/);
+
+        words.forEach(word =>{
+            newSelectedTextWords.push(word);
+        })
+    })
+
+    oldSelectedTextWords.forEach(oldWord =>{
+        if (!newSelectedTextWords.includes(oldWord)){
+            deleteWordsFromSearchDataHelper(oldWord, "highlightedCode", oldComment.id)
+        }
+    })    
+}
+
+function deleteCommentFromSearchData(comment){
+    const oldCommentText = stripHTMLFromString(comment.commentText);
+    const oldCommentTextWords = [...new Set(oldCommentText.split(/[\s ]+/))]; //TODO MAKE THIS A SET EVERYWHERE
+
+    oldCommentTextWords.forEach(oldWord =>{
+        deleteWordsFromSearchDataHelper(oldWord, "commentText", comment.id);
+    })
+
+    comment.commentTags.forEach(tag =>{
+        tag = tag.replaceAll('-', ' ');
+        const oldTags = tag.split(/[\s ]+/);
+        oldTags.forEach(oldTag =>{
+            deleteWordsFromSearchDataHelper(oldTag, "commentTags", comment.id)
+        })
+    })
+
+    comment.selectedCodeBlocks.forEach(block =>{
+        const text = stripHTMLFromString(block.selectedText);
+        const oldSelectedWords = text.split(/[\s ]+/);
+
+        oldSelectedWords.forEach(word =>{
+            deleteWordsFromSearchDataHelper(word, "highlightedCode", comment.id)
+        })
+    })
+}
+
+function deleteWordsFromSearchDataHelper(word, criteriaType, commentId){
+    if (!wordSearchData[word] || !wordSearchData[word][criteriaType] || !wordSearchData[word][criteriaType].includes(commentId)){
+        return
+    }
+
+    const index = wordSearchData[word][criteriaType].indexOf(commentId);
+    wordSearchData[word][criteriaType].splice(index, 1); //delete the word
+
+    if (wordSearchData[word][criteriaType].length === 0){ //if this word doesn't appear in the criteria anymore
+        delete wordSearchData[word][criteriaType];
+        if (Object.keys(wordSearchData[word]).length === 0){ //if this word doesn't appear in any criteria anymore
+            delete wordSearchData[word];
+        }
+    }            
+}
+
+//TODO add a reference to the div at the end instead of just the commentID?
+//builds up wordSearchData to later search by words
+function buildSearchDataHelper(word, criteriaType, commentId){
+    word = word.toLowerCase();
+    if (word.length > 3 || criteriaType === "highlightedCode"){ //words from highlighted code can be any length
+        if (wordSearchData[word]){
+            if (wordSearchData[word][criteriaType]){
+                if (!wordSearchData[word][criteriaType].includes(commentId)){
+                    wordSearchData[word][criteriaType].push(commentId);
+                }
+            }
+            else{
+                wordSearchData[word][criteriaType] = [commentId];
+            }
+        }
+        else{
+            wordSearchData[word] = {[criteriaType]: [commentId]};
+        }
+    }
+}
+
+//TODO MAKE SURE THIS FUNCITON IS CALLED WHEN ADDING AND DELETING
+//TODO improve this function with the other code and send all text through it
+//TODO this is stripping out numbers and it shouldn't
+function stripHTMLFromString(HTMLString){
+    // return HTMLString.toLowerCase().replaceAll(/[.,\/#!$%+-\^&\*;:\\{}=-\@_`~()"|]/g," ").trim().replaceAll(/ +(?= )/g,'');
+    return HTMLString.toLowerCase().replaceAll("<div>", '\n').replaceAll("</div>",'').replaceAll("&nbsp;", '').replaceAll("<br>", '').replaceAll('-',' ').replaceAll(/[.,\/#!$%+-\^&\*;:\\{}=-\@_`~()"|]/g," ").replaceAll(/ +(?= )/g,'').trim();
+}
+
+//a single place to handle the values of the drop down menu
+//in case values are changed/added/deleted, there wont have to be updates in multiple places
+//only here and buildSearchData()
+function handleCommentSearchDropDownOptions(){
+    activeOption = document.querySelector(".commentSearchOption.active").text;
+    retVal = 'All';
+    switch (activeOption) {
+        case "Comment Tags":
+            document.getElementById("commentSearchBar").placeholder = "Search Comment Tags";
+            retVal = "commentTags"
+            break;
+        case "Comment Text":
+            document.getElementById("commentSearchBar").placeholder = "Search Comment Text";
+            retVal = "commentText"
+            break   
+        case "Highlighted Code":
+            document.getElementById("commentSearchBar").placeholder = "Search Highlighted Code";
+            retVal = "highlightedCode";
+            break;
+        default:
+            document.getElementById("commentSearchBar").placeholder = "Search All Attributes";
+            break;
+    }
+    return retVal;
+}
