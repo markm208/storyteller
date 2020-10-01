@@ -25,6 +25,19 @@
 
 }
 
+.activeSearchResultComment > .card-body 
+{
+    background-color: rgb(59,76,98);
+
+}
+
+.activeSearchResultComment > .carousel-item img
+{
+    background-color: rgb(59,76,98) !important;
+
+}
+
+
 .activeSearchResultComment {
     background-color: rgb(59,76,98);
 
@@ -86,7 +99,7 @@
     height: 100%;
     object-fit: contain;
     cursor: zoom-in;
-    background-color: rgb(51,51,51);
+    /* background-color: rgb(51,51,51); */
 }
 
 .codePanel{
