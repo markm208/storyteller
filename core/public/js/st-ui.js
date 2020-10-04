@@ -105,6 +105,10 @@ function displayAllComments(){
             if (firstTimeThrough){            
                 commentBlock.forEach(comment =>{
                     buildSearchData(comment)               
+
+                    comment.commentTags.forEach(tag =>{
+                        addCommentTagsToTagObject(tag, comment)
+                    })                   
                 })
             }
 
@@ -146,6 +150,10 @@ function displayAllComments(){
             
             if (firstTimeThrough){                
                 buildSearchData(commentObject)
+                
+                commentObject.commentTags.forEach(tag =>{
+                    addCommentTagsToTagObject(tag, commentObject)
+                })   
             }
 
             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
@@ -615,8 +623,9 @@ function createEditCommentButton(commentObject, buttonText){
 
         updateCommentButton.addEventListener('click' , event => {
             pauseMedia();
-            updateComment(commentObject);
-            
+            updateComment();
+            event.stopImmediatePropagation();
+
             document.getElementById("CancelUpdateButton").click();
         })
 
@@ -774,13 +783,13 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             }
         }
 
-        //remove this comments tags from the main list of tags
-        commentObject.commentTags.forEach(tag =>{ //TODO use indexes
-            allCommentTagsWithCommentId[tag] = allCommentTagsWithCommentId[tag].filter(id => id !== comment.id); 
-            if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
-                delete allCommentTagsWithCommentId[tag];
-            }
-        })
+        // //remove this comments tags from the main list of tags
+        // commentObject.commentTags.forEach(tag =>{ //TODO use indexes
+        //     allCommentTagsWithCommentId[tag] = allCommentTagsWithCommentId[tag].filter(id => id !== comment.id); 
+        //     if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
+        //         delete allCommentTagsWithCommentId[tag];
+        //     }
+        // })
 
         //TODO might not need this anymore
         //remove the accept button if there are no more comments but leave description
@@ -798,6 +807,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             card.remove();
         }
         deleteBlogPost(comment);
+        removeDeletedCommentTagsFromTagObject(comment.commentTags, [], comment.id);
         deleteCommentFromSearchData(comment);
         deleteCommentFromServer(comment);
 
@@ -2319,10 +2329,10 @@ function populateCommentTagDropDownList(tagsToExclude){
     
         //if it was added to the comments tag list, remove it from the drop down
         newTag.addEventListener("click", function(){         
-            //if a comment is being updated, remind user that the added tag isn't permanent until the entire comment is updated
-            if (document.getElementById("addCommentButton").style.display === 'none'){ //TODO this will change to using classes at some point
-                tag += " (Pending Update)";
-            }
+            // //if a comment is being updated, remind user that the added tag isn't permanent until the entire comment is updated
+            // if (document.getElementById("addCommentButton").style.display === 'none'){ //TODO this will change to using classes at some point
+            //     tag += " (Pending Update)";
+            // }
 
             addCommentTagForThisComment(tag);
             newTag.remove();
@@ -2341,24 +2351,51 @@ function getAllSortedCommentTags(){
     return Object.keys(allCommentTagsWithCommentId).sort();
 }
 
+function addCommentTagsToTagObject(commentTag, commentObject){
+    commentTag = getFormattedCommentTag(commentTag);
+
+    if (!allCommentTagsWithCommentId[commentTag]){
+        allCommentTagsWithCommentId[commentTag] = [commentObject.id] 
+    }
+    else if (!allCommentTagsWithCommentId[commentTag].includes(commentObject.id)){    
+        allCommentTagsWithCommentId[commentTag].push(commentObject.id)
+    }
+}
+
+function removeDeletedCommentTagsFromTagObject(oldTagsList, newTagsList, commentId){
+    //const deletedTags = [...new Set(oldTagsList.filter(oldTag=> !newTagsList.includes(oldTag)))]
+
+    oldTagsList.forEach(tag =>{
+        if (!newTagsList.includes(tag)){
+            const index = allCommentTagsWithCommentId[tag].indexOf(commentId)
+            allCommentTagsWithCommentId[tag].splice(index, 1); //TODO verify this
+
+            if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
+                delete allCommentTagsWithCommentId[tag];
+            }
+        }
+    })
+}
+
 //add a new tag to a comments tag list when adding or editing a comment
 function addCommentTagForThisComment(commentTag){
     //determine if passed tag is already in the list
     // const allCommentTagSpans = [...document.querySelectorAll(".commentTagSpan")];
 
-    let tagAlreadyIncluded = false;
-    getAllCommentTags().forEach(span => {
-        if (tagAlreadyIncluded){
-            return;
-        }
-        else{
-            if (span.innerHTML === commentTag){
-                tagAlreadyIncluded = true;
-            }
-        }
-    })
+    // let tagAlreadyIncluded = false;
+    // getAllCommentTags().forEach(span => {
+    //     if (tagAlreadyIncluded){
+    //         return;
+    //     }
+    //     else{
+    //         if (span.innerHTML === commentTag){
+    //             tagAlreadyIncluded = true;
+    //         }
+    //     }
+    // })
 
-    if (tagAlreadyIncluded){
+    let test = getAllCommentTags()
+    if (getAllCommentTags().includes(commentTag)){
         return;
     }
 
@@ -2528,9 +2565,9 @@ function deleteWordsFromSearchData(oldComment, newComment){
     if (oldComment.commentTags.sort().toString() !== newComment.commentTags.sort().toString()){
         const deletedTags = [...new Set(oldComment.commentTags.filter(e => !newComment.commentTags.includes(e)))]
         deletedTags.forEach(tag =>{
-            tag = stripHTMLFromString(tag);
+            tag = getFormattedCommentTag(tag);
 
-            const tagWords = oldCommentText.split(/[\s ]+/);
+            const tagWords = tag.split(/[\s ]+/);
 
             tagWords.forEach(tagWord =>{
                 deleteWordsFromSearchDataHelper(tagWord, "commentTags", oldComment.id)

@@ -30,7 +30,7 @@ async function initializePlayback()
   
     //add permanent comment tags to searchData
     permanentCommentTags.forEach(tag =>{
-        searchData.tags[tag] = [];
+        // searchData.tags[tag] = [];
         allCommentTagsWithCommentId[tag] = [];
     })
 
@@ -306,9 +306,9 @@ function setupEventListeners()
 
             //a reminder to the user that the tag wont actually be added until the update 
             //of the comment is confirmed
-            if (document.getElementById("addCommentButton").style.display === 'none'){ //TODO this will change to using classes at some point
-                text += " (Pending Update)";
-            }
+            // if (document.getElementById("addCommentButton").style.display === 'none'){ //TODO this will change to using classes at some point
+            //     text += " (Pending Update)";
+            // }
 
            addCommentTagForThisComment(text);
         }
@@ -416,23 +416,25 @@ function setupEventListeners()
             buildSearchData(newComment);
 
             //update searchData
-            tags.forEach(tag => {
-                if(searchData.tags[tag]){
-                    if (!searchData.tags[tag].includes(newComment.id)){
-                        searchData.tags[tag].push(newComment.id)
-                    }
-                }
-                else{
-                    searchData.tags[tag] = [newComment.id];
-                }
-            })
-            //TODO make these check
-            newComment.selectedCodeBlocks.forEach(block =>{
-                searchData.highlightedCode[block.selectedText] = [newComment.id];
-            })
-            searchData.commentText[newComment.commentText] = [newComment.id]
+            // tags.forEach(tag => {
+            //     if(searchData.tags[tag]){
+            //         if (!searchData.tags[tag].includes(newComment.id)){
+            //             searchData.tags[tag].push(newComment.id)
+            //         }
+            //     }
+            //     else{
+            //         searchData.tags[tag] = [newComment.id];
+            //     }
+            // })
+            // //TODO make these check
+            // newComment.selectedCodeBlocks.forEach(block =>{
+            //     searchData.highlightedCode[block.selectedText] = [newComment.id];
+            // })
+            // searchData.commentText[newComment.commentText] = [newComment.id]
 
-
+            tags.forEach(tag =>{
+                addCommentTagsToTagObject(tag, newComment)
+            })
 
             playbackData.comments[commentEvent.id].push(newComment);
 
@@ -484,13 +486,13 @@ function setupEventListeners()
         
     });
 
-    //When switching to viewCommentsTab, scroll to the active comment
-    $('a[id="viewCommentsTab"]').on('shown.bs.tab', function () {
-        const activeComment = document.querySelector(".codeView .activeComment");
-        if (activeComment){
-            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
-        }
-    })
+    // //When switching to viewCommentsTab, scroll to the active comment
+    // $('a[id="viewCommentsTab"]').on('shown.bs.tab', function () {
+    //     const activeComment = document.querySelector(".codeView .activeComment");
+    //     if (activeComment){
+    //         document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
+    //     }
+    // })
 
     document.getElementById('dragBar').addEventListener('mousedown', function (e){  
     
@@ -502,7 +504,6 @@ function setupEventListeners()
 
     //detects key presses 
     document.addEventListener('keydown', function(e){    
-
         //prevent keyboard presses within the comment textbox from triggering actions 
         if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar'){
             return;
@@ -802,10 +803,9 @@ function setupEventListeners()
 
     // Set up an event handler for mousedown
     document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
-        button.addEventListener("mousedown", function(){
+        button.addEventListener("mousedown", function(event){
             const buttonParent = button.parentNode.querySelector('input[type=number]');
             buttonParent.stepUp();
-
             blogModeHighlightHelper();
 
             timer = setInterval(function(){
@@ -1290,7 +1290,7 @@ function disableSelect(event) {
     event.preventDefault();
 }
 
-async function updateComment(oldComment){
+async function updateComment(){
     const textCommentTextArea = document.querySelector('#textCommentTextArea');
 
     const activeComment = document.getElementsByClassName("activeComment")[0];
@@ -1368,11 +1368,12 @@ async function updateComment(oldComment){
         //if the user entered a tag but forgot to add it, add it now
         document.getElementById("addCommentTagButton").click(); 
 
-        tags = []
+        let tags = getAllCommentTags();
         //remove any "pending update" from tags //TODO figure this out
-        getAllCommentTags().forEach(function(tag, index){
-           tags.push(tag.replace(" (Pending Update)", ''))
-        })
+        // getAllCommentTags().forEach(tag =>{
+        //     tag = tag.replace(" (Pending Update)", "");
+        //     tags.push(tag)            
+        // })
         
         // tempTags = [...new Set(tempTags)].sort();
 
@@ -1381,6 +1382,8 @@ async function updateComment(oldComment){
         //add the developer group id to the comment object and its id
         comment.developerGroupId = commentObject.developerGroupId;
         comment.id = commentObject.id;
+
+        //let oldComment = commentObject;
 
         //determine if any comments already exist for this event 
         //if so add the new comment
@@ -1392,8 +1395,12 @@ async function updateComment(oldComment){
         //send comment to server and recieve back a full comment with id and developerGroup
         const newComment = await updateCommentOnServer(comment);
 
-        deleteWordsFromSearchData(oldComment, newComment);
+        deleteWordsFromSearchData(commentObject, newComment);
+        removeDeletedCommentTagsFromTagObject(commentObject.commentTags, newComment.commentTags, newComment.id);
         buildSearchData(newComment);
+        tags.forEach(tag =>{
+            addCommentTagsToTagObject(tag, newComment)
+        })
 
         //replace the old comment with the new one
         for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
