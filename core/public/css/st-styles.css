@@ -1004,22 +1004,6 @@ input[type=number]::-webkit-outer-spin-button {
     overflow-y: auto;
 }
 
-/* .autocomplete{
-    width: 300px;
-} */
-
-#myInput{
-    background-color: darkgrey;
-}
-
-
-.commentTagSpan{
-    color: darkblue;
-    background-color: lightblue;
-    margin: 5px;
-    padding: 5px;
-}
-
 .autocomplete {
     /* position: relative; */
     /* display: inline-block; */
@@ -1046,64 +1030,6 @@ input[type=number]::-webkit-outer-spin-button {
     color: #fff;
     cursor: pointer;
   }
-  
-  .autocomplete-items {
-    position: absolute;
-    border: 1px solid #d4d4d4 !important;
-    border-bottom: none;
-    border-top: none;
-    z-index: 99;
-    /*position the autocomplete items to be the same width as the container:*/
-    top: 100%;
-    left: 0;
-    right: 0;
-  }
-
-  #myInput:focus {
-    border-color: #f1f1f1 !important;
-
-    /* outline: black;
-    border: black !important;
-    -webkit-box-shadow: black !important;
-    -moz-box-shadow: black !important; */
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 1.075) inset, 0 0 8px rgba(0, 0, 0, 5.6);
-}
-  
-  .autocomplete-items div {
-    padding: 10px;
-    cursor: pointer;
-    background-color: grey; 
-    border-bottom: 1px solid #d4d4d4; 
-  }
-  
-  /*when hovering an item:*/
-  .autocomplete-items div:hover {
-    background-color: lightgray; 
-    color: black;
-  }
-  
-  /*when navigating through the items using the arrow keys:*/
-  .autocomplete-active {
-    background-color: DodgerBlue !important; 
-    color: #ffffff; 
-  }
-
-  /* #input_img {
-    position:absolute;
-    bottom:2px;
-    left:5px;
-    width:24px;
-    height:24px;
-}
-
-
-#myInput {
-    margin:0;
-    padding-left: 30px;
-    width: 100%;
-} */
-
-
 
 .hiddenComment{
     display: none;
@@ -1115,7 +1041,6 @@ input[type=number]::-webkit-outer-spin-button {
     word-wrap: break-word;
     /* width: 490px;  */
 }
-
 
 .hiddenButton{
     visibility: hidden;
@@ -1129,3 +1054,16 @@ input[type=number]::-webkit-outer-spin-button {
     background-color: dodgerblue;
 }
 
+.alert{
+    margin-right: 5px;
+    display: inline-block;
+    padding: 0;
+}
+
+.alert-dismissible {
+    padding-right: 1.5rem;
+}
+
+.alert-dismissible .close{
+    padding: 0;
+}

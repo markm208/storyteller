@@ -26,17 +26,12 @@ async function initializePlayback()
         highlightedCode: {},
         words: {}
     }
-
   
     //add permanent comment tags to searchData
     permanentCommentTags.forEach(tag =>{
         // searchData.tags[tag] = [];
         allCommentTagsWithCommentId[tag] = [];
     })
-
-
-
-
 
     //displays all comments
     displayAllComments();
@@ -485,7 +480,7 @@ function setupEventListeners()
         document.getElementById("viewCommentsTab").click();      
         
     });
-
+//TODO scroll totop comment when switching out of search tab
     // //When switching to viewCommentsTab, scroll to the active comment
     // $('a[id="viewCommentsTab"]').on('shown.bs.tab', function () {
     //     const activeComment = document.querySelector(".codeView .activeComment");
@@ -1368,14 +1363,7 @@ async function updateComment(){
         //if the user entered a tag but forgot to add it, add it now
         document.getElementById("addCommentTagButton").click(); 
 
-        let tags = getAllCommentTags();
-        //remove any "pending update" from tags //TODO figure this out
-        // getAllCommentTags().forEach(tag =>{
-        //     tag = tag.replace(" (Pending Update)", "");
-        //     tags.push(tag)            
-        // })
-        
-        // tempTags = [...new Set(tempTags)].sort();
+        const tags = getAllCommentTags();
 
         //create an object that has all of the comment info
         const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags);
@@ -1434,5 +1422,3 @@ async function updateComment(){
 function updateTitle(newTitle){
     updateTitleOnServer(newTitle);
 }
-
-

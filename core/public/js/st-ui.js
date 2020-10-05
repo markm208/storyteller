@@ -2325,14 +2325,8 @@ function populateCommentTagDropDownList(tagsToExclude){
         newTag.classList.add("dropdown-item", "commentTagDropDownItem");
         newTag.href = "#";
         newTag.appendChild(document.createTextNode(tag));
-        //newTag.setAttribute("title", "Click to remove tag");
     
-        //if it was added to the comments tag list, remove it from the drop down
-        newTag.addEventListener("click", function(){         
-            // //if a comment is being updated, remind user that the added tag isn't permanent until the entire comment is updated
-            // if (document.getElementById("addCommentButton").style.display === 'none'){ //TODO this will change to using classes at some point
-            //     tag += " (Pending Update)";
-            // }
+        newTag.addEventListener("click", function(){
 
             addCommentTagForThisComment(tag);
             newTag.remove();
@@ -2379,73 +2373,39 @@ function removeDeletedCommentTagsFromTagObject(oldTagsList, newTagsList, comment
 
 //add a new tag to a comments tag list when adding or editing a comment
 function addCommentTagForThisComment(commentTag){
-    //determine if passed tag is already in the list
-    // const allCommentTagSpans = [...document.querySelectorAll(".commentTagSpan")];
-
-    // let tagAlreadyIncluded = false;
-    // getAllCommentTags().forEach(span => {
-    //     if (tagAlreadyIncluded){
-    //         return;
-    //     }
-    //     else{
-    //         if (span.innerHTML === commentTag){
-    //             tagAlreadyIncluded = true;
-    //         }
-    //     }
-    // })
-
-    let test = getAllCommentTags()
     if (getAllCommentTags().includes(commentTag)){
         return;
     }
 
-    // tempTags.push(commentTag);
-    // tempTags.sort();
+    const tagDiv = document.createElement("div");
+    tagDiv.classList.add("alert", "alert-dark", "alert-dismissible", "fade", "show", "commentTagDiv")
+    tagDiv.innerText = commentTag;
 
-    let tagDiv = document.createElement("div");
-
-    let commentSpan = document.createElement('span');
-    commentSpan.classList.add("commentTagSpan");
-    commentSpan.innerHTML = commentTag;
-    //TODO red X
-
-    let deleteButton = document.createElement('button');
-    deleteButton.classList.add('close');
+    const deleteButton = document.createElement("button");
+    deleteButton.classList.add("close")
     deleteButton.setAttribute('aria-label', 'close');
     deleteButton.innerHTML ='&times;';
-    deleteButton.setAttribute('title', "Remove tag from comment");
+    deleteButton.title = "Remove tag from comment";
+    tagDiv.append(deleteButton);
 
     deleteButton.addEventListener("click", function(){
-
-        //tempTags = tempTags.filter(tag => tag !== commentTag);
-
         tagDiv.remove();
 
         //rebuild the drop down menu with the returned tag
         populateCommentTagDropDownList(getAllCommentTags());
     })
 
-    tagDiv.append(deleteButton);
-    tagDiv.append(commentSpan)
-
     document.querySelector(".tagsInComment").append(tagDiv);
 }
-
 
 //TODO takes a clone
 function setUpSearchResultComment(commentDiv){
     const commentId = commentDiv.getAttribute("data-commentid");
-    // const eventId = commentDiv.getAttribute("data-commentEventid");
-    // const commentBlock = playbackData.comments[eventId];
-
-    // const index = commentBlock.findIndex(item => item.id === commentId);
-    // const commentObject = commentBlock[index];
 
     //remove any active classes from the original comment
     commentDiv.classList.remove("activeComment");
     commentDiv.classList.remove("activeCommentBorder");
-        let bafd = playbackData.comments[commentDiv.getAttribute("data-commenteventid")][playbackData.comments[commentDiv.getAttribute("data-commenteventid")].findIndex(item => item.id == commentDiv.getAttribute("data-commentid"))]
-       // addMediaToCommentDiv(commentDiv, bafd)
+    let bafd = playbackData.comments[commentDiv.getAttribute("data-commenteventid")][playbackData.comments[commentDiv.getAttribute("data-commenteventid")].findIndex(item => item.id == commentDiv.getAttribute("data-commentid"))]
     //images
     //adding the image expand listener to all images
     let carousel = commentDiv.querySelector(".carousel")
@@ -2459,7 +2419,6 @@ function setUpSearchResultComment(commentDiv){
         audioTest.forEach(audio =>{
             audio.remove()
         })
-
     }
 
     [...commentDiv.querySelectorAll(".card-body")].forEach(video =>
@@ -2504,16 +2463,15 @@ function setUpSearchResultComment(commentDiv){
             document.querySelector(".activeSearchResultComment").classList.remove("activeSearchResultComment");
         }
         this.classList.add("activeSearchResultComment")
-
-
     })
-
 }
 
 function getAllCommentTags(){ //TODO change this title to reflect that they come from the screen
-    const spans = [...document.querySelectorAll(".commentTagSpan")];
+    const tagDivs = [...document.querySelectorAll(".commentTagDiv")];
     let retVal = [];
-    spans.forEach(span => retVal.push(span.textContent));
+    tagDivs.forEach(tagDiv => {
+         let tag = tagDiv.textContent.substring(0, tagDiv.textContent.length - 1)
+        retVal.push(tag)});
     return retVal;
 }
 
