@@ -18,18 +18,9 @@ async function initializePlayback()
     //set up the slider and move to the first relevant event
     setUpSlider();
     step(playbackData.numNonRelevantEvents);
-
-    //the stored data for comment searches
-    searchData ={
-        tags: {},
-        commentText: {},
-        highlightedCode: {},
-        words: {}
-    }
   
     //add permanent comment tags to searchData
     permanentCommentTags.forEach(tag =>{
-        // searchData.tags[tag] = [];
         allCommentTagsWithCommentId[tag] = [];
     })
 
@@ -289,7 +280,7 @@ function setupEventListeners()
         let text = tagInput.value;  
 
         //if there is an entered tag and it's not already included in the tags list
-        if (text !== '' && !getAllCommentTags().includes(text)){ 
+        if (text !== '' && !getAllTagsOnScreen().includes(text)){ 
             text = getFormattedCommentTag(text);
 
             //if the tag is in the drop down list, remove it 
@@ -298,12 +289,7 @@ function setupEventListeners()
             if (index !== -1){
                 dropDownListTags[index].remove(); 
             }
-
-            //a reminder to the user that the tag wont actually be added until the update 
-            //of the comment is confirmed
-            // if (document.getElementById("addCommentButton").style.display === 'none'){ //TODO this will change to using classes at some point
-            //     text += " (Pending Update)";
-            // }
+            
 
            addCommentTagForThisComment(text);
         }
@@ -392,7 +378,7 @@ function setupEventListeners()
 
             const commentEvent = playbackData.events[eventIndex];
 
-            const tags = getAllCommentTags();
+            const tags = getAllTagsOnScreen();
 
             //create an object that has all of the comment info
             const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags);
@@ -409,25 +395,7 @@ function setupEventListeners()
             const newComment = await sendCommentToServer(comment);        
 
             buildSearchData(newComment);
-
-            //update searchData
-            // tags.forEach(tag => {
-            //     if(searchData.tags[tag]){
-            //         if (!searchData.tags[tag].includes(newComment.id)){
-            //             searchData.tags[tag].push(newComment.id)
-            //         }
-            //     }
-            //     else{
-            //         searchData.tags[tag] = [newComment.id];
-            //     }
-            // })
-            // //TODO make these check
-            // newComment.selectedCodeBlocks.forEach(block =>{
-            //     searchData.highlightedCode[block.selectedText] = [newComment.id];
-            // })
-            // searchData.commentText[newComment.commentText] = [newComment.id]
-
-            tags.forEach(tag =>{
+             tags.forEach(tag =>{
                 addCommentTagsToTagObject(tag, newComment)
             })
 
@@ -481,7 +449,7 @@ function setupEventListeners()
         
     });
 //TODO scroll totop comment when switching out of search tab
-    // //When switching to viewCommentsTab, scroll to the active comment
+    //When switching to viewCommentsTab, scroll to the active comment
     // $('a[id="viewCommentsTab"]').on('shown.bs.tab', function () {
     //     const activeComment = document.querySelector(".codeView .activeComment");
     //     if (activeComment){
@@ -884,14 +852,13 @@ function setupEventListeners()
     })
 
     document.getElementById("commentSearchButton").addEventListener("click", event=>{
-        //change all unwanted characters to spaces, then remove extra spaces
-        //if unwanted character were changed to '', words would be incorrectly concatenated
 
         document.getElementById("searchContentDiv").innerHTML = '';
         //TODO call striphtml
-        const searchValue = document.getElementById("commentSearchBar").value.toLowerCase().replaceAll(/[.,\/#!$%+-\^&\*;:\\{}=-\@_`~()"|]/g," ").trim().replaceAll(/ +(?= )/g,'');
-        const words = searchValue.split(" ");
-        const searchType = handleCommentSearchDropDownOptions();
+        const searchValue = document.getElementById("commentSearchBar").value.toLowerCase();
+        const words = getWordsFromText(searchValue);
+        const searchType = handleCommentSearchDropDownOptions(); //TODO Change this
+
         const results = new Set();
 
         if (searchType !== "All"){
@@ -920,12 +887,9 @@ function setupEventListeners()
         const contentDiv = document.getElementById("searchContentDiv");
         getAllComments().forEach(comment =>{
             const commentId = comment.getAttribute("data-commentid");
-            if (results.has(commentId)){
+            if (results.has(commentId) && commentId !== "commentId-0"){
                 const clone = document.querySelector(`.codeView [data-commentid="${commentId}"]`).cloneNode(true);
                 setUpSearchResultComment(clone);
-
-                let searchResultOuterDiv = document.createElement("div");
-
                 contentDiv.append(clone);
             }
         })
@@ -948,8 +912,8 @@ function setUpSlider(){
     const slider = document.getElementById('slider');
     
     noUiSlider.create(slider, {
-        start: playbackData.numNonRelevantEvents, /*playbackData.nextEventPosition - 1,*/
-        step: 1, //this seems to cause stuttering when moving the slider in playback with a large number of events
+        start: playbackData.numNonRelevantEvents,
+        step: 1, 
         animate: false,
         keyboardSupport: false,
         range: {
@@ -1363,7 +1327,7 @@ async function updateComment(){
         //if the user entered a tag but forgot to add it, add it now
         document.getElementById("addCommentTagButton").click(); 
 
-        const tags = getAllCommentTags();
+        const tags = getAllTagsOnScreen();
 
         //create an object that has all of the comment info
         const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags);

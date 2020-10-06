@@ -209,7 +209,7 @@ function displayAllComments(){
             //create the accept changes button
             const acceptChangesButton = document.createElement('button');
             acceptChangesButton.classList.add("button", "btn-outline-danger", "btn-sm");
-            acceptChangesButton.appendChild(document.createTextNode("Accept Changes")); //TODO change this text to something better
+            acceptChangesButton.appendChild(document.createTextNode("Accept Changes")); 
             acceptChangesButton.setAttribute("id", "accept" + uniqueCommentGroupID);
             //initially hidden
             acceptChangesButton.setAttribute("style", "display:none");
@@ -305,7 +305,6 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     addMediaToCommentDiv(cardFinal, commentObject);
 
     cardFinal.prepend(cardBody);
-    //const finalDiv = document.createElement('div'); //TODO determine if eliminating finalDiv will cause problems 
 
     cardFinal.prepend(cardHeader);
     //finalDiv.append(cardFinal);
@@ -673,7 +672,7 @@ function addImageToCarousel(src, carousel){
     img.src = src;
     img.classList.add('d-block','w-100');
 
-    imgDiv.classList.add('carousel-item');
+    imgDiv.classList.add('carousel-item', 'nonActiveCarousel');
     imgDiv.append(img);
     imgDiv.append(captionDiv);
 
@@ -782,14 +781,6 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
                 break;
             }
         }
-
-        // //remove this comments tags from the main list of tags
-        // commentObject.commentTags.forEach(tag =>{ //TODO use indexes
-        //     allCommentTagsWithCommentId[tag] = allCommentTagsWithCommentId[tag].filter(id => id !== comment.id); 
-        //     if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
-        //         delete allCommentTagsWithCommentId[tag];
-        //     }
-        // })
 
         //TODO might not need this anymore
         //remove the accept button if there are no more comments but leave description
@@ -2255,11 +2246,10 @@ function blogModeHighlightHelper(){
 
         editor.session.removeMarker(aceTempMarker);
 
-        const startRow = ranges[0].start.row - numbersAbove; //TODO check this
+        const startRow = ranges[0].start.row - numbersAbove; 
         let endRow = ranges[ranges.length - 1].end.row + numbersBelow;
         endRow = ranges[ranges.length - 1].end.column === 0 ? endRow - 1 : endRow;
         const endCol = editor.session.getLine(endRow).length;
-        //TODO IF start.column.length === start.column , ignore the line  ?
 
         blogModeNumberAboveSelector.max = ranges[0].start.row;
         blogModeNumberAboveSelector.value =  blogModeNumberAboveSelector.max > numbersAbove ? numbersAbove : blogModeNumberAboveSelector.max;
@@ -2298,7 +2288,6 @@ function undoBlogModeHighlight(){
     blogModeNumberBelowSelector.value = 3;
 }
 
-//TODO need ones with and without description?
 function getAllComments(){
     return [...document.querySelectorAll('.codeView [data-commentid]')];
 }
@@ -2362,7 +2351,7 @@ function removeDeletedCommentTagsFromTagObject(oldTagsList, newTagsList, comment
     oldTagsList.forEach(tag =>{
         if (!newTagsList.includes(tag)){
             const index = allCommentTagsWithCommentId[tag].indexOf(commentId)
-            allCommentTagsWithCommentId[tag].splice(index, 1); //TODO verify this
+            allCommentTagsWithCommentId[tag].splice(index, 1);
 
             if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
                 delete allCommentTagsWithCommentId[tag];
@@ -2373,7 +2362,7 @@ function removeDeletedCommentTagsFromTagObject(oldTagsList, newTagsList, comment
 
 //add a new tag to a comments tag list when adding or editing a comment
 function addCommentTagForThisComment(commentTag){
-    if (getAllCommentTags().includes(commentTag)){
+    if (getAllTagsOnScreen().includes(commentTag)){
         return;
     }
 
@@ -2392,81 +2381,65 @@ function addCommentTagForThisComment(commentTag){
         tagDiv.remove();
 
         //rebuild the drop down menu with the returned tag
-        populateCommentTagDropDownList(getAllCommentTags());
+        populateCommentTagDropDownList(getAllTagsOnScreen());
     })
 
     document.querySelector(".tagsInComment").append(tagDiv);
 }
 
-//TODO takes a clone
+//formats the cloned comment div for the search results
 function setUpSearchResultComment(commentDiv){
     const commentId = commentDiv.getAttribute("data-commentid");
 
     //remove any active classes from the original comment
     commentDiv.classList.remove("activeComment");
     commentDiv.classList.remove("activeCommentBorder");
-    let bafd = playbackData.comments[commentDiv.getAttribute("data-commenteventid")][playbackData.comments[commentDiv.getAttribute("data-commenteventid")].findIndex(item => item.id == commentDiv.getAttribute("data-commentid"))]
-    //images
-    //adding the image expand listener to all images
-    let carousel = commentDiv.querySelector(".carousel")
+
+    //get the comment from playbackData
+    let commentObject = playbackData.comments[commentDiv.getAttribute("data-commenteventid")][playbackData.comments[commentDiv.getAttribute("data-commenteventid")].findIndex(item => item.id == commentDiv.getAttribute("data-commentid"))]; //TODO multiple lines
+
+    //remove any carousels because the original event listeners wont work
+    const carousel = commentDiv.querySelector(".carousel")
     if (carousel){
         while (carousel.firstChild)
         carousel.removeChild(carousel.firstChild)
     }
 
-    let audioTest = commentDiv.querySelectorAll(".textLeft")
-    if (audioTest.length){
-        audioTest.forEach(audio =>{
+    //remove any audio divs because the original event listeners wont work
+    const audioDiv = commentDiv.querySelectorAll(".textLeft")
+    if (audioDiv.length){
+        audioDiv.forEach(audio =>{
             audio.remove()
         })
     }
 
     [...commentDiv.querySelectorAll(".card-body")].forEach(video =>
         video.remove())
-    addMediaToCommentDiv(commentDiv, bafd)
-
-        // while (audioTest.firstChild)
-        // audioTest.removeChild(audioTest.firstChild)
-    //     let test = audioTest.parentNode
-    //    // test.removeChild(audioTest)
-    //    audioTest.parentNode.removeChild(audioTest)
-    //     let test2 = audioTest.parentNode
-
-
-    
-   // addMediaToCommentDiv(commentDiv, )
-
-    // commentDiv.querySelectorAll(".carousel").forEach(carousel =>{
-    //     let test = carousel.querySelector(".carousel-inner");
-    //     // while (carousel.firstChild) {
-    //     //     carousel.removeChild(carousel.firstChild);
-    //     // }
-    //     let newCarousel = createCarousel();
-        
-
-    // //    test = makeCarouselControls(test);
-    // //     [...carousel.getElementsByTagName("img")].forEach(img =>
-    // //         img.addEventListener("click", function(){
-    // //             document.getElementById('imgToExpand').src = img.src;
-    // //             $('#imgExpandModal').modal('show');      
-    // //             fadf
-    // //         }
-    // //     ))}
-    // )
+    addMediaToCommentDiv(commentDiv, commentObject);
 
     commentDiv.addEventListener('click', function() {
-        //commentDiv.classList.add( "activeCommentBorder")
-       // step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
+        
         document.querySelector(`.drag[data-commentid="${commentId}"]`).click();
 
-        if (document.querySelector(".activeSearchResultComment")){
-            document.querySelector(".activeSearchResultComment").classList.remove("activeSearchResultComment");
+        //remove active classes from the comment and the images in the comment
+        const activeComment = document.querySelector(".activeSearchResultComment");
+        if (activeComment){
+            activeComment.querySelectorAll(".activeCarousel").forEach(img =>{
+                img.classList.remove("activeCarousel")
+            })
+
+            activeComment.classList.remove("activeSearchResultComment");
         }
-        this.classList.add("activeSearchResultComment")
+
+        //add the active class to the comment and the images in the comment
+        this.classList.add("activeSearchResultComment");
+        this.querySelectorAll(".carousel-item").forEach(img =>{
+            img.classList.add("activeCarousel")
+        })
     })
 }
 
-function getAllCommentTags(){ //TODO change this title to reflect that they come from the screen
+function getAllTagsOnScreen(){ 
     const tagDivs = [...document.querySelectorAll(".commentTagDiv")];
     let retVal = [];
     tagDivs.forEach(tagDiv => {
@@ -2477,10 +2450,7 @@ function getAllCommentTags(){ //TODO change this title to reflect that they come
 
 function buildSearchData(commentObject){
     if (commentObject.commentText.length > 2){
-        const commentText = stripHTMLFromString(commentObject.commentText);
-        const words = commentText.split(/[\s ]+/);
-
-        words.forEach(word =>{
+      getWordsFromText(commentObject.commentText).forEach(word =>{
             buildSearchDataHelper(word, "commentText", commentObject.id)
         })
     }
@@ -2498,8 +2468,8 @@ function buildSearchData(commentObject){
 
     if (commentObject.selectedCodeBlocks.length){
         commentObject.selectedCodeBlocks.forEach(block =>{
-            const codeWords = block.selectedText.trim().split(/[\s ]+/);
-            codeWords.forEach(word =>{
+            //let temp = getWordsFromText(block.selectedText)
+            getWordsFromText(block.selectedText, true).forEach(word =>{
                 buildSearchDataHelper(word, "highlightedCode", commentObject.id)
             })
         })
@@ -2508,11 +2478,11 @@ function buildSearchData(commentObject){
 
 function deleteWordsFromSearchData(oldComment, newComment){
     if (oldComment.commentText !== newComment.commentText){
-        const oldCommentText = stripHTMLFromString(oldComment.commentText);
-        const oldWords = oldCommentText.split(/[\s ]+/);
+        //const oldCommentText = getWordsFromText(oldComment.commentText);
+        const oldWords = getWordsFromText(oldComment.commentText)
 
-        const newCommentText = stripHTMLFromString(newComment.commentText);
-        const newWords = newCommentText.split(/[\s ]+/);
+        //const newCommentText = getWordsFromText(newComment.commentText);
+        const newWords = getWordsFromText(newComment.commentText)
         const deletedWords = [...new Set(oldWords.filter(e => !newWords.includes(e)))]; //array of words that were in the oldComment but not in the newComment
 
         deletedWords.forEach(word =>{            
@@ -2535,8 +2505,8 @@ function deleteWordsFromSearchData(oldComment, newComment){
 
     const oldSelectedTextWords = [];
     oldComment.selectedCodeBlocks.forEach(block =>{
-        const fullText = stripHTMLFromString(block.selectedText)
-        const words = fullText.split(/[\s ]+/);
+        //const fullText = getWordsFromText(block.selectedText)
+        const words = getWordsFromText(block.selectedText, true)
 
         words.forEach(word =>{
             oldSelectedTextWords.push(word);
@@ -2545,8 +2515,8 @@ function deleteWordsFromSearchData(oldComment, newComment){
 
     const newSelectedTextWords = [];
     newComment.selectedCodeBlocks.forEach(block =>{
-        const fullText = stripHTMLFromString(block.selectedText)
-        const words = fullText.split(/[\s ]+/);
+        //const fullText = getWordsFromText(block.selectedText)
+        const words = getWordsFromText(block.selectedText, true)
 
         words.forEach(word =>{
             newSelectedTextWords.push(word);
@@ -2560,11 +2530,9 @@ function deleteWordsFromSearchData(oldComment, newComment){
     })    
 }
 
+//when a comment is deleted and all of it's data has to be removed from the search data
 function deleteCommentFromSearchData(comment){
-    const oldCommentText = stripHTMLFromString(comment.commentText);
-    const oldCommentTextWords = [...new Set(oldCommentText.split(/[\s ]+/))]; //TODO MAKE THIS A SET EVERYWHERE
-
-    oldCommentTextWords.forEach(oldWord =>{
+    getWordsFromText(comment.commentText).forEach(oldWord =>{
         deleteWordsFromSearchDataHelper(oldWord, "commentText", comment.id);
     })
 
@@ -2577,15 +2545,13 @@ function deleteCommentFromSearchData(comment){
     })
 
     comment.selectedCodeBlocks.forEach(block =>{
-        const text = stripHTMLFromString(block.selectedText);
-        const oldSelectedWords = text.split(/[\s ]+/);
-
-        oldSelectedWords.forEach(word =>{
+        getWordsFromText(block.selectedText).forEach(word =>{
             deleteWordsFromSearchDataHelper(word, "highlightedCode", comment.id)
         })
     })
 }
 
+//generic deleter that can be called for any search criteria
 function deleteWordsFromSearchDataHelper(word, criteriaType, commentId){
     if (!wordSearchData[word] || !wordSearchData[word][criteriaType] || !wordSearchData[word][criteriaType].includes(commentId)){
         return
@@ -2602,11 +2568,10 @@ function deleteWordsFromSearchDataHelper(word, criteriaType, commentId){
     }            
 }
 
-//TODO add a reference to the div at the end instead of just the commentID?
 //builds up wordSearchData to later search by words
 function buildSearchDataHelper(word, criteriaType, commentId){
     word = word.toLowerCase();
-    if (word.length > 3 || criteriaType === "highlightedCode"){ //words from highlighted code can be any length
+    if (word.length > 1 || criteriaType === "highlightedCode"){ //words from highlighted code can be any length
         if (wordSearchData[word]){
             if (wordSearchData[word][criteriaType]){
                 if (!wordSearchData[word][criteriaType].includes(commentId)){
@@ -2624,13 +2589,22 @@ function buildSearchDataHelper(word, criteriaType, commentId){
 }
 
 //TODO MAKE SURE THIS FUNCITON IS CALLED WHEN ADDING AND DELETING
-//TODO improve this function with the other code and send all text through it
 //TODO this is stripping out numbers and it shouldn't
-function stripHTMLFromString(HTMLString){
-    // return HTMLString.toLowerCase().replaceAll(/[.,\/#!$%+-\^&\*;:\\{}=-\@_`~()"|]/g," ").trim().replaceAll(/ +(?= )/g,'');
-    return HTMLString.toLowerCase().replaceAll("<div>", '\n').replaceAll("</div>",'').replaceAll("&nbsp;", '').replaceAll("<br>", '').replaceAll('-',' ').replaceAll(/[.,\/#!$%+-\^&\*;:\\{}=-\@_`~()"|]/g," ").replaceAll(/ +(?= )/g,'').trim();
+//returns an array of words with all special characters removed
+function getWordsFromText(stringToStrip, isCode){
+    //remove all html from text that isn't highlighted code
+    //the highlighted code html might be something somebody wants to search for
+    if (!isCode){ 
+        stringToStrip = stringToStrip.replace(/(<([^>]+)>)/gi, "");
+    }
+    const retVal =  [...new Set(stringToStrip.replace(/[^a-zA-Z ]/g, " ").split(/[\s ]+/))]
+    if (retVal.indexOf("") !== -1){
+        retVal.splice(retVal.indexOf(""), 1)
+    }
+    return retVal;
 }
 
+//TODO this doesn't work anymore
 //a single place to handle the values of the drop down menu
 //in case values are changed/added/deleted, there wont have to be updates in multiple places
 //only here and buildSearchData()

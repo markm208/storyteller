@@ -27,7 +27,7 @@
 
 .activeSearchResultComment > .card-body 
 {
-    background-color: rgb(59,76,98);
+    background-color: rgb(59,76,98) !important;
 
 }
 
@@ -42,6 +42,13 @@
     background-color: rgb(59,76,98);
 
 }
+
+.activeSearchResultCommentImg {
+    background-color: rgb(59,76,98) !important;
+
+}
+
+
 
 .activeSearchResultComment > .commentCardHeaderColor {
 
@@ -94,13 +101,9 @@
     overflow: hidden;
 }
 
-.carousel-item img{
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    cursor: zoom-in;
-    background-color: rgb(51,51,51);
-}
+
+
+
 
 .codePanel{
     width: 74vw;            
@@ -146,7 +149,7 @@
     overflow-y: scroll;
     height: 85vh;
     word-wrap: break-word;
-    /* width: 490px;  */
+    width: 25vw; 
     /* TODO should this not be pixels? */
 }
 
@@ -940,6 +943,11 @@ input[type=number]::-webkit-outer-spin-button {
     background-color: rgb(31,31,31);
   }
 
+.card-footer{
+    border: none;
+}
+
+
 .modal-body{
     background-color: rgb(31,31,31);
     color: lightgrey;
@@ -1039,7 +1047,7 @@ input[type=number]::-webkit-outer-spin-button {
     overflow-y: scroll;
     height: 88vh;
     word-wrap: break-word;
-    /* width: 490px;  */
+    width: 25vw; 
 }
 
 .hiddenButton{
@@ -1066,4 +1074,22 @@ input[type=number]::-webkit-outer-spin-button {
 
 .alert-dismissible .close{
     padding: 0;
+}
+
+
+.carousel-item img{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: zoom-in;
+
+}
+
+.nonActiveCarousel{
+    background-color: rgb(51,51,51);
+
+}
+
+.activeCarousel{
+    background-color: rgb(59,76,98);
 }
