@@ -411,7 +411,10 @@ function setupEventListeners()
             setUpSliderTickMarks();
 
             document.getElementById("CancelUpdateButton").click();
-            document.querySelector(`.codeView [data-commentid="${newComment.id}"]`).click();            
+
+            const activeComment = document.querySelector(`.codeView [data-commentid="${newComment.id}"]`);
+            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
+            activeComment.click();            
         }
     });
 
@@ -444,18 +447,21 @@ function setupEventListeners()
         document.getElementById("UpdateCommentButton").style.display='none';
         document.getElementById("fsViewTabTab").classList.remove("disabled");
         document.getElementById("viewCommentsTab").classList.remove("disabled");
+        document.getElementById("searchCommentTab").classList.remove("disabled");
+
 
         document.getElementById("viewCommentsTab").click();      
         
     });
-//TODO scroll totop comment when switching out of search tab
-    //When switching to viewCommentsTab, scroll to the active comment
-    // $('a[id="viewCommentsTab"]').on('shown.bs.tab', function () {
-    //     const activeComment = document.querySelector(".codeView .activeComment");
-    //     if (activeComment){
-    //         document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
-    //     }
-    // })
+
+   // When switching to viewCommentsTab, scroll to the active comment
+    $('a[id="viewCommentsTab"]').on('shown.bs.tab', function () {
+        const activeComment = document.querySelector(".codeView .activeComment");
+        if (activeComment){
+            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;
+            activeComment.click()
+        }
+    })
 
     document.getElementById('dragBar').addEventListener('mousedown', function (e){  
     
@@ -631,6 +637,7 @@ function setupEventListeners()
         document.getElementById('textCommentTextArea').focus();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
+        document.getElementById("searchCommentTab").classList.add("disabled");
         pauseMedia();
     });
     document.getElementById("saveCodeOnlyButton").addEventListener('click', event => {
