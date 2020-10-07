@@ -749,8 +749,10 @@ function setupEventListeners()
             pauseMedia();
 
             const commentToMakeActive = document.querySelector(`.codeView [data-commentid="${latestVisableBlogPostID}"]`);
-            commentToMakeActive.click(); 
-            document.getElementById("commentContentDiv").scrollTop =  commentToMakeActive.offsetTop - 100;     
+            if (commentToMakeActive){
+                commentToMakeActive.click(); 
+                document.getElementById("commentContentDiv").scrollTop =  commentToMakeActive.offsetTop - 100;     
+            }            
     
             document.getElementById("blogMode").classList.remove("activeModeButton");
             document.getElementById("codeMode").classList.add("activeModeButton");
@@ -765,7 +767,6 @@ function setupEventListeners()
 
             //update url with code view
             window.history.replaceState({view: 'code'}, '', '?view=code');
-
         }
     })
 
