@@ -463,8 +463,11 @@ function setupEventListeners()
         }
     })
 
-    document.getElementById('dragBar').addEventListener('mousedown', function (e){  
-    
+    $('a[id="searchCommentTab"]').on('show.bs.tab', function () {
+        pauseMedia();
+    })
+
+    document.getElementById('dragBar').addEventListener('mousedown', function (e){      
         //add listeners for moving and releasing the drag and disable selection of text  
         window.addEventListener('selectstart', disableSelect);
         document.documentElement.addEventListener('mousemove', doDrag, false);
