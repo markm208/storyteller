@@ -443,18 +443,15 @@ function setupEventListeners()
 
         document.getElementById("addCommentButton").removeAttribute("style");
 
-
         document.getElementById("UpdateCommentButton").style.display='none';
         document.getElementById("fsViewTabTab").classList.remove("disabled");
         document.getElementById("viewCommentsTab").classList.remove("disabled");
         document.getElementById("searchCommentTab").classList.remove("disabled");
-
-
         document.getElementById("viewCommentsTab").click();      
         
     });
 
-   // When switching to viewCommentsTab, scroll to the active comment
+   //When switching to viewCommentsTab, scroll to the active comment
     $('a[id="viewCommentsTab"]').on('shown.bs.tab', function () {
         const activeComment = document.querySelector(".codeView .activeComment");
         if (activeComment){
@@ -463,8 +460,9 @@ function setupEventListeners()
         }
     })
 
-    $('a[id="searchCommentTab"]').on('show.bs.tab', function () {
+    $('a[id="searchCommentTab"]').on('shown.bs.tab', function () {
         pauseMedia();
+        document.getElementById("commentSearchBar").focus();
     })
 
     document.getElementById('dragBar').addEventListener('mousedown', function (e){      
@@ -785,7 +783,7 @@ function setupEventListeners()
             timer = setInterval(function(){
                 buttonParent.stepUp();
                 blogModeHighlightHelper();                
-            }, 150);
+            }, 300);
         });
     }) 
 
@@ -814,7 +812,7 @@ function setupEventListeners()
             timer = setInterval(function(){
                 buttonParent.stepDown();
                 blogModeHighlightHelper();
-            }, 150);
+            }, 300);
         });
     }) 
 
@@ -848,25 +846,30 @@ function setupEventListeners()
 
             handleCommentSearchDropDownOptions();
 
-            //TODO handle this smarter
             //focus the search bar but dont delete the value
-            let searchBar = document.getElementById("commentSearchBar");
-            let originalVal = searchBar.value;
+            const searchBar = document.getElementById("commentSearchBar");
+            const originalVal = searchBar.value;
             searchBar.focus();           
             searchBar.value = originalVal;
         })
     })
 
+    //clear text input and search results div
     document.getElementById("searchTabClearButton").addEventListener("click", event=>{
         document.getElementById("searchContentDiv").innerHTML = '';
         document.getElementById("commentSearchBar").value = '';
     })
 
+    //conduct a search on the user inputted text using the selected search criteria
     document.getElementById("commentSearchButton").addEventListener("click", event=>{
 
-        document.getElementById("searchContentDiv").innerHTML = '';
-        //TODO call striphtml
         const searchValue = document.getElementById("commentSearchBar").value.toLowerCase();
+        if (searchValue === ''){
+            return;
+        }
+
+        document.getElementById("searchContentDiv").innerHTML = '';
+
         const words = getWordsFromText(searchValue);
         const searchType = handleCommentSearchDropDownOptions(); //TODO Change this
 

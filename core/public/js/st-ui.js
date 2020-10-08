@@ -73,6 +73,8 @@ function deleteEditor(fileId) {
  */
 let firstTimeThrough = true;
 function displayAllComments(){
+    const activeComment = document.querySelector(`.codeView .activeComment`);
+
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
 
@@ -239,6 +241,14 @@ function displayAllComments(){
     })    
     updateAllCommentHeaderCounts();
     firstTimeThrough = false;
+
+    if (activeComment){
+        const activeId = activeComment.getAttribute("data-commentid");
+        const newActiveDiv = document.querySelector(`.codeView [data-commentid=${activeId}]`);
+        newActiveDiv.click()
+        document.getElementById("commentContentDiv").scrollTop = newActiveDiv.offsetTop - 100; 
+
+    }
 
 }
 
@@ -550,6 +560,7 @@ function createEditCommentButton(commentObject, buttonText){
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
+        document.getElementById("searchCommentTab").classList.add("disabled");
         document.getElementById("blogModeExtraAbove").value = commentObject.linesAbove;
         document.getElementById("blogModeExtraBelow").value = commentObject.linesBelow;
 
@@ -626,6 +637,9 @@ function createEditCommentButton(commentObject, buttonText){
             event.stopImmediatePropagation();
 
             document.getElementById("CancelUpdateButton").click();
+            const activeComment = document.querySelector(`.codeView .activeComment`);
+            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
+            //activeComment.click();            
         })
 
         highlightBlogModeVisibleArea();
@@ -2310,16 +2324,14 @@ function populateCommentTagDropDownList(tagsToExclude){
             return;
         }
 
-        let newTag = document.createElement("a");
+        const newTag = document.createElement("a");
         newTag.classList.add("dropdown-item", "commentTagDropDownItem");
         newTag.href = "#";
         newTag.appendChild(document.createTextNode(tag));
     
         newTag.addEventListener("click", function(){
-
             addCommentTagForThisComment(tag);
             newTag.remove();
-            
         })
         document.querySelector(".commentTagDropDown").appendChild(newTag);
     })
@@ -2330,10 +2342,12 @@ function getFormattedCommentTag(commentTag){
     return commentTag.toLowerCase().replaceAll(' ', '-')
 }
 
+//returns a sorted list of all tags
 function getAllSortedCommentTags(){
     return Object.keys(allCommentTagsWithCommentId).sort();
 }
 
+//adds a new tag to the tag search data
 function addCommentTagsToTagObject(commentTag, commentObject){
     commentTag = getFormattedCommentTag(commentTag);
 
@@ -2345,10 +2359,9 @@ function addCommentTagsToTagObject(commentTag, commentObject){
     }
 }
 
+//remove a deleted tag from the search data
 function removeDeletedCommentTagsFromTagObject(oldTagsList, newTagsList, commentId){
-    //const deletedTags = [...new Set(oldTagsList.filter(oldTag=> !newTagsList.includes(oldTag)))]
-
-    oldTagsList.forEach(tag =>{
+     oldTagsList.forEach(tag =>{
         if (!newTagsList.includes(tag)){
             const index = allCommentTagsWithCommentId[tag].indexOf(commentId)
             allCommentTagsWithCommentId[tag].splice(index, 1);
@@ -2367,7 +2380,7 @@ function addCommentTagForThisComment(commentTag){
     }
 
     const tagDiv = document.createElement("div");
-    tagDiv.classList.add("alert", "alert-dark", "alert-dismissible", "fade", "show", "commentTagDiv")
+    tagDiv.classList.add("alert", "alert-dismissible", "fade", "show", "commentTagDiv")
     tagDiv.innerText = commentTag;
 
     const deleteButton = document.createElement("button");
@@ -2380,7 +2393,7 @@ function addCommentTagForThisComment(commentTag){
     deleteButton.addEventListener("click", function(){
         tagDiv.remove();
 
-        //rebuild the drop down menu with the returned tag
+        //rebuild the drop down menu with the deleted tag
         populateCommentTagDropDownList(getAllTagsOnScreen());
     })
 
@@ -2476,26 +2489,29 @@ function buildSearchData(commentObject){
     }
 }
 
+//delete words from the search data after a comment is edited 
 function deleteWordsFromSearchData(oldComment, newComment){
+    //commentText
     if (oldComment.commentText !== newComment.commentText){
-        //const oldCommentText = getWordsFromText(oldComment.commentText);
         const oldWords = getWordsFromText(oldComment.commentText)
 
-        //const newCommentText = getWordsFromText(newComment.commentText);
         const newWords = getWordsFromText(newComment.commentText)
-        const deletedWords = [...new Set(oldWords.filter(e => !newWords.includes(e)))]; //array of words that were in the oldComment but not in the newComment
+        const deletedWords = [...new Set(oldWords.filter(oldWord => !newWords.includes(oldWord)))]; //array of words that were in the oldComment but not in the newComment
 
         deletedWords.forEach(word =>{            
             deleteWordsFromSearchDataHelper(word, "commentText", oldComment.id);
         })
     }
 
-    if (oldComment.commentTags.sort().toString() !== newComment.commentTags.sort().toString()){
-        const deletedTags = [...new Set(oldComment.commentTags.filter(e => !newComment.commentTags.includes(e)))]
-        deletedTags.forEach(tag =>{
-            tag = getFormattedCommentTag(tag);
+    //commentTags
 
-            const tagWords = tag.split(/[\s ]+/);
+    //determining if any tags have been deleted
+    const deletedTags = [...new Set(oldComment.commentTags.filter(oldTag => !newComment.commentTags.includes(oldTag)))];
+
+    if (deletedTags.length){ 
+        deletedTags.forEach(tag =>{
+            //split the tag into an array of words
+            const tagWords = tag.split(/[\s ]+/); 
 
             tagWords.forEach(tagWord =>{
                 deleteWordsFromSearchDataHelper(tagWord, "commentTags", oldComment.id)
@@ -2503,6 +2519,10 @@ function deleteWordsFromSearchData(oldComment, newComment){
         })
     }
 
+    //hilighted code
+
+    //build a list of the old selected words for this comment, and the new
+    //then compare the two lists to determine if any words need to be removed from the search data
     const oldSelectedTextWords = [];
     oldComment.selectedCodeBlocks.forEach(block =>{
         //const fullText = getWordsFromText(block.selectedText)

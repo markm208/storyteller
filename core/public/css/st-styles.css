@@ -791,6 +791,8 @@ input[type=number]::-webkit-outer-spin-button {
   height: 3rem;
   font-weight: bold;
   text-align: center;
+  background-color: rgb(51,51,51);
+  color: white
 }
 
 
@@ -813,14 +815,28 @@ input[type=number]::-webkit-outer-spin-button {
     outline: none !important;
     box-shadow: none;
 }
+.lineButtonDown{
+    border-right: solid thin grey !important;
+}
 
+.lineButtonUp{
+    border-left:  solid thin grey !important;
+}
 
 .lineButtonUp:active,
 .lineButtonDown:active{    
     opacity: .5;    
 }
 
+.lineButtonUp:hover,
+.lineButtonDown:hover{
+    background-color: grey;
+    opacity: .5;
+}
 
+.number-input button:before, .number-input button:after{
+    background-color: white !important;
+}
 
 .blogUserName{
     margin-top: -5px;
@@ -1003,6 +1019,10 @@ input[type=number]::-webkit-outer-spin-button {
     color: lightgray !important;
     font-size: 11pt !important;
 }
+#tagInput{
+    background-color: rgb(51,51,51);
+    color: white;
+}
 
 .tagMenu{
     margin-top: 1rem !important;
@@ -1065,7 +1085,7 @@ input[type=number]::-webkit-outer-spin-button {
 .alert{
     margin-right: 5px;
     display: inline-block;
-    padding: 0;
+    /* padding: 0; */
 }
 
 .alert-dismissible {
@@ -1092,4 +1112,13 @@ input[type=number]::-webkit-outer-spin-button {
 
 .activeCarousel{
     background-color: rgb(59,76,98);
+}
+
+.btn-outline-secondary{
+    color: white;
+}
+
+.commentTagDiv{
+    border: solid thin black;
+    color: white;
 }
