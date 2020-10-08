@@ -203,7 +203,7 @@
     position:absolute;
     z-index:20; /* place in a layer above anything with a lower z-index */
     background-color:rgb(111, 177, 119);
-    opacity: 20%;
+    opacity: 30%;
 }
 
 .imageCancelButton{
