@@ -327,8 +327,70 @@ function createTitleCard(descriptionInfo)
     //create the header for the title card which holds the title text
     const cardHeader = document.createElement('div');
     cardHeader.setAttribute('id', 'descriptionHeader');
-    cardHeader.classList.add('card-header', 'text-center', 'titleCardHeaderStyle');
+    cardHeader.classList.add('text-center', 'titleCardHeaderStyle');
     cardHeader.innerHTML = playbackData.playbackTitle;
+
+    if (playbackData.isEditable){
+        const editTitleButton = document.createElement('button');
+        editTitleButton.classList.add("editTitleButton", "btn", "btn-outline-dark", "btn-sm");
+    
+        const acceptTitleChanges = document.createElement('button');
+        acceptTitleChanges.classList.add("acceptTitleButton", "btn", "btn-outline-dark", "btn-sm", "titleButtonNonActive");
+    
+        
+        editTitleButton.addEventListener('click', event => {
+            stopAutomaticPlayback();
+            const titleDiv = document.getElementById('descriptionHeader');
+            titleDiv.setAttribute("contenteditable", "true");
+            titleDiv.focus();
+    
+            //editTitleButton.style.display = "none";
+           // acceptTitleChanges.style.display = "inline-block";
+           editTitleButton.classList.add("titleButtonNonActive");
+           acceptTitleChanges.classList.remove("titleButtonNonActive");
+    
+           titleDiv.addEventListener('keydown', function(e) {
+                if (e.key === "Enter"){
+                    e.preventDefault();
+                    e.stopPropagation(); //TODO figure out why this is triggering twice
+                    acceptTitleChanges.click();
+                    document.activeElement.blur();
+                }
+            })
+    
+        });      
+        
+        acceptTitleChanges.addEventListener('click', event => {
+    
+            const titleDiv = document.getElementById('descriptionHeader');
+            const titleData = titleDiv.textContent;
+    
+            updateTitle(titleData);
+    
+            playbackData.playbackTitle = titleData;
+    
+            //const titleCardHeader = document.getElementById('descriptionHeader');
+           // titleCardHeader.textContent = playbackData.playbackTitle;
+    
+           titleDiv.setAttribute("contenteditable", "false");
+    
+            //acceptTitleChanges.style.display = "none";
+            //editTitleButton.style.display = "inline-block";
+    
+            acceptTitleChanges.classList.add("titleButtonNonActive");
+            editTitleButton.classList.remove("titleButtonNonActive");
+            
+            document.getElementById("playbackTitleDiv").innerHTML = titleData;
+            document.querySelector('.blogTitle').innerHTML = titleData;
+    
+        });    
+    
+        editTitleButton.setAttribute("title", "Edit title");
+        acceptTitleChanges.setAttribute("title", "Confirm changes");
+    
+        cardHeader.append(editTitleButton);
+        cardHeader.append(acceptTitleChanges);    
+    } 
 
     //create the body for the card which holds the description text
     const cardBody = document.createElement('div');
@@ -448,14 +510,8 @@ function updateActiveComment(commentToMakeActive)
         }
     }
     commentToMakeActive.classList.add("activeComment");
-    commentToMakeActive.closest(".commentGroupSpacing").classList.add("activeGroup");
 
-    //prevents an already active comment from being scrolled to again
-    //and an already active comment block from scrolling to the new active comment
-    if (!commentAlreadyActive && !groupAlreadyActive){
-        //scroll to the new active comment
-        document.getElementById("commentContentDiv").scrollTop = commentToMakeActive.offsetTop - 100;            
-    }     
+    commentToMakeActive.closest(".commentGroupSpacing").classList.add("activeGroup"); 
 
     //if we're in code view, scroll blog mode to the new active comment
     if (!playbackData.isInBlogMode){
@@ -578,8 +634,10 @@ function createCarousel(){
     carouselOuter.setAttribute('data-interval','false');
     carouselOuter.setAttribute('data-keyboard', 'false');
     carouselOuter.classList.add('carousel','slide');
+    carouselOuter.setAttribute('data-ride', 'carousel');
 
     const carouselInner = document.createElement('div');
+    carouselInner.classList.add("carousel-inner");
     carouselOuter.append(carouselInner);
     return carouselOuter;
 }
@@ -1942,38 +2000,14 @@ function createBlogPost(commentToAdd){
             latestVisableBlogPostID = commentToAdd.id;          
         }           
     }, { threshold: [1] });
+    
     observer.observe(textDiv);
 
     blogPost.setAttribute("data-commentEventid", commentToAdd.displayCommentEvent.id);
     blogPost.setAttribute("data-commentid", commentToAdd.id);
 
+
     blogPost.append(textDiv);
-
-    if (commentToAdd.imageURLs.length){
-        let imagesDiv = document.createElement('div');
-        imagesDiv.classList.add("blogModeImageDiv");
-
-        for (let i = 0; i < commentToAdd.imageURLs.length; i++){
-            const imgDiv = document.createElement('div');
-            imgDiv.classList.add("blogImageDiv");
-            const img = document.createElement('img');
-            img.classList.add("blogImage");
-            img.src = commentToAdd.imageURLs[i];
-
-            img.addEventListener('load', function(){
-                imgDiv.style.height = img.height > 500 ? "500px" : img.height + "px";
-            });
-
-            img.addEventListener('click', function() {
-                document.getElementById('imgToExpand').src = img.src;
-                $('#imgExpandModal').modal('show');      
-            });       
-
-            imgDiv.append(img);
-            imagesDiv.append(imgDiv);     
-        }    
-        blogPost.append(imagesDiv);        
-    }
 
     if (commentToAdd.videoURLs.length){
         for (let i = 0; i < commentToAdd.videoURLs.length; i++){
@@ -2001,9 +2035,6 @@ function createBlogPost(commentToAdd){
             newVideo.classList.add('mediaResizable');                
 
             const speedControlDiv = createSpeedControlButtonDivForMedia(newVideo);
-
-            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.add("blogSpeedButton")});
-            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.remove("speedButton")}); //TODO this wont be needed when code view gets a dark mode
 
             speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
 
@@ -2043,9 +2074,6 @@ function createBlogPost(commentToAdd){
 
             const speedControlDiv = createSpeedControlButtonDivForMedia(newAudio);
 
-            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.add("blogSpeedButton")});
-            speedControlDiv.querySelectorAll(".speedButton").forEach(button =>{button.classList.remove("speedButton")}); //TODO this wont be needed when code view gets a dark mode
-
             speedControlDiv.querySelector(".speedGroup").classList.add("blogAudioGroup")
 
             speedControlDiv.querySelector(".speedGroup").classList.remove("speedGroup");
@@ -2053,6 +2081,8 @@ function createBlogPost(commentToAdd){
             blogPost.append(speedControlDiv);
         }       
     } 
+
+
 
     if (commentToAdd.viewableBlogText && commentToAdd.viewableBlogText.length){
         const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
@@ -2101,7 +2131,35 @@ function createBlogPost(commentToAdd){
         blogPost.append(blogPostFileNameDiv);
         blogPost.append(blogPostEditor);       
        
+    }    
+
+
+    if (commentToAdd.imageURLs.length){
+        let imagesDiv = document.createElement('div');
+        imagesDiv.classList.add("blogModeImageDiv");
+
+        for (let i = 0; i < commentToAdd.imageURLs.length; i++){
+            const imgDiv = document.createElement('div');
+            imgDiv.classList.add("blogImageDiv");
+            const img = document.createElement('img');
+            img.classList.add("blogImage");
+            img.src = commentToAdd.imageURLs[i];
+
+            img.addEventListener('load', function(){
+                imgDiv.style.height = img.height > 500 ? "500px" : img.height + "px";
+            });
+
+            img.addEventListener('click', function() {
+                document.getElementById('imgToExpand').src = img.src;
+                $('#imgExpandModal').modal('show');      
+            });       
+
+            imgDiv.append(img);
+            imagesDiv.append(imgDiv);     
+        }    
+        blogPost.append(imagesDiv);        
     }
+ 
     return blogPost;
 }
 

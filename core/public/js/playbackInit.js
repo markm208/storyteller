@@ -1,3 +1,5 @@
+
+
 /*
  *
  */
@@ -31,7 +33,24 @@ async function initializePlayback()
     //if this is an editable playback
     if(playbackData.isEditable) {
         //grab any existing media from the server and display it in the media control modal
-        initImageGallery();
+        initImageGallery();        
+        document.getElementById("mainAddCommentButton").classList.remove("mainAddCommentButtonNoEdit");
+    }
+    else{
+        commentsDiv.style.height = "92vh";
+    }
+
+    //get the query string params from the url
+    const queryStringParams = new URLSearchParams(window.location.search);
+    //get the view param (if there is one)
+    const defaultView = queryStringParams.get('view');
+    //if the user wants to see the playback in blog view OR the screen is small
+    if((defaultView && defaultView === 'blog') || (window.screen.availWidth <= 650)) {
+        //switch to the blog view
+        document.getElementById('blogMode').click();
+    } else { //code view
+        //update the url for code view
+        window.history.replaceState({view: 'code'}, '', '?view=code');
     }
 
     console.log('Success Initializing Playback');
@@ -116,48 +135,48 @@ function setupEventListeners()
     //Setup the title buttons and data
     const playbackTitleDiv = document.getElementById('playbackTitleDiv');
     playbackTitleDiv.innerHTML = playbackData.playbackTitle;
-    const editTitleButton = document.getElementById('editTitleButton');
+    //const editTitleButton = document.getElementById('editTitleButton');
 
-    editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
+    // editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
 
-    const acceptTitleChanges = document.getElementById('acceptTitleChanges');
-    acceptTitleChanges.classList.add("btn", "btn-outline-dark", "btn-sm");
-    acceptTitleChanges.style.display = "none";
+    // const acceptTitleChanges = document.getElementById('acceptTitleChanges');
+    // acceptTitleChanges.classList.add("btn", "btn-outline-dark", "btn-sm");
+    // acceptTitleChanges.style.display = "none";
 
-    editTitleButton.addEventListener('click', event => {
-        stopAutomaticPlayback();
-        playbackTitleDiv.setAttribute("contenteditable", "true");
+    // editTitleButton.addEventListener('click', event => {
+    //     stopAutomaticPlayback();
+    //     playbackTitleDiv.setAttribute("contenteditable", "true");
 
-        editTitleButton.style.display = "none";
-        acceptTitleChanges.style.display = "inline-block";
+    //     editTitleButton.style.display = "none";
+    //     acceptTitleChanges.style.display = "inline-block";
 
-    });
+    // });
 
-    acceptTitleChanges.addEventListener('click', event => {
+    // acceptTitleChanges.addEventListener('click', event => {
 
-        const titleData = playbackTitleDiv.innerHTML;
+    //     const titleData = playbackTitleDiv.innerHTML;
 
-        updateTitle(titleData);
+    //     updateTitle(titleData);
 
-        playbackData.playbackTitle = titleData;
+    //     playbackData.playbackTitle = titleData;
 
-        const titleCardHeader = document.getElementById('descriptionHeader');
-        titleCardHeader.innerHTML = playbackData.playbackTitle;
+    //     const titleCardHeader = document.getElementById('descriptionHeader');
+    //     titleCardHeader.innerHTML = playbackData.playbackTitle;
 
-        playbackTitleDiv.setAttribute("contenteditable", "false");
+    //     playbackTitleDiv.setAttribute("contenteditable", "false");
 
-        acceptTitleChanges.style.display = "none";
-        editTitleButton.style.display = "inline-block";
+    //     acceptTitleChanges.style.display = "none";
+    //     editTitleButton.style.display = "inline-block";
 
-        document.querySelector('.blogTitle').innerHTML = titleData;
+    //     document.querySelector('.blogTitle').innerHTML = titleData;
 
-    });
+    // });
 
-    if (!playbackData.isEditable)
-    {
-        editTitleButton.style.display = 'none';
-        acceptTitleChanges.style.display = 'none';
-    }
+    // if (!playbackData.isEditable)
+    // {
+    //     editTitleButton.style.display = 'none';
+    //     acceptTitleChanges.style.display = 'none';
+    // }
 
     //bold button
     document.querySelector('#boldCommentButton').addEventListener('click', event => {
@@ -396,14 +415,13 @@ function setupEventListeners()
     document.addEventListener('keydown', function(e){    
 
         //prevent keyboard presses within the comment textbox from triggering actions 
-        if (e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv'){
+        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader'){
             return;
         }
        
         const keyPressed = e.key;
         const shiftPressed = e.shiftKey;
         const ctrlPressed = e.ctrlKey;
-        const altPressed = e.altKey;
 
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
@@ -445,11 +463,24 @@ function setupEventListeners()
                 }
             }
         }
-        else if (keyPressed === "c" && altPressed){
-            document.getElementById('mainAddCommentButton').click();
+        else if (keyPressed === "c" && ctrlPressed){
+            if (playbackData.isEditable){
+                document.getElementById('mainAddCommentButton').click();
+            }
+           
         }
-        else if (keyPressed === "Escape"){
-           document.activeElement.blur();
+        else if (keyPressed === "Escape"){            
+            document.getElementById("CancelUpdateButton").click();
+        }
+        else if (e.code === "Space"){
+            const playButton = document.getElementById("continuousPlayButton");
+            const pauseButton = document.getElementById("pausePlayButton");
+            if (pauseButton.classList.contains("automaticPlaybackInactive")){
+                playButton.click();
+            }
+            else{
+                pauseButton.click();
+            }
         }
     });
 
@@ -570,17 +601,18 @@ function setupEventListeners()
 
     document.getElementById("continuousPlayButton").addEventListener('click', event => {
         removeActiveCommentAndGroup();
+        document.getElementById("continuousPlayButton").classList.add("automaticPlaybackInactive");
+        document.getElementById("pausePlayButton").classList.remove("automaticPlaybackInactive");
 
-        document.getElementById("continuousPlayButton").style.display = "none";
-        document.getElementById("pausePlayButton").style.display = "block";
         playbackInterval = setInterval(function(){
             step(1);
             if (playbackData.comments[`ev-${playbackData.nextEventPosition - 1}`]){   
                 //get the comment card associated with the position             
                 const currentComment = document.querySelector(`.codeView [data-commenteventid="ev-${playbackData.nextEventPosition - 1}"]`);
 
-                //make it active by clicking it
+                //make it active by clicking it and then scroll to it
                 currentComment.click();
+                document.getElementById("commentContentDiv").scrollTop = currentComment.offsetTop - 100;    
 
                 //stop the automatic playback
                 stopAutomaticPlayback();
@@ -644,6 +676,9 @@ function setupEventListeners()
             document.body.classList.add("blogModeBody")
 
             playbackData.isInBlogMode = true;
+            
+            //update url with blog view
+            window.history.replaceState({view: 'blog'}, '', '?view=blog');
         }
     })
 
@@ -665,6 +700,10 @@ function setupEventListeners()
             document.body.classList.remove("blogModeBody");
 
             playbackData.isInBlogMode = false;
+
+            //update url with code view
+            window.history.replaceState({view: 'code'}, '', '?view=code');
+
         }
     })
 
@@ -822,15 +861,17 @@ function setUpClickableTickMarks(){
         tickMark.addEventListener('click', event => { 
             //determine if the description tick mark was clicked   
             const eventNum = pipValue === playbackData.numNonRelevantEvents - 1 ? 0 : pipValue; 
-
-            document.querySelector(`.codeView [data-commenteventid="ev-${eventNum}"]`).click();                               
+            
+            const comment = document.querySelector(`.codeView [data-commenteventid="ev-${eventNum}"]`);
+            document.getElementById("commentContentDiv").scrollTop = comment.offsetTop - 100;    
+            comment.click();      
         })               
     }    
 }
 
 function stopAutomaticPlayback(){
-    document.getElementById("continuousPlayButton").style.display = "block";
-    document.getElementById("pausePlayButton").style.display = "none";
+    document.getElementById("continuousPlayButton").classList.remove("automaticPlaybackInactive")
+    document.getElementById("pausePlayButton").classList.add("automaticPlaybackInactive");
     clearInterval(playbackInterval);
 }
 
