@@ -861,18 +861,18 @@ function setupEventListeners()
     })
 
     //conduct a search on the user inputted text using the selected search criteria
-    document.getElementById("commentSearchButton").addEventListener("click", event=>{
+    document.getElementById("commentSearchButton").addEventListener("click", function(){
 
+        document.getElementById("searchContentDiv").innerHTML = '';
         const searchValue = document.getElementById("commentSearchBar").value.toLowerCase();
         if (searchValue === ''){
             return;
         }
 
-        document.getElementById("searchContentDiv").innerHTML = '';
-
         const words = getWordsFromText(searchValue);
-        const searchType = handleCommentSearchDropDownOptions(); //TODO Change this
+        const searchType = handleCommentSearchDropDownOptions();
 
+        //maintain a collection of unique commentIds from comments that are matches
         const results = new Set();
 
         if (searchType !== "All"){
@@ -899,9 +899,25 @@ function setupEventListeners()
         }
 
         const contentDiv = document.getElementById("searchContentDiv");
+
+
+        //TODO figure out a faster way to do this whole process?
+
+        //sort the results set by the id placement in the comments div. probably faster to not sort
+        // const allComments = getAllComments();
+        // results = [...results].sort(function(a,b){
+        //     const index1 = allComments.findIndex(item => item.getAttribute("data-commentid") === a);
+        //     const index2 = allComments.findIndex(item => item.getAttribute("data-commentid") === b);
+        //     return index1 - index2;
+        // })
+
+
+        //go through all the comments in the comments div to get the proper order of search results
         getAllComments().forEach(comment =>{
             const commentId = comment.getAttribute("data-commentid");
-            if (results.has(commentId) && commentId !== "commentId-0"){
+            if (results.has(commentId) && commentId !== "commentId-0"){ //skip the description comment
+
+                //clone the comment div to strip out all of its original event listeners
                 const clone = document.querySelector(`.codeView [data-commentid="${commentId}"]`).cloneNode(true);
                 setUpSearchResultComment(clone);
                 contentDiv.append(clone);

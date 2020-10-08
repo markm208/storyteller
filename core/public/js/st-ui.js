@@ -1852,7 +1852,7 @@ function clearHighlightChangedFiles() {
 }
 
 function updateAllCommentHeaderCounts(){
-    const drag = document.getElementsByClassName("drag");
+    const drag = document.querySelectorAll(".commentsDivScroll .drag");
     for (let i = 0; i < drag.length; i++){
        drag[i].getElementsByClassName("commentCount")[0].getElementsByClassName("progressSpan")[0].firstChild.data = i + 1 + "/" + drag.length;       
     }    
@@ -2310,8 +2310,9 @@ function getAllBlogPosts(){
     return [...document.querySelectorAll(".blogView [data-commentid]")];
 }
 
+//empty the drop down list of comment tags
 function emptyCommentTagDropDownMenu(){
-    document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove()); //empty the list of comment tags
+    document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove()); 
 }
 
 //build the drop down list of comment tags when adding or editing a comment
@@ -2452,22 +2453,24 @@ function setUpSearchResultComment(commentDiv){
     })
 }
 
+//get all comment tags that are currently on screen for a comment
 function getAllTagsOnScreen(){ 
     const tagDivs = [...document.querySelectorAll(".commentTagDiv")];
     let retVal = [];
     tagDivs.forEach(tagDiv => {
-         let tag = tagDiv.textContent.substring(0, tagDiv.textContent.length - 1)
+        let tag = tagDiv.textContent.substring(0, tagDiv.textContent.length - 1)
         retVal.push(tag)});
     return retVal;
 }
 
-function buildSearchData(commentObject){
-    if (commentObject.commentText.length > 2){
-      getWordsFromText(commentObject.commentText).forEach(word =>{
-            buildSearchDataHelper(word, "commentText", commentObject.id)
-        })
-    }
-
+//builds up wordSearchData to later search by words
+function buildSearchData(commentObject){    
+    //comment text
+    getWordsFromText(commentObject.commentText).forEach(word =>{
+        buildSearchDataHelper(word, "commentText", commentObject.id)
+    })
+    
+    //comment tags
     if (commentObject.commentTags.length){
         commentObject.commentTags.forEach(tag =>{
             tag = tag.replaceAll('-', ' ');
@@ -2479,9 +2482,9 @@ function buildSearchData(commentObject){
         })
     }
 
+    //highlighted code
     if (commentObject.selectedCodeBlocks.length){
         commentObject.selectedCodeBlocks.forEach(block =>{
-            //let temp = getWordsFromText(block.selectedText)
             getWordsFromText(block.selectedText, true).forEach(word =>{
                 buildSearchDataHelper(word, "highlightedCode", commentObject.id)
             })
@@ -2552,10 +2555,12 @@ function deleteWordsFromSearchData(oldComment, newComment){
 
 //when a comment is deleted and all of it's data has to be removed from the search data
 function deleteCommentFromSearchData(comment){
+    //commentText
     getWordsFromText(comment.commentText).forEach(oldWord =>{
         deleteWordsFromSearchDataHelper(oldWord, "commentText", comment.id);
     })
 
+    //commentTags
     comment.commentTags.forEach(tag =>{
         tag = tag.replaceAll('-', ' ');
         const oldTags = tag.split(/[\s ]+/);
@@ -2564,6 +2569,7 @@ function deleteCommentFromSearchData(comment){
         })
     })
 
+    //highlighted code
     comment.selectedCodeBlocks.forEach(block =>{
         getWordsFromText(block.selectedText).forEach(word =>{
             deleteWordsFromSearchDataHelper(word, "highlightedCode", comment.id)
@@ -2588,28 +2594,26 @@ function deleteWordsFromSearchDataHelper(word, criteriaType, commentId){
     }            
 }
 
-//builds up wordSearchData to later search by words
+//generic helper function that can build any criteria
 function buildSearchDataHelper(word, criteriaType, commentId){
     word = word.toLowerCase();
     if (word.length > 1 || criteriaType === "highlightedCode"){ //words from highlighted code can be any length
-        if (wordSearchData[word]){
-            if (wordSearchData[word][criteriaType]){
-                if (!wordSearchData[word][criteriaType].includes(commentId)){
+        if (wordSearchData[word]){//if the word already exists in the object
+            if (wordSearchData[word][criteriaType]){//if the word exists for the criteria
+                if (!wordSearchData[word][criteriaType].includes(commentId)){//if the commentId doesn't exist
                     wordSearchData[word][criteriaType].push(commentId);
                 }
             }
-            else{
+            else{//create a new array for the current word at the current criteria
                 wordSearchData[word][criteriaType] = [commentId];
             }
         }
-        else{
+        else{//add the word/criteria type/commentId to the object
             wordSearchData[word] = {[criteriaType]: [commentId]};
         }
     }
 }
 
-//TODO MAKE SURE THIS FUNCITON IS CALLED WHEN ADDING AND DELETING
-//TODO this is stripping out numbers and it shouldn't
 //returns an array of words with all special characters removed
 function getWordsFromText(stringToStrip, isCode){
     //remove all html from text that isn't highlighted code
@@ -2624,10 +2628,8 @@ function getWordsFromText(stringToStrip, isCode){
     return retVal;
 }
 
-//TODO this doesn't work anymore
+//TODO this can be changed/deleted because it's not very useful right now
 //a single place to handle the values of the drop down menu
-//in case values are changed/added/deleted, there wont have to be updates in multiple places
-//only here and buildSearchData()
 function handleCommentSearchDropDownOptions(){
     activeOption = document.querySelector(".commentSearchOption.active").text;
     retVal = 'All';
