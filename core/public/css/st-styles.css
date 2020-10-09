@@ -1076,7 +1076,14 @@ input[type=number]::-webkit-outer-spin-button {
 
 #commentSearchBar{
     width: 30%;
+    background-color: rgb(51,51,51);
+    color: white;
 }
+
+#commentSearchBar::-webkit-input-placeholder {
+    color: white;
+    opacity: .5;
+ }
 
 .commentSearchOption:hover{
     background-color: dodgerblue;
