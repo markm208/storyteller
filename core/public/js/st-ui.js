@@ -2519,6 +2519,7 @@ function deleteWordsFromSearchData(oldComment, newComment){
 
     if (deletedTags.length){ 
         deletedTags.forEach(tag =>{
+            tag = tag.replaceAll("-", " ");
             //split the tag into an array of words
             const tagWords = tag.split(/[\s ]+/); 
 
