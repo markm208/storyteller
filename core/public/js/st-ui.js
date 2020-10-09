@@ -71,7 +71,10 @@ function deleteEditor(fileId) {
  *
  * Displays all the comments.
  */
+let firstTimeThrough = true;
 function displayAllComments(){
+    const activeComment = document.querySelector(`.codeView .activeComment`);
+
     //clear comments Div before displaying any comments
     commentsDiv.innerHTML = '';
 
@@ -101,8 +104,15 @@ function displayAllComments(){
 
             commentGroupDiv.append(titleCard);
 
-            //add description to blog             
-            //addBlogPost(commentBlock[0]);
+            if (firstTimeThrough){            
+                commentBlock.forEach(comment =>{
+                    buildSearchData(comment)               
+
+                    comment.commentTags.forEach(tag =>{
+                        addCommentTagsToTagObject(tag, comment)
+                    })                   
+                })
+            }
 
             startingValue += 1;
         }
@@ -113,8 +123,6 @@ function displayAllComments(){
 
         //give each commentGroup a unique id 
         commentGroupDiv.setAttribute('id','CG' + uniqueCommentGroupID);
-
-
         
         //create an outer group to hold the edit button
         //this keeps the dragging of cards from changing the position of the button
@@ -141,21 +149,20 @@ function displayAllComments(){
         for (let i = startingValue; i < commentBlock.length; i++){
 
             const commentObject = commentBlock[i];
-
-
+            
+            if (firstTimeThrough){                
+                buildSearchData(commentObject)
+                
+                commentObject.commentTags.forEach(tag =>{
+                    addCommentTagsToTagObject(tag, commentObject)
+                })   
+            }
 
             const returnObject = createCommentCard(commentObject, currentComment, commentCount, i);
             const commentCard = returnObject.cardObject;
             currentComment = returnObject.count;
 
             commentGroupDiv.append(commentCard);
-            
-            //add the comment to blog mode
-            const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
-
-
-            //addBlogPost(commentObject)
-
 
             if (playbackData.isEditable){
                //gives each card a class to later access it
@@ -204,7 +211,7 @@ function displayAllComments(){
             //create the accept changes button
             const acceptChangesButton = document.createElement('button');
             acceptChangesButton.classList.add("button", "btn-outline-danger", "btn-sm");
-            acceptChangesButton.appendChild(document.createTextNode("Accept Changes")); //TODO change this text to something better
+            acceptChangesButton.appendChild(document.createTextNode("Accept Changes")); 
             acceptChangesButton.setAttribute("id", "accept" + uniqueCommentGroupID);
             //initially hidden
             acceptChangesButton.setAttribute("style", "display:none");
@@ -233,6 +240,16 @@ function displayAllComments(){
         uniqueCommentGroupID++;
     })    
     updateAllCommentHeaderCounts();
+    firstTimeThrough = false;
+
+    if (activeComment){
+        const activeId = activeComment.getAttribute("data-commentid");
+        const newActiveDiv = document.querySelector(`.codeView [data-commentid=${activeId}]`);
+        newActiveDiv.click()
+        document.getElementById("commentContentDiv").scrollTop = newActiveDiv.offsetTop - 100; 
+
+    }
+
 }
 
 /* CREATE COMMENT CARD
@@ -298,7 +315,6 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     addMediaToCommentDiv(cardFinal, commentObject);
 
     cardFinal.prepend(cardBody);
-    //const finalDiv = document.createElement('div'); //TODO determine if eliminating finalDiv will cause problems 
 
     cardFinal.prepend(cardHeader);
     //finalDiv.append(cardFinal);
@@ -462,8 +478,10 @@ function addMediaToCommentDiv(commentDivToAddTo, commentObject)
                 $('#imgExpandModal').modal('show')                   
             }
         });     
-                
+        
         commentDivToAddTo.append(carousel);
+
+        
     }
     
     for (let i = 0; i < commentObject.videoURLs.length; i++){
@@ -542,6 +560,7 @@ function createEditCommentButton(commentObject, buttonText){
         pauseMedia();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
+        document.getElementById("searchCommentTab").classList.add("disabled");
         document.getElementById("blogModeExtraAbove").value = commentObject.linesAbove;
         document.getElementById("blogModeExtraBelow").value = commentObject.linesBelow;
 
@@ -558,7 +577,14 @@ function createEditCommentButton(commentObject, buttonText){
             //select in ace the comments highlighted code
             editor.getSession().selection.addRange(newRange);          
         };
-    
+
+        //add all current comment tags to comment tag drop down menu
+        //excluding any tags in this comment
+        populateCommentTagDropDownList(commentObject.commentTags);
+
+        //populate this comments tags list
+        commentObject.commentTags.forEach(tag => addCommentTagForThisComment(tag));    
+
         const addCommentButton =  document.getElementById("addCommentButton");
         const updateCommentButton = document.getElementById("UpdateCommentButton");
         addCommentButton.style.display = "none";
@@ -608,13 +634,15 @@ function createEditCommentButton(commentObject, buttonText){
         updateCommentButton.addEventListener('click' , event => {
             pauseMedia();
             updateComment();
-            //document.querySelector(".blogViewContent").innerHTML = "";
+            event.stopImmediatePropagation();
 
             document.getElementById("CancelUpdateButton").click();
+            const activeComment = document.querySelector(`.codeView .activeComment`);
+            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
+            //activeComment.click();            
         })
 
         highlightBlogModeVisibleArea();
-
     });
     return editCommentButton;
 }
@@ -658,7 +686,7 @@ function addImageToCarousel(src, carousel){
     img.src = src;
     img.classList.add('d-block','w-100');
 
-    imgDiv.classList.add('carousel-item');
+    imgDiv.classList.add('carousel-item', 'nonActiveCarousel');
     imgDiv.append(img);
     imgDiv.append(captionDiv);
 
@@ -784,6 +812,8 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
             card.remove();
         }
         deleteBlogPost(comment);
+        removeDeletedCommentTagsFromTagObject(comment.commentTags, [], comment.id);
+        deleteCommentFromSearchData(comment);
         deleteCommentFromServer(comment);
 
         //rebuild the slider with the new comment pip
@@ -1822,7 +1852,7 @@ function clearHighlightChangedFiles() {
 }
 
 function updateAllCommentHeaderCounts(){
-    const drag = document.getElementsByClassName("drag");
+    const drag = document.querySelectorAll(".commentsDivScroll .drag");
     for (let i = 0; i < drag.length; i++){
        drag[i].getElementsByClassName("commentCount")[0].getElementsByClassName("progressSpan")[0].firstChild.data = i + 1 + "/" + drag.length;       
     }    
@@ -2236,11 +2266,10 @@ function blogModeHighlightHelper(){
 
         editor.session.removeMarker(aceTempMarker);
 
-        const startRow = ranges[0].start.row - numbersAbove; //TODO check this
+        const startRow = ranges[0].start.row - numbersAbove; 
         let endRow = ranges[ranges.length - 1].end.row + numbersBelow;
         endRow = ranges[ranges.length - 1].end.column === 0 ? endRow - 1 : endRow;
         const endCol = editor.session.getLine(endRow).length;
-        //TODO IF start.column.length === start.column , ignore the line  ?
 
         blogModeNumberAboveSelector.max = ranges[0].start.row;
         blogModeNumberAboveSelector.value =  blogModeNumberAboveSelector.max > numbersAbove ? numbersAbove : blogModeNumberAboveSelector.max;
@@ -2279,12 +2308,353 @@ function undoBlogModeHighlight(){
     blogModeNumberBelowSelector.value = 3;
 }
 
-
-//TODO need ones with and without description?
 function getAllComments(){
     return [...document.querySelectorAll('.codeView [data-commentid]')];
 }
 
 function getAllBlogPosts(){
     return [...document.querySelectorAll(".blogView [data-commentid]")];
+}
+
+//empty the drop down list of comment tags
+function emptyCommentTagDropDownMenu(){
+    document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove()); 
+}
+
+//build the drop down list of comment tags when adding or editing a comment
+function populateCommentTagDropDownList(tagsToExclude){    
+    emptyCommentTagDropDownMenu();
+
+    getAllSortedCommentTags().forEach(tag => {
+        //if the current tag is meant to be excluded from the dropdown list
+        if (tagsToExclude && tagsToExclude.includes(tag)){
+            return;
+        }
+
+        const newTag = document.createElement("a");
+        newTag.classList.add("dropdown-item", "commentTagDropDownItem");
+        newTag.href = "#";
+        newTag.appendChild(document.createTextNode(tag));
+    
+        newTag.addEventListener("click", function(){
+            addCommentTagForThisComment(tag);
+            newTag.remove();
+        })
+        document.querySelector(".commentTagDropDown").appendChild(newTag);
+    })
+}
+
+//format tags as lower case with dashes connecting words
+function getFormattedCommentTag(commentTag){
+    return commentTag.toLowerCase().replaceAll(' ', '-')
+}
+
+//returns a sorted list of all tags
+function getAllSortedCommentTags(){
+    return Object.keys(allCommentTagsWithCommentId).sort();
+}
+
+//adds a new tag to the tag search data
+function addCommentTagsToTagObject(commentTag, commentObject){
+    commentTag = getFormattedCommentTag(commentTag);
+
+    if (!allCommentTagsWithCommentId[commentTag]){
+        allCommentTagsWithCommentId[commentTag] = [commentObject.id] 
+    }
+    else if (!allCommentTagsWithCommentId[commentTag].includes(commentObject.id)){    
+        allCommentTagsWithCommentId[commentTag].push(commentObject.id)
+    }
+}
+
+//remove a deleted tag from the search data
+function removeDeletedCommentTagsFromTagObject(oldTagsList, newTagsList, commentId){
+     oldTagsList.forEach(tag =>{
+        if (!newTagsList.includes(tag)){
+            const index = allCommentTagsWithCommentId[tag].indexOf(commentId)
+            allCommentTagsWithCommentId[tag].splice(index, 1);
+
+            if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
+                delete allCommentTagsWithCommentId[tag];
+            }
+        }
+    })
+}
+
+//add a new tag to a comments tag list when adding or editing a comment
+function addCommentTagForThisComment(commentTag){
+    if (getAllTagsOnScreen().includes(commentTag)){
+        return;
+    }
+
+    const tagDiv = document.createElement("div");
+    tagDiv.classList.add("alert", "alert-dismissible", "fade", "show", "commentTagDiv")
+    tagDiv.innerText = commentTag;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.classList.add("close")
+    deleteButton.setAttribute('aria-label', 'close');
+    deleteButton.innerHTML ='&times;';
+    deleteButton.title = "Remove tag from comment";
+    tagDiv.append(deleteButton);
+
+    deleteButton.addEventListener("click", function(){
+        tagDiv.remove();
+
+        //rebuild the drop down menu with the deleted tag
+        populateCommentTagDropDownList(getAllTagsOnScreen());
+    })
+
+    document.querySelector(".tagsInComment").append(tagDiv);
+}
+
+//formats the cloned comment div for the search results
+function setUpSearchResultComment(commentDiv){
+    const commentId = commentDiv.getAttribute("data-commentid");
+
+    //remove any active classes from the original comment
+    commentDiv.classList.remove("activeComment");
+    commentDiv.classList.remove("activeCommentBorder");
+
+    //get the comment from playbackData
+    let commentObject = playbackData.comments[commentDiv.getAttribute("data-commenteventid")][playbackData.comments[commentDiv.getAttribute("data-commenteventid")].findIndex(item => item.id == commentDiv.getAttribute("data-commentid"))]; //TODO multiple lines
+
+    //remove any carousels because the original event listeners wont work
+    const carousel = commentDiv.querySelector(".carousel")
+    if (carousel){
+        while (carousel.firstChild)
+        carousel.removeChild(carousel.firstChild)
+    }
+
+    //remove any audio divs because the original event listeners wont work
+    const audioDiv = commentDiv.querySelectorAll(".textLeft")
+    if (audioDiv.length){
+        audioDiv.forEach(audio =>{
+            audio.remove()
+        })
+    }
+
+    [...commentDiv.querySelectorAll(".card-body")].forEach(video =>
+        video.remove())
+    addMediaToCommentDiv(commentDiv, commentObject);
+
+    commentDiv.addEventListener('click', function() {
+        
+        document.querySelector(`.drag[data-commentid="${commentId}"]`).click();
+
+        //remove active classes from the comment and the images in the comment
+        const activeComment = document.querySelector(".activeSearchResultComment");
+        if (activeComment){
+            activeComment.querySelectorAll(".activeCarousel").forEach(img =>{
+                img.classList.remove("activeCarousel")
+            })
+
+            activeComment.classList.remove("activeSearchResultComment");
+        }
+
+        //add the active class to the comment and the images in the comment
+        this.classList.add("activeSearchResultComment");
+        this.querySelectorAll(".carousel-item").forEach(img =>{
+            img.classList.add("activeCarousel")
+        })
+    })
+}
+
+//get all comment tags that are currently on screen for a comment
+function getAllTagsOnScreen(){ 
+    const tagDivs = [...document.querySelectorAll(".commentTagDiv")];
+    let retVal = [];
+    tagDivs.forEach(tagDiv => {
+        let tag = tagDiv.textContent.substring(0, tagDiv.textContent.length - 1)
+        retVal.push(tag)});
+    return retVal;
+}
+
+//builds up wordSearchData to later search by words
+function buildSearchData(commentObject){    
+    //comment text
+    getWordsFromText(commentObject.commentText).forEach(word =>{
+        buildSearchDataHelper(word, "commentText", commentObject.id)
+    })
+    
+    //comment tags
+    if (commentObject.commentTags.length){
+        commentObject.commentTags.forEach(tag =>{
+            tag = tag.replaceAll('-', ' ');
+            words = tag.split(' ');
+
+            words.forEach(word =>{
+                buildSearchDataHelper(word, "commentTags", commentObject.id)
+            })
+        })
+    }
+
+    //highlighted code
+    if (commentObject.selectedCodeBlocks.length){
+        commentObject.selectedCodeBlocks.forEach(block =>{
+            getWordsFromText(block.selectedText, true).forEach(word =>{
+                buildSearchDataHelper(word, "highlightedCode", commentObject.id)
+            })
+        })
+    }
+}
+
+//delete words from the search data after a comment is edited 
+function deleteWordsFromSearchData(oldComment, newComment){
+    //commentText
+    if (oldComment.commentText !== newComment.commentText){
+        const oldWords = getWordsFromText(oldComment.commentText)
+
+        const newWords = getWordsFromText(newComment.commentText)
+        const deletedWords = [...new Set(oldWords.filter(oldWord => !newWords.includes(oldWord)))]; //array of words that were in the oldComment but not in the newComment
+
+        deletedWords.forEach(word =>{            
+            deleteWordsFromSearchDataHelper(word, "commentText", oldComment.id);
+        })
+    }
+
+    //commentTags
+
+    //determining if any tags have been deleted
+    const deletedTags = [...new Set(oldComment.commentTags.filter(oldTag => !newComment.commentTags.includes(oldTag)))];
+
+    if (deletedTags.length){ 
+        deletedTags.forEach(tag =>{
+            //split the tag into an array of words
+            const tagWords = tag.split(/[\s ]+/); 
+
+            tagWords.forEach(tagWord =>{
+                deleteWordsFromSearchDataHelper(tagWord, "commentTags", oldComment.id)
+            })
+        })
+    }
+
+    //hilighted code
+
+    //build a list of the old selected words for this comment, and the new
+    //then compare the two lists to determine if any words need to be removed from the search data
+    const oldSelectedTextWords = [];
+    oldComment.selectedCodeBlocks.forEach(block =>{
+        //const fullText = getWordsFromText(block.selectedText)
+        const words = getWordsFromText(block.selectedText, true)
+
+        words.forEach(word =>{
+            oldSelectedTextWords.push(word);
+        })       
+    })
+
+    const newSelectedTextWords = [];
+    newComment.selectedCodeBlocks.forEach(block =>{
+        //const fullText = getWordsFromText(block.selectedText)
+        const words = getWordsFromText(block.selectedText, true)
+
+        words.forEach(word =>{
+            newSelectedTextWords.push(word);
+        })
+    })
+
+    oldSelectedTextWords.forEach(oldWord =>{
+        if (!newSelectedTextWords.includes(oldWord)){
+            deleteWordsFromSearchDataHelper(oldWord, "highlightedCode", oldComment.id)
+        }
+    })    
+}
+
+//when a comment is deleted and all of it's data has to be removed from the search data
+function deleteCommentFromSearchData(comment){
+    //commentText
+    getWordsFromText(comment.commentText).forEach(oldWord =>{
+        deleteWordsFromSearchDataHelper(oldWord, "commentText", comment.id);
+    })
+
+    //commentTags
+    comment.commentTags.forEach(tag =>{
+        tag = tag.replaceAll('-', ' ');
+        const oldTags = tag.split(/[\s ]+/);
+        oldTags.forEach(oldTag =>{
+            deleteWordsFromSearchDataHelper(oldTag, "commentTags", comment.id)
+        })
+    })
+
+    //highlighted code
+    comment.selectedCodeBlocks.forEach(block =>{
+        getWordsFromText(block.selectedText).forEach(word =>{
+            deleteWordsFromSearchDataHelper(word, "highlightedCode", comment.id)
+        })
+    })
+}
+
+//generic deleter that can be called for any search criteria
+function deleteWordsFromSearchDataHelper(word, criteriaType, commentId){
+    if (!wordSearchData[word] || !wordSearchData[word][criteriaType] || !wordSearchData[word][criteriaType].includes(commentId)){
+        return
+    }
+
+    const index = wordSearchData[word][criteriaType].indexOf(commentId);
+    wordSearchData[word][criteriaType].splice(index, 1); //delete the word
+
+    if (wordSearchData[word][criteriaType].length === 0){ //if this word doesn't appear in the criteria anymore
+        delete wordSearchData[word][criteriaType];
+        if (Object.keys(wordSearchData[word]).length === 0){ //if this word doesn't appear in any criteria anymore
+            delete wordSearchData[word];
+        }
+    }            
+}
+
+//generic helper function that can build any criteria
+function buildSearchDataHelper(word, criteriaType, commentId){
+    word = word.toLowerCase();
+    if (word.length > 1 || criteriaType === "highlightedCode"){ //words from highlighted code can be any length
+        if (wordSearchData[word]){//if the word already exists in the object
+            if (wordSearchData[word][criteriaType]){//if the word exists for the criteria
+                if (!wordSearchData[word][criteriaType].includes(commentId)){//if the commentId doesn't exist
+                    wordSearchData[word][criteriaType].push(commentId);
+                }
+            }
+            else{//create a new array for the current word at the current criteria
+                wordSearchData[word][criteriaType] = [commentId];
+            }
+        }
+        else{//add the word/criteria type/commentId to the object
+            wordSearchData[word] = {[criteriaType]: [commentId]};
+        }
+    }
+}
+
+//returns an array of words with all special characters removed
+function getWordsFromText(stringToStrip, isCode){
+    //remove all html from text that isn't highlighted code
+    //the highlighted code html might be something somebody wants to search for
+    if (!isCode){ 
+        stringToStrip = stringToStrip.replace(/(<([^>]+)>)/gi, "");
+    }
+    const retVal =  [...new Set(stringToStrip.replace(/[^a-zA-Z ]/g, " ").split(/[\s ]+/))]
+    if (retVal.indexOf("") !== -1){
+        retVal.splice(retVal.indexOf(""), 1)
+    }
+    return retVal;
+}
+
+//TODO this can be changed/deleted because it's not very useful right now
+//a single place to handle the values of the drop down menu
+function handleCommentSearchDropDownOptions(){
+    activeOption = document.querySelector(".commentSearchOption.active").text;
+    retVal = 'All';
+    switch (activeOption) {
+        case "Comment Tags":
+            document.getElementById("commentSearchBar").placeholder = "Search Comment Tags";
+            retVal = "commentTags"
+            break;
+        case "Comment Text":
+            document.getElementById("commentSearchBar").placeholder = "Search Comment Text";
+            retVal = "commentText"
+            break   
+        case "Highlighted Code":
+            document.getElementById("commentSearchBar").placeholder = "Search Highlighted Code";
+            retVal = "highlightedCode";
+            break;
+        default:
+            document.getElementById("commentSearchBar").placeholder = "Search All Attributes";
+            break;
+    }
+    return retVal;
 }

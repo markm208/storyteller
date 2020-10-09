@@ -1,5 +1,3 @@
-
-
 /*
  *
  */
@@ -20,6 +18,11 @@ async function initializePlayback()
     //set up the slider and move to the first relevant event
     setUpSlider();
     step(playbackData.numNonRelevantEvents);
+  
+    //add permanent comment tags to searchData
+    permanentCommentTags.forEach(tag =>{
+        allCommentTagsWithCommentId[tag] = [];
+    })
 
     //displays all comments
     displayAllComments();
@@ -57,7 +60,7 @@ async function initializePlayback()
 }
 
 // Puts together a full comment object to be pushed to the server
-function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText)
+function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags)
 {
     const comment = {
         commentText,
@@ -70,7 +73,8 @@ function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidUR
         linesAbove: linesAbove,
         linesBelow: linesBelow,
         currentFilePath: currentFilePath,
-        viewableBlogText: viewableBlogText  
+        viewableBlogText: viewableBlogText,
+        commentTags: commentTags
     };    
 
     return comment;
@@ -270,11 +274,40 @@ function setupEventListeners()
         document.body.classList.remove('popup');
     };
 
+    document.getElementById("addCommentTagButton").addEventListener('click', event =>{
+        //get the new tag
+        const tagInput = document.getElementById("tagInput");
+        let text = tagInput.value;  
+
+        //if there is an entered tag and it's not already included in the tags list
+        if (text !== '' && !getAllTagsOnScreen().includes(text)){ 
+            text = getFormattedCommentTag(text);
+
+            //if the tag is in the drop down list, remove it 
+            let dropDownListTags = [...document.querySelectorAll(".commentTagDropDownItem")]
+            const index = dropDownListTags.findIndex(item => item.innerHTML === text);
+            if (index !== -1){
+                dropDownListTags[index].remove(); 
+            }
+            
+
+           addCommentTagForThisComment(text);
+        }
+        tagInput.value = '';
+    })
+
+    // Prevents menu from closing when clicked inside 
+    document.querySelector(".commentTagDropDown").addEventListener('click', function (event) { 
+        event.stopPropagation(); 
+    }); 
+
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
         stopAutomaticPlayback();        
-        
-        const textCommentTextArea = document.getElementById('textCommentTextArea');
-    
+
+        //if the user entered a tag but forgot to add it, add it now
+        document.getElementById("addCommentTagButton").click(); 
+
+        const textCommentTextArea = document.getElementById('textCommentTextArea');    
         
         //getting all video files in order
         const videoFiles = document.getElementsByClassName('video-preview')[0].children;
@@ -345,8 +378,11 @@ function setupEventListeners()
 
             const commentEvent = playbackData.events[eventIndex];
 
+            const tags = getAllTagsOnScreen();
+
             //create an object that has all of the comment info
-            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText);
+            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags);
+            
 
             //determine if any comments already exist for this event 
             //if so add the new comment
@@ -357,6 +393,11 @@ function setupEventListeners()
 
             //send comment to server and recieve back a full comment with id and developerGroup
             const newComment = await sendCommentToServer(comment);        
+
+            buildSearchData(newComment);
+             tags.forEach(tag =>{
+                addCommentTagsToTagObject(tag, newComment)
+            })
 
             playbackData.comments[commentEvent.id].push(newComment);
 
@@ -370,7 +411,10 @@ function setupEventListeners()
             setUpSliderTickMarks();
 
             document.getElementById("CancelUpdateButton").click();
-            document.querySelector(`.codeView [data-commentid="${newComment.id}"]`).click();            
+
+            const activeComment = document.querySelector(`.codeView [data-commentid="${newComment.id}"]`);
+            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
+            activeComment.click();            
         }
     });
 
@@ -385,26 +429,43 @@ function setupEventListeners()
         audioPreviewDiv.style.display='none';
         audioPreviewDiv.innerHTML = '';
         videoPreviewDiv.style.display='none';
-        videoPreviewDiv.innerHTML = '';
+        videoPreviewDiv.innerHTML = ''; 
         imagePreviewDiv.style.display='none';
         imagePreviewDiv.innerHTML = '';
+
+        document.querySelector(".tagsInComment").innerHTML = '';
+        //tempTags = []; //reset the list of temporary comment tags
+        emptyCommentTagDropDownMenu();
+        document.getElementById("tagInput").value = '';
 
         //clear out the text area
         textCommentTextArea.innerHTML = '';
 
         document.getElementById("addCommentButton").removeAttribute("style");
 
-
         document.getElementById("UpdateCommentButton").style.display='none';
         document.getElementById("fsViewTabTab").classList.remove("disabled");
         document.getElementById("viewCommentsTab").classList.remove("disabled");
-
+        document.getElementById("searchCommentTab").classList.remove("disabled");
         document.getElementById("viewCommentsTab").click();      
         
     });
 
-    document.getElementById('dragBar').addEventListener('mousedown', function (e){  
-    
+   //When switching to viewCommentsTab, scroll to the active comment
+    $('a[id="viewCommentsTab"]').on('shown.bs.tab', function () {
+        const activeComment = document.querySelector(".codeView .activeComment");
+        if (activeComment){
+            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;
+            activeComment.click()
+        }
+    })
+
+    $('a[id="searchCommentTab"]').on('shown.bs.tab', function () {
+        pauseMedia();
+        document.getElementById("commentSearchBar").focus();
+    })
+
+    document.getElementById('dragBar').addEventListener('mousedown', function (e){      
         //add listeners for moving and releasing the drag and disable selection of text  
         window.addEventListener('selectstart', disableSelect);
         document.documentElement.addEventListener('mousemove', doDrag, false);
@@ -413,9 +474,8 @@ function setupEventListeners()
 
     //detects key presses 
     document.addEventListener('keydown', function(e){    
-
         //prevent keyboard presses within the comment textbox from triggering actions 
-        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader'){
+        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar'){
             return;
         }
        
@@ -569,13 +629,16 @@ function setupEventListeners()
     document.getElementById("mainAddCommentButton").addEventListener('click', event => {     
         stopAutomaticPlayback();
 
-        highlightBlogModeVisibleArea();
+        //add all current comment tags to drop down list of tags
+        populateCommentTagDropDownList();
 
+        highlightBlogModeVisibleArea();
 
         document.getElementById("addCommentTab").click();
         document.getElementById('textCommentTextArea').focus();
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
+        document.getElementById("searchCommentTab").classList.add("disabled");
         pauseMedia();
     });
     document.getElementById("saveCodeOnlyButton").addEventListener('click', event => {
@@ -687,8 +750,10 @@ function setupEventListeners()
             pauseMedia();
 
             const commentToMakeActive = document.querySelector(`.codeView [data-commentid="${latestVisableBlogPostID}"]`);
-            commentToMakeActive.click(); 
-            document.getElementById("commentContentDiv").scrollTop =  commentToMakeActive.offsetTop - 100;     
+            if (commentToMakeActive){
+                commentToMakeActive.click(); 
+                document.getElementById("commentContentDiv").scrollTop =  commentToMakeActive.offsetTop - 100;     
+            }            
     
             document.getElementById("blogMode").classList.remove("activeModeButton");
             document.getElementById("codeMode").classList.add("activeModeButton");
@@ -703,7 +768,6 @@ function setupEventListeners()
 
             //update url with code view
             window.history.replaceState({view: 'code'}, '', '?view=code');
-
         }
     })
 
@@ -711,16 +775,15 @@ function setupEventListeners()
 
     // Set up an event handler for mousedown
     document.querySelector(".blogModeLinesGroup").querySelectorAll(".lineButtonUp").forEach(function(button){
-        button.addEventListener("mousedown", function(){
+        button.addEventListener("mousedown", function(event){
             const buttonParent = button.parentNode.querySelector('input[type=number]');
             buttonParent.stepUp();
-
             blogModeHighlightHelper();
 
             timer = setInterval(function(){
                 buttonParent.stepUp();
                 blogModeHighlightHelper();                
-            }, 150);
+            }, 300);
         });
     }) 
 
@@ -749,7 +812,7 @@ function setupEventListeners()
             timer = setInterval(function(){
                 buttonParent.stepDown();
                 blogModeHighlightHelper();
-            }, 150);
+            }, 300);
         });
     }) 
 
@@ -766,14 +829,121 @@ function setupEventListeners()
         blogModeHighlightHelper();
        })
     });
+
+    document.getElementById("tagInput").addEventListener("keydown", event =>{
+        const keyPressed = event.key;
+        if (keyPressed === "Enter"){
+            document.getElementById("addCommentTagButton").click();
+        }
+    })
+
+    document.querySelectorAll(".commentSearchOption").forEach(option =>{
+        option.addEventListener('click', event=>{
+           //handleSearchCriteriaDropdown(event.currentTarget.innerText);   
+
+            document.querySelector(".commentSearchOption.active").classList.remove("active");           
+            event.currentTarget.classList.add("active");
+
+            handleCommentSearchDropDownOptions();
+
+            //focus the search bar but dont delete the value
+            const searchBar = document.getElementById("commentSearchBar");
+            const originalVal = searchBar.value;
+            searchBar.focus();           
+            searchBar.value = originalVal;
+        })
+    })
+
+    //clear text input and search results div
+    document.getElementById("searchTabClearButton").addEventListener("click", event=>{
+        document.getElementById("searchContentDiv").innerHTML = '';
+        document.getElementById("commentSearchBar").value = '';
+    })
+
+    //conduct a search on the user inputted text using the selected search criteria
+    document.getElementById("commentSearchButton").addEventListener("click", function(){
+
+        document.getElementById("searchContentDiv").innerHTML = '';
+        const searchValue = document.getElementById("commentSearchBar").value.toLowerCase();
+        if (searchValue === ''){
+            return;
+        }
+
+        const words = getWordsFromText(searchValue);
+        const searchType = handleCommentSearchDropDownOptions();
+
+        //maintain a collection of unique commentIds from comments that are matches
+        const results = new Set();
+
+        if (searchType !== "All"){
+            words.forEach(word =>{
+                if (wordSearchData[word]){
+                    if(searchType in wordSearchData[word]){
+                        wordSearchData[word][searchType].forEach(commentId =>{
+                            results.add(commentId);
+                        })
+                    }
+                }
+            })
+        }
+        else{
+            words.forEach(word =>{
+                if (wordSearchData[word]){ //if the word is found
+                    Object.keys(wordSearchData[word]).forEach(key =>{ //search all the criteria where the word was found
+                        wordSearchData[word][key].forEach(commentId =>{ //add all the commentIds
+                            results.add(commentId);
+                        })
+                    })
+                }
+            })
+        }
+
+        const contentDiv = document.getElementById("searchContentDiv");
+
+
+        //TODO figure out a faster way to do this whole process?
+
+        //sort the results set by the id placement in the comments div. probably faster to not sort
+        // const allComments = getAllComments();
+        // results = [...results].sort(function(a,b){
+        //     const index1 = allComments.findIndex(item => item.getAttribute("data-commentid") === a);
+        //     const index2 = allComments.findIndex(item => item.getAttribute("data-commentid") === b);
+        //     return index1 - index2;
+        // })
+
+
+        //go through all the comments in the comments div to get the proper order of search results
+        getAllComments().forEach(comment =>{
+            const commentId = comment.getAttribute("data-commentid");
+            if (results.has(commentId) && commentId !== "commentId-0"){ //skip the description comment
+
+                //clone the comment div to strip out all of its original event listeners
+                const clone = document.querySelector(`.codeView [data-commentid="${commentId}"]`).cloneNode(true);
+                setUpSearchResultComment(clone);
+                contentDiv.append(clone);
+            }
+        })
+
+    })
+
+    document.getElementById("commentSearchBar").addEventListener('keyup', event=>{
+        event.stopPropagation();
+        if (event.key === "Enter"){
+            document.getElementById("commentSearchButton").click();
+        }
+    })
+
+    document.getElementById("commentSearchBar").addEventListener('focus', event=>{
+        document.getElementById("commentSearchBar").value = '';
+    })
 }
 
 function setUpSlider(){
     const slider = document.getElementById('slider');
     
     noUiSlider.create(slider, {
-        start: playbackData.numNonRelevantEvents, /*playbackData.nextEventPosition - 1,*/
-        step: 1, //this seems to cause stuttering when moving the slider in playback with a large number of events
+        start: playbackData.numNonRelevantEvents,
+        step: 1, 
         animate: false,
         keyboardSupport: false,
         range: {
@@ -859,6 +1029,9 @@ function setUpClickableTickMarks(){
        
         //add the clickable element that will bring us to the comment
         tickMark.addEventListener('click', event => { 
+            //click back into comments view 
+            document.getElementById("viewCommentsTab").click();
+
             //determine if the description tick mark was clicked   
             const eventNum = pipValue === playbackData.numNonRelevantEvents - 1 ? 0 : pipValue; 
             
@@ -1088,6 +1261,7 @@ function doDrag(event){
         boxA.style.flexGrow = 0;
         $('#codePanel').css('width', screen.width - pointerRelativeXpos);
         commentsDiv.style.width = event.pageX + 'px';
+        document.getElementById("searchContentDiv").style.width = event.pageX + 'px'; //changing width of searched comment panel
         addCommentPanel.style.width = event.pageX + 'px';
         document.getElementById("fsViewPanel").style.width = event.pageX + 'px';
     }
@@ -1179,11 +1353,19 @@ async function updateComment(){
    
     //if there was a comment, or at least one media file
     if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length){   
+
+        //if the user entered a tag but forgot to add it, add it now
+        document.getElementById("addCommentTagButton").click(); 
+
+        const tags = getAllTagsOnScreen();
+
         //create an object that has all of the comment info
-        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText);
+        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags);
         //add the developer group id to the comment object and its id
         comment.developerGroupId = commentObject.developerGroupId;
         comment.id = commentObject.id;
+
+        //let oldComment = commentObject;
 
         //determine if any comments already exist for this event 
         //if so add the new comment
@@ -1193,8 +1375,14 @@ async function updateComment(){
         }
 
         //send comment to server and recieve back a full comment with id and developerGroup
-        const newComment = await updateCommentOnServer(comment);        
+        const newComment = await updateCommentOnServer(comment);
 
+        deleteWordsFromSearchData(commentObject, newComment);
+        removeDeletedCommentTagsFromTagObject(commentObject.commentTags, newComment.commentTags, newComment.id);
+        buildSearchData(newComment);
+        tags.forEach(tag =>{
+            addCommentTagsToTagObject(tag, newComment)
+        })
 
         //replace the old comment with the new one
         for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
@@ -1206,7 +1394,6 @@ async function updateComment(){
 
         //clear out the text area
         textCommentTextArea.innerHTML = '';
-    
 
         //display a newly added comment on the current event
         displayAllComments();
@@ -1219,6 +1406,10 @@ async function updateComment(){
         $('.video-preview')[0].innerHTML = '';
         $('.image-preview')[0].style.display='none';
         $('.image-preview')[0].innerHTML = '';
+
+        //tempTags = [];
+
+        document.querySelector(".tagsInComment").innerHTML = '';
     }
 }
 

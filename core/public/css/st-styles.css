@@ -3,7 +3,8 @@
 }
 
 
-.activeCommentBorder > .commentCardBodyColor{
+.activeCommentBorder > .commentCardBodyColor
+{
 
     background-color: rgb(59,76,98);
 }
@@ -15,6 +16,43 @@
 
 .activeGroup > .commentBlockBackground{
     background-color: gray;
+}
+
+.activeSearchResultComment > .commentCardBodyColor
+{
+    background-color: rgb(59,76,98);
+    margin: 5px;
+
+}
+
+.activeSearchResultComment > .card-body 
+{
+    background-color: rgb(59,76,98) !important;
+
+}
+
+.activeSearchResultComment > .carousel-item img
+{
+    background-color: rgb(59,76,98) !important;
+
+}
+
+
+.activeSearchResultComment {
+    background-color: rgb(59,76,98);
+
+}
+
+.activeSearchResultCommentImg {
+    background-color: rgb(59,76,98) !important;
+
+}
+
+
+
+.activeSearchResultComment > .commentCardHeaderColor {
+
+    background-color: rgb(59,76,98);
 }
 
 .addCommentButton {
@@ -63,13 +101,9 @@
     overflow: hidden;
 }
 
-.carousel-item img{
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    cursor: zoom-in;
-    background-color: rgb(51,51,51);
-}
+
+
+
 
 .codePanel{
     width: 74vw;            
@@ -115,7 +149,7 @@
     overflow-y: scroll;
     height: 85vh;
     word-wrap: break-word;
-    width: 490px; 
+    width: 25vw; 
     /* TODO should this not be pixels? */
 }
 
@@ -144,6 +178,7 @@
     align-items: center;
     display: flex;
     margin-left: -10px;
+    margin-right: 25px;
 }
 
 .data-list-style {
@@ -362,6 +397,7 @@
 .storytellerCommentEditable:empty:before{ 
     content:attr(data-ph);
     color: lightgrey;
+    opacity: 0.5;
 }
 
 .storytellerCommentEditable {
@@ -478,7 +514,9 @@ resize: none;
 }
 
 #slider{
-    width: 70vw;
+    /* TODO I'm experimenting with this width
+    and will have to dynamically change in on dragbar drag */
+    width: 58vw; 
     margin-left: 8px;
     background-color: rgb(59,76,98);
 }
@@ -657,6 +695,11 @@ body.popup .toast-popup * {
     background-color: rgb(51, 51, 51);
 }
 
+/* .noUi-pips{
+    background-color: rgb(51, 51, 51)
+} */
+
+
 .blogAudioFile{
    margin-bottom: 10px;
 }
@@ -690,7 +733,7 @@ input[type="number"] {
   -webkit-appearance: textfield;
   -moz-appearance: textfield;
   appearance: textfield;
-  width: 40px !important;
+  width: 45px !important;
   outline: none;
 }
 
@@ -748,6 +791,8 @@ input[type=number]::-webkit-outer-spin-button {
   height: 3rem;
   font-weight: bold;
   text-align: center;
+  background-color: rgb(51,51,51);
+  color: white
 }
 
 
@@ -770,14 +815,28 @@ input[type=number]::-webkit-outer-spin-button {
     outline: none !important;
     box-shadow: none;
 }
+.lineButtonDown{
+    border-right: solid thin grey !important;
+}
 
+.lineButtonUp{
+    border-left:  solid thin grey !important;
+}
 
 .lineButtonUp:active,
 .lineButtonDown:active{    
     opacity: .5;    
 }
 
+.lineButtonUp:hover,
+.lineButtonDown:hover{
+    background-color: grey;
+    opacity: .5;
+}
 
+.number-input button:before, .number-input button:after{
+    background-color: white !important;
+}
 
 .blogUserName{
     margin-top: -5px;
@@ -900,6 +959,11 @@ input[type=number]::-webkit-outer-spin-button {
     background-color: rgb(31,31,31);
   }
 
+.card-footer{
+    border: none;
+}
+
+
 .modal-body{
     background-color: rgb(31,31,31);
     color: lightgrey;
@@ -954,4 +1018,107 @@ input[type=number]::-webkit-outer-spin-button {
 .blogCommentText span{
     color: lightgray !important;
     font-size: 11pt !important;
+}
+#tagInput{
+    background-color: rgb(51,51,51);
+    color: white;
+}
+
+.tagMenu{
+    margin-top: 1rem !important;
+}
+
+.dropdown-menu{
+    overflow-y: auto;
+}
+
+.autocomplete {
+    /* position: relative; */
+    /* display: inline-block; */
+    margin-left: 10%;
+    margin-top: 10px;
+    width: 80%;
+    margin-bottom: 5px;
+  }
+  
+  input {
+    border: 1px solid transparent;
+    /* background-color: #f1f1f1; */
+    /* padding: 10px; */
+    font-size: 16px;
+  }
+  
+  input[type=text] {
+    background-color: #f1f1f1;
+    width: 100%;
+  }
+  
+  input[type=submit] {
+    background-color: DodgerBlue;
+    color: #fff;
+    cursor: pointer;
+  }
+
+.hiddenComment{
+    display: none;
+}
+
+.searchDivScroll{
+    overflow-y: scroll;
+    height: 88vh;
+    word-wrap: break-word;
+    width: 25vw; 
+}
+
+.hiddenButton{
+    visibility: hidden;
+}
+
+#commentSearchBar{
+    width: 30%;
+}
+
+.commentSearchOption:hover{
+    background-color: dodgerblue;
+}
+
+.alert{
+    margin-right: 5px;
+    display: inline-block;
+    /* padding: 0; */
+}
+
+.alert-dismissible {
+    padding-right: 1.5rem;
+}
+
+.alert-dismissible .close{
+    padding: 0;
+}
+
+
+.carousel-item img{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: zoom-in;
+
+}
+
+.nonActiveCarousel{
+    background-color: rgb(51,51,51);
+
+}
+
+.activeCarousel{
+    background-color: rgb(59,76,98);
+}
+
+.btn-outline-secondary{
+    color: white;
+}
+
+.commentTagDiv{
+    border: solid thin black;
+    color: white;
 }
