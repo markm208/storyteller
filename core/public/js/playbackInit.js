@@ -1259,11 +1259,24 @@ function doDrag(event){
     if (pointerRelativeXpos > screen.width * .1 && pointerRelativeXpos < screen.width * .75) {        
         boxA.style.width = event.pageX + 'px';
         boxA.style.flexGrow = 0;
-        $('#codePanel').css('width', screen.width - pointerRelativeXpos);
         commentsDiv.style.width = event.pageX + 'px';
         document.getElementById("searchContentDiv").style.width = event.pageX + 'px'; //changing width of searched comment panel
         addCommentPanel.style.width = event.pageX + 'px';
         document.getElementById("fsViewPanel").style.width = event.pageX + 'px';
+
+
+        // $('#codePanel').css('width', screen.width - pointerRelativeXpos);
+
+        let test = document.getElementById("dragBar")
+        let test2 = test.getBoundingClientRect()
+
+
+       let test3 = $(window).width() - ($('#dragBar').offset().left + $('#dragBar').width());
+
+
+        document.getElementById("codePanel").style.width = test3 + "px"
+
+
     }
 }
 
@@ -1272,6 +1285,8 @@ function stopDrag(event){
     document.documentElement.removeEventListener('mouseup', stopDrag, false);
     document.documentElement.removeEventListener('mousemove', doDrag, false);  
     window.removeEventListener('selectstart', disableSelect);  
+
+
 }
 
 //disables mouse selection of text
