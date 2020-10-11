@@ -1275,6 +1275,9 @@ function doDrag(event){
 
 
         document.getElementById("codePanel").style.width = test3 + "px"
+        const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+        editor.resize()
 
 
     }
