@@ -669,6 +669,7 @@ function setupEventListeners()
 
         playbackInterval = setInterval(function(){
             step(1);
+
             if (playbackData.comments[`ev-${playbackData.nextEventPosition - 1}`]){   
                 //get the comment card associated with the position             
                 const currentComment = document.querySelector(`.codeView [data-commenteventid="ev-${playbackData.nextEventPosition - 1}"]`);
@@ -1264,22 +1265,10 @@ function doDrag(event){
         addCommentPanel.style.width = event.pageX + 'px';
         document.getElementById("fsViewPanel").style.width = event.pageX + 'px';
 
-
         // $('#codePanel').css('width', screen.width - pointerRelativeXpos);
 
-        let test = document.getElementById("dragBar")
-        let test2 = test.getBoundingClientRect()
-
-
-       let test3 = $(window).width() - ($('#dragBar').offset().left + $('#dragBar').width());
-
-
-        document.getElementById("codePanel").style.width = test3 + "px"
-        const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
-
-        editor.resize()
-
-
+        //set the width of codePanel as the position of the dragBar from the right side of the screen
+        document.getElementById("codePanel").style.width = $(window).width() - ($('#dragBar').offset().left + $('#dragBar').width()) + "px";
     }
 }
 
@@ -1289,7 +1278,8 @@ function stopDrag(event){
     document.documentElement.removeEventListener('mousemove', doDrag, false);  
     window.removeEventListener('selectstart', disableSelect);  
 
-
+    const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+    editor.resize();
 }
 
 //disables mouse selection of text
