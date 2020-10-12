@@ -359,7 +359,7 @@
 
 .playbackWindow {
     height: calc(100vh - 160px);   
-    width: 100vw;
+    /* width: 100vw; */
    
     /* overflow-y: scroll; */
 }
@@ -516,7 +516,7 @@ resize: none;
 #slider{
     /* TODO I'm experimenting with this width
     and will have to dynamically change in on dragbar drag */
-    width: 58vw; 
+    width: 90vw; 
     margin-left: 8px;
     background-color: rgb(59,76,98);
 }
@@ -917,6 +917,7 @@ input[type=number]::-webkit-outer-spin-button {
   .img-thumbnail{
     background-color: rgb(59,76,98);
     border: 1px solid rgb(59,76,98);
+    max-width: initial;
   }
 
   #stepBackOne,#stepForwardOne{

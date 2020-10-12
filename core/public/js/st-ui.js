@@ -2077,7 +2077,7 @@ function createBlogPost(commentToAdd){
 
     if (commentToAdd.audioURLs.length){
         for (let i = 0; i < commentToAdd.audioURLs.length; i ++){
-            //create a audio and add the required classes
+            //create an audio and add the required classes
             const newAudio = document.createElement('audio');
             newAudio.setAttribute('src', commentToAdd.audioURLs[i]);
             newAudio.setAttribute('controls', '');
