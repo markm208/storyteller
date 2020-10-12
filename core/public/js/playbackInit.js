@@ -937,6 +937,14 @@ function setupEventListeners()
     document.getElementById("commentSearchBar").addEventListener('focus', event=>{
         document.getElementById("commentSearchBar").value = '';
     })
+
+    $(window).resize(function(){
+
+        document.getElementById("codePanel").style.width = $(window).width() - ($('#dragBar').offset().left + $('#dragBar').width()) + "px";
+        commentsDiv.style.width = $('#dragBar').offset().left  + "px";
+
+
+    });
 }
 
 function setUpSlider(){
