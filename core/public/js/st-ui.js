@@ -2438,8 +2438,7 @@ function setUpSearchResultComment(commentDiv){
     addMediaToCommentDiv(commentDiv, commentObject);
 
     commentDiv.addEventListener('click', function() {
-        
-        document.querySelector(`.drag[data-commentid="${commentId}"]`).click();
+        document.querySelector(`.codeView [data-commentid="${commentId}"]`).click();
 
         //remove active classes from the comment and the images in the comment
         const activeComment = document.querySelector(".activeSearchResultComment");
