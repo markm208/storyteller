@@ -56,6 +56,9 @@ async function initializePlayback()
         window.history.replaceState({view: 'code'}, '', '?view=code');
     }
 
+    //change the documents title to the playback title
+    document.title = playbackData.playbackTitle;
+
     console.log('Success Initializing Playback');
 }
 
