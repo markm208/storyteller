@@ -40,7 +40,7 @@ async function initializePlayback()
         document.getElementById("mainAddCommentButton").classList.remove("mainAddCommentButtonNoEdit");
     }
     else{
-        commentsDiv.style.height = "92vh";
+        commentsDiv.style.height = "90vh";
     }
 
     //get the query string params from the url

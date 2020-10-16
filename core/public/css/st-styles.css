@@ -1066,7 +1066,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .searchDivScroll{
     overflow-y: scroll;
-    height: 88vh;
+    height: 85vh;
     word-wrap: break-word;
     width: 25vw; 
 }
