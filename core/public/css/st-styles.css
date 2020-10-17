@@ -964,11 +964,13 @@ input[type=number]::-webkit-outer-spin-button {
     border: none;
 }
 
-
 .modal-body{
     background-color: rgb(31,31,31);
-    color: lightgrey;
-    
+    color: lightgrey;    
+}
+
+.modal-content{
+    background-color: rgb(51,51,51);
 }
 
 .modal-header{
