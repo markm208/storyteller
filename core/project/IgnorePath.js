@@ -62,6 +62,8 @@ class IgnorePath {
         //ignore changes to the file named /st-ignore.json in the project dir
         } else if(pathToFileOrDir === `${utilities.storytellerPathSeparator}st-ignore.json`) {
             retVal = true;
+        } else if(pathToFileOrDir.startsWith(`${utilities.storytellerPathSeparator}.git${utilities.storytellerPathSeparator}`)) { 
+            retVal = true;
         } else if(pathToFileOrDir.endsWith('.DS_Store')) {
             retVal = true;
         } else if(pathToFileOrDir.endsWith('.zip')) {
