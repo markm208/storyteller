@@ -59,11 +59,16 @@ async function initializePlayback()
     //change the documents title to the playback title
     document.title = playbackData.playbackTitle;
 
+    //remove 'checked' status from the questionCheckBox
+    if ($('input#questionCheckBox').is(':checked')) {
+        $('input#questionCheckBox').click();
+    }
+
     console.log('Success Initializing Playback');
 }
 
 // Puts together a full comment object to be pushed to the server
-function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags)
+function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData)
 {
     const comment = {
         commentText,
@@ -77,7 +82,8 @@ function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidUR
         linesBelow: linesBelow,
         currentFilePath: currentFilePath,
         viewableBlogText: viewableBlogText,
-        commentTags: commentTags
+        commentTags: commentTags,
+        questionCommentData: questionCommentData
     };    
 
     return comment;
@@ -383,8 +389,10 @@ function setupEventListeners()
 
             const tags = getAllTagsOnScreen();
 
+            let questionCommentData = null;
+
             //create an object that has all of the comment info
-            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags);
+            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);
             
 
             //determine if any comments already exist for this event 
@@ -478,7 +486,7 @@ function setupEventListeners()
     //detects key presses 
     document.addEventListener('keydown', function(e){    
         //prevent keyboard presses within the comment textbox from triggering actions 
-        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar'){
+        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar' || e.target.id === 'questionCommentInput'){
             return;
         }
        
@@ -631,6 +639,11 @@ function setupEventListeners()
 
     document.getElementById("mainAddCommentButton").addEventListener('click', event => {     
         stopAutomaticPlayback();
+
+        //remove 'checked' status from the questionCheckBox
+        if ($('input#questionCheckBox').is(':checked')) {
+            $('input#questionCheckBox').click();
+        }
 
         //add all current comment tags to drop down list of tags
         populateCommentTagDropDownList();
@@ -948,6 +961,19 @@ function setupEventListeners()
 
 
     });
+
+    //handler for when the questionCheckBox is checked
+    $('input#questionCheckBox').change(function() {
+        if ($('input#questionCheckBox').is(':checked')) {
+           document.querySelector('.questionCommentOptionsDiv').classList.remove("hiddenDiv");
+
+           //scroll to the bottom of the div to get all the options in view
+           document.getElementById("addCommentPanel").scrollTo(0,document.body.scrollHeight);
+        }
+        else{
+            document.querySelector('.questionCommentOptionsDiv').classList.add("hiddenDiv");
+        }
+    })
 }
 
 function setUpSlider(){
@@ -1378,8 +1404,10 @@ async function updateComment(){
 
         const tags = getAllTagsOnScreen();
 
+        let questionCommentData = null;
+
         //create an object that has all of the comment info
-        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags);
+        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);
         //add the developer group id to the comment object and its id
         comment.developerGroupId = commentObject.developerGroupId;
         comment.id = commentObject.id;

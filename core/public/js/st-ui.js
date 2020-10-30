@@ -558,6 +558,23 @@ function createEditCommentButton(commentObject, buttonText){
         }
 
         pauseMedia();
+
+        //TODO code this better
+        if (commentObject.questionCommentData){
+            if ($('input#questionCheckBox').is(':checked')) {
+                // alert("checked")
+             }
+             else{
+                $('input#questionCheckBox').click();
+            }
+        }
+        else{
+            if ($('input#questionCheckBox').is(':checked')) {
+                $('input#questionCheckBox').click();
+            }
+        }
+
+
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
         document.getElementById("searchCommentTab").classList.add("disabled");

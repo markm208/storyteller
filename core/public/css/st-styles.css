@@ -1130,3 +1130,22 @@ input[type=number]::-webkit-outer-spin-button {
     border: solid thin black;
     color: white;
 }
+
+
+.questionCheckBoxStyle{
+    color: white;
+    padding-bottom: 10px;
+}
+
+.questionCommentOptionsDiv{
+    color: white;
+}
+
+.hiddenDiv{
+    display: none;
+}
+
+.questionCommentInput{
+    background-color: rgb(51,51,51) !important;
+    color: white !important;
+}
