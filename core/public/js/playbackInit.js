@@ -452,6 +452,10 @@ function setupEventListeners()
         //clear out the text area
         textCommentTextArea.innerHTML = '';
 
+        document.querySelectorAll(".questionCommentInput").forEach(input =>{
+            input.value = '';
+        })
+
         document.getElementById("addCommentButton").removeAttribute("style");
 
         document.getElementById("UpdateCommentButton").style.display='none';
@@ -967,8 +971,14 @@ function setupEventListeners()
         if ($('input#questionCheckBox').is(':checked')) {
            document.querySelector('.questionCommentOptionsDiv').classList.remove("hiddenDiv");
 
+           document.querySelectorAll(".questionCommentInput").forEach(input =>{
+                input.value = '';
+            })
+
+            //TODO function here to handle everything 
+
            //scroll to the bottom of the div to get all the options in view
-           document.getElementById("addCommentPanel").scrollTo(0,document.body.scrollHeight);
+           document.getElementById("addCommentPanel").scrollTo(0,document.body.scrollHeight); //TODO this isn't working for edits
         }
         else{
             document.querySelector('.questionCommentOptionsDiv').classList.add("hiddenDiv");
