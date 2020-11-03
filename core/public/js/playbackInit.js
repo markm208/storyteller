@@ -389,43 +389,44 @@ function setupEventListeners()
 
             const tags = getAllTagsOnScreen();
 
-            let questionCommentData = null;
+            const questionCommentData = getQuestionCommentData(document.querySelector('#addCommentButton'));
+            if (questionCommentData !== undefined){
+                //create an object that has all of the comment info
+                const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);
+                
 
-            //create an object that has all of the comment info
-            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);
-            
+                //determine if any comments already exist for this event 
+                //if so add the new comment
+                //if not create a new array for the comments then add the comments
+                if (!playbackData.comments[commentEvent.id]){
+                    playbackData.comments[commentEvent.id] = [];
+                }
 
-            //determine if any comments already exist for this event 
-            //if so add the new comment
-            //if not create a new array for the comments then add the comments
-            if (!playbackData.comments[commentEvent.id]){
-                playbackData.comments[commentEvent.id] = [];
+                //send comment to server and recieve back a full comment with id and developerGroup
+                const newComment = await sendCommentToServer(comment);        
+
+                buildSearchData(newComment);
+                tags.forEach(tag =>{
+                    addCommentTagsToTagObject(tag, newComment)
+                })
+
+                playbackData.comments[commentEvent.id].push(newComment);
+
+                //display a newly added comment on the current event
+                displayAllComments();
+                updateAllCommentHeaderCounts();
+                
+                insertBlogPost(newComment);
+
+                //rebuild the slider with the new comment pip
+                setUpSliderTickMarks();
+
+                document.getElementById("CancelUpdateButton").click();
+
+                const activeComment = document.querySelector(`.codeView [data-commentid="${newComment.id}"]`);
+                document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
+                activeComment.click();            
             }
-
-            //send comment to server and recieve back a full comment with id and developerGroup
-            const newComment = await sendCommentToServer(comment);        
-
-            buildSearchData(newComment);
-             tags.forEach(tag =>{
-                addCommentTagsToTagObject(tag, newComment)
-            })
-
-            playbackData.comments[commentEvent.id].push(newComment);
-
-            //display a newly added comment on the current event
-            displayAllComments();
-            updateAllCommentHeaderCounts();
-            
-            insertBlogPost(newComment);
-
-            //rebuild the slider with the new comment pip
-            setUpSliderTickMarks();
-
-            document.getElementById("CancelUpdateButton").click();
-
-            const activeComment = document.querySelector(`.codeView [data-commentid="${newComment.id}"]`);
-            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
-            activeComment.click();            
         }
     });
 
@@ -452,9 +453,9 @@ function setupEventListeners()
         //clear out the text area
         textCommentTextArea.innerHTML = '';
 
-        document.querySelectorAll(".questionCommentInput").forEach(input =>{
-            input.value = '';
-        })
+        // document.querySelectorAll(".questionCommentInput").forEach(input =>{
+        //     input.value = '';
+        // })
 
         document.getElementById("addCommentButton").removeAttribute("style");
 
@@ -463,6 +464,8 @@ function setupEventListeners()
         document.getElementById("viewCommentsTab").classList.remove("disabled");
         document.getElementById("searchCommentTab").classList.remove("disabled");
         document.getElementById("viewCommentsTab").click();      
+        
+        resetQuestionCommentDiv();
         
     });
 
@@ -490,7 +493,7 @@ function setupEventListeners()
     //detects key presses 
     document.addEventListener('keydown', function(e){    
         //prevent keyboard presses within the comment textbox from triggering actions 
-        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar' || e.target.id === 'questionCommentInput'){
+        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar' || e.target.classList.contains('questionCommentInput')){
             return;
         }
        
@@ -675,12 +678,23 @@ function setupEventListeners()
     //     zipAtComments();
     // });
 
-    $('#deleteMediaButton').popover('disable')
-
+    $('#deleteMediaButton').popover('disable');
 
     $('#deleteMediaButton').on("hidden.bs.popover", function(e){
         $('#deleteMediaButton').popover("disable");
     });
+
+    $('#addCommentButton').on("hidden.bs.popover", function(){
+        $('#addCommentButton').popover("disable");
+    });
+
+    $('#addCommentButton').popover('disable');
+
+    $('#UpdateCommentButton').on("hidden.bs.popover", function(){
+        $('#UpdateCommentButton').popover("disable");
+    });
+
+    $('#UpdateCommentButton').popover('disable');
 
     document.getElementById("continuousPlayButton").addEventListener('click', event => {
         removeActiveCommentAndGroup();
@@ -959,30 +973,46 @@ function setupEventListeners()
     })
 
     $(window).resize(function(){
-
         document.getElementById("codePanel").style.width = $(window).width() - ($('#dragBar').offset().left + $('#dragBar').width()) + "px";
         commentsDiv.style.width = $('#dragBar').offset().left  + "px";
-
-
     });
 
     //handler for when the questionCheckBox is checked
     $('input#questionCheckBox').change(function() {
         if ($('input#questionCheckBox').is(':checked')) {
-           document.querySelector('.questionCommentOptionsDiv').classList.remove("hiddenDiv");
+           document.querySelector('.questionComment').classList.remove("hiddenDiv");
 
-           document.querySelectorAll(".questionCommentInput").forEach(input =>{
-                input.value = '';
-            })
+        //    document.querySelectorAll(".questionCommentInput").forEach(input =>{
+        //         input.value = '';
+        //     })
 
             //TODO function here to handle everything 
 
            //scroll to the bottom of the div to get all the options in view
-           document.getElementById("addCommentPanel").scrollTo(0,document.body.scrollHeight); //TODO this isn't working for edits
+           const addCommentPanel = document.getElementById("addCommentPanel");
+           addCommentPanel.scrollTop = addCommentPanel.scrollHeight - addCommentPanel.clientHeight;
         }
         else{
-            document.querySelector('.questionCommentOptionsDiv').classList.add("hiddenDiv");
+            document.querySelector('.questionComment').classList.add("hiddenDiv");
         }
+    })
+
+    document.querySelectorAll(".rightAnswerCheckBox").forEach(checkbox =>{
+        rightAnswerCheckBoxHandler(checkbox)
+    })
+
+    document.getElementById("addAnswerButton").addEventListener('click', function(){
+        // const newQuestion = getCommentQuestion();
+        document.querySelector(".questionCommentContent").append(getCommentQuestion());
+        // newQuestion.querySelector(".questionCommentInput").focus();
+
+        let test = [...document.querySelectorAll('.questionCommentInput')]
+        test[test.findIndex(item => item.value === "")].focus();
+
+        //scroll to the bottom of the div to see the new answer
+        const addCommentPanel = document.getElementById("addCommentPanel");
+        addCommentPanel.scrollTop = addCommentPanel.scrollHeight - addCommentPanel.clientHeight;
+
     })
 }
 
@@ -1133,7 +1163,7 @@ function jumpToPreviousComment()
     //if a comment is selected
     else{
         //find the current active comment div, and make the previous one active
-        const index = allCommentDivs.findIndex(item => item.classList.contains('activeComment'));;
+        const index = allCommentDivs.findIndex(item => item.classList.contains('activeComment'));
         activeComment = allCommentDivs[index - 1];
     }                
 
@@ -1335,6 +1365,8 @@ function disableSelect(event) {
 }
 
 async function updateComment(){
+    let retVal = true;
+
     const textCommentTextArea = document.querySelector('#textCommentTextArea');
 
     const activeComment = document.getElementsByClassName("activeComment")[0];
@@ -1414,60 +1446,65 @@ async function updateComment(){
 
         const tags = getAllTagsOnScreen();
 
-        let questionCommentData = null;
+        const questionCommentData = getQuestionCommentData(document.getElementById("UpdateCommentButton"));
+        if (questionCommentData !== undefined){
+            //create an object that has all of the comment info
+            const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);
+            //add the developer group id to the comment object and its id
+            comment.developerGroupId = commentObject.developerGroupId;
+            comment.id = commentObject.id;
 
-        //create an object that has all of the comment info
-        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);
-        //add the developer group id to the comment object and its id
-        comment.developerGroupId = commentObject.developerGroupId;
-        comment.id = commentObject.id;
+            //let oldComment = commentObject;
 
-        //let oldComment = commentObject;
-
-        //determine if any comments already exist for this event 
-        //if so add the new comment
-        //if not create a new array for the comments then add the comments
-        if (!playbackData.comments[comment.displayCommentEvent.id]){
-            playbackData.comments[comment.displayCommentEvent.id] = [];
-        }
-
-        //send comment to server and recieve back a full comment with id and developerGroup
-        const newComment = await updateCommentOnServer(comment);
-
-        deleteWordsFromSearchData(commentObject, newComment);
-        removeDeletedCommentTagsFromTagObject(commentObject.commentTags, newComment.commentTags, newComment.id);
-        buildSearchData(newComment);
-        tags.forEach(tag =>{
-            addCommentTagsToTagObject(tag, newComment)
-        })
-
-        //replace the old comment with the new one
-        for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
-            if (playbackData.comments[newComment.displayCommentEvent.id][i].id === newComment.id){
-                playbackData.comments[newComment.displayCommentEvent.id].splice(i , 1, newComment);
-                break;
+            //determine if any comments already exist for this event 
+            //if so add the new comment
+            //if not create a new array for the comments then add the comments
+            if (!playbackData.comments[comment.displayCommentEvent.id]){
+                playbackData.comments[comment.displayCommentEvent.id] = [];
             }
+
+            //send comment to server and recieve back a full comment with id and developerGroup
+            const newComment = await updateCommentOnServer(comment);
+
+            deleteWordsFromSearchData(commentObject, newComment);
+            removeDeletedCommentTagsFromTagObject(commentObject.commentTags, newComment.commentTags, newComment.id);
+            buildSearchData(newComment);
+            tags.forEach(tag =>{
+                addCommentTagsToTagObject(tag, newComment)
+            })
+
+            //replace the old comment with the new one
+            for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++){
+                if (playbackData.comments[newComment.displayCommentEvent.id][i].id === newComment.id){
+                    playbackData.comments[newComment.displayCommentEvent.id].splice(i , 1, newComment);
+                    break;
+                }
+            }
+
+            //clear out the text area
+            textCommentTextArea.innerHTML = '';
+
+            //display a newly added comment on the current event
+            displayAllComments();
+            updateBlogPost(newComment);
+        
+            //reset the comment previews
+            $('.audio-preview')[0].style.display='none';
+            $('.audio-preview')[0].innerHTML = '';
+            $('.video-preview')[0].style.display='none';
+            $('.video-preview')[0].innerHTML = '';
+            $('.image-preview')[0].style.display='none';
+            $('.image-preview')[0].innerHTML = '';
+
+            //tempTags = [];
+
+            document.querySelector(".tagsInComment").innerHTML = '';
         }
-
-        //clear out the text area
-        textCommentTextArea.innerHTML = '';
-
-        //display a newly added comment on the current event
-        displayAllComments();
-        updateBlogPost(newComment);
-      
-        //reset the comment previews
-        $('.audio-preview')[0].style.display='none';
-        $('.audio-preview')[0].innerHTML = '';
-        $('.video-preview')[0].style.display='none';
-        $('.video-preview')[0].innerHTML = '';
-        $('.image-preview')[0].style.display='none';
-        $('.image-preview')[0].innerHTML = '';
-
-        //tempTags = [];
-
-        document.querySelector(".tagsInComment").innerHTML = '';
+        else{
+            retVal = false;
+        }
     }
+    return retVal;
 }
 
 function updateTitle(newTitle){

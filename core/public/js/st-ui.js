@@ -1,3 +1,4 @@
+
 /* 
  * Adds an editor to the playback. 
  */
@@ -559,21 +560,27 @@ function createEditCommentButton(commentObject, buttonText){
 
         pauseMedia();
 
-        //TODO code this better
         if (commentObject.questionCommentData){
-            if ($('input#questionCheckBox').is(':checked')) {
-                // alert("checked")
-             }
-             else{
-                $('input#questionCheckBox').click();
-            }
-        }
-        else{
-            if ($('input#questionCheckBox').is(':checked')) {
-                $('input#questionCheckBox').click();
-            }
-        }
+            document.getElementById('questionCheckBox').click();
 
+            const extraQuestions = commentObject.questionCommentData.allAnswers.length - 2;
+            const extraQuestionButton = document.getElementById("addAnswerButton");
+            for (let i = 0; i < extraQuestions; i++){
+                extraQuestionButton.click();
+            }
+
+            document.getElementById('commentQuestion').value = commentObject.questionCommentData["question"];
+
+            const answerFields = [...document.querySelectorAll('.questionCommentInput:not([id="commentQuestion"])')];
+            for (let i = 0; i < answerFields.length; i++){
+                const currentAnswer = commentObject.questionCommentData.allAnswers[i];
+                answerFields[i].value = currentAnswer;
+
+                if (currentAnswer === commentObject.questionCommentData.correctAnswer){
+                    answerFields[i].parentNode.querySelector('.rightAnswerCheckBox').click();
+                }
+            }
+        }
 
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
@@ -647,16 +654,14 @@ function createEditCommentButton(commentObject, buttonText){
           videoPreviewDiv.removeAttribute("style");
         }
   
-
-        updateCommentButton.addEventListener('click' , event => {
+        updateCommentButton.addEventListener( 'click' ,async event => {
             pauseMedia();
-            updateComment();
+            if (await updateComment()){
+                document.getElementById("CancelUpdateButton").click();
+                const activeComment = document.querySelector(`.codeView .activeComment`);
+                document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;    
+            }
             event.stopImmediatePropagation();
-
-            document.getElementById("CancelUpdateButton").click();
-            const activeComment = document.querySelector(`.codeView .activeComment`);
-            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
-            //activeComment.click();            
         })
 
         highlightBlogModeVisibleArea();
@@ -2674,4 +2679,152 @@ function handleCommentSearchDropDownOptions(){
             break;
     }
     return retVal;
+}
+
+//only allow one right answer check box to be checked at a time in question comments
+function rightAnswerCheckBoxHandler(checkbox){
+    checkbox.addEventListener('click', function(event){
+        const checkedBoxes = document.querySelectorAll('.rightAnswerCheckBox:checked');
+        if (checkedBoxes.length){
+            checkedBoxes.forEach(checkbox =>{
+                if (checkbox.id !== event.target.id){
+                    checkbox.checked = false;
+                }
+            })
+        }
+    })
+}
+
+function getCommentQuestion(){
+    const outerDiv = document.createElement('div');
+    outerDiv.classList.add('form-group', 'extraQuestion');
+
+    const answerInput = document.createElement('input');
+    answerInput.setAttribute('type', 'text');
+    answerInput.setAttribute('value', '');
+    answerInput.setAttribute('autocomplete', 'off');
+    answerInput.placeholder = 'Answer';
+    answerInput.classList.add("form-control", "questionCommentInput");
+
+    const innerDiv = document.createElement('div');
+    innerDiv.classList.add("form-check", "mb-2");
+
+    const rightAnswerCheckBox = document.createElement('input');
+    rightAnswerCheckBox.classList.add("form-check-input", "rightAnswerCheckBox");
+    rightAnswerCheckBox.type = "checkbox";
+
+    //TODO change names
+    //including autosizingcheck
+    const test = document.querySelectorAll('.rightAnswerCheckBox');
+    const test2 = test[test.length - 1].id;
+    const nextId = parseInt(test2.substring(test2.lastIndexOf('-') + 1)) + 1;
+
+    rightAnswerCheckBox.setAttribute('id', "autoSizingCheck-" + nextId); 
+    rightAnswerCheckBoxHandler(rightAnswerCheckBox);//TODO change name of handler function?
+
+    const label = document.createElement("label");
+    label.classList.add("form-check-label");
+    label.setAttribute("for", "autoSizingCheck-" + nextId);
+    label.innerHTML = "Correct Answer"
+
+    const removeAnswerButton = document.createElement("button");
+    removeAnswerButton.classList.add("btn", "btn-outline-secondary", "removeAnswerButton");
+    removeAnswerButton.setAttribute("type", "button")
+    removeAnswerButton.addEventListener('click', function(event){
+        event.target.closest(".form-group").remove();
+    })
+
+    removeAnswerButton.appendChild(document.createTextNode('Remove Answer'));  
+
+    innerDiv.append(rightAnswerCheckBox);
+    innerDiv.append(label);
+    innerDiv.append(removeAnswerButton);
+
+    outerDiv.append(answerInput);
+    outerDiv.append(innerDiv);
+
+    return outerDiv;
+}
+
+function getQuestionCommentData(button){
+    if (!document.getElementById("questionCheckBox").checked){
+        return null;
+    };
+    
+    let noProblems = true;
+    const question = document.getElementById("commentQuestion").value;
+    const allAnswers = [];
+    let correctAnswer = '';
+
+
+    if (!question.length){
+        setQuestionCommentAlertMessage(button, "Question field cannot be empty");
+        noProblems = false;        
+    }
+
+    if (noProblems){
+        document.querySelectorAll('.questionCommentInput:not([id="commentQuestion"])').forEach(field =>{
+            if (field.value.length){
+                allAnswers.push(field.value);
+            }
+        });
+    
+        if (allAnswers.length < 2){
+            setQuestionCommentAlertMessage(button, "At least two answers must be entered");
+            noProblems = false;
+        }
+    }
+
+    if (noProblems){
+        const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
+        if (rightAnswerCheckBox){        
+    
+            correctAnswer = rightAnswerCheckBox.closest('.form-group').querySelector('.questionCommentInput').value;
+    
+            if (!correctAnswer.length){
+                noProblems = false;
+                setQuestionCommentAlertMessage(button, "Correct answer must be filled in");
+            }
+        }
+        else{
+            setQuestionCommentAlertMessage(button, "Correct answer must be selected");
+            noProblems = false;
+        }
+    }
+    
+    return noProblems ? {allAnswers, correctAnswer, question} : undefined;
+}
+
+function setQuestionCommentAlertMessage(button, message){
+    button.setAttribute('data-content', message);
+    $(button).popover('enable');
+
+    $(button).popover('show');
+
+    // $('.popover-header').css('background-color', 'red');
+}
+
+function resetQuestionCommentDiv(){
+    document.querySelectorAll('.extraQuestion').forEach(question => {
+        question.remove();
+    })
+
+    document.querySelectorAll('.questionCommentInput').forEach(input => {
+        input.value = '';
+    })
+
+    const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
+    if (rightAnswerCheckBox){
+        rightAnswerCheckBox.checked = false;
+    }
+
+    const checkbox = document.getElementById('questionCheckBox');
+    if (checkbox.checked === true){
+        checkbox.click();
+    }
+
+    // if (!document.querySelector('.questionComment').classList.contains("hiddenDiv")){
+    //     document.querySelector('.questionComment').classList.add("hiddenDiv");
+    // }
+
 }

@@ -69,17 +69,13 @@
 
                             <!-- </a> -->
                         </li>
-
                     </ul>
                 </div>
                 <div class="tab-content" id="commentTabContent">
                     <div id="ViewCommentPanel" class="tab-pane active">
-
-
                         <div id="commentContentDiv" class="commentsDivScroll"></div>
                         <button id="mainAddCommentButton" class="btn addCommentButton mainAddCommentButtonNoEdit" type="button" style="float: right;">Add New Comment</button>
                     </div>
-
                     <div class="tab-pane" id="searchTab">
                         <!-- search bar and controls -->
                         <div class="input-group autocomplete">
@@ -180,35 +176,44 @@
                         </div>
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input" id="questionCheckBox">
-                            <label class="form-check-label questionCheckBoxStyle" for="questionCheckBox">Question Comment?</label>
+                            <label class="form-check-label questionCheckBoxStyle" for="questionCheckBox">Add a question?</label>
                         </div>
-                        <div class="questionCommentOptionsDiv hiddenDiv">
-                            <form>
+                        <div class="questionComment hiddenDiv ">
+                            <form class="questionCommentContent">
                                 <div class="form-group">
                                   <label>Question</label>
-                                  <input type="text" class="form-control questionCommentInput" value="" id="questionCommentInput" placeholder="Question">
+                                  <input type="text" class="form-control questionCommentInput" id="commentQuestion" value="" autocomplete="off" placeholder="Question">
+                                  <button class="btn btn-outline-secondary" id="addAnswerButton" type="button" title="Search">
+                                        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-plus-circle-fill addQuestionButton" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z"/>
+                                        </svg>
+                                        Add Answer
+                                    </button>
+                                </div>
+                                
+                                <div class="form-group">
+                                  <input type="text" class="form-control questionCommentInput" value="" autocomplete="off" placeholder="Answer">
+                                  <div class="form-check mb-2">
+                                        <input class="form-check-input rightAnswerCheckBox" type="checkbox"  id="autoSizingCheck-1">
+                                        <label class="form-check-label" for="autoSizingCheck-1">
+                                        Correct Answer
+                                        </label>
+                                  </div>
                                 </div>
                                 <div class="form-group">
-                                  <label>Right Answer</label>
-                                  <input type="text" class="form-control questionCommentInput" value="" id="questionCommentInput" placeholder="Right Answer">
-                                </div>
-                                <div class="form-group">
-                                    <label>Wrong Answer</label>
-                                    <input type="text" class="form-control questionCommentInput" value="" id="questionCommentInput" placeholder="Wrong Answer">
-                                </div>
-                                <div class="form-group">
-                                    <label>Wrong Answer</label>
-                                    <input type="text" class="form-control questionCommentInput" value="" id="questionCommentInput" placeholder="Wrong Answer">
-                                </div>
-                                <div class="form-group">
-                                    <label>Wrong Answer</label>
-                                    <input type="text" class="form-control questionCommentInput" value="" id="questionCommentInput" placeholder="Wrong Answer">
+                                    <input type="text" class="form-control questionCommentInput" value="" autocomplete="off" placeholder="Answer">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input rightAnswerCheckBox" type="checkbox"  id="autoSizingCheck-2">
+                                        <label class="form-check-label" for="autoSizingCheck-2">
+                                          Correct Answer
+                                        </label>
+                                    </div>
                                 </div>
                             </form>
                         </div>
                         <button id="CancelUpdateButton" class="btn btn-danger" >Cancel</button>
-                        <button id="addCommentButton" class="btn">Add Comment</button>
-                        <button id="UpdateCommentButton" class="btn addCommentButton" style="display: none;">Update Comment</button>
+                        <a id="addCommentButton" tabindex="0" class="btn " role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="Alert!" data-content="">Add Comment</a>
+                        <a id="UpdateCommentButton" tabindex="0" class="btn addCommentButton" style="display: none;" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="Alert!" data-content="">Update Comment</a>
                     </div>
 
                     <div id="fsViewPanel" class="tab-pane commentsDivScroll">
