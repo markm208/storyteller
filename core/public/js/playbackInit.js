@@ -434,6 +434,9 @@ function setupEventListeners()
         stopAutomaticPlayback();
         undoBlogModeHighlight();
 
+        document.querySelector('.createCommentQuestionCheckbox').classList.remove('hiddenDiv');
+
+
         const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
         const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
         const videoPreviewDiv = document.getElementsByClassName("video-preview")[0];

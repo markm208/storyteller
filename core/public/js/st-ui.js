@@ -239,6 +239,13 @@ function displayAllComments(){
             makeDivDroppable(commentGroupDiv, false);
         }   
         uniqueCommentGroupID++;
+
+        // if (`ev-${key}` === 'ev-0'){
+        //     let test = document.querySelector(`.codeView [data-commenteventid="ev-0"]`);//.querySelector(".createCommentQuestionCheckbox").remove();
+        //     let test2 = test.querySelector('.createCommentQuestionCheckbox')
+        //     const blah = 5;
+        // }
+
     })    
     updateAllCommentHeaderCounts();
     firstTimeThrough = false;
@@ -554,6 +561,10 @@ function createEditCommentButton(commentObject, buttonText){
         //prevents the edit button from triggering the event listeners of its parent divs
         event.preventDefault();
         event.stopPropagation();
+
+        if (commentObject.id === "commentId-0"){
+            document.querySelector('.createCommentQuestionCheckbox').classList.add('hiddenDiv');
+        }
         
         stopAutomaticPlayback();
 
