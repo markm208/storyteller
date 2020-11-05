@@ -2878,7 +2878,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
             })        
         
             const label = document.createElement('label');
-            label.classList.add('form-check-label');
+            label.classList.add('form-check-label', 'commentQuestionAnswer');
             label.setAttribute('for', commentObject.id + '-' + '-' + source + '-' + i);
             label.innerHTML = commentObject.questionCommentData.allAnswers[i];        
         
