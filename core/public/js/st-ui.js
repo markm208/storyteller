@@ -278,6 +278,9 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardBody.classList.add('text-left', 'commentCardBodyColor');
     cardBody.innerHTML = commentObject.commentText;
 
+    addQuestionCommentToDiv(cardBody, commentObject, "commentView");
+
+
     let cardFinal = createCardDiv(commentObject);
     cardFinal.classList.add('text-center');
 
@@ -2037,6 +2040,7 @@ function createBlogPost(commentToAdd){
     const blogPost = document.createElement("div");
     blogPost.classList.add("blogStyle");
 
+
     if (commentToAdd.displayCommentEvent.id === "ev-0"){ 
         blogPost.classList.add("descriptionBlogPost");       
     }
@@ -2060,6 +2064,7 @@ function createBlogPost(commentToAdd){
 
 
     blogPost.append(textDiv);
+    addQuestionCommentToDiv(blogPost, commentToAdd, "blog");
 
     if (commentToAdd.videoURLs.length){
         for (let i = 0; i < commentToAdd.videoURLs.length; i++){
@@ -2695,6 +2700,7 @@ function rightAnswerCheckBoxHandler(checkbox){
     })
 }
 
+//builds and returns the divs for adding question comment data
 function getCommentQuestion(){
     const outerDiv = document.createElement('div');
     outerDiv.classList.add('form-group', 'extraQuestion');
@@ -2746,6 +2752,7 @@ function getCommentQuestion(){
     return outerDiv;
 }
 
+//returns the question comment question, answers, and right answer
 function getQuestionCommentData(button){
     if (!document.getElementById("questionCheckBox").checked){
         return null;
@@ -2795,6 +2802,7 @@ function getQuestionCommentData(button){
     return noProblems ? {allAnswers, correctAnswer, question} : undefined;
 }
 
+//set the alert message that will be displayed on a popover button
 function setQuestionCommentAlertMessage(button, message){
     button.setAttribute('data-content', message);
     $(button).popover('enable');
@@ -2822,9 +2830,81 @@ function resetQuestionCommentDiv(){
     if (checkbox.checked === true){
         checkbox.click();
     }
+}
 
-    // if (!document.querySelector('.questionComment').classList.contains("hiddenDiv")){
-    //     document.querySelector('.questionComment').classList.add("hiddenDiv");
-    // }
+//add question comment data to a div
+function addQuestionCommentToDiv(divToAddTo, commentObject, source){
+    if (commentObject.questionCommentData){
+        const HR = document.createElement("HR")
+        const questionAnswerDiv = document.createElement('div');
+        const questionDiv = document.createElement('div');
 
+        questionAnswerDiv.classList.add("questionAnswerDiv");
+        
+        questionDiv.innerHTML = commentObject.questionCommentData.question;
+        questionDiv.classList.add("questionDiv");
+
+        divToAddTo.append(HR);
+        divToAddTo.append(questionDiv);
+        divToAddTo.append(questionAnswerDiv);
+
+        for (let i = 0; i < commentObject.questionCommentData.allAnswers.length; i++){
+            const outerDiv = document.createElement('div');
+            outerDiv.classList.add('form-check');
+        
+            const input = document.createElement('input');
+            input.classList.add('form-check-input');
+            input.setAttribute('type', 'radio');    
+            input.setAttribute('id', commentObject.id + '-' + '-' + source + '-' + i);
+
+            input.addEventListener('click', function(event){
+                const parentDiv = event.target.closest('.questionAnswerDiv');
+                parentDiv.querySelectorAll('.form-check-input:checked').forEach(input =>{
+                    if (event.target.id !== input.id){
+                        input.checked = false;
+                    }
+                } )
+            })        
+        
+            const label = document.createElement('label');
+            label.classList.add('form-check-label');
+            label.setAttribute('for', commentObject.id + '-' + '-' + source + '-' + i);
+            label.innerHTML = commentObject.questionCommentData.allAnswers[i];        
+        
+            outerDiv.append(input);
+            outerDiv.append(label);
+            questionAnswerDiv.append(outerDiv)
+        }
+
+        const checkAnswerButton = document.createElement('button');
+        checkAnswerButton.classList.add("btn", "btn-dark", "checkAnswerButton");
+        checkAnswerButton.appendChild(document.createTextNode('Check Answer'));  
+
+        checkAnswerButton.addEventListener('click', function(event){
+            const parentDiv = event.target.previousSibling;
+            if (parentDiv.querySelector('.form-check-input:checked')){
+                const test = parentDiv.querySelector('.form-check-input:checked')
+                const selectedAnswer = test.nextSibling.innerText;
+
+                if (selectedAnswer === commentObject.questionCommentData.correctAnswer){
+                    test.nextSibling.classList.add('rightAnswer')
+                }
+                else{
+                    test.nextSibling.classList.add('wrongAnswer');
+
+                    parentDiv.querySelectorAll('.form-check-label').forEach(label =>{
+                        if (label.innerText === commentObject.questionCommentData.correctAnswer){
+                            label.classList.add('rightAnswer')
+                        }
+                    });
+                }
+
+                parentDiv.querySelectorAll('.form-check-input').forEach(input =>{
+                    input.disabled = true;
+                })
+                checkAnswerButton.disabled = true;
+            }
+        })
+        divToAddTo.append(checkAnswerButton)
+    }
 }

@@ -1169,3 +1169,20 @@ input[type=number]::-webkit-outer-spin-button {
 .questionComment{
     padding-top: 20px;
 }
+
+.questionDiv{
+    margin-bottom: 10px;
+}
+
+.rightAnswer{
+    border: solid thin green;
+}
+
+.wrongAnswer{
+    border: solid thin red;
+}
+
+.checkAnswerButton{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
