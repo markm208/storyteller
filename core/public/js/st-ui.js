@@ -2962,9 +2962,6 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
 
             checkAnswerButton.classList.remove('hiddenQuestionButton');
             clearAnswerButton.classList.add('hiddenQuestionButton');
-
-            const test = [...document.querySelectorAll('.codeView .questionCommentHR')]
-           alert([...document.querySelectorAll('.codeView .questionCommentHR')].length)
         })
 
         divToAddTo.append(checkAnswerButton);
