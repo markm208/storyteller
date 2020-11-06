@@ -392,8 +392,7 @@ function setupEventListeners()
             const questionCommentData = getQuestionCommentData(document.querySelector('#addCommentButton'));
             if (questionCommentData !== undefined){
                 //create an object that has all of the comment info
-                const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);
-                
+                const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);                
 
                 //determine if any comments already exist for this event 
                 //if so add the new comment
@@ -427,6 +426,16 @@ function setupEventListeners()
                 document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
                 activeComment.click();            
             }
+            else{
+                ranges.forEach(range =>{
+                    editor.selection.setRange(range)
+                })
+            }
+        }
+        else{
+            ranges.forEach(range =>{
+                editor.selection.setRange(range)
+            })
         }
     });
 

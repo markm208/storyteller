@@ -1195,3 +1195,11 @@ input[type=number]::-webkit-outer-spin-button {
     padding-right: 5px;
     padding-left: 5px;
 }
+
+.questionCommentHR{
+    background-color: grey;
+}
+
+.hiddenQuestionButton{
+    display: none;
+}

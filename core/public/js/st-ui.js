@@ -670,10 +670,21 @@ function createEditCommentButton(commentObject, buttonText){
   
         updateCommentButton.addEventListener( 'click' ,async event => {
             pauseMedia();
+            //get the active editor
+            const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+            //get any selected text 
+            const ranges = editor.getSession().getSelection().getAllRanges();
+
             if (await updateComment()){
                 document.getElementById("CancelUpdateButton").click();
                 const activeComment = document.querySelector(`.codeView .activeComment`);
                 document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;    
+            }
+            else{
+                ranges.forEach(range =>{
+                    editor.selection.setRange(range)
+                })
             }
             event.stopImmediatePropagation();
         })
@@ -2776,8 +2787,12 @@ function getQuestionCommentData(button){
 
 
     if (!question.length){
+        const test = document.activeElement
+
         setQuestionCommentAlertMessage(button, "Question field cannot be empty");
         noProblems = false;        
+        test.focus()
+
     }
 
     if (noProblems){
@@ -2815,10 +2830,13 @@ function getQuestionCommentData(button){
 
 //set the alert message that will be displayed on a popover button
 function setQuestionCommentAlertMessage(button, message){
+
     button.setAttribute('data-content', message);
     $(button).popover('enable');
 
     $(button).popover('show');
+
+
 
     // $('.popover-header').css('background-color', 'red');
 }
@@ -2846,7 +2864,9 @@ function resetQuestionCommentDiv(){
 //add question comment data to a div
 function addQuestionCommentToDiv(divToAddTo, commentObject, source){
     if (commentObject.questionCommentData){
-        const HR = document.createElement("HR")
+        const HR = document.createElement("HR");
+        HR.classList.add("questionCommentHR");
+
         const questionAnswerDiv = document.createElement('div');
         const questionDiv = document.createElement('div');
 
@@ -2892,7 +2912,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
         checkAnswerButton.appendChild(document.createTextNode('Check Answer'));  
 
         checkAnswerButton.addEventListener('click', function(event){
-            const parentDiv = event.target.previousSibling;
+            const parentDiv = event.target.parentNode;
             if (parentDiv.querySelector('.form-check-input:checked')){
                 const test = parentDiv.querySelector('.form-check-input:checked')
                 const selectedAnswer = test.nextSibling.innerText;
@@ -2913,9 +2933,34 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
                 parentDiv.querySelectorAll('.form-check-input').forEach(input =>{
                     input.disabled = true;
                 })
-                checkAnswerButton.disabled = true;
+                checkAnswerButton.classList.add('hiddenQuestionButton') 
+                clearAnswerButton.classList.remove('hiddenQuestionButton')
             }
         })
-        divToAddTo.append(checkAnswerButton)
+
+        const clearAnswerButton = document.createElement('button');
+        clearAnswerButton.classList.add("btn", "btn-dark", "checkAnswerButton", "hiddenQuestionButton");
+        clearAnswerButton.appendChild(document.createTextNode('Clear Answer'));  
+
+        clearAnswerButton.addEventListener('click', function(event){
+            const parentDiv = event.target.parentNode;
+
+            parentDiv.querySelectorAll('.form-check-label').forEach(label =>{
+                label.classList.remove("rightAnswer", "wrongAnswer")
+            })
+
+            parentDiv.querySelectorAll('.form-check-input').forEach(input =>{
+                input.disabled = false;
+            })
+
+            parentDiv.querySelector('.form-check-input:checked').checked = false;
+
+            checkAnswerButton.classList.remove('hiddenQuestionButton') 
+            clearAnswerButton.classList.add('hiddenQuestionButton')
+        })
+
+        divToAddTo.append(checkAnswerButton);
+        divToAddTo.append(clearAnswerButton)
+
     }
 }
