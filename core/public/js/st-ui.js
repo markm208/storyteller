@@ -669,6 +669,8 @@ function createEditCommentButton(commentObject, buttonText){
         }
   
         updateCommentButton.addEventListener( 'click' ,async event => {
+            event.stopImmediatePropagation();
+
             pauseMedia();
             //get the active editor
             const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
@@ -686,7 +688,6 @@ function createEditCommentButton(commentObject, buttonText){
                     editor.selection.setRange(range)
                 })
             }
-            event.stopImmediatePropagation();
         })
 
         highlightBlogModeVisibleArea();
@@ -2900,11 +2901,11 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
             const label = document.createElement('label');
             label.classList.add('form-check-label', 'commentQuestionAnswer');
             label.setAttribute('for', commentObject.id + '-' + '-' + source + '-' + i);
-            label.innerHTML = commentObject.questionCommentData.allAnswers[i];        
+            label.innerHTML = commentObject.questionCommentData.allAnswers[i];
         
             outerDiv.append(input);
             outerDiv.append(label);
-            questionAnswerDiv.append(outerDiv)
+            questionAnswerDiv.append(outerDiv);
         }
 
         const checkAnswerButton = document.createElement('button');
@@ -2914,18 +2915,21 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
         checkAnswerButton.addEventListener('click', function(event){
             const parentDiv = event.target.parentNode;
             if (parentDiv.querySelector('.form-check-input:checked')){
-                const test = parentDiv.querySelector('.form-check-input:checked')
-                const selectedAnswer = test.nextSibling.innerText;
+                const checkedAnswer = parentDiv.querySelector('.form-check-input:checked');
+                const selectedAnswer = checkedAnswer.nextSibling.innerText;
 
                 if (selectedAnswer === commentObject.questionCommentData.correctAnswer){
-                    test.nextSibling.classList.add('rightAnswer')
+                    checkedAnswer.nextSibling.classList.add('rightAnswer');
+                    checkedAnswer.parentNode.classList.add('wrongAnswerX');
                 }
                 else{
-                    test.nextSibling.classList.add('wrongAnswer');
+                    checkedAnswer.nextSibling.classList.add('wrongAnswer');
+                    checkedAnswer.parentNode.classList.add('rightAnswerCheck')
 
                     parentDiv.querySelectorAll('.form-check-label').forEach(label =>{
                         if (label.innerText === commentObject.questionCommentData.correctAnswer){
-                            label.classList.add('rightAnswer')
+                            label.classList.add('rightAnswer');
+                            label.parentNode.classList.add('wrongAnswerX');
                         }
                     });
                 }
@@ -2933,8 +2937,8 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
                 parentDiv.querySelectorAll('.form-check-input').forEach(input =>{
                     input.disabled = true;
                 })
-                checkAnswerButton.classList.add('hiddenQuestionButton') 
-                clearAnswerButton.classList.remove('hiddenQuestionButton')
+                checkAnswerButton.classList.add('hiddenQuestionButton');
+                clearAnswerButton.classList.remove('hiddenQuestionButton');
             }
         })
 
@@ -2946,7 +2950,8 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
             const parentDiv = event.target.parentNode;
 
             parentDiv.querySelectorAll('.form-check-label').forEach(label =>{
-                label.classList.remove("rightAnswer", "wrongAnswer")
+                label.classList.remove("rightAnswer", "wrongAnswer");
+                label.parentNode.classList.remove("rightAnswerCheck", "wrongAnswerX");
             })
 
             parentDiv.querySelectorAll('.form-check-input').forEach(input =>{
@@ -2955,12 +2960,14 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
 
             parentDiv.querySelector('.form-check-input:checked').checked = false;
 
-            checkAnswerButton.classList.remove('hiddenQuestionButton') 
-            clearAnswerButton.classList.add('hiddenQuestionButton')
+            checkAnswerButton.classList.remove('hiddenQuestionButton');
+            clearAnswerButton.classList.add('hiddenQuestionButton');
+
+            const test = [...document.querySelectorAll('.codeView .questionCommentHR')]
+           alert([...document.querySelectorAll('.codeView .questionCommentHR')].length)
         })
 
         divToAddTo.append(checkAnswerButton);
-        divToAddTo.append(clearAnswerButton)
-
+        divToAddTo.append(clearAnswerButton);
     }
 }
