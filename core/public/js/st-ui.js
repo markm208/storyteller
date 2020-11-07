@@ -1,4 +1,3 @@
-
 /* 
  * Adds an editor to the playback. 
  */
@@ -583,7 +582,7 @@ function createEditCommentButton(commentObject, buttonText){
                 extraQuestionButton.click();
             }
 
-            document.getElementById('commentQuestion').value = commentObject.questionCommentData["question"];
+            document.getElementById('commentQuestion').innerText = commentObject.questionCommentData["question"];
 
             const answerFields = [...document.querySelectorAll('.questionCommentInput:not([id="commentQuestion"])')];
             for (let i = 0; i < answerFields.length; i++){
@@ -2763,6 +2762,15 @@ function getCommentQuestion(){
         event.target.closest(".form-group").remove();
     })
 
+    removeAnswerButton.addEventListener('mouseover', function(event){
+        event.target.closest(".form-group").querySelector(".questionCommentInput").classList.add("testing");
+    })
+
+    removeAnswerButton.addEventListener('mouseout', function(event){
+        event.target.closest(".form-group").querySelector(".questionCommentInput").classList.remove("testing");
+    })
+
+
     removeAnswerButton.appendChild(document.createTextNode('Remove Answer'));  
 
     innerDiv.append(rightAnswerCheckBox);
@@ -2782,18 +2790,14 @@ function getQuestionCommentData(button){
     };
     
     let noProblems = true;
-    const question = document.getElementById("commentQuestion").value;
+    const question = document.getElementById("commentQuestion").innerText.trim();
     const allAnswers = [];
     let correctAnswer = '';
 
 
     if (!question.length){
-        const test = document.activeElement
-
         setQuestionCommentAlertMessage(button, "Question field cannot be empty");
-        noProblems = false;        
-        test.focus()
-
+        noProblems = false;
     }
 
     if (noProblems){
@@ -2837,8 +2841,6 @@ function setQuestionCommentAlertMessage(button, message){
 
     $(button).popover('show');
 
-
-
     // $('.popover-header').css('background-color', 'red');
 }
 
@@ -2850,6 +2852,10 @@ function resetQuestionCommentDiv(){
     document.querySelectorAll('.questionCommentInput').forEach(input => {
         input.value = '';
     })
+
+    const questionDiv = document.getElementById("commentQuestion");
+    questionDiv.innerText = '';
+    questionDiv.style.height = '100px';
 
     const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
     if (rightAnswerCheckBox){

@@ -505,7 +505,7 @@ function setupEventListeners()
     //detects key presses 
     document.addEventListener('keydown', function(e){    
         //prevent keyboard presses within the comment textbox from triggering actions 
-        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar' || e.target.classList.contains('questionCommentInput')){
+        if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar' || e.target.classList.contains('questionCommentInput') || e.target.id === 'commentQuestion'){
             return;
         }
        
@@ -994,12 +994,8 @@ function setupEventListeners()
         if ($('input#questionCheckBox').is(':checked')) {
            document.querySelector('.questionComment').classList.remove("hiddenDiv");
 
-        //    document.querySelectorAll(".questionCommentInput").forEach(input =>{
-        //         input.value = '';
-        //     })
-
-            //TODO function here to handle everything 
-
+           document.getElementById('commentQuestion').focus();
+           
            //scroll to the bottom of the div to get all the options in view
            const addCommentPanel = document.getElementById("addCommentPanel");
            addCommentPanel.scrollTop = addCommentPanel.scrollHeight - addCommentPanel.clientHeight;
@@ -1014,17 +1010,22 @@ function setupEventListeners()
     })
 
     document.getElementById("addAnswerButton").addEventListener('click', function(){
-        // const newQuestion = getCommentQuestion();
         document.querySelector(".questionCommentContent").append(getCommentQuestion());
-        // newQuestion.querySelector(".questionCommentInput").focus();
 
-        let test = [...document.querySelectorAll('.questionCommentInput')]
-        test[test.findIndex(item => item.value === "")].focus();
+        //focus the question if it's not filled in
+        //or the first question that isn't filled in
+        const questionDiv = document.getElementById('commentQuestion');
+        if (!questionDiv.innerText.trim().length){
+            questionDiv.focus();
+        }
+        else{
+            const answerInputs = [...document.querySelectorAll('.questionCommentInput')]
+            answerInputs[answerInputs.findIndex(item => item.value === "")].focus();
+        }
 
         //scroll to the bottom of the div to see the new answer
         const addCommentPanel = document.getElementById("addCommentPanel");
         addCommentPanel.scrollTop = addCommentPanel.scrollHeight - addCommentPanel.clientHeight;
-
     })
 }
 

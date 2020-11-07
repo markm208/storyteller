@@ -1134,7 +1134,11 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 #commentQuestion{
-    /* margin-bottom: 40px; */
+    min-height: 100px;
+    overflow: auto;
+    resize: vertical;
+    background-color: rgb(51,51,51) !important;
+    color: white !important;
 }
 
 .addQuestionButton{
@@ -1228,4 +1232,8 @@ input[type=number]::-webkit-outer-spin-button {
     margin-right: -2px;
     margin-bottom: -3px;
     margin-bottom: -8px;
+}
+
+.testing{
+    border-color: red;
 }
