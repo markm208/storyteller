@@ -298,8 +298,6 @@ function setupEventListeners()
             if (index !== -1){
                 dropDownListTags[index].remove(); 
             }
-            
-
            addCommentTagForThisComment(text);
         }
         tagInput.value = '';
@@ -445,7 +443,6 @@ function setupEventListeners()
 
         document.querySelector('.createCommentQuestionCheckbox').classList.remove('hiddenDiv');
 
-
         const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
         const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
         const videoPreviewDiv = document.getElementsByClassName("video-preview")[0];
@@ -465,10 +462,6 @@ function setupEventListeners()
         //clear out the text area
         textCommentTextArea.innerHTML = '';
 
-        // document.querySelectorAll(".questionCommentInput").forEach(input =>{
-        //     input.value = '';
-        // })
-
         document.getElementById("addCommentButton").removeAttribute("style");
 
         document.getElementById("UpdateCommentButton").style.display='none';
@@ -477,8 +470,7 @@ function setupEventListeners()
         document.getElementById("searchCommentTab").classList.remove("disabled");
         document.getElementById("viewCommentsTab").click();      
         
-        resetQuestionCommentDiv();
-        
+        resetQuestionCommentDiv();        
     });
 
    //When switching to viewCommentsTab, scroll to the active comment
@@ -1096,7 +1088,6 @@ function setUpSliderTickMarks(){
 
     setUpClickableTickMarks();
 }
-
 
 /*Adds the ability to click a tickmark on the slider and jump to that comment */
 function setUpClickableTickMarks(){

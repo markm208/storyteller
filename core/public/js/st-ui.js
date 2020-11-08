@@ -2753,23 +2753,22 @@ function getCommentQuestion(){
     const label = document.createElement("label");
     label.classList.add("form-check-label");
     label.setAttribute("for", "autoSizingCheck-" + nextId);
-    label.innerHTML = "Correct Answer"
+    label.innerHTML = "Correct Answer";
 
     const removeAnswerButton = document.createElement("button");
     removeAnswerButton.classList.add("btn", "btn-outline-secondary", "removeAnswerButton");
-    removeAnswerButton.setAttribute("type", "button")
+    removeAnswerButton.setAttribute("type", "button");
     removeAnswerButton.addEventListener('click', function(event){
         event.target.closest(".form-group").remove();
     })
 
     removeAnswerButton.addEventListener('mouseover', function(event){
-        event.target.closest(".form-group").querySelector(".questionCommentInput").classList.add("testing");
+        event.target.closest(".form-group").querySelector(".questionCommentInput").classList.add("answerToDelete");
     })
 
     removeAnswerButton.addEventListener('mouseout', function(event){
-        event.target.closest(".form-group").querySelector(".questionCommentInput").classList.remove("testing");
+        event.target.closest(".form-group").querySelector(".questionCommentInput").classList.remove("answerToDelete");
     })
-
 
     removeAnswerButton.appendChild(document.createTextNode('Remove Answer'));  
 
@@ -2893,7 +2892,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
             const input = document.createElement('input');
             input.classList.add('form-check-input');
             input.setAttribute('type', 'radio');    
-            input.setAttribute('id', commentObject.id + '-' + '-' + source + '-' + i);
+            input.setAttribute('id', commentObject.id + '*' + source + '*' + i);
 
             input.addEventListener('click', function(event){
                 const parentDiv = event.target.closest('.questionAnswerDiv');
@@ -2901,16 +2900,20 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
                     if (event.target.id !== input.id){
                         input.checked = false;
                     }
-                } )
+                })
             })        
         
             const label = document.createElement('label');
             label.classList.add('form-check-label', 'commentQuestionAnswer');
-            label.setAttribute('for', commentObject.id + '-' + '-' + source + '-' + i);
+            label.setAttribute('for', commentObject.id + '*' + source + '*' + i);
             label.innerHTML = commentObject.questionCommentData.allAnswers[i];
+            
+            const iconDiv = document.createElement('div')
+            iconDiv.classList.add('iconDiv')
         
             outerDiv.append(input);
             outerDiv.append(label);
+            outerDiv.append(iconDiv);
             questionAnswerDiv.append(outerDiv);
         }
 
@@ -2918,24 +2921,29 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
         checkAnswerButton.classList.add("btn", "btn-dark", "checkAnswerButton");
         checkAnswerButton.appendChild(document.createTextNode('Check Answer'));  
 
+        checkAnswerButton.setAttribute('id', commentObject.id + "*" + source + "*check");
+
         checkAnswerButton.addEventListener('click', function(event){
             const parentDiv = event.target.parentNode;
+
             if (parentDiv.querySelector('.form-check-input:checked')){
+                
+
                 const checkedAnswer = parentDiv.querySelector('.form-check-input:checked');
                 const selectedAnswer = checkedAnswer.nextSibling.innerText;
 
                 if (selectedAnswer === commentObject.questionCommentData.correctAnswer){
-                    checkedAnswer.nextSibling.classList.add('rightAnswer');
-                    checkedAnswer.parentNode.classList.add('wrongAnswerX');
+                    checkedAnswer.parentNode.querySelector('.commentQuestionAnswer').classList.add('rightAnswer');
+                    checkedAnswer.parentNode.querySelector('.iconDiv').classList.add('rightAnswerCheck');
                 }
                 else{
-                    checkedAnswer.nextSibling.classList.add('wrongAnswer');
-                    checkedAnswer.parentNode.classList.add('rightAnswerCheck')
+                    checkedAnswer.parentNode.querySelector('.commentQuestionAnswer').classList.add('wrongAnswer');
+                    checkedAnswer.parentNode.querySelector('.iconDiv').classList.add('wrongAnswerX');
 
-                    parentDiv.querySelectorAll('.form-check-label').forEach(label =>{
-                        if (label.innerText === commentObject.questionCommentData.correctAnswer){
-                            label.classList.add('rightAnswer');
-                            label.parentNode.classList.add('wrongAnswerX');
+                    parentDiv.querySelectorAll('.commentQuestionAnswer').forEach(answer =>{
+                        if (answer.innerText === commentObject.questionCommentData.correctAnswer){
+                            answer.classList.add('rightAnswer');
+                            answer.parentNode.querySelector('.iconDiv').classList.add('rightAnswerCheck');
                         }
                     });
                 }
@@ -2945,19 +2953,26 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
                 })
                 checkAnswerButton.classList.add('hiddenQuestionButton');
                 clearAnswerButton.classList.remove('hiddenQuestionButton');
+                updateCommentQuestionsRunningCounts();
+                synchronizeCheckAnswerButtonBetweenModes(event);
             }
         })
 
         const clearAnswerButton = document.createElement('button');
-        clearAnswerButton.classList.add("btn", "btn-dark", "checkAnswerButton", "hiddenQuestionButton");
+        clearAnswerButton.classList.add("btn", "btn-dark", "clearAnswerButton", "hiddenQuestionButton");
         clearAnswerButton.appendChild(document.createTextNode('Clear Answer'));  
+        clearAnswerButton.setAttribute('id', commentObject.id + "*" + source + "*clear");
 
         clearAnswerButton.addEventListener('click', function(event){
+
             const parentDiv = event.target.parentNode;
 
             parentDiv.querySelectorAll('.form-check-label').forEach(label =>{
                 label.classList.remove("rightAnswer", "wrongAnswer");
-                label.parentNode.classList.remove("rightAnswerCheck", "wrongAnswerX");
+
+                const iconDiv = label.parentNode.querySelector('.iconDiv');
+                iconDiv.classList.remove('wrongAnswerX', 'rightAnswerCheck');
+                iconDiv.innerHTML = '';
             })
 
             parentDiv.querySelectorAll('.form-check-input').forEach(input =>{
@@ -2968,9 +2983,55 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
 
             checkAnswerButton.classList.remove('hiddenQuestionButton');
             clearAnswerButton.classList.add('hiddenQuestionButton');
+
+            updateCommentQuestionsRunningCounts();
+            synchronizeClearAnswerButtonBetweenModes(event);
         })
 
         divToAddTo.append(checkAnswerButton);
         divToAddTo.append(clearAnswerButton);
+    }
+}
+
+function updateCommentQuestionsRunningCounts(){
+    const attempts = document.querySelectorAll('.codeView .clearAnswerButton:not(.hiddenQuestionButton)').length;
+    const rightAnswers = document.querySelectorAll('.codeView .rightAnswer').length - document.querySelectorAll('.codeView .wrongAnswer').length;
+
+    document.querySelectorAll('.rightAnswerCheck').forEach(answer =>{
+        answer.innerHTML = rightAnswers +'/'+attempts;
+    })
+}
+
+//on press of checkAnswerButton in either mode (blog or code), ensure the same question is in the same state in the other mode 
+function synchronizeCheckAnswerButtonBetweenModes(event){
+    const selectedAnswerId  = event.target.parentNode.querySelector('.form-check-input:checked').id;
+
+    const idParts = selectedAnswerId.split('*');
+    const modeToChangeTo = idParts[1] === "blog" ? "commentView" : "blog"; 
+
+    const newId = selectedAnswerId.replace(idParts[1], modeToChangeTo);
+
+    const optionInOtherMode = document.getElementById(newId);
+
+    const newButtonId = idParts[0] + "*" + modeToChangeTo + "*check";
+    const checkButtonInOtherMode = document.getElementById(newButtonId);
+
+    if (!checkButtonInOtherMode.classList.contains("hiddenQuestionButton")){
+        optionInOtherMode.click();
+        checkButtonInOtherMode.click();
+    }
+}
+
+//on press of clearAnswerButton in either mode (blog or code), ensure the same question is in the same state in the other mode 
+function synchronizeClearAnswerButtonBetweenModes(event){
+    const buttonId = event.target.id;
+    const idParts = buttonId.split('*');
+    const modeToChangeTo = idParts[1] === "blog" ? "commentView" : "blog"; 
+
+    const newButtonId = idParts[0] + "*" + modeToChangeTo + "*clear";
+    const clearButtonInOtherMode = document.getElementById(newButtonId);
+
+    if (!clearButtonInOtherMode.classList.contains("hiddenQuestionButton")){
+        clearButtonInOtherMode.click();
     }
 }
