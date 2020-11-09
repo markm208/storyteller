@@ -1176,6 +1176,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .questionDiv{
     margin-bottom: 10px;
+    margin-left: 5px;
 }
 
 .rightAnswer{
@@ -1249,3 +1250,6 @@ input[type=number]::-webkit-outer-spin-button {
     border-color: red !important;
 }
 
+.questionNumberDiv{
+    display: inline-flex;
+}

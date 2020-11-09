@@ -868,6 +868,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
         setUpSlider();
         
         updateAllCommentHeaderCounts();
+        updateQuestionCommentCounts();
     });
 
   buttonGroup.append(deleteButton);
@@ -2843,6 +2844,7 @@ function setQuestionCommentAlertMessage(button, message){
     // $('.popover-header').css('background-color', 'red');
 }
 
+//reset the question comment input div
 function resetQuestionCommentDiv(){
     document.querySelectorAll('.extraQuestion').forEach(question => {
         question.remove();
@@ -2874,15 +2876,22 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
         HR.classList.add("questionCommentHR");
 
         const questionAnswerDiv = document.createElement('div');
+        questionAnswerDiv.classList.add("questionAnswerDiv");
+
+        const questionNumberDiv = document.createElement('div');
+        questionNumberDiv.innerHTML = " ";
+
+        questionNumberDiv.classList.add('questionNumberDiv');
+
         const questionDiv = document.createElement('div');
 
-        questionAnswerDiv.classList.add("questionAnswerDiv");
-        
+        questionNumberDiv.appendChild(questionDiv);
+
         questionDiv.innerHTML = commentObject.questionCommentData.question;
         questionDiv.classList.add("questionDiv");
 
         divToAddTo.append(HR);
-        divToAddTo.append(questionDiv);
+        divToAddTo.append(questionNumberDiv);
         divToAddTo.append(questionAnswerDiv);
 
         for (let i = 0; i < commentObject.questionCommentData.allAnswers.length; i++){
@@ -2901,7 +2910,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
                         input.checked = false;
                     }
                 })
-            })        
+            })
         
             const label = document.createElement('label');
             label.classList.add('form-check-label', 'commentQuestionAnswer');
@@ -2924,6 +2933,11 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
         checkAnswerButton.setAttribute('id', commentObject.id + "*" + source + "*check");
 
         checkAnswerButton.addEventListener('click', function(event){
+            let test = event.target.parentNode.querySelector('.questionNumberDiv')
+            let test2 = test.childNodes[0]
+
+
+
             const parentDiv = event.target.parentNode;
 
             if (parentDiv.querySelector('.form-check-input:checked')){
@@ -2993,6 +3007,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
     }
 }
 
+//update the numbers that display after selecting an answer in a question comment
 function updateCommentQuestionsRunningCounts(){
     const attempts = document.querySelectorAll('.codeView .clearAnswerButton:not(.hiddenQuestionButton)').length;
     const rightAnswers = document.querySelectorAll('.codeView .rightAnswer').length - document.querySelectorAll('.codeView .wrongAnswer').length;
@@ -3043,4 +3058,15 @@ function resetAllBlogModeQuestionComments(){
     [...document.querySelectorAll('.blogView .clearAnswerButton:not(.hiddenQuestionButton)')].forEach(clearButton =>{
         clearButton.click();
     })
+}
+
+//update the question numbers in question comments
+function updateQuestionCommentCounts(){
+    const allQuestionsCode = document.querySelectorAll('.codeView .questionNumberDiv');
+    const allQuestionsBlog = document.querySelectorAll('.blogView .questionNumberDiv');
+
+    for (let i = 0; i < allQuestionsCode.length; i++){        
+        allQuestionsCode[i].childNodes[0].nodeValue = i + 1 + '.';
+        allQuestionsBlog[i].childNodes[0].nodeValue = i + 1 + '.';
+    }
 }

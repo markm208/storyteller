@@ -30,6 +30,9 @@ async function initializePlayback()
     //create the blog view of the playback
     displayAllBlogPosts();
 
+    updateQuestionCommentCounts();
+
+
     //Sets up the event listeners for html elements on the page
     setupEventListeners();
 
@@ -414,6 +417,7 @@ function setupEventListeners()
                 updateAllCommentHeaderCounts();
                 resetAllBlogModeQuestionComments();
                 insertBlogPost(newComment);
+                updateQuestionCommentCounts();
 
                 //rebuild the slider with the new comment pip
                 setUpSliderTickMarks();
@@ -1492,6 +1496,8 @@ async function updateComment(){
             displayAllComments();
             resetAllBlogModeQuestionComments();
             updateBlogPost(newComment);
+            updateQuestionCommentCounts();
+
         
             //reset the comment previews
             $('.audio-preview')[0].style.display='none';
