@@ -943,18 +943,6 @@ function setupEventListeners()
 
         const contentDiv = document.getElementById("searchContentDiv");
 
-
-        //TODO figure out a faster way to do this whole process?
-
-        //sort the results set by the id placement in the comments div. probably faster to not sort
-        // const allComments = getAllComments();
-        // results = [...results].sort(function(a,b){
-        //     const index1 = allComments.findIndex(item => item.getAttribute("data-commentid") === a);
-        //     const index2 = allComments.findIndex(item => item.getAttribute("data-commentid") === b);
-        //     return index1 - index2;
-        // })
-
-
         //go through all the comments in the comments div to get the proper order of search results
         getAllComments().forEach(comment =>{
             const commentId = comment.getAttribute("data-commentid");
@@ -966,7 +954,6 @@ function setupEventListeners()
                 contentDiv.append(clone);
             }
         })
-
     })
 
     document.getElementById("commentSearchBar").addEventListener('keyup', event=>{

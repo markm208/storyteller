@@ -239,12 +239,6 @@ function displayAllComments(){
         }   
         uniqueCommentGroupID++;
 
-        // if (`ev-${key}` === 'ev-0'){
-        //     let test = document.querySelector(`.codeView [data-commenteventid="ev-0"]`);//.querySelector(".createCommentQuestionCheckbox").remove();
-        //     let test2 = test.querySelector('.createCommentQuestionCheckbox')
-        //     const blah = 5;
-        // }
-
     })    
     updateAllCommentHeaderCounts();
     firstTimeThrough = false;
@@ -254,7 +248,6 @@ function displayAllComments(){
         const newActiveDiv = document.querySelector(`.codeView [data-commentid=${activeId}]`);
         newActiveDiv.click()
         document.getElementById("commentContentDiv").scrollTop = newActiveDiv.offsetTop - 100; 
-
     }
 
 }
@@ -2713,14 +2706,12 @@ function handleCommentSearchDropDownOptions(){
 //only allow one right answer check box to be checked at a time in question comments
 function rightAnswerCheckBoxHandler(checkbox){
     checkbox.addEventListener('click', function(event){
-        const checkedBoxes = document.querySelectorAll('.rightAnswerCheckBox:checked');
-        if (checkedBoxes.length){
-            checkedBoxes.forEach(checkbox =>{
-                if (checkbox.id !== event.target.id){
-                    checkbox.checked = false;
-                }
-            })
-        }
+        const checkedBoxes = document.querySelectorAll('.rightAnswerCheckBox:checked');       
+        checkedBoxes.forEach(checkbox =>{
+            if (checkbox.id !== event.target.id){
+                checkbox.checked = false;
+            }
+        })        
     })
 }
 
@@ -2742,34 +2733,35 @@ function getCommentQuestion(){
     const rightAnswerCheckBox = document.createElement('input');
     rightAnswerCheckBox.classList.add("form-check-input", "rightAnswerCheckBox");
     rightAnswerCheckBox.type = "checkbox";
+    
+    //get the last id so we know what hte next id will be
+    const rightAnswerCheckBoxes = document.querySelectorAll('.rightAnswerCheckBox');
+    const lastId = rightAnswerCheckBoxes[rightAnswerCheckBoxes.length - 1].id;
+    const nextId = parseInt(lastId.substring(lastId.lastIndexOf('-') + 1)) + 1;
 
-    //TODO change names
-    //including autosizingcheck
-    const test = document.querySelectorAll('.rightAnswerCheckBox');
-    const test2 = test[test.length - 1].id;
-    const nextId = parseInt(test2.substring(test2.lastIndexOf('-') + 1)) + 1;
-
-    rightAnswerCheckBox.setAttribute('id', "autoSizingCheck-" + nextId); 
-    rightAnswerCheckBoxHandler(rightAnswerCheckBox);//TODO change name of handler function?
+    rightAnswerCheckBox.setAttribute('id', "checkBox-" + nextId); 
+    rightAnswerCheckBoxHandler(rightAnswerCheckBox);
 
     const label = document.createElement("label");
     label.classList.add("form-check-label");
-    label.setAttribute("for", "autoSizingCheck-" + nextId);
+    label.setAttribute("for", "checkBox-" + nextId);
     label.innerHTML = "Correct Answer";
 
     const removeAnswerButton = document.createElement("button");
     removeAnswerButton.classList.add("btn", "btn-outline-secondary", "removeAnswerButton");
     removeAnswerButton.setAttribute("type", "button");
+
     removeAnswerButton.addEventListener('click', function(event){
-        event.target.closest(".form-group").remove();
+        event.target.closest(".extraQuestion").remove();
     })
 
+    //add a class that will highlight the border of the answer that will be deleted by pressing the removeAnswerButton
     removeAnswerButton.addEventListener('mouseover', function(event){
-        event.target.closest(".form-group").querySelector(".questionCommentInput").classList.add("answerToDelete");
+        event.target.closest(".extraQuestion").querySelector(".questionCommentInput").classList.add("answerToDelete");
     })
 
     removeAnswerButton.addEventListener('mouseout', function(event){
-        event.target.closest(".form-group").querySelector(".questionCommentInput").classList.remove("answerToDelete");
+        event.target.closest(".extraQuestion").querySelector(".questionCommentInput").classList.remove("answerToDelete");
     })
 
     removeAnswerButton.appendChild(document.createTextNode('Remove Answer'));  
@@ -2802,7 +2794,7 @@ function getQuestionCommentData(button){
     }
 
     if (noProblems){
-        document.querySelectorAll('.questionCommentInput:not([id="commentQuestion"])').forEach(field =>{
+        document.querySelectorAll('.questionCommentInput').forEach(field =>{
             if (field.value.length){
                 allAnswers.push(field.value);
             }
@@ -2816,8 +2808,7 @@ function getQuestionCommentData(button){
 
     if (noProblems){
         const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
-        if (rightAnswerCheckBox){        
-    
+        if (rightAnswerCheckBox){            
             correctAnswer = rightAnswerCheckBox.closest('.form-group').querySelector('.questionCommentInput').value;
     
             if (!correctAnswer.length){
@@ -2934,16 +2925,9 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
         checkAnswerButton.setAttribute('id', commentObject.id + "*" + source + "*check");
 
         checkAnswerButton.addEventListener('click', function(event){
-            let test = event.target.parentNode.querySelector('.questionNumberDiv')
-            let test2 = test.childNodes[0]
-
-
-
             const parentDiv = event.target.parentNode;
 
             if (parentDiv.querySelector('.form-check-input:checked')){
-                
-
                 const checkedAnswer = parentDiv.querySelector('.form-check-input:checked');
                 const selectedAnswer = checkedAnswer.nextSibling.innerText;
 
@@ -3061,7 +3045,7 @@ function resetAllBlogModeQuestionComments(){
     })
 }
 
-//update the question numbers in question comments
+//update the question numbers in question comments in both modes (code and blog)
 function updateQuestionCommentCounts(){
     const allQuestionsCode = document.querySelectorAll('.codeView .questionNumberDiv');
     const allQuestionsBlog = document.querySelectorAll('.blogView .questionNumberDiv');
