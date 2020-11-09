@@ -2854,6 +2854,7 @@ function resetQuestionCommentDiv(){
 
     const questionDiv = document.getElementById("commentQuestion");
     questionDiv.innerText = '';
+    questionDiv.style.height = '100px';
 
     const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
     if (rightAnswerCheckBox){
@@ -2861,7 +2862,7 @@ function resetQuestionCommentDiv(){
     }
 
     const checkbox = document.getElementById('questionCheckBox');
-    if (checkbox.checked){
+    if (checkbox.checked === true){
         checkbox.click();
     }
 }
@@ -3033,13 +3034,4 @@ function synchronizeClearAnswerButtonBetweenModes(event){
     if (!clearButtonInOtherMode.classList.contains("hiddenQuestionButton")){
         clearButtonInOtherMode.click();
     }
-}
-
-//when a comment is added or edited, displayAllComments is called to rebuild codeView, resetting all comments and questions back to their default states. 
-//blogMode will only add or edit the one comment so any previously answered questions will stay in their answered state.
-//this function resets all of those questions back to their default state to match codeView
-function resetAllBlogModeQuestionComments(){
-    [...document.querySelectorAll('.blogView .clearAnswerButton:not(.hiddenQuestionButton)')].forEach(clearButton =>{
-        clearButton.click();
-    })
 }
