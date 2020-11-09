@@ -412,7 +412,7 @@ function setupEventListeners()
                 //display a newly added comment on the current event
                 displayAllComments();
                 updateAllCommentHeaderCounts();
-                
+                resetAllBlogModeQuestionComments();
                 insertBlogPost(newComment);
 
                 //rebuild the slider with the new comment pip
@@ -1490,6 +1490,7 @@ async function updateComment(){
 
             //display a newly added comment on the current event
             displayAllComments();
+            resetAllBlogModeQuestionComments();
             updateBlogPost(newComment);
         
             //reset the comment previews
