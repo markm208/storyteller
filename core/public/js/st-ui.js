@@ -869,6 +869,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
         
         updateAllCommentHeaderCounts();
         updateQuestionCommentCounts();
+        updateCommentQuestionsRunningCounts();
     });
 
   buttonGroup.append(deleteButton);
