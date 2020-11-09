@@ -238,6 +238,7 @@ function displayAllComments(){
             makeDivDroppable(commentGroupDiv, false);
         }   
         uniqueCommentGroupID++;
+
     })    
     updateAllCommentHeaderCounts();
     firstTimeThrough = false;
@@ -247,7 +248,6 @@ function displayAllComments(){
         const newActiveDiv = document.querySelector(`.codeView [data-commentid=${activeId}]`);
         newActiveDiv.click()
         document.getElementById("commentContentDiv").scrollTop = newActiveDiv.offsetTop - 100; 
-
     }
 
 }
@@ -263,7 +263,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     //get the developers who authored the comment
     const commentAuthorGroup = getDevelopersInADevGroup(commentObject.developerGroupId);
     //create a div to hold the author info
-    const commentAuthorsDiv = getDevImages(commentAuthorGroup, 20);
+    const commentAuthorsDiv = getDevImages(commentAuthorGroup, 40);
     //create a span to display how far along in the comments this one is
     const progressSpan = document.createElement('span');
     progressSpan.classList.add('progressSpan');
@@ -276,6 +276,9 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     const cardBody = document.createElement('div');
     cardBody.classList.add('text-left', 'commentCardBodyColor');
     cardBody.innerHTML = commentObject.commentText;
+
+    addQuestionCommentToDiv(cardBody, commentObject, "commentView");
+
 
     let cardFinal = createCardDiv(commentObject);
     cardFinal.classList.add('text-center');
@@ -550,6 +553,10 @@ function createEditCommentButton(commentObject, buttonText){
         //prevents the edit button from triggering the event listeners of its parent divs
         event.preventDefault();
         event.stopPropagation();
+
+        if (commentObject.id === "commentId-0"){
+            document.querySelector('.createCommentQuestionCheckbox').classList.add('hiddenDiv');
+        }
         
         stopAutomaticPlayback();
 
@@ -558,6 +565,29 @@ function createEditCommentButton(commentObject, buttonText){
         }
 
         pauseMedia();
+
+        if (commentObject.questionCommentData){
+            document.getElementById('questionCheckBox').click();
+
+            const extraQuestions = commentObject.questionCommentData.allAnswers.length - 2;
+            const extraQuestionButton = document.getElementById("addAnswerButton");
+            for (let i = 0; i < extraQuestions; i++){
+                extraQuestionButton.click();
+            }
+
+            document.getElementById('commentQuestion').innerText = commentObject.questionCommentData["question"];
+
+            const answerFields = [...document.querySelectorAll('.questionCommentInput:not([id="commentQuestion"])')];
+            for (let i = 0; i < answerFields.length; i++){
+                const currentAnswer = commentObject.questionCommentData.allAnswers[i];
+                answerFields[i].value = currentAnswer;
+
+                if (currentAnswer === commentObject.questionCommentData.correctAnswer){
+                    answerFields[i].parentNode.querySelector('.rightAnswerCheckBox').click();
+                }
+            }
+        }
+
         document.getElementById("viewCommentsTab").classList.add("disabled");
         document.getElementById("fsViewTabTab").classList.add("disabled");
         document.getElementById("searchCommentTab").classList.add("disabled");
@@ -630,16 +660,26 @@ function createEditCommentButton(commentObject, buttonText){
           videoPreviewDiv.removeAttribute("style");
         }
   
-
-        updateCommentButton.addEventListener('click' , event => {
-            pauseMedia();
-            updateComment();
+        updateCommentButton.addEventListener( 'click' ,async event => {
             event.stopImmediatePropagation();
 
-            document.getElementById("CancelUpdateButton").click();
-            const activeComment = document.querySelector(`.codeView .activeComment`);
-            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
-            //activeComment.click();            
+            pauseMedia();
+            //get the active editor
+            const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
+
+            //get any selected text 
+            const ranges = editor.getSession().getSelection().getAllRanges();
+
+            if (await updateComment()){
+                document.getElementById("CancelUpdateButton").click();
+                const activeComment = document.querySelector(`.codeView .activeComment`);
+                document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;    
+            }
+            else{
+                ranges.forEach(range =>{
+                    editor.selection.setRange(range)
+                })
+            }
         })
 
         highlightBlogModeVisibleArea();
@@ -821,6 +861,8 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
         setUpSlider();
         
         updateAllCommentHeaderCounts();
+        updateQuestionCommentCounts();
+        updateCommentQuestionsRunningCounts();
     });
 
   buttonGroup.append(deleteButton);
@@ -1903,7 +1945,7 @@ function updateCurrentDeveloperGroupAvatars(devGroupId) {
         
         //remove the old images and add new ones 20px height
         currentDevsDiv.innerHTML = '';
-        currentDevsDiv.append(getDevImages(activeDevs, 20));
+        currentDevsDiv.append(getDevImages(activeDevs, 40));
     }
 }
 
@@ -2015,6 +2057,7 @@ function createBlogPost(commentToAdd){
     const blogPost = document.createElement("div");
     blogPost.classList.add("blogStyle");
 
+
     if (commentToAdd.displayCommentEvent.id === "ev-0"){ 
         blogPost.classList.add("descriptionBlogPost");       
     }
@@ -2038,6 +2081,7 @@ function createBlogPost(commentToAdd){
 
 
     blogPost.append(textDiv);
+    addQuestionCommentToDiv(blogPost, commentToAdd, "blog");
 
     if (commentToAdd.videoURLs.length){
         for (let i = 0; i < commentToAdd.videoURLs.length; i++){
@@ -2657,4 +2701,357 @@ function handleCommentSearchDropDownOptions(){
             break;
     }
     return retVal;
+}
+
+//only allow one right answer check box to be checked at a time in question comments
+function rightAnswerCheckBoxHandler(checkbox){
+    checkbox.addEventListener('click', function(event){
+        const checkedBoxes = document.querySelectorAll('.rightAnswerCheckBox:checked');       
+        checkedBoxes.forEach(checkbox =>{
+            if (checkbox.id !== event.target.id){
+                checkbox.checked = false;
+            }
+        })        
+    })
+}
+
+//builds and returns the divs for adding question comment data
+function getCommentQuestion(){
+    const outerDiv = document.createElement('div');
+    outerDiv.classList.add('form-group', 'extraQuestion');
+
+    const answerInput = document.createElement('input');
+    answerInput.setAttribute('type', 'text');
+    answerInput.setAttribute('value', '');
+    answerInput.setAttribute('autocomplete', 'off');
+    answerInput.placeholder = 'Answer';
+    answerInput.classList.add("form-control", "questionCommentInput");
+
+    const innerDiv = document.createElement('div');
+    innerDiv.classList.add("form-check", "mb-2");
+
+    const rightAnswerCheckBox = document.createElement('input');
+    rightAnswerCheckBox.classList.add("form-check-input", "rightAnswerCheckBox");
+    rightAnswerCheckBox.type = "checkbox";
+    
+    //get the last id so we know what hte next id will be
+    const rightAnswerCheckBoxes = document.querySelectorAll('.rightAnswerCheckBox');
+    const lastId = rightAnswerCheckBoxes[rightAnswerCheckBoxes.length - 1].id;
+    const nextId = parseInt(lastId.substring(lastId.lastIndexOf('-') + 1)) + 1;
+
+    rightAnswerCheckBox.setAttribute('id', "checkBox-" + nextId); 
+    rightAnswerCheckBoxHandler(rightAnswerCheckBox);
+
+    const label = document.createElement("label");
+    label.classList.add("form-check-label");
+    label.setAttribute("for", "checkBox-" + nextId);
+    label.innerHTML = "Correct Answer";
+
+    const removeAnswerButton = document.createElement("button");
+    removeAnswerButton.classList.add("btn", "btn-outline-secondary", "removeAnswerButton");
+    removeAnswerButton.setAttribute("type", "button");
+
+    removeAnswerButton.addEventListener('click', function(event){
+        event.target.closest(".extraQuestion").remove();
+    })
+
+    //add a class that will highlight the border of the answer that will be deleted by pressing the removeAnswerButton
+    removeAnswerButton.addEventListener('mouseover', function(event){
+        event.target.closest(".extraQuestion").querySelector(".questionCommentInput").classList.add("answerToDelete");
+    })
+
+    removeAnswerButton.addEventListener('mouseout', function(event){
+        event.target.closest(".extraQuestion").querySelector(".questionCommentInput").classList.remove("answerToDelete");
+    })
+
+    removeAnswerButton.appendChild(document.createTextNode('Remove Answer'));  
+
+    innerDiv.append(rightAnswerCheckBox);
+    innerDiv.append(label);
+    innerDiv.append(removeAnswerButton);
+
+    outerDiv.append(answerInput);
+    outerDiv.append(innerDiv);
+
+    return outerDiv;
+}
+
+//returns the question comment question, answers, and right answer
+function getQuestionCommentData(button){
+    if (!document.getElementById("questionCheckBox").checked){
+        return null;
+    };
+    
+    let noProblems = true;
+    const question = document.getElementById("commentQuestion").innerText.trim();
+    const allAnswers = [];
+    let correctAnswer = '';
+
+
+    if (!question.length){
+        setQuestionCommentAlertMessage(button, "Question field cannot be empty");
+        noProblems = false;
+    }
+
+    if (noProblems){
+        document.querySelectorAll('.questionCommentInput').forEach(field =>{
+            if (field.value.length){
+                allAnswers.push(field.value);
+            }
+        });
+    
+        if (allAnswers.length < 2){
+            setQuestionCommentAlertMessage(button, "At least two answers must be entered");
+            noProblems = false;
+        }
+    }
+
+    if (noProblems){
+        const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
+        if (rightAnswerCheckBox){            
+            correctAnswer = rightAnswerCheckBox.closest('.form-group').querySelector('.questionCommentInput').value;
+    
+            if (!correctAnswer.length){
+                noProblems = false;
+                setQuestionCommentAlertMessage(button, "Correct answer must be filled in");
+            }
+        }
+        else{
+            setQuestionCommentAlertMessage(button, "Correct answer must be selected");
+            noProblems = false;
+        }
+    }
+    
+    return noProblems ? {allAnswers, correctAnswer, question} : undefined;
+}
+
+//set the alert message that will be displayed on a popover button
+function setQuestionCommentAlertMessage(button, message){
+
+    button.setAttribute('data-content', message);
+    $(button).popover('enable');
+
+    $(button).popover('show');
+
+    // $('.popover-header').css('background-color', 'red');
+}
+
+//reset the question comment input div
+function resetQuestionCommentDiv(){
+    document.querySelectorAll('.extraQuestion').forEach(question => {
+        question.remove();
+    })
+
+    document.querySelectorAll('.questionCommentInput').forEach(input => {
+        input.value = '';
+    })
+
+    const questionDiv = document.getElementById("commentQuestion");
+    questionDiv.innerText = '';
+    questionDiv.style.height = '100px';
+
+    const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
+    if (rightAnswerCheckBox){
+        rightAnswerCheckBox.checked = false;
+    }
+
+    const checkbox = document.getElementById('questionCheckBox');
+    if (checkbox.checked){
+        checkbox.click();
+    }
+}
+
+//add question comment data to a div
+function addQuestionCommentToDiv(divToAddTo, commentObject, source){
+    if (commentObject.questionCommentData){
+        const HR = document.createElement("HR");
+        HR.classList.add("questionCommentHR");
+
+        const questionAnswerDiv = document.createElement('div');
+        questionAnswerDiv.classList.add("questionAnswerDiv");
+
+        const questionNumberDiv = document.createElement('div');
+        questionNumberDiv.innerHTML = " ";
+
+        questionNumberDiv.classList.add('questionNumberDiv');
+
+        const questionDiv = document.createElement('div');
+
+        questionNumberDiv.appendChild(questionDiv);
+
+        questionDiv.innerHTML = commentObject.questionCommentData.question;
+        questionDiv.classList.add("questionDiv");
+
+        divToAddTo.append(HR);
+        divToAddTo.append(questionNumberDiv);
+        divToAddTo.append(questionAnswerDiv);
+
+        for (let i = 0; i < commentObject.questionCommentData.allAnswers.length; i++){
+            const outerDiv = document.createElement('div');
+            outerDiv.classList.add('form-check');
+        
+            const input = document.createElement('input');
+            input.classList.add('form-check-input');
+            input.setAttribute('type', 'radio');    
+            input.setAttribute('id', commentObject.id + '*' + source + '*' + i);
+
+            input.addEventListener('click', function(event){
+                const parentDiv = event.target.closest('.questionAnswerDiv');
+                parentDiv.querySelectorAll('.form-check-input:checked').forEach(input =>{
+                    if (event.target.id !== input.id){
+                        input.checked = false;
+                    }
+                })
+            })
+        
+            const label = document.createElement('label');
+            label.classList.add('form-check-label', 'commentQuestionAnswer');
+            label.setAttribute('for', commentObject.id + '*' + source + '*' + i);
+            label.innerHTML = commentObject.questionCommentData.allAnswers[i];
+            
+            const iconDiv = document.createElement('div')
+            iconDiv.classList.add('iconDiv')
+        
+            outerDiv.append(input);
+            outerDiv.append(label);
+            outerDiv.append(iconDiv);
+            questionAnswerDiv.append(outerDiv);
+        }
+
+        const checkAnswerButton = document.createElement('button');
+        checkAnswerButton.classList.add("btn", "btn-dark", "checkAnswerButton");
+        checkAnswerButton.appendChild(document.createTextNode('Check Answer'));  
+
+        checkAnswerButton.setAttribute('id', commentObject.id + "*" + source + "*check");
+
+        checkAnswerButton.addEventListener('click', function(event){
+            const parentDiv = event.target.parentNode;
+
+            if (parentDiv.querySelector('.form-check-input:checked')){
+                const checkedAnswer = parentDiv.querySelector('.form-check-input:checked');
+                const selectedAnswer = checkedAnswer.nextSibling.innerText;
+
+                if (selectedAnswer === commentObject.questionCommentData.correctAnswer){
+                    checkedAnswer.parentNode.querySelector('.commentQuestionAnswer').classList.add('rightAnswer');
+                    checkedAnswer.parentNode.querySelector('.iconDiv').classList.add('rightAnswerCheck');
+                }
+                else{
+                    checkedAnswer.parentNode.querySelector('.commentQuestionAnswer').classList.add('wrongAnswer');
+                    checkedAnswer.parentNode.querySelector('.iconDiv').classList.add('wrongAnswerX');
+
+                    parentDiv.querySelectorAll('.commentQuestionAnswer').forEach(answer =>{
+                        if (answer.innerText === commentObject.questionCommentData.correctAnswer){
+                            answer.classList.add('rightAnswer');
+                            answer.parentNode.querySelector('.iconDiv').classList.add('rightAnswerCheck');
+                        }
+                    });
+                }
+
+                parentDiv.querySelectorAll('.form-check-input').forEach(input =>{
+                    input.disabled = true;
+                })
+                checkAnswerButton.classList.add('hiddenQuestionButton');
+                clearAnswerButton.classList.remove('hiddenQuestionButton');
+                updateCommentQuestionsRunningCounts();
+                synchronizeCheckAnswerButtonBetweenModes(event);
+            }
+        })
+
+        const clearAnswerButton = document.createElement('button');
+        clearAnswerButton.classList.add("btn", "btn-dark", "clearAnswerButton", "hiddenQuestionButton");
+        clearAnswerButton.appendChild(document.createTextNode('Clear Answer'));  
+        clearAnswerButton.setAttribute('id', commentObject.id + "*" + source + "*clear");
+
+        clearAnswerButton.addEventListener('click', function(event){
+
+            const parentDiv = event.target.parentNode;
+
+            parentDiv.querySelectorAll('.form-check-label').forEach(label =>{
+                label.classList.remove("rightAnswer", "wrongAnswer");
+
+                const iconDiv = label.parentNode.querySelector('.iconDiv');
+                iconDiv.classList.remove('wrongAnswerX', 'rightAnswerCheck');
+                iconDiv.innerHTML = '';
+            })
+
+            parentDiv.querySelectorAll('.form-check-input').forEach(input =>{
+                input.disabled = false;
+            })
+
+            parentDiv.querySelector('.form-check-input:checked').checked = false;
+
+            checkAnswerButton.classList.remove('hiddenQuestionButton');
+            clearAnswerButton.classList.add('hiddenQuestionButton');
+
+            updateCommentQuestionsRunningCounts();
+            synchronizeClearAnswerButtonBetweenModes(event);
+        })
+
+        divToAddTo.append(checkAnswerButton);
+        divToAddTo.append(clearAnswerButton);
+    }
+}
+
+//update the numbers that display after selecting an answer in a question comment
+function updateCommentQuestionsRunningCounts(){
+    const attempts = document.querySelectorAll('.codeView .clearAnswerButton:not(.hiddenQuestionButton)').length;
+    const rightAnswers = document.querySelectorAll('.codeView .rightAnswer').length - document.querySelectorAll('.codeView .wrongAnswer').length;
+
+    document.querySelectorAll('.rightAnswerCheck').forEach(answer =>{
+        answer.innerHTML = rightAnswers +'/'+attempts;
+    })
+}
+
+//on press of checkAnswerButton in either mode (blog or code), ensure the same question is in the same state in the other mode 
+function synchronizeCheckAnswerButtonBetweenModes(event){
+    const selectedAnswerId  = event.target.parentNode.querySelector('.form-check-input:checked').id;
+
+    const idParts = selectedAnswerId.split('*');
+    const modeToChangeTo = idParts[1] === "blog" ? "commentView" : "blog"; 
+
+    const newId = selectedAnswerId.replace(idParts[1], modeToChangeTo);
+
+    const optionInOtherMode = document.getElementById(newId);
+
+    const newButtonId = idParts[0] + "*" + modeToChangeTo + "*check";
+    const checkButtonInOtherMode = document.getElementById(newButtonId);
+
+    if (!checkButtonInOtherMode.classList.contains("hiddenQuestionButton")){
+        optionInOtherMode.click();
+        checkButtonInOtherMode.click();
+    }
+}
+
+//on press of clearAnswerButton in either mode (blog or code), ensure the same question is in the same state in the other mode 
+function synchronizeClearAnswerButtonBetweenModes(event){
+    const buttonId = event.target.id;
+    const idParts = buttonId.split('*');
+    const modeToChangeTo = idParts[1] === "blog" ? "commentView" : "blog"; 
+
+    const newButtonId = idParts[0] + "*" + modeToChangeTo + "*clear";
+    const clearButtonInOtherMode = document.getElementById(newButtonId);
+
+    if (!clearButtonInOtherMode.classList.contains("hiddenQuestionButton")){
+        clearButtonInOtherMode.click();
+    }
+}
+
+//when a comment is added or edited, displayAllComments is called to rebuild codeView, resetting all comments and questions back to their default states. 
+//blogMode will only add or edit the one comment so any previously answered questions will stay in their answered state.
+//this function resets all of those questions back to their default state to match codeView
+function resetAllBlogModeQuestionComments(){
+    [...document.querySelectorAll('.blogView .clearAnswerButton:not(.hiddenQuestionButton)')].forEach(clearButton =>{
+        clearButton.click();
+    })
+}
+
+//update the question numbers in question comments in both modes (code and blog)
+function updateQuestionCommentCounts(){
+    const allQuestionsCode = document.querySelectorAll('.codeView .questionNumberDiv');
+    const allQuestionsBlog = document.querySelectorAll('.blogView .questionNumberDiv');
+
+    for (let i = 0; i < allQuestionsCode.length; i++){        
+        allQuestionsCode[i].childNodes[0].nodeValue = i + 1 + '.';
+        allQuestionsBlog[i].childNodes[0].nodeValue = i + 1 + '.';
+    }
 }
