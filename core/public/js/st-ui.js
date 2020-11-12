@@ -301,7 +301,10 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
         {
             addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
+
         }
+        addBlogModeHightlightInCodeView(commentObject.blogModeHightlightRange.fileId, commentObject.blogModeHightlightRange.range);
+
 
         //if there is some highlighted code
         if(commentObject.selectedCodeBlocks.length > 0) {
@@ -2292,8 +2295,8 @@ function waitToGetSelection(){
     setTimeout(blogModeHighlightHelper, 5);
 }
 
-let aceTempMarker;
-let aceTempRange;
+let aceTempMarker = null;
+let aceTempRange = null;
 //helper function to assist in the highligting of a blog mode preview
 function blogModeHighlightHelper(){    
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
@@ -2327,6 +2330,8 @@ function blogModeHighlightHelper(){
     }else{
         editor.session.removeMarker(aceTempMarker);
         clearHighlights();
+        aceTempMarker = null;
+        aceTempRange = null;
 
         blogModeNumberAboveSelector.max = 50;
         blogModeNumberBelowSelector.max = 50;
@@ -2350,6 +2355,8 @@ function undoBlogModeHighlight(){
     blogModeNumberBelowSelector.max = 50;
     blogModeNumberAboveSelector.value = 3;
     blogModeNumberBelowSelector.value = 3;
+    aceTempMarker = null;
+    aceTempRange = null;
 }
 
 function getAllComments(){

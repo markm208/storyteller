@@ -71,7 +71,7 @@ async function initializePlayback()
 }
 
 // Puts together a full comment object to be pushed to the server
-function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData)
+function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData, blogmodeRange)
 {
     const comment = {
         commentText,
@@ -86,7 +86,8 @@ function createCommentObject(commentText, dspEvent, selectedCode, imgURLs, vidUR
         currentFilePath: currentFilePath,
         viewableBlogText: viewableBlogText,
         commentTags: commentTags,
-        questionCommentData: questionCommentData
+        questionCommentData: questionCommentData,
+        blogmodeRange: blogmodeRange
     };    
 
     return comment;
@@ -392,8 +393,8 @@ function setupEventListeners()
 
             const questionCommentData = getQuestionCommentData(document.querySelector('#addCommentButton'));
             if (questionCommentData !== undefined){
-                //create an object that has all of the comment info
-                const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);                
+                const blogModeHighlightObj = {fileId: playbackData.activeEditorFileId, range: aceTempRange};
+                const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData, blogModeHighlightObj);                
 
                 //determine if any comments already exist for this event 
                 //if so add the new comment
@@ -1444,6 +1445,9 @@ async function updateComment(){
         const questionCommentData = getQuestionCommentData(document.getElementById("UpdateCommentButton"));
         if (questionCommentData !== undefined){
             //create an object that has all of the comment info
+
+            aceTempMarker;
+            aceTempRange;
             const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);
             //add the developer group id to the comment object and its id
             comment.developerGroupId = commentObject.developerGroupId;

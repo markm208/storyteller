@@ -74,6 +74,25 @@ function addHighlight(fileId, startRow, startColumn, endRow, endColumn) {
     }
 }
 
+function addBlogModeHightlightInCodeView(fileId, range) {
+    //get the editor where the highlight will take place
+    const editor = playbackData.editors[fileId];
+    //if it still exists (editors can be removed when moving in reverse)
+    if(editor) {
+        //create a marker in the right range
+        const marker = editor.getSession().addMarker(new AceRange(range.start.row, range.start.column, range.end.row, range.end.column), 'blogModeHighlightInCodeView', 'text', true);
+        //editor.session.selection.addRange(new ace.Range(startRow, startColumn, endRow, endColumn));
+        
+        //if there is not an entry for this file yet
+        // if(!playbackData.blogModeHighlights[fileId]) {
+        //     //create an array to hold ace marker ids
+        //     playbackData.blogModeHighlights[fileId] = [];
+        // }
+        //add the id of the new marker so it can be cleared later
+        playbackData.blogModeHighlights[fileId] = marker;
+    }
+}
+
 /*
 * Function to clear all the highlights.
 */
@@ -93,11 +112,14 @@ function clearHighlights() {
                 //remove the marker
                 editor.getSession().removeMarker(highlightMarkerIds[i]);
             }
+            editor.getSession().removeMarker(playbackData.blogModeHighlights[fileId]);            
         }
         //get rid of the highlights for this file
         delete playbackData.highlights[fileId];
+        delete playbackData.blogModeHighlights[fileId]
     }
 }
+
 /*
  * Adds a new code highlight to any code added since the last pause point.
  * There is a new code marker created for only the files that have changed
