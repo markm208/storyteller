@@ -393,7 +393,7 @@ function setupEventListeners()
 
             const questionCommentData = getQuestionCommentData(document.querySelector('#addCommentButton'));
             if (questionCommentData !== undefined){
-                const blogModeHighlightObj = {fileId: playbackData.activeEditorFileId, range: aceTempRange};
+                const blogModeHighlightObj = aceTempRange === null ? null : {fileId: playbackData.activeEditorFileId, range: aceTempRange};
                 const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData, blogModeHighlightObj);                
 
                 //determine if any comments already exist for this event 
@@ -1446,9 +1446,8 @@ async function updateComment(){
         if (questionCommentData !== undefined){
             //create an object that has all of the comment info
 
-            aceTempMarker;
-            aceTempRange;
-            const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);
+            const blogModeHighlightObj = aceTempRange === null ? null : {fileId: playbackData.activeEditorFileId, range: aceTempRange};
+            const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData, blogModeHighlightObj);
             //add the developer group id to the comment object and its id
             comment.developerGroupId = commentObject.developerGroupId;
             comment.id = commentObject.id;

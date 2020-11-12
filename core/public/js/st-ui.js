@@ -301,7 +301,6 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
         {
             addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
-
         }
         addBlogModeHightlightInCodeView(commentObject.blogModeHightlightRange.fileId, commentObject.blogModeHightlightRange.range);
 
@@ -665,7 +664,6 @@ function createEditCommentButton(commentObject, buttonText){
   
         updateCommentButton.addEventListener( 'click' ,async event => {
             event.stopImmediatePropagation();
-
             pauseMedia();
             //get the active editor
             const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
@@ -2299,6 +2297,8 @@ let aceTempMarker = null;
 let aceTempRange = null;
 //helper function to assist in the highligting of a blog mode preview
 function blogModeHighlightHelper(){    
+    clearHighlights();
+
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
     
     const selection = editor.getSelectedText();

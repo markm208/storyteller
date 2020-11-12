@@ -1258,6 +1258,6 @@ input[type=number]::-webkit-outer-spin-button {
 .blogModeHighlightInCodeView {
     position:absolute;
     z-index:20; /* place in a layer above anything with a lower z-index */
-    background-color:red;
+    background-color: red;
     opacity: 30%;
 }

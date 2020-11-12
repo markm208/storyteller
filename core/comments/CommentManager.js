@@ -111,7 +111,7 @@ class CommentManager extends FileBackedCollection {
                 //find the correct comment based on its id
                 if(allCommentsForAnEvent[i].id === commentData.id) {
                     //create an updated comment object
-                    const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.linesAbove, commentData.linesBelow, commentData.currentFilePath, commentData.viewableBlogText, commentData.commentTags, commentData.questionCommentData, commentdata.blogmodeRange, commentData.id);
+                    const updatedComment = new Comment(commentData.displayCommentEvent, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.linesAbove, commentData.linesBelow, commentData.currentFilePath, commentData.viewableBlogText, commentData.commentTags, commentData.questionCommentData, commentData.blogmodeRange, commentData.id);
                     //update the comment
                     allCommentsForAnEvent[i] = updatedComment;
                     return updatedComment;
