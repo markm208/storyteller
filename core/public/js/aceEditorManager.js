@@ -228,10 +228,22 @@ function clearDeleteLineNumbers() {
         delete playbackData.deleteGutterHighlights[fileId];
     }
 }
-function scrollToLine(fileId, lineNumber, column) {
+function scrollToLineIMPL(fileId, lineNumber, column) {
     if(playbackData.editors[fileId]) {
         playbackData.editors[fileId].scrollToLine(lineNumber, true, true);
         //scroll to the cursor
         playbackData.editors[fileId].navigateTo(lineNumber,column);
     }
+    clearInterval(scrollTimer);
+    scrollTimer = null;
+}
+
+//without this middle step between the call to scrollToLine and the actual scrolling,
+//sometimes the scroll doesn't happen
+let scrollTimer = null;
+function scrollToLine(fileId, lineNumber, column){
+    if (scrollTimer === null)
+    scrollTimer =setInterval(function() {
+        scrollToLineIMPL(fileId, lineNumber, column);
+    }, 1);
 }

@@ -152,7 +152,7 @@ function stepForward(numSteps) {
 
         //make the correct editor active
         addFocusToTab(activeFileId);
-        scrollToLine(activeFileId, activeLineNumber, activeColumn);
+        //scrollToLine(activeFileId, activeLineNumber, activeColumn);
 
         //highlight the new code
         highlightNewCode(newCodeMarkers.getAllNewCodeMarkers());

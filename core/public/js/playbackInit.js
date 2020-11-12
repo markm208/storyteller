@@ -575,7 +575,7 @@ function setupEventListeners()
         stopAutomaticPlayback();
 
         //generate a list of all comment divs
-        const allCommentDivs = [...document.querySelectorAll('[data-commenteventid]:not(#title-card)')];
+        const allCommentDivs = [...document.querySelectorAll('.codeView [data-commenteventid]:not(#title-card)')];
 
         //get the currently selected comment div, if any
         const selectedComment = document.getElementsByClassName("activeComment")[0];      
@@ -1126,7 +1126,7 @@ function jumpToPreviousComment()
     stopAutomaticPlayback();
 
     //generate a list of all comment divs
-    const allCommentDivs = [...document.getElementsByClassName("drag")];
+    const allCommentDivs = [...document.querySelectorAll('.codeView [data-commenteventid]:not(#title-card)')];
 
     //get the currently selected comment div, if any
     const selectedComment = document.getElementsByClassName("activeComment")[0];      
@@ -1170,6 +1170,7 @@ function jumpToPreviousComment()
     //make the description active
     else{
         document.querySelector(`.codeView [data-commenteventid="ev-0"`).click(); 
+        document.querySelector(".commentsDivScroll").scrollTop = 0; 
     }      
 }
 
