@@ -99,14 +99,7 @@ function setupEventListeners()
     const stepForwardOne = document.getElementById("stepForwardOne");
     const playbackSlider = document.getElementById("playbackSlider");
     const fastForwardButton = document.getElementById("fastForwardButton");
-
-    const topBar = document.getElementById('top-bar');
-
-
-    //Get references to the tabs and where the tabs get their content
-    const tabsList = document.getElementById('tabsList');
-    const tabContent = document.getElementById('tabContent');
-
+    
     playbackSlider.setAttribute('max', playbackData.numEvents);
     playbackSlider.setAttribute('min', playbackData.numNonRelevantEvents);
     
@@ -147,52 +140,9 @@ function setupEventListeners()
         stopAutomaticPlayback();
     });
 
-
     //Setup the title buttons and data
     const playbackTitleDiv = document.getElementById('playbackTitleDiv');
     playbackTitleDiv.innerHTML = playbackData.playbackTitle;
-    //const editTitleButton = document.getElementById('editTitleButton');
-
-    // editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
-
-    // const acceptTitleChanges = document.getElementById('acceptTitleChanges');
-    // acceptTitleChanges.classList.add("btn", "btn-outline-dark", "btn-sm");
-    // acceptTitleChanges.style.display = "none";
-
-    // editTitleButton.addEventListener('click', event => {
-    //     stopAutomaticPlayback();
-    //     playbackTitleDiv.setAttribute("contenteditable", "true");
-
-    //     editTitleButton.style.display = "none";
-    //     acceptTitleChanges.style.display = "inline-block";
-
-    // });
-
-    // acceptTitleChanges.addEventListener('click', event => {
-
-    //     const titleData = playbackTitleDiv.innerHTML;
-
-    //     updateTitle(titleData);
-
-    //     playbackData.playbackTitle = titleData;
-
-    //     const titleCardHeader = document.getElementById('descriptionHeader');
-    //     titleCardHeader.innerHTML = playbackData.playbackTitle;
-
-    //     playbackTitleDiv.setAttribute("contenteditable", "false");
-
-    //     acceptTitleChanges.style.display = "none";
-    //     editTitleButton.style.display = "inline-block";
-
-    //     document.querySelector('.blogTitle').innerHTML = titleData;
-
-    // });
-
-    // if (!playbackData.isEditable)
-    // {
-    //     editTitleButton.style.display = 'none';
-    //     acceptTitleChanges.style.display = 'none';
-    // }
 
     //bold button
     document.querySelector('#boldCommentButton').addEventListener('click', event => {
@@ -512,6 +462,7 @@ function setupEventListeners()
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
             {
+                stopAutomaticPlayback();
                 //left and right arrow are step one
                 step(1);                
             }
@@ -532,6 +483,7 @@ function setupEventListeners()
         else if (keyPressed === 'ArrowLeft'){
             if (!shiftPressed)
             {
+                stopAutomaticPlayback();
                 //left and right arrow are step one
                 step(-1);
             }

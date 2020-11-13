@@ -152,7 +152,7 @@ function stepForward(numSteps) {
 
         //make the correct editor active
         addFocusToTab(activeFileId);
-        //scrollToLine(activeFileId, activeLineNumber, activeColumn);
+        scrollToLine(activeFileId, activeLineNumber, activeColumn);
 
         //highlight the new code
         highlightNewCode(newCodeMarkers.getAllNewCodeMarkers());
@@ -198,6 +198,9 @@ function stepBackward(numSteps) {
         //current developer group id
         let currentDeveloperGroupId;
 
+        activeLineNumber = 0;
+        activeColumn = 0;
+
         //to account for the fact that nextEventPosition always 
         //refers to the next event to animate in the forward 
         //direction I move it back by one position
@@ -216,6 +219,8 @@ function stepBackward(numSteps) {
                 case 'INSERT':
                     //set the active file
                     activeFileId = nextEvent.fileId;
+                    activeLineNumber = nextEvent.lineNumber;
+                    activeColumn = nextEvent.column;
                     //inverse operation
                     insertEventReverse(nextEvent);
                     break;
@@ -223,6 +228,8 @@ function stepBackward(numSteps) {
                 case 'DELETE':
                     //set the active file
                     activeFileId = nextEvent.fileId;
+                    activeLineNumber = nextEvent.lineNumber;
+                    activeColumn = nextEvent.column;
                     //inverse operation
                     deleteEventReverse(nextEvent);
                     break;
@@ -294,6 +301,7 @@ function stepBackward(numSteps) {
 
         //make the correct editor active
         addFocusToTab(activeFileId);
+        scrollToLine(activeFileId, activeLineNumber, activeColumn);
 
         //update the current dev group avatars
         updateCurrentDeveloperGroupAvatars(currentDeveloperGroupId);

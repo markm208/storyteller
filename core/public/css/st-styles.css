@@ -1255,3 +1255,7 @@ input[type=number]::-webkit-outer-spin-button {
 .questionNumberDiv{
     display: inline-flex;
 }
+
+.ace_scrollbar-h{
+    height: 16px;
+}
