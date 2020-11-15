@@ -485,7 +485,7 @@ async function createCommentMedia(commentMediaURLs, zip) {
 
         //add the media blobs to the zip
         for(let i = 0;i < mediaBlobs.length;i++) {
-            zip.file(`.storyteller/comments${commentMediaURLs[i]}`, mediaBlobs[i]);
+            zip.file(`.storyteller/comments/${commentMediaURLs[i]}`, mediaBlobs[i]);
         }
     } catch (error) {
         console.log(error);

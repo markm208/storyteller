@@ -354,7 +354,7 @@
 .playbackViewFileOrDirList
 {
     list-style-type: none;
-    color: grey;
+    color: white;
 }
 
 .playbackWindow {
@@ -1252,4 +1252,12 @@ input[type=number]::-webkit-outer-spin-button {
 
 .questionNumberDiv{
     display: inline-flex;
+}
+
+#zipStatus{
+    color: white;
+}
+
+.zipComplete{
+    color: black !important;
 }
