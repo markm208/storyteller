@@ -263,6 +263,7 @@ function setupEventListeners()
 
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
         stopAutomaticPlayback();        
+        clearHighlights();
 
         //if the user entered a tag but forgot to add it, add it now
         document.getElementById("addCommentTagButton").click(); 
