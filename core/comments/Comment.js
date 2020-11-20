@@ -5,7 +5,7 @@
  * two array of images and videos.
  */
 class Comment {
-    constructor(displayCommentEvent, developerGroupId, timestamp, commentText, selectedCodeBlocks, imageURLs, videoURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData, blogModeHightlightRange, id) {
+    constructor(displayCommentEvent, developerGroupId, timestamp, commentText, selectedCodeBlocks, imageURLs, videoURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData, blogModeHighlightRange, id) {
         //if an id is supplied, use it
         if(id) {
             this.id = id;
@@ -33,7 +33,7 @@ class Comment {
         this.viewableBlogText = viewableBlogText;
         //this.commentTags = commentTags;
         this.questionCommentData = questionCommentData;
-        this.blogModeHightlightRange = blogModeHightlightRange;
+        this.blogModeHighlightRange = blogModeHighlightRange;
     }
 
     generateId() {
