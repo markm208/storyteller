@@ -1257,5 +1257,5 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .ace_scrollbar-h{
-    height: 16px;
+    height: 16px !important;
 }
