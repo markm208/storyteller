@@ -3055,3 +3055,14 @@ function updateQuestionCommentCounts(){
         allQuestionsBlog[i].childNodes[0].nodeValue = i + 1 + '.';
     }
 }
+
+//Removes any selected text in the page.
+function removeSelectedTextFromPage(){
+    if (window.getSelection) {
+        if (window.getSelection().empty) {  // Chrome
+            window.getSelection().empty();
+        } else if (window.getSelection().removeAllRanges) {  // Firefox
+            window.getSelection().removeAllRanges();
+        }
+    }
+}

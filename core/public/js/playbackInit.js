@@ -525,15 +525,7 @@ function setupEventListeners()
 
     //moves forward in the playback comment by comment
     fastForwardButton.addEventListener('click', event =>{
-        //Removes any selected text in the page. Without this the fast forward button wont scroll the active comment to the top
-        //This might be better in its own function in case it's needed somewhere else
-        if (window.getSelection) {
-            if (window.getSelection().empty) {  // Chrome
-              window.getSelection().empty();
-            } else if (window.getSelection().removeAllRanges) {  // Firefox
-              window.getSelection().removeAllRanges();
-            }
-        }
+        removeSelectedTextFromPage();
         stopAutomaticPlayback();
 
         //generate a list of all comment divs
@@ -1087,6 +1079,7 @@ function stopAutomaticPlayback(){
 function jumpToPreviousComment()
 {
     stopAutomaticPlayback();
+    removeSelectedTextFromPage();
 
     //generate a list of all comment divs
     const allCommentDivs = [...document.querySelectorAll('.codeView [data-commenteventid]:not(#title-card)')];
