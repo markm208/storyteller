@@ -290,7 +290,6 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardFinal.addEventListener('click', function (){ 
         
         stopAutomaticPlayback();
-
         //step to the event this comment is at
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
@@ -313,6 +312,19 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
             //scroll to the first selected block
             scrollToLine(commentObject.selectedCodeBlocks[0].fileId, commentObject.selectedCodeBlocks[0].startRow);
         }
+
+        //remove all activeCarousel classes from the document
+        document.querySelectorAll('.activeCarousel').forEach(img =>{
+            img.classList.remove('activeCarousel');
+            img.classList.add('nonActiveCarousel')
+
+        })
+        //add activeCarousel class to all images in this comment
+        cardFinal.querySelectorAll('.carousel-item').forEach(img =>{
+            img.classList.remove('nonActiveCarousel');
+            img.classList.add('activeCarousel')
+        })
+
     });
 
     addMediaToCommentDiv(cardFinal, commentObject);

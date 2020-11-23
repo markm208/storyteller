@@ -14,6 +14,10 @@
     background-color: rgb(59,76,98);
 }
 
+.activeComment{
+    background-color: rgb(59,76,98);
+}
+
 .activeGroup > .commentBlockBackground{
     background-color: gray;
 }
@@ -22,36 +26,27 @@
 {
     background-color: rgb(59,76,98);
     margin: 5px;
-
 }
 
 .activeSearchResultComment > .card-body 
 {
     background-color: rgb(59,76,98) !important;
-
 }
 
 .activeSearchResultComment > .carousel-item img
 {
     background-color: rgb(59,76,98) !important;
-
 }
-
 
 .activeSearchResultComment {
     background-color: rgb(59,76,98);
-
 }
 
 .activeSearchResultCommentImg {
     background-color: rgb(59,76,98) !important;
-
 }
 
-
-
 .activeSearchResultComment > .commentCardHeaderColor {
-
     background-color: rgb(59,76,98);
 }
 
@@ -98,6 +93,7 @@
 .carousel-item{
     width: 100%; 
     height: fit-content;
+    max-height: 400px;
     overflow: hidden;
 }
 
@@ -1094,11 +1090,12 @@ input[type=number]::-webkit-outer-spin-button {
     height: 100%;
     object-fit: contain;
     cursor: zoom-in;
+    max-height: 400px;
     padding-top: 10px;
 }
 
 .nonActiveCarousel{
-    background-color: rgb(51,51,51);
+    background-color: rgb(31,31,31);
 }
 
 .activeCarousel{
