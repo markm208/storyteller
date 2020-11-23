@@ -607,6 +607,7 @@ function setupEventListeners()
 
     document.getElementById("mainAddCommentButton").addEventListener('click', event => {     
         stopAutomaticPlayback();
+        clearHighlights();
 
         //remove 'checked' status from the questionCheckBox
         if ($('input#questionCheckBox').is(':checked')) {

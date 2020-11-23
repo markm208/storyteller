@@ -5,6 +5,7 @@ function step(numSteps) {
     clearInsertLineNumbers();
     clearDeleteLineNumbers();
     clearHighlightChangedFiles();
+    removeActiveCommentAndGroup();
  
     //move forward
     if(numSteps > 0) {
@@ -12,8 +13,6 @@ function step(numSteps) {
     } else if(numSteps < 0) { //move backward
         stepBackward(-numSteps);
     } //else- no need to move at all
-
-
 }
 /*
  * Handles moving forward through some events.
@@ -188,8 +187,6 @@ function stepForward(numSteps) {
 function stepBackward(numSteps) {
     //if there is room to move backwards
     if(playbackData.nextEventPosition > playbackData.numNonRelevantEvents) {
-        removeActiveCommentAndGroup();
-
         //holds the next event to animate
         let nextEvent;
 
