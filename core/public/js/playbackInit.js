@@ -455,6 +455,11 @@ function setupEventListeners()
         if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar' || e.target.classList.contains('questionCommentInput') || e.target.id === 'commentQuestion'){
             return;
         }
+        else if ($('#imgExpandModal').is(':visible')){
+            if (e.key !== "Escape"){
+                return;
+            }
+        }
        
         const keyPressed = e.key;
         const shiftPressed = e.shiftKey;
