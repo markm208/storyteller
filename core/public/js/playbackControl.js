@@ -5,6 +5,7 @@ function step(numSteps) {
     clearInsertLineNumbers();
     clearDeleteLineNumbers();
     clearHighlightChangedFiles();
+    removeActiveCommentAndGroup();
  
     //move forward
     if(numSteps > 0) {
@@ -12,8 +13,6 @@ function step(numSteps) {
     } else if(numSteps < 0) { //move backward
         stepBackward(-numSteps);
     } //else- no need to move at all
-
-
 }
 /*
  * Handles moving forward through some events.
@@ -188,8 +187,6 @@ function stepForward(numSteps) {
 function stepBackward(numSteps) {
     //if there is room to move backwards
     if(playbackData.nextEventPosition > playbackData.numNonRelevantEvents) {
-        removeActiveCommentAndGroup();
-
         //holds the next event to animate
         let nextEvent;
 
@@ -197,6 +194,9 @@ function stepBackward(numSteps) {
         let activeFileId = 'no-file-id';
         //current developer group id
         let currentDeveloperGroupId;
+
+        activeLineNumber = 0;
+        activeColumn = 0;
 
         //to account for the fact that nextEventPosition always 
         //refers to the next event to animate in the forward 
@@ -216,6 +216,8 @@ function stepBackward(numSteps) {
                 case 'INSERT':
                     //set the active file
                     activeFileId = nextEvent.fileId;
+                    activeLineNumber = nextEvent.lineNumber;
+                    activeColumn = nextEvent.column;
                     //inverse operation
                     insertEventReverse(nextEvent);
                     break;
@@ -223,6 +225,8 @@ function stepBackward(numSteps) {
                 case 'DELETE':
                     //set the active file
                     activeFileId = nextEvent.fileId;
+                    activeLineNumber = nextEvent.lineNumber;
+                    activeColumn = nextEvent.column;
                     //inverse operation
                     deleteEventReverse(nextEvent);
                     break;
@@ -294,6 +298,7 @@ function stepBackward(numSteps) {
 
         //make the correct editor active
         addFocusToTab(activeFileId);
+        scrollToLine(activeFileId, activeLineNumber, activeColumn);
 
         //update the current dev group avatars
         updateCurrentDeveloperGroupAvatars(currentDeveloperGroupId);

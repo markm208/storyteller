@@ -290,7 +290,6 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardFinal.addEventListener('click', function (){ 
         
         stopAutomaticPlayback();
-
         //step to the event this comment is at
         step(commentObject.displayCommentEvent.eventSequenceNumber - playbackData.nextEventPosition + 1);
 
@@ -533,6 +532,12 @@ function updateActiveComment(commentToMakeActive)
     commentToMakeActive.classList.add("activeComment");
 
     commentToMakeActive.closest(".commentGroupSpacing").classList.add("activeGroup"); 
+
+    //add activeCarousel class to all images in this comment
+    commentToMakeActive.querySelectorAll('.carousel-item').forEach(img =>{
+        img.classList.remove('nonActiveCarousel');
+        img.classList.add('activeCarousel')
+    })
 
     //if we're in code view, scroll blog mode to the new active comment
     if (!playbackData.isInBlogMode){
@@ -1950,11 +1955,17 @@ function updateCurrentDeveloperGroupAvatars(devGroupId) {
 }
 
 function removeActiveCommentAndGroup(){
-    const activeComment = document.getElementsByClassName('activeComment')[0];
+    const activeComment = document.querySelector('.codeView .activeComment');
     if (activeComment){        
         activeComment.closest('.activeGroup').classList.remove('activeGroup');
         activeComment.classList.remove('activeCommentBorder');
         activeComment.classList.remove('activeComment');
+
+        //remove active class from all images in the active comment
+        activeComment.querySelectorAll('.activeCarousel').forEach(img =>{
+            img.classList.remove('activeCarousel');
+            img.classList.add('nonActiveCarousel');    
+        })
     }
 }
 
@@ -3053,5 +3064,16 @@ function updateQuestionCommentCounts(){
     for (let i = 0; i < allQuestionsCode.length; i++){        
         allQuestionsCode[i].childNodes[0].nodeValue = i + 1 + '.';
         allQuestionsBlog[i].childNodes[0].nodeValue = i + 1 + '.';
+    }
+}
+
+//Removes any selected text in the page.
+function removeSelectedTextFromPage(){
+    if (window.getSelection) {
+        if (window.getSelection().empty) {  // Chrome
+            window.getSelection().empty();
+        } else if (window.getSelection().removeAllRanges) {  // Firefox
+            window.getSelection().removeAllRanges();
+        }
     }
 }
