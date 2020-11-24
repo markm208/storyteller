@@ -517,6 +517,7 @@ function setupEventListeners()
             document.getElementById("CancelUpdateButton").click();
         }
         else if (e.code === "Space"){
+            e.preventDefault();
             const playButton = document.getElementById("continuousPlayButton");
             const pauseButton = document.getElementById("pausePlayButton");
             if (pauseButton.classList.contains("automaticPlaybackInactive")){
