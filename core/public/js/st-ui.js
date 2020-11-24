@@ -301,8 +301,9 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         {
             addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
         }
-        addBlogModeHighlightInCodeView(commentObject.blogModeHighlightRange.fileId, commentObject.blogModeHighlightRange.range);
-
+        if (commentObject.blogModeHighlightRange){
+            addBlogModeHighlightInCodeView(commentObject.blogModeHighlightRange.fileId, commentObject.blogModeHighlightRange.range);
+        }
 
         //if there is some highlighted code
         if(commentObject.selectedCodeBlocks.length > 0) {
