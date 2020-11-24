@@ -346,7 +346,7 @@
 .playbackViewFileOrDirList
 {
     list-style-type: none;
-    color: grey;
+    color: white;
 }
 
 .playbackWindow {
@@ -1252,4 +1252,12 @@ input[type=number]::-webkit-outer-spin-button {
 
 .ace_scrollbar-h{
     height: 16px !important;
+}
+
+#zipStatus{
+    color: white;
+}
+
+.zipComplete{
+    color: black !important;
 }
