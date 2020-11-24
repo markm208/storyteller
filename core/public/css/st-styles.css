@@ -14,6 +14,10 @@
     background-color: rgb(59,76,98);
 }
 
+.activeComment{
+    background-color: rgb(59,76,98);
+}
+
 .activeGroup > .commentBlockBackground{
     background-color: gray;
 }
@@ -22,36 +26,27 @@
 {
     background-color: rgb(59,76,98);
     margin: 5px;
-
 }
 
 .activeSearchResultComment > .card-body 
 {
     background-color: rgb(59,76,98) !important;
-
 }
 
 .activeSearchResultComment > .carousel-item img
 {
     background-color: rgb(59,76,98) !important;
-
 }
-
 
 .activeSearchResultComment {
     background-color: rgb(59,76,98);
-
 }
 
 .activeSearchResultCommentImg {
     background-color: rgb(59,76,98) !important;
-
 }
 
-
-
 .activeSearchResultComment > .commentCardHeaderColor {
-
     background-color: rgb(59,76,98);
 }
 
@@ -97,13 +92,10 @@
 
 .carousel-item{
     width: 100%; 
-    height: 350px;
+    height: fit-content;
+    max-height: 400px;
     overflow: hidden;
 }
-
-
-
-
 
 .codePanel{
     width: 74vw;            
@@ -354,7 +346,7 @@
 .playbackViewFileOrDirList
 {
     list-style-type: none;
-    color: grey;
+    color: white;
 }
 
 .playbackWindow {
@@ -951,11 +943,13 @@ input[type=number]::-webkit-outer-spin-button {
     border: none;
 }
 
-
 .modal-body{
     background-color: rgb(31,31,31);
-    color: lightgrey;
-    
+    color: lightgrey;    
+}
+
+.modal-content{
+    background-color: rgb(51,51,51);
 }
 
 .modal-header{
@@ -1053,7 +1047,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .searchDivScroll{
     overflow-y: scroll;
-    height: 88vh;
+    height: 85vh;
     word-wrap: break-word;
     width: 25vw; 
 }
@@ -1096,10 +1090,12 @@ input[type=number]::-webkit-outer-spin-button {
     height: 100%;
     object-fit: contain;
     cursor: zoom-in;
+    max-height: 400px;
+    padding-top: 10px;
 }
 
 .nonActiveCarousel{
-    background-color: rgb(51,51,51);
+    background-color: rgb(31,31,31);
 }
 
 .activeCarousel{
@@ -1260,4 +1256,16 @@ input[type=number]::-webkit-outer-spin-button {
     z-index:20; /* place in a layer above anything with a lower z-index */
     background-color: rgb(221, 221, 221);
     opacity: 10%;
+}
+
+.ace_scrollbar-h{
+    height: 16px !important;
+}
+
+#zipStatus{
+    color: white;
+}
+
+.zipComplete{
+    color: black !important;
 }

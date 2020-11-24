@@ -34,7 +34,6 @@ function createAceEditor(codeDiv, filePath, fileId)
     tempEditor.setShowPrintMargin(false);
     //sets the font size to the last value selected by the user, or the default
     tempEditor.setFontSize(playbackData.aceFontSize);
-
     //sets the mode for the editor based on the file it will display
     setEditorMode(tempEditor, filePath);
 
@@ -250,20 +249,12 @@ function clearDeleteLineNumbers() {
         delete playbackData.deleteGutterHighlights[fileId];
     }
 }
-
 function scrollToLineIMPL(fileId, lineNumber, column) {
     if(playbackData.editors[fileId]) {
-       // playbackData.editors[fileId].scrollToLine(lineNumber, true, true);
-        //scroll to the cursor
-       // playbackData.editors[fileId].navigateTo(lineNumber,column);
-
-
-       const editor = playbackData.editors[fileId];
-       //editor.resize(true);
-
-       // editor.scrollToLine(lineNumber, true, true, function () {});
-
-        editor.gotoLine(lineNumber, column, true);
+        // playbackData.editors[fileId].scrollToLine(lineNumber, true, true);
+        // //scroll to the cursor
+        // playbackData.editors[fileId].navigateTo(lineNumber,column);
+        playbackData.editors[fileId].renderer.scrollCursorIntoView({row: lineNumber, column: column}, 0.5);
     }
     clearInterval(scrollTimer);
     scrollTimer = null;
@@ -273,9 +264,8 @@ function scrollToLineIMPL(fileId, lineNumber, column) {
 //sometimes the scroll doesn't happen
 let scrollTimer = null;
 function scrollToLine(fileId, lineNumber, column){
-    if (scrollTimer === null){
-        scrollTimer = setInterval(function() {
-            scrollToLineIMPL(fileId, lineNumber, column)
-        }, 1);
-    }
+    if (scrollTimer === null)
+    scrollTimer =setInterval(function() {
+        scrollToLineIMPL(fileId, lineNumber, column);
+    }, 1);
 }

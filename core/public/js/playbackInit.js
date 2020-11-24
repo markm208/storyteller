@@ -43,7 +43,7 @@ async function initializePlayback()
         document.getElementById("mainAddCommentButton").classList.remove("mainAddCommentButtonNoEdit");
     }
     else{
-        commentsDiv.style.height = "92vh";
+        commentsDiv.style.height = "90vh";
     }
 
     //get the query string params from the url
@@ -100,14 +100,7 @@ function setupEventListeners()
     const stepForwardOne = document.getElementById("stepForwardOne");
     const playbackSlider = document.getElementById("playbackSlider");
     const fastForwardButton = document.getElementById("fastForwardButton");
-
-    const topBar = document.getElementById('top-bar');
-
-
-    //Get references to the tabs and where the tabs get their content
-    const tabsList = document.getElementById('tabsList');
-    const tabContent = document.getElementById('tabContent');
-
+    
     playbackSlider.setAttribute('max', playbackData.numEvents);
     playbackSlider.setAttribute('min', playbackData.numNonRelevantEvents);
     
@@ -148,52 +141,9 @@ function setupEventListeners()
         stopAutomaticPlayback();
     });
 
-
     //Setup the title buttons and data
     const playbackTitleDiv = document.getElementById('playbackTitleDiv');
     playbackTitleDiv.innerHTML = playbackData.playbackTitle;
-    //const editTitleButton = document.getElementById('editTitleButton');
-
-    // editTitleButton.classList.add("btn", "btn-outline-dark", "btn-sm");
-
-    // const acceptTitleChanges = document.getElementById('acceptTitleChanges');
-    // acceptTitleChanges.classList.add("btn", "btn-outline-dark", "btn-sm");
-    // acceptTitleChanges.style.display = "none";
-
-    // editTitleButton.addEventListener('click', event => {
-    //     stopAutomaticPlayback();
-    //     playbackTitleDiv.setAttribute("contenteditable", "true");
-
-    //     editTitleButton.style.display = "none";
-    //     acceptTitleChanges.style.display = "inline-block";
-
-    // });
-
-    // acceptTitleChanges.addEventListener('click', event => {
-
-    //     const titleData = playbackTitleDiv.innerHTML;
-
-    //     updateTitle(titleData);
-
-    //     playbackData.playbackTitle = titleData;
-
-    //     const titleCardHeader = document.getElementById('descriptionHeader');
-    //     titleCardHeader.innerHTML = playbackData.playbackTitle;
-
-    //     playbackTitleDiv.setAttribute("contenteditable", "false");
-
-    //     acceptTitleChanges.style.display = "none";
-    //     editTitleButton.style.display = "inline-block";
-
-    //     document.querySelector('.blogTitle').innerHTML = titleData;
-
-    // });
-
-    // if (!playbackData.isEditable)
-    // {
-    //     editTitleButton.style.display = 'none';
-    //     acceptTitleChanges.style.display = 'none';
-    // }
 
     //bold button
     document.querySelector('#boldCommentButton').addEventListener('click', event => {
@@ -314,6 +264,7 @@ function setupEventListeners()
 
     document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
         stopAutomaticPlayback();        
+        clearHighlights();
 
         //if the user entered a tag but forgot to add it, add it now
         document.getElementById("addCommentTagButton").click(); 
@@ -505,6 +456,11 @@ function setupEventListeners()
         if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar' || e.target.classList.contains('questionCommentInput') || e.target.id === 'commentQuestion'){
             return;
         }
+        else if ($('#imgExpandModal').is(':visible')){
+            if (e.key !== "Escape"){
+                return;
+            }
+        }
        
         const keyPressed = e.key;
         const shiftPressed = e.shiftKey;
@@ -513,6 +469,7 @@ function setupEventListeners()
         if (keyPressed === 'ArrowRight'){
             if (!shiftPressed)
             {
+                stopAutomaticPlayback();
                 //left and right arrow are step one
                 step(1);                
             }
@@ -533,6 +490,7 @@ function setupEventListeners()
         else if (keyPressed === 'ArrowLeft'){
             if (!shiftPressed)
             {
+                stopAutomaticPlayback();
                 //left and right arrow are step one
                 step(-1);
             }
@@ -560,6 +518,7 @@ function setupEventListeners()
             document.getElementById("CancelUpdateButton").click();
         }
         else if (e.code === "Space"){
+            e.preventDefault();
             const playButton = document.getElementById("continuousPlayButton");
             const pauseButton = document.getElementById("pausePlayButton");
             if (pauseButton.classList.contains("automaticPlaybackInactive")){
@@ -573,10 +532,11 @@ function setupEventListeners()
 
     //moves forward in the playback comment by comment
     fastForwardButton.addEventListener('click', event =>{
+        removeSelectedTextFromPage();
         stopAutomaticPlayback();
 
         //generate a list of all comment divs
-        const allCommentDivs = [...document.querySelectorAll('[data-commenteventid]:not(#title-card)')];
+        const allCommentDivs = [...document.querySelectorAll('.codeView [data-commenteventid]:not(#title-card)')];
 
         //get the currently selected comment div, if any
         const selectedComment = document.getElementsByClassName("activeComment")[0];      
@@ -655,6 +615,7 @@ function setupEventListeners()
 
     document.getElementById("mainAddCommentButton").addEventListener('click', event => {     
         stopAutomaticPlayback();
+        clearHighlights();
 
         //remove 'checked' status from the questionCheckBox
         if ($('input#questionCheckBox').is(':checked')) {
@@ -1125,9 +1086,10 @@ function stopAutomaticPlayback(){
 function jumpToPreviousComment()
 {
     stopAutomaticPlayback();
+    removeSelectedTextFromPage();
 
     //generate a list of all comment divs
-    const allCommentDivs = [...document.getElementsByClassName("drag")];
+    const allCommentDivs = [...document.querySelectorAll('.codeView [data-commenteventid]:not(#title-card)')];
 
     //get the currently selected comment div, if any
     const selectedComment = document.getElementsByClassName("activeComment")[0];      
@@ -1171,6 +1133,7 @@ function jumpToPreviousComment()
     //make the description active
     else{
         document.querySelector(`.codeView [data-commenteventid="ev-0"`).click(); 
+        document.querySelector(".commentsDivScroll").scrollTop = 0; 
     }      
 }
 
