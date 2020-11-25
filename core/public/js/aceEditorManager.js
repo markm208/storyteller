@@ -251,10 +251,10 @@ function clearDeleteLineNumbers() {
 }
 function scrollToLineIMPL(fileId, lineNumber, column) {
     if(playbackData.editors[fileId]) {
-        // playbackData.editors[fileId].scrollToLine(lineNumber, true, true);
+         playbackData.editors[fileId].scrollToLine(lineNumber, true, true);
         // //scroll to the cursor
-        // playbackData.editors[fileId].navigateTo(lineNumber,column);
-        playbackData.editors[fileId].renderer.scrollCursorIntoView({row: lineNumber, column: column}, 0.5);
+         playbackData.editors[fileId].navigateTo(lineNumber,column);
+        //playbackData.editors[fileId].renderer.scrollCursorIntoView({row: lineNumber, column: column}, 0.5);
     }
     clearInterval(scrollTimer);
     scrollTimer = null;

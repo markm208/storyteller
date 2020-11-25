@@ -313,7 +313,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
                 addFocusToTab(commentObject.selectedCodeBlocks[0].fileId);
             }
             //scroll to the first selected block
-            scrollToLine(commentObject.selectedCodeBlocks[0].fileId, commentObject.selectedCodeBlocks[0].startRow);
+            scrollToLine(commentObject.selectedCodeBlocks[0].fileId, commentObject.selectedCodeBlocks[0].startRow, commentObject.selectedCodeBlocks[0].startColumn);
         }
     });
 
@@ -480,13 +480,11 @@ function addMediaToCommentDiv(commentDivToAddTo, commentObject)
                 //get the src of the current active image from the carousel that was clicked on       
                 modalImg.src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
 
-                $('#imgExpandModal').modal('show')                   
+                $('#imgExpandModal').modal('show');                 
             }
         });     
         
-        commentDivToAddTo.append(carousel);
-
-        
+        commentDivToAddTo.append(carousel);        
     }
     
     for (let i = 0; i < commentObject.videoURLs.length; i++){
@@ -721,7 +719,6 @@ function createCarousel(){
  *
  */
 function addImageToCarousel(src, carousel){
-
     const img = document.createElement('img');
     const imgDiv = document.createElement('div');
     const captionDiv = document.createElement('div');

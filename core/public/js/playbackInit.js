@@ -546,7 +546,7 @@ function setupEventListeners()
         //if no comment is selected
         if (!selectedComment){
             //use the slider position to determine the event number
-            let eventNum = Math.round(document.getElementById('slider').noUiSlider.get()) - 1;        
+            let eventNum = Math.round(document.getElementById('slider').noUiSlider.get());        
 
             let commentBlock;
 
@@ -667,14 +667,14 @@ function setupEventListeners()
     $('#UpdateCommentButton').popover('disable');
 
     document.getElementById("continuousPlayButton").addEventListener('click', event => {
-        removeActiveCommentAndGroup();
         document.getElementById("continuousPlayButton").classList.add("automaticPlaybackInactive");
         document.getElementById("pausePlayButton").classList.remove("automaticPlaybackInactive");
 
         playbackInterval = setInterval(function(){
             step(1);
 
-            if (playbackData.comments[`ev-${playbackData.nextEventPosition - 1}`]){   
+            //if we're at a comment but not at the last event, click the comment and stop playing
+            if (playbackData.comments[`ev-${playbackData.nextEventPosition - 1}`] && playbackData.nextEventPosition !== playbackData.numEvents){   
                 //get the comment card associated with the position             
                 const currentComment = document.querySelector(`.codeView [data-commenteventid="ev-${playbackData.nextEventPosition - 1}"]`);
 
