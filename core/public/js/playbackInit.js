@@ -239,7 +239,7 @@ function setupEventListeners()
     document.getElementById("addCommentTagButton").addEventListener('click', event =>{
         //get the new tag
         const tagInput = document.getElementById("tagInput");
-        let text = tagInput.value;  
+        let text = tagInput.value.replace(/ +(?= )/g,'').trim();
 
         //if there is an entered tag and it's not already included in the tags list
         if (text !== '' && !getAllTagsOnScreen().includes(text)){ 
@@ -545,7 +545,7 @@ function setupEventListeners()
         //if no comment is selected
         if (!selectedComment){
             //use the slider position to determine the event number
-            let eventNum = Math.round(document.getElementById('slider').noUiSlider.get()) - 1;        
+            let eventNum = Math.round(document.getElementById('slider').noUiSlider.get());        
 
             let commentBlock;
 
