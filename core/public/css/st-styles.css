@@ -1267,7 +1267,7 @@ input[type=number]::-webkit-outer-spin-button {
     /* background-color: grey; */
     /* opacity: .2; */
     /* color: white; */
-    background: rgba(59, 76, 98, 0.1); 
+    background-color: rgb(51, 51, 51); 
     /* padding-left: 10px;
     padding-right: 10px; */
 }
