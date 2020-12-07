@@ -2098,7 +2098,6 @@ function createBlogPost(commentToAdd){
 
 
     blogPost.append(textDiv);
-    addQuestionCommentToDiv(blogPost, commentToAdd, "blog");
 
     if (commentToAdd.videoURLs.length){
         for (let i = 0; i < commentToAdd.videoURLs.length; i++){
@@ -2224,6 +2223,7 @@ function createBlogPost(commentToAdd){
        
     }    
 
+    addQuestionCommentToDiv(blogPost, commentToAdd, "blog");
 
     if (commentToAdd.imageURLs.length){
         let imagesDiv = document.createElement('div');
@@ -2250,6 +2250,14 @@ function createBlogPost(commentToAdd){
         }    
         blogPost.append(imagesDiv);        
     }
+
+    blogPost.addEventListener("mouseover", function(){
+        blogPost.classList.add("testing")
+    })
+
+    blogPost.addEventListener("mouseleave", function(){
+        blogPost.classList.remove("testing");
+    })
  
     return blogPost;
 }

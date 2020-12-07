@@ -619,14 +619,14 @@ body.popup .toast-popup * {
 .blogStyle{
     margin-bottom: 40px;
     /* background-color: lightgrey; */
-    border-radius: 40px;
+    border-radius: 10px;
 }
 
 .blogViewContent{
     display: grid;    
     padding-bottom: 50px;
     background-color: rgb(37,37,37);
-    color: white;
+    color: white !important;
     padding: 10px 30px;    
 }
 
@@ -1261,4 +1261,13 @@ input[type=number]::-webkit-outer-spin-button {
 
 .zipComplete{
     color: black !important;
+}
+
+.testing{
+    /* background-color: grey; */
+    /* opacity: .2; */
+    /* color: white; */
+    background: rgba(211, 211, 211, 0.1); 
+    padding-left: 10px;
+    padding-right: 10px;
 }
