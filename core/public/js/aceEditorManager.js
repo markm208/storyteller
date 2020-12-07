@@ -233,6 +233,7 @@ function scrollToLineIMPL(fileId, lineNumber, column) {
         // //scroll to the cursor
         // playbackData.editors[fileId].navigateTo(lineNumber,column);
         playbackData.editors[fileId].renderer.scrollCursorIntoView({row: lineNumber, column: column}, 0.5);
+        playbackData.editors[fileId].gotoLine(lineNumber)
     }
     clearInterval(scrollTimer);
     scrollTimer = null;

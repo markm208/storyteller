@@ -473,7 +473,7 @@ function addMediaToCommentDiv(commentDivToAddTo, commentObject)
 
         carousel.addEventListener('click', event =>{
             //if the carousel is clicked on either the left or right button, dont show the enlarged image modal
-            if (!event.target.className.includes('carousel-control')){   
+            if ((!event.target.className.includes('carousel-control') && event.target.classList.contains("d-block"))){   
                 //get the src of the current active image from the carousel that was clicked on       
                 modalImg.src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
 
@@ -728,11 +728,17 @@ function addImageToCarousel(src, carousel){
     captionDiv.classList.add('carousel-caption', 'd-none', 'd-md-block');
     captionDiv.append(captionText);
 
+
+    
+
     img.src = src;
     img.classList.add('d-block','w-100');
 
+    let test = document.createElement("div")
+    test.append(img)
+
     imgDiv.classList.add('carousel-item', 'nonActiveCarousel');
-    imgDiv.append(img);
+    imgDiv.append(test);
     imgDiv.append(captionDiv);
 
     carousel.firstChild.append(imgDiv);
