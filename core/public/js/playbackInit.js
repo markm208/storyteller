@@ -728,6 +728,15 @@ function setupEventListeners()
         document.getElementById('optionsModal').querySelector('.nav-item').click();
     })    
 
+    $('#imgExpandModal').on('hidden.bs.modal', event => {
+        let img = document.createElement("img");
+        img.classList.add("modal-content");
+        img.setAttribute('id', 'imgToExpand')
+
+        document.querySelector('.imgExpandBody').innerHTML = "";
+        document.querySelector('.imgExpandBody').append(img);
+    })     
+
     document.getElementById("blogMode").addEventListener('click', event => {
         if (!playbackData.isInBlogMode){
             stopAutomaticPlayback();

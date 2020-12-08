@@ -465,21 +465,21 @@ function addMediaToCommentDiv(commentDivToAddTo, commentObject)
     const modalImg = document.getElementById('imgToExpand');
 
     for (let j = 0; j < commentObject.imageURLs.length; j++){
-        addImageToCarousel(commentObject.imageURLs[j], carousel);
+        addImageToCarousel(commentObject.imageURLs[j], carousel, true);
 
         if (commentObject.imageURLs.length > 1){
             makeCarouselControls(carousel);
         }        
 
-        carousel.addEventListener('click', event =>{
-            //if the carousel is clicked on either the left or right button, dont show the enlarged image modal
-            if ((!event.target.className.includes('carousel-control') && event.target.classList.contains("d-block"))){   
-                //get the src of the current active image from the carousel that was clicked on       
-                modalImg.src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
+        // carousel.addEventListener('click', event =>{
+        //     //if the carousel is clicked on either the left or right button, dont show the enlarged image modal
+        //     if ((!event.target.className.includes('carousel-control') && event.target.classList.contains("d-block"))){   
+        //         //get the src of the current active image from the carousel that was clicked on       
+        //         modalImg.src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
 
-                $('#imgExpandModal').modal('show')                   
-            }
-        });     
+        //         $('#imgExpandModal').modal('show')                   
+        //     }
+        // });     
         
         commentDivToAddTo.append(carousel);
 
@@ -718,7 +718,7 @@ function createCarousel(){
 /*
  *
  */
-function addImageToCarousel(src, carousel){
+function addImageToCarousel(src, carousel, giveEventListener){
 
     const img = document.createElement('img');
     const imgDiv = document.createElement('div');
@@ -754,8 +754,32 @@ function addImageToCarousel(src, carousel){
     }
 
     //sets an image active if none are
-    if (!carousel.firstChild.firstChild.classList.value.includes('active')){
+    if (!carousel.firstChild.firstChild.classList.value.includes('active') && giveEventListener){
         carousel.firstChild.firstChild.classList.add('active');
+    }
+
+    if (giveEventListener){
+        img.addEventListener('click', event=>{
+            
+            let test = createCarousel();
+            let activeSRC = carousel.querySelector('.carousel-item.active img').getAttribute('src');
+
+
+            carousel.querySelectorAll('.carousel-item img').forEach(img =>{
+  
+
+                addImageToCarousel(img.getAttribute('src'),test, false);
+            })
+            test.querySelectorAll('.carousel-item img').forEach(img =>{
+                if (img.getAttribute('src') === activeSRC){
+                    img.closest(".nonActiveCarousel").classList.add("active")
+                }
+            })
+            makeCarouselControls(test)
+            document.querySelector(".imgExpandBody").append(test)
+            $('#imgExpandModal').modal('show')                   
+
+        })
     }
 }
 
