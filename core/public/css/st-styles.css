@@ -93,8 +93,6 @@
 .carousel-item{
     width: 100%; 
     height: fit-content;
-    max-height: 400px;
-    /* max-height: 400px; */
     overflow: hidden;
 }
 
@@ -1267,16 +1265,15 @@ input[type=number]::-webkit-outer-spin-button {
     width: 100% !important;
     height: 100% !important;
     padding: 0;
-  }
-  
-  .modal-content {
-    height: auto;
-    border-radius: 0;
-  }
+}
+
+.modal-content {
+height: auto;
+border-radius: 0;
+}
 
 .codeView .carousel-item img {
-         max-height: 400px;
-         cursor: zoom-in;
-
-
+    max-height: 400px;
+    cursor: zoom-in;
  }
+ 
