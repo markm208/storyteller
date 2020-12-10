@@ -5,13 +5,8 @@ const md5 = require('md5');
  */
 class Developer {
     constructor(userName, email, avatarURL, id) {
-        //if an id is supplied, use it
-        if(id) {
-            this.id = id;
-        } else {
-            //generate an id
-            this.id = this.generateId();
-        }
+        //generate an id if one is not supplied
+        this.id = id || this.generateId(); 
         //set the user name and email
         this.userName = userName;
         this.email = email.toLowerCase().trim();

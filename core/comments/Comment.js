@@ -7,7 +7,8 @@
 class Comment {
     constructor(displayCommentEvent, developerGroupId, timestamp, commentText, selectedCodeBlocks, imageURLs, videoURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData, id) {
         //store the comment data
-        this.id = id || this.generateId(); //generate an id if one is not supplied
+        //generate an id if one is not supplied
+        this.id = id || this.generateId(); 
         this.displayCommentEvent = displayCommentEvent;
         this.developerGroupId = developerGroupId; 
         this.timestamp = timestamp;

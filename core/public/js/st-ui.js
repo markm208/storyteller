@@ -559,7 +559,7 @@ function createEditCommentButton(commentObject, buttonText){
 
         pauseMedia();
 
-        if (commentObject.questionCommentData){
+        if (commentObject.questionCommentData.allAnswers.length > 0){
             document.getElementById('questionCheckBox').click();
 
             const extraQuestions = commentObject.questionCommentData.allAnswers.length - 2;
@@ -2891,7 +2891,7 @@ function resetQuestionCommentDiv(){
 
 //add question comment data to a div
 function addQuestionCommentToDiv(divToAddTo, commentObject, source){
-    if (commentObject.questionCommentData){
+    if (commentObject.questionCommentData.allAnswers.length > 0){
         const HR = document.createElement("HR");
         HR.classList.add("questionCommentHR");
 
