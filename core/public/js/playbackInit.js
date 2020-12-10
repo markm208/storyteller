@@ -728,6 +728,28 @@ function setupEventListeners()
         document.getElementById('optionsModal').querySelector('.nav-item').click();
     })    
 
+    $('#imgExpandModal').on('hide.bs.modal', event => {
+        const largeModalActiveSrc = event.currentTarget.querySelector('.carousel-item.active img').getAttribute('src');
+        const idOfOriginalCarousel = event.currentTarget.querySelector('[data-returnCarouselId]').getAttribute('data-returnCarouselId');
+        const originalCarousel = document.getElementById(idOfOriginalCarousel);
+
+        //if the active src of the expanded modal and the active src of the smaller modal aren't the same,
+        //set the smaller modals active image to the same image as the larger one
+        if (originalCarousel.querySelector('.carousel-item.active img').getAttribute('src') !== largeModalActiveSrc){
+            originalCarousel.querySelector('.carousel-item.active img').closest('.carousel-item').classList.remove('active');
+            originalCarouselImages = [...originalCarousel.querySelectorAll('.carousel-item img')];
+            originalCarouselImages[originalCarouselImages.findIndex(item => item.getAttribute('src') === largeModalActiveSrc)].closest('.carousel-item').classList.add('active');
+        }
+
+        const img = document.createElement("img");
+        img.classList.add("modal-content");
+        img.setAttribute('id', 'imgToExpand');
+
+        //reset the modal
+        document.querySelector('.imgExpandBody').innerHTML = "";
+        document.querySelector('.imgExpandBody').append(img);
+    })     
+
     document.getElementById("blogMode").addEventListener('click', event => {
         if (!playbackData.isInBlogMode){
             stopAutomaticPlayback();

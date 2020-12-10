@@ -465,25 +465,13 @@ function addMediaToCommentDiv(commentDivToAddTo, commentObject)
     const modalImg = document.getElementById('imgToExpand');
 
     for (let j = 0; j < commentObject.imageURLs.length; j++){
-        addImageToCarousel(commentObject.imageURLs[j], carousel);
+        addImageToCarousel(commentObject.imageURLs[j], carousel, true);
 
         if (commentObject.imageURLs.length > 1){
             makeCarouselControls(carousel);
-        }        
-
-        carousel.addEventListener('click', event =>{
-            //if the carousel is clicked on either the left or right button, dont show the enlarged image modal
-            if ((!event.target.className.includes('carousel-control') && event.target.classList.contains("d-block"))){   
-                //get the src of the current active image from the carousel that was clicked on       
-                modalImg.src = carousel.querySelector('.carousel-item.active img').getAttribute('src');
-
-                $('#imgExpandModal').modal('show')                   
-            }
-        });     
+        }
         
-        commentDivToAddTo.append(carousel);
-
-        
+        commentDivToAddTo.append(carousel);        
     }
     
     for (let i = 0; i < commentObject.videoURLs.length; i++){
@@ -718,7 +706,7 @@ function createCarousel(){
 /*
  *
  */
-function addImageToCarousel(src, carousel){
+function addImageToCarousel(src, carousel, giveEventListener){
 
     const img = document.createElement('img');
     const imgDiv = document.createElement('div');
@@ -726,10 +714,7 @@ function addImageToCarousel(src, carousel){
     const captionText = document.createElement('h5');
 
     captionDiv.classList.add('carousel-caption', 'd-none', 'd-md-block');
-    captionDiv.append(captionText);
-
-
-    
+    captionDiv.append(captionText);   
 
     img.src = src;
     img.classList.add('d-block','w-100');
@@ -754,8 +739,34 @@ function addImageToCarousel(src, carousel){
     }
 
     //sets an image active if none are
-    if (!carousel.firstChild.firstChild.classList.value.includes('active')){
+    if (!carousel.firstChild.firstChild.classList.value.includes('active') && giveEventListener){
         carousel.firstChild.firstChild.classList.add('active');
+    }
+
+    //if the image will be part of a comment carousel, and not an expanded one
+    if (giveEventListener){
+        img.addEventListener('click', function(){
+            const expandedCarousel = createCarousel();
+            expandedCarousel.setAttribute('data-returnCarouselId', carousel.getAttribute('id'));
+            const activeSRC = carousel.querySelector('.carousel-item.active img').getAttribute('src');
+
+            //add all images from the small carousel to the larger one
+            carousel.querySelectorAll('.carousel-item img').forEach(img =>{
+                addImageToCarousel(img.getAttribute('src'),expandedCarousel, false);
+            })
+            //set the active img of the new carousel to the same image as the small one.
+            const newCarouselImages = [...expandedCarousel.querySelectorAll('.carousel-item img')];
+            const indexToMakeActive = newCarouselImages.findIndex(item => item.getAttribute("src") === activeSRC);
+            newCarouselImages[indexToMakeActive].closest('.carousel-item').classList.add('active');
+
+            //if there is more than one image the expanded carousel needs controls
+            if(newCarouselImages.length > 1) {
+                makeCarouselControls(expandedCarousel);
+            }
+            
+            document.querySelector(".imgExpandBody").append(expandedCarousel);
+            $('#imgExpandModal').modal('show');
+        })
     }
 }
 

@@ -93,7 +93,6 @@
 .carousel-item{
     width: 100%; 
     height: fit-content;
-    max-height: 400px;
     overflow: hidden;
 }
 
@@ -111,13 +110,6 @@
 .commentBlockPadding {
     padding-top: 1px;
 }
-
-/* .commentBox {
-    margin-top: 20px;
-    margin-left: 20px;
-    margin-right: 20px;
-    margin-bottom: 20px;
-} */
 
 .commentCount{
     text-align: right !important;
@@ -143,7 +135,6 @@
     height: 85vh;
     word-wrap: break-word;
     width: 25vw; 
-    /* TODO should this not be pixels? */
 }
 
 .commentGroupSpacing {
@@ -1090,8 +1081,7 @@ input[type=number]::-webkit-outer-spin-button {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    cursor: zoom-in;
-    max-height: 400px;
+    /* max-height: 400px; */
     padding-top: 10px;
 }
 
@@ -1262,3 +1252,20 @@ input[type=number]::-webkit-outer-spin-button {
 .zipComplete{
     color: black !important;
 }
+
+.modal-dialog {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0;
+}
+
+.modal-content {
+height: auto;
+border-radius: 0;
+}
+
+.codeView .carousel-item img {
+    max-height: 400px;
+    cursor: zoom-in;
+}
+ 
