@@ -759,7 +759,11 @@ function addImageToCarousel(src, carousel, giveEventListener){
             const indexToMakeActive = newCarouselImages.findIndex(item => item.getAttribute("src") === activeSRC);
             newCarouselImages[indexToMakeActive].closest('.carousel-item').classList.add('active');
 
-            makeCarouselControls(expandedCarousel);
+            //if there is more than one image the expanded carousel needs controls
+            if(newCarouselImages.length > 1) {
+                makeCarouselControls(expandedCarousel);
+            }
+            
             document.querySelector(".imgExpandBody").append(expandedCarousel);
             $('#imgExpandModal').modal('show');
         })
