@@ -2744,7 +2744,7 @@ function rightAnswerCheckBoxHandler(checkbox) {
 }
 
 //builds and returns the divs for adding question comment data
-function getCommentQuestion() {
+function createAnswerInput() {
     const outerDiv = document.createElement('div');
     outerDiv.classList.add('form-group', 'extraQuestion');
 

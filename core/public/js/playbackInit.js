@@ -976,7 +976,7 @@ function setupEventListeners()
     })
 
     document.getElementById("addAnswerButton").addEventListener('click', function() {
-        document.querySelector(".questionCommentContent").append(getCommentQuestion());
+        document.querySelector(".questionCommentContent").append(createAnswerInput());
 
         //focus the question if it's not filled in
         //or the first question that isn't filled in
