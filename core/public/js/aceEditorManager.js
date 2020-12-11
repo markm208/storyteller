@@ -1,5 +1,5 @@
 //Sets the Ace editor to the correct mode to set correct syntax highlighting
-function setEditorMode(thisEditor, filePath){
+function setEditorMode(thisEditor, filePath) {
 
     //generates a list of all supported languages for syntax highlighting  
     let modelist = ace.require('ace/ext/modelist');
@@ -11,7 +11,7 @@ function setEditorMode(thisEditor, filePath){
 }
 
 //Returns the correct mode for the passed in filePath
-function getEditorModeForFilePath(filePath){
+function getEditorModeForFilePath(filePath) {
     const modelist = ace.require("ace/ext/modelist");
     return modelist.getModeForPath(filePath).mode;
 }
@@ -242,7 +242,7 @@ function scrollToLineIMPL(fileId, lineNumber, column) {
 //without this middle step between the call to scrollToLine and the actual scrolling,
 //sometimes the scroll doesn't happen
 let scrollTimer = null;
-function scrollToLine(fileId, lineNumber, column){
+function scrollToLine(fileId, lineNumber, column) {
     if (scrollTimer === null)
     scrollTimer =setInterval(function() {
         scrollToLineIMPL(fileId, lineNumber, column);

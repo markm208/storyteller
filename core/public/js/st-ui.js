@@ -72,7 +72,7 @@ function deleteEditor(fileId) {
  * Displays all the comments.
  */
 let firstTimeThrough = true;
-function displayAllComments(){
+function displayAllComments() {
     const activeComment = document.querySelector(`.codeView .activeComment`);
 
     //clear comments Div before displaying any comments
@@ -83,14 +83,14 @@ function displayAllComments(){
 
     //convert all string keys into numbers for proper sorting of comment sequence
     let keysArray = Object.keys(playbackData.comments);  
-    for (let i = 0; i < keysArray.length; i++){
+    for (let i = 0; i < keysArray.length; i++) {
         commentCount += playbackData.comments[keysArray[i]].length;
         keysArray[i] = Number(keysArray[i].slice(3));        
     }
    
     let uniqueCommentGroupID = 0;
     //sort by interger key and add each comment to the commentsDiv
-    keysArray.sort((a,b)=> a - b).forEach(function(key){
+    keysArray.sort((a,b)=> a - b).forEach(function(key) {
         let commentBlock = playbackData.comments[`ev-${key}`];
         const commentGroupDiv = document.createElement('div');
         commentGroupDiv.classList.add('commentBlockBackground');
@@ -104,7 +104,7 @@ function displayAllComments(){
 
             commentGroupDiv.append(titleCard);
 
-            if (firstTimeThrough){            
+            if (firstTimeThrough) {            
                 commentBlock.forEach(comment =>{
                     buildSearchData(comment)               
 
@@ -138,19 +138,19 @@ function displayAllComments(){
             }
 
             //if the active comment is not in this comment group, make the first comment in this div active
-            if (!outerCommentGroup.classList.contains("activeGroup")){
-                if (outerCommentGroup.getElementsByClassName("commentCard")[0]){
+            if (!outerCommentGroup.classList.contains("activeGroup")) {
+                if (outerCommentGroup.getElementsByClassName("commentCard")[0]) {
                     outerCommentGroup.getElementsByClassName("commentCard")[0].click();
                 }
             }
         });
 
         let uniqueNumBackup = uniqueCommentGroupID;
-        for (let i = startingValue; i < commentBlock.length; i++){
+        for (let i = startingValue; i < commentBlock.length; i++) {
 
             const commentObject = commentBlock[i];
             
-            if (firstTimeThrough){                
+            if (firstTimeThrough) {                
                 buildSearchData(commentObject)
                 
                 commentObject.commentTags.forEach(tag =>{
@@ -164,7 +164,7 @@ function displayAllComments(){
 
             commentGroupDiv.append(commentCard);
 
-            if (playbackData.isEditable){
+            if (playbackData.isEditable) {
                //gives each card a class to later access it
                commentCard.classList.add('drag');
                commentCard.setAttribute('id',commentObject.id );
@@ -181,7 +181,7 @@ function displayAllComments(){
         const isDescriptionComment = `ev-${key}` === 'ev-0';
 
         const displayEditCommentButton = (isDescriptionComment && commentBlock.length > 1) || !isDescriptionComment;
-        if (playbackData.isEditable && displayEditCommentButton){
+        if (playbackData.isEditable && displayEditCommentButton) {
             
             //create the edit Comment button
             const editCommentBlockButton = document.createElement('button');
@@ -195,13 +195,13 @@ function displayAllComments(){
                 stopAutomaticPlayback();
 
                 //for each element with class "drag", make draggable as long as there is more than 1 comment in the comment block   
-                if ((isDescriptionComment && commentBlock.length > 2 ) || (!isDescriptionComment && commentBlock.length > 1)){
-                    $('.drag', "#" + commentGroupDiv.id).each(function(){                    
+                if ((isDescriptionComment && commentBlock.length > 2 ) || (!isDescriptionComment && commentBlock.length > 1)) {
+                    $('.drag', "#" + commentGroupDiv.id).each(function() {                    
                         makeDraggable(this, key);
                     });
                 }
 
-                $('.deleteComment', "#" + commentGroupDiv.id).each(function(){
+                $('.deleteComment', "#" + commentGroupDiv.id).each(function() {
                    this.style.display = "block";
                 });
 
@@ -218,7 +218,7 @@ function displayAllComments(){
 
             acceptChangesButton.addEventListener('click', event => {           
                 //make each draggable element undraggable
-                $('.drag', "#" + commentGroupDiv.id).each(function(){
+                $('.drag', "#" + commentGroupDiv.id).each(function() {
                     makeunDraggable(this);
                 });
  
@@ -226,7 +226,7 @@ function displayAllComments(){
                 toggleEditAcceptButtons("accept", uniqueNumBackup);
 
                 //hides the delete comment buttons
-                $('.deleteComment', "#" + commentGroupDiv.id).each(function(){
+                $('.deleteComment', "#" + commentGroupDiv.id).each(function() {
                     this.style.display = "none";
                 });
             });
@@ -243,7 +243,7 @@ function displayAllComments(){
     updateAllCommentHeaderCounts();
     firstTimeThrough = false;
 
-    if (activeComment){
+    if (activeComment) {
         const activeId = activeComment.getAttribute("data-commentid");
         const newActiveDiv = document.querySelector(`.codeView [data-commentid=${activeId}]`);
         newActiveDiv.click()
@@ -287,7 +287,7 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
     cardFinal.setAttribute('id', `${commentObject.displayCommentEvent.id}-${i}`)
 
     //if this is not here the play button does not work, because the card will have no functionality
-    cardFinal.addEventListener('click', function (){ 
+    cardFinal.addEventListener('click', function () { 
         
         stopAutomaticPlayback();
         //step to the event this comment is at
@@ -335,7 +335,7 @@ function createTitleCard(descriptionInfo)
     let titleCard = createCardDiv(descriptionInfo);
     titleCard.setAttribute('id', 'title-card');
 
-    titleCard.addEventListener('click', function (e){ 
+    titleCard.addEventListener('click', function (e) { 
         //step back to the first relevant event
         step(playbackData.numNonRelevantEvents - playbackData.nextEventPosition);
 
@@ -348,7 +348,7 @@ function createTitleCard(descriptionInfo)
     cardHeader.classList.add('text-center', 'titleCardHeaderStyle');
     cardHeader.innerHTML = playbackData.playbackTitle;
 
-    if (playbackData.isEditable){
+    if (playbackData.isEditable) {
         const editTitleButton = document.createElement('button');
         editTitleButton.classList.add("editTitleButton", "btn", "btn-outline-dark", "btn-sm");
     
@@ -368,7 +368,7 @@ function createTitleCard(descriptionInfo)
            acceptTitleChanges.classList.remove("titleButtonNonActive");
     
            titleDiv.addEventListener('keydown', function(e) {
-                if (e.key === "Enter"){
+                if (e.key === "Enter") {
                     e.preventDefault();
                     e.stopPropagation(); //TODO figure out why this is triggering twice
                     acceptTitleChanges.click();
@@ -464,17 +464,17 @@ function addMediaToCommentDiv(commentDivToAddTo, commentObject)
     const carousel = createCarousel();
     const modalImg = document.getElementById('imgToExpand');
 
-    for (let j = 0; j < commentObject.imageURLs.length; j++){
+    for (let j = 0; j < commentObject.imageURLs.length; j++) {
         addImageToCarousel(commentObject.imageURLs[j], carousel, true);
 
-        if (commentObject.imageURLs.length > 1){
+        if (commentObject.imageURLs.length > 1) {
             makeCarouselControls(carousel);
         }
         
         commentDivToAddTo.append(carousel);        
     }
     
-    for (let i = 0; i < commentObject.videoURLs.length; i++){
+    for (let i = 0; i < commentObject.videoURLs.length; i++) {
         const videoElement = createMediaControllerCommentVideoUI(commentObject.videoURLs[i], false, false);       
         //add next media
         commentDivToAddTo.append(videoElement.firstChild);
@@ -483,7 +483,7 @@ function addMediaToCommentDiv(commentDivToAddTo, commentObject)
         commentDivToAddTo.append(videoElement.lastChild);     
     }
 
-    for (let i = 0; i < commentObject.audioURLs.length; i++){
+    for (let i = 0; i < commentObject.audioURLs.length; i++) {
         const audioElement = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false); 
         commentDivToAddTo.append(audioElement.firstChild);
 
@@ -502,10 +502,10 @@ function updateActiveComment(commentToMakeActive)
     let activeComment = document.getElementsByClassName("activeComment");
 
     //if a comment is already active
-    if (activeComment.length){
+    if (activeComment.length) {
         activeComment = activeComment[0];
         
-        if (commentToMakeActive !== activeComment){            
+        if (commentToMakeActive !== activeComment) {            
             //determine if the new active comment is in an already active group
             groupAlreadyActive = commentToMakeActive.closest(".activeGroup") === activeComment.closest(".activeGroup");
             
@@ -528,14 +528,14 @@ function updateActiveComment(commentToMakeActive)
     })
 
     //if we're in code view, scroll blog mode to the new active comment
-    if (!playbackData.isInBlogMode){
+    if (!playbackData.isInBlogMode) {
         //scroll to the comment in blogView
         document.querySelector(".blogView").scrollTop = document.querySelector(`.blogView [data-commentid="${commentToMakeActive.getAttribute("data-commentid")}"]`).offsetTop - 100;
     }
 }
 
 //Creates the edit button at the bottom of each card
-function createEditCommentButton(commentObject, buttonText){
+function createEditCommentButton(commentObject, buttonText) {
     stopAutomaticPlayback();
 
     const editCommentButton = document.createElement("button");
@@ -547,35 +547,35 @@ function createEditCommentButton(commentObject, buttonText){
         event.preventDefault();
         event.stopPropagation();
 
-        if (commentObject.id === "commentId-0"){
+        if (commentObject.id === "commentId-0") {
             document.querySelector('.createCommentQuestionCheckbox').classList.add('hiddenDiv');
         }
         
         stopAutomaticPlayback();
 
-        if (event.target.closest(".drag")){
+        if (event.target.closest(".drag")) {
             event.target.closest(".drag").click();        
         }
 
         pauseMedia();
 
-        if (commentObject.questionCommentData.allAnswers.length > 0){
+        if (commentObject.questionCommentData.allAnswers.length > 0) {
             document.getElementById('questionCheckBox').click();
 
             const extraQuestions = commentObject.questionCommentData.allAnswers.length - 2;
             const extraQuestionButton = document.getElementById("addAnswerButton");
-            for (let i = 0; i < extraQuestions; i++){
+            for (let i = 0; i < extraQuestions; i++) {
                 extraQuestionButton.click();
             }
 
             document.getElementById('commentQuestion').innerText = commentObject.questionCommentData["question"];
 
             const answerFields = [...document.querySelectorAll('.questionCommentInput:not([id="commentQuestion"])')];
-            for (let i = 0; i < answerFields.length; i++){
+            for (let i = 0; i < answerFields.length; i++) {
                 const currentAnswer = commentObject.questionCommentData.allAnswers[i];
                 answerFields[i].value = currentAnswer;
 
-                if (currentAnswer === commentObject.questionCommentData.correctAnswer){
+                if (currentAnswer === commentObject.questionCommentData.correctAnswer) {
                     answerFields[i].parentNode.querySelector('.rightAnswerCheckBox').click();
                 }
             }
@@ -588,7 +588,7 @@ function createEditCommentButton(commentObject, buttonText){
         document.getElementById("blogModeExtraBelow").value = commentObject.linesBelow;
 
         //reselect in ace all highlighted code from the original comment
-        for (let i = 0; i < commentObject.selectedCodeBlocks.length; i++){
+        for (let i = 0; i < commentObject.selectedCodeBlocks.length; i++) {
             const selectedBlock = commentObject.selectedCodeBlocks[i];
 
             //create a new ace range object from the comments highlighted code
@@ -623,8 +623,8 @@ function createEditCommentButton(commentObject, buttonText){
         const audioPreviewDiv = document.getElementsByClassName("audio-preview")[0];
         const videoPreviewDiv = document.getElementsByClassName("video-preview")[0];
     
-        if (commentObject.imageURLs.length){
-            for (let i = 0; i < commentObject.imageURLs.length; i++){
+        if (commentObject.imageURLs.length) {
+            for (let i = 0; i < commentObject.imageURLs.length; i++) {
                 const imageCard = createMediaControllerCommentImageUI(commentObject.imageURLs[i], false, false);
                 makeDraggable(imageCard);
         
@@ -633,8 +633,8 @@ function createEditCommentButton(commentObject, buttonText){
             imagePreviewDiv.removeAttribute("style");    
         }
     
-        if (commentObject.audioURLs.length){
-            for (let i = 0; i < commentObject.audioURLs.length; i++){
+        if (commentObject.audioURLs.length) {
+            for (let i = 0; i < commentObject.audioURLs.length; i++) {
                 const audioCard = createMediaControllerCommentAudioUI(commentObject.audioURLs[i], false, false);
                 makeDraggable(audioCard);
                 addCancelButtonToCard(audioCard, audioPreviewDiv);
@@ -643,8 +643,8 @@ function createEditCommentButton(commentObject, buttonText){
             audioPreviewDiv.removeAttribute("style");
         }
     
-        if (commentObject.videoURLs.length){
-            for (let i = 0; i < commentObject.videoURLs.length; i++){
+        if (commentObject.videoURLs.length) {
+            for (let i = 0; i < commentObject.videoURLs.length; i++) {
               const videoCard = createMediaControllerCommentVideoUI(commentObject.videoURLs[i], false, false);
               makeDraggable(videoCard);
               addCancelButtonToCard(videoCard, videoPreviewDiv);
@@ -663,7 +663,7 @@ function createEditCommentButton(commentObject, buttonText){
             //get any selected text 
             const ranges = editor.getSession().getSelection().getAllRanges();
 
-            if (await updateComment()){
+            if (await updateComment()) {
                 document.getElementById("CancelUpdateButton").click();
                 const activeComment = document.querySelector(`.codeView .activeComment`);
                 document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;    
@@ -689,7 +689,7 @@ function createEditCommentButton(commentObject, buttonText){
 let currentCarousel = 0;
 
 // CREATE CAROUSEL creates the image carousels for the comments
-function createCarousel(){
+function createCarousel() {
     const carouselOuter = document.createElement('div'); 
     carouselOuter.setAttribute('id', 'mycarousel' + currentCarousel++);
     carouselOuter.setAttribute('data-interval','false');
@@ -706,7 +706,7 @@ function createCarousel(){
 /*
  *
  */
-function addImageToCarousel(src, carousel, giveEventListener){
+function addImageToCarousel(src, carousel, giveEventListener) {
 
     const img = document.createElement('img');
     const imgDiv = document.createElement('div');
@@ -731,21 +731,21 @@ function addImageToCarousel(src, carousel, giveEventListener){
     const allCaptions = carousel.getElementsByClassName('carousel-caption');
 
     //prevents "1/1" from being displayed on single image carousels
-    if (allCaptions.length > 1){
+    if (allCaptions.length > 1) {
         //updates all captions with the right counts
-        for (let i = 0; i < allCaptions.length; i++){
+        for (let i = 0; i < allCaptions.length; i++) {
             allCaptions[i].textContent = i + 1 + '/' + allCaptions.length;
         }        
     }
 
     //sets an image active if none are
-    if (!carousel.firstChild.firstChild.classList.value.includes('active') && giveEventListener){
+    if (!carousel.firstChild.firstChild.classList.value.includes('active') && giveEventListener) {
         carousel.firstChild.firstChild.classList.add('active');
     }
 
     //if the image will be part of a comment carousel, and not an expanded one
-    if (giveEventListener){
-        img.addEventListener('click', function(){
+    if (giveEventListener) {
+        img.addEventListener('click', function() {
             const expandedCarousel = createCarousel();
             expandedCarousel.setAttribute('data-returnCarouselId', carousel.getAttribute('id'));
             const activeSRC = carousel.querySelector('.carousel-item.active img').getAttribute('src');
@@ -773,7 +773,7 @@ function addImageToCarousel(src, carousel, giveEventListener){
 /*
  *
  */
-function makeCarouselControls(carousel){
+function makeCarouselControls(carousel) {
     let right = document.createElement('a');
     let left = document.createElement('a');
 
@@ -813,19 +813,19 @@ function makeCarouselControls(carousel){
 }
 
 //determines which button is currently displayed, and switches to the other 
-function toggleEditAcceptButtons(currentButtonType, id){
-    if (currentButtonType === "edit"){
+function toggleEditAcceptButtons(currentButtonType, id) {
+    if (currentButtonType === "edit") {
         $('#' + "edit" + id)[0].style.display = "none";
         $('#' + "accept" + id)[0].removeAttribute("style");
     }
-    else if (currentButtonType === "accept"){
+    else if (currentButtonType === "accept") {
         $('#' + "accept" + id)[0].style.display = "none";
         $('#' + "edit" + id)[0].removeAttribute("style");
     }
 }
 
 //adds the edit buttons to the normal comments
-function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumber, commentObject){
+function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumber, commentObject) {
   //find the card header in the card to add the buttons to  
   const header = card.querySelector(".commentCount");
 
@@ -848,8 +848,8 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
 
         let comment;
         //find the comment object associated with the card being deleted
-        for (let indexToDelete = 0; indexToDelete < playbackData.comments[eventID].length; indexToDelete++){
-            if (playbackData.comments[eventID][indexToDelete].id === commentID){
+        for (let indexToDelete = 0; indexToDelete < playbackData.comments[eventID].length; indexToDelete++) {
+            if (playbackData.comments[eventID][indexToDelete].id === commentID) {
                 comment = playbackData.comments[eventID][indexToDelete];  
 
                 //remove the comment from the commentBlock
@@ -860,12 +860,12 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
 
         //TODO might not need this anymore
         //remove the accept button if there are no more comments but leave description
-        if (eventID === "ev-0" && commentBlock.length < 2){
+        if (eventID === "ev-0" && commentBlock.length < 2) {
             $('#' + "accept" + uniqueNumber).remove();
         }
 
         //if there are no comments left in the commentBlock, remove the block from it's parent div and delete the block from playbackData
-        if (!commentBlock.length){
+        if (!commentBlock.length) {
             card.parentElement.parentElement.remove();
             delete playbackData.comments[eventID];
         }
@@ -923,7 +923,7 @@ function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEv
         newImg.classList.add('mediaSelected');
     }
     
-    if(returnWithEventistener){
+    if(returnWithEventistener) {
         //add an event handler to toggle whether it is selected
         newImg.addEventListener('click', event => {
             //toggle the 'selected' class
@@ -937,7 +937,7 @@ function createMediaControllerCommentImageUI(srcPath, makeSelected, returnWithEv
 /*
  * Creates the ui representation of a video to be put inside of a comment
  */
-function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEventistener = true){
+function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEventistener = true) {
     //filename of the video
     const fileName = srcPath.substring(srcPath.indexOf('-') + 1);
     //create a card with a body and a footer
@@ -959,21 +959,21 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
     newVideo.setAttribute('preload', 'metadata');   
 
     //when a video is played, pause any other media that is playing
-    newVideo.onplay = function(){
+    newVideo.onplay = function() {
         pauseMedia();
 
-        if (newVideo.closest(".commentCard")){
+        if (newVideo.closest(".commentCard")) {
             //make the comment the video is in active
             newVideo.closest(".commentCard").click();
         }
         newVideo.classList.add("playing");
     };
  
-    $(newVideo).on('pause ended', function(){
+    $(newVideo).on('pause ended', function() {
         newVideo.classList.remove("playing");
     });
 
-    if (returnWithEventistener){
+    if (returnWithEventistener) {
         newVideo.classList.add('mediaVideo');
     }        
     else{
@@ -993,7 +993,7 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
         cardDiv.classList.add('mediaSelected');
     }
 
-    if (returnWithEventistener){
+    if (returnWithEventistener) {
         //add an event handler to toggle whether it is selected
         cardDiv.addEventListener('click', event => {
             //toggle the 'selected' class
@@ -1032,10 +1032,10 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     newAudio.setAttribute('preload', 'metadata');
 
     //pause any media that is playing
-    newAudio.onplay = function(){
+    newAudio.onplay = function() {
         pauseMedia();
 
-        if (newAudio.closest(".commentCard")){
+        if (newAudio.closest(".commentCard")) {
             //make the comment the audio is in active
             newAudio.closest(".commentCard").click();
         }        
@@ -1043,12 +1043,12 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     }
 
     //removes the playing class from a media file
-    $(newAudio).on('pause ended', function(){
+    $(newAudio).on('pause ended', function() {
         newAudio.classList.remove("playing");
     })    
 
     
-    if (returnWithEventistener){
+    if (returnWithEventistener) {
         newAudio.classList.add('mediaAudio');
     }
     else{
@@ -1071,7 +1071,7 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
         cardDiv.classList.add('mediaSelected');
     }
 
-    if (returnWithEventistener){
+    if (returnWithEventistener) {
         //add an event handler to toggle whether it is selected
         cardDiv.addEventListener('click', event => {
         //toggle the 'selected' class
@@ -1081,17 +1081,17 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
 }
 
 //pauses any currently playing videos or audio
-function pauseMedia(){
+function pauseMedia() {
     const playing = document.querySelector('.playing');
  
-    if (playing){
+    if (playing) {
         playing.pause();
         playing.classList.remove('playing');
     }
 }
 
 /*creates and returns a div holding buttons for '1.0x' and '1.5x' playback speed */
-function createSpeedControlButtonDivForMedia(media){
+function createSpeedControlButtonDivForMedia(media) {
     const buttonGroup = document.createElement("div");
     buttonGroup.classList.add("btn-group-vertical", "speedGroup");
 
@@ -1121,7 +1121,7 @@ function createSpeedControlButtonDivForMedia(media){
     return outerSpeedDiv;
 }
 
-function createXButtonForCloseOrCancel(popUpMessage = ""){
+function createXButtonForCloseOrCancel(popUpMessage = "") {
     let button = document.createElement('button');
     button.classList.add('close', 'mediaCancelButton');
     button.setAttribute('aria-label', 'close');
@@ -1130,7 +1130,7 @@ function createXButtonForCloseOrCancel(popUpMessage = ""){
     return button;
 }
 
-function addCancelButtonToImage(image, panelToDeleteFrom){
+function addCancelButtonToImage(image, panelToDeleteFrom) {
     let imageDiv = document.createElement('div');
     imageDiv.classList.add('image-div')
 
@@ -1142,17 +1142,17 @@ function addCancelButtonToImage(image, panelToDeleteFrom){
  
 
         //hides the div if there are none of the media type left
-        if (panelToDeleteFrom.classList.contains('hidden')){
+        if (panelToDeleteFrom.classList.contains('hidden')) {
             let nodesLeft = false;
             let panelChildren = panelToDeleteFrom.children;
             
-            for (let i = 0; i < panelChildren.length; i++){
-                if (panelChildren[i].classList.contains('image-div')){
+            for (let i = 0; i < panelChildren.length; i++) {
+                if (panelChildren[i].classList.contains('image-div')) {
                     nodesLeft = true;
                     break;
                 }
             }
-            if (!nodesLeft){
+            if (!nodesLeft) {
                 panelToDeleteFrom.style.display = 'none';
             }
         }
@@ -1164,7 +1164,7 @@ function addCancelButtonToImage(image, panelToDeleteFrom){
     panelToDeleteFrom.append(imageDiv);
 }
 
-function addCancelButtonToCard(card, panelToDeleteFrom){
+function addCancelButtonToCard(card, panelToDeleteFrom) {
     let button = createXButtonForCloseOrCancel("Remove media from comment");
 
     //removes the selected media from the preview and from the stored list of selected media
@@ -1172,17 +1172,17 @@ function addCancelButtonToCard(card, panelToDeleteFrom){
         panelToDeleteFrom.removeChild(card);
 
         //hides the div if there are none of the media type left
-        if (panelToDeleteFrom.classList.contains('hidden')){
+        if (panelToDeleteFrom.classList.contains('hidden')) {
             let nodesLeft = false;
             let panelChildren = panelToDeleteFrom.children;
             
-            for (let i = 0; i < panelChildren.length; i++){
-                if (panelChildren[i].classList.contains('card')){
+            for (let i = 0; i < panelChildren.length; i++) {
+                if (panelChildren[i].classList.contains('card')) {
                     nodesLeft = true;
                     break;
                 }
             }
-            if (!nodesLeft){
+            if (!nodesLeft) {
                 panelToDeleteFrom.style.display = 'none';
             }
         }
@@ -1191,7 +1191,7 @@ function addCancelButtonToCard(card, panelToDeleteFrom){
     card.closest(".card").prepend(button);
 }
 
-function makeDraggable(param, key){
+function makeDraggable(param, key) {
     param.setAttribute('draggable', 'true');
     param.classList.add('draggable');
 
@@ -1200,7 +1200,7 @@ function makeDraggable(param, key){
     })
 
     param.addEventListener('dragend', () => {       
-        if (key !== undefined){           
+        if (key !== undefined) {           
             //get the original index of the comment
             const oldCommentPosition = playbackData.comments["ev-" + key].findIndex(item => item.id === param.id);
 
@@ -1232,12 +1232,12 @@ function makeDraggable(param, key){
     })    
 }
 
-function makeunDraggable(param){
+function makeunDraggable(param) {
     param.removeAttribute('draggable');
     param.classList.remove('draggable');
 }
 
-function makeDivDroppable(div, useID = true){
+function makeDivDroppable(div, useID = true) {
     //fixes firefox specific issue where images moved open a new tab
     document.body.ondrop = function (event) {
         event.preventDefault();
@@ -1249,10 +1249,10 @@ function makeDivDroppable(div, useID = true){
         const draggable = divDrop.querySelector('.dragging');
         
         //make sure the item being dragged originated in the droppable div
-        if (draggable !== null){
+        if (draggable !== null) {
             event.preventDefault();
             const afterElement = getDragAfterElement(divDrop, event.clientY);
-            if (afterElement === null){
+            if (afterElement === null) {
                 divDrop.appendChild(draggable);
             }
             else{
@@ -1915,9 +1915,9 @@ function clearHighlightChangedFiles() {
     }
 }
 
-function updateAllCommentHeaderCounts(){
+function updateAllCommentHeaderCounts() {
     const drag = document.querySelectorAll(".commentsDivScroll .drag");
-    for (let i = 0; i < drag.length; i++){
+    for (let i = 0; i < drag.length; i++) {
        drag[i].getElementsByClassName("commentCount")[0].getElementsByClassName("progressSpan")[0].firstChild.data = i + 1 + "/" + drag.length;       
     }    
 }
@@ -1971,9 +1971,9 @@ function updateCurrentDeveloperGroupAvatars(devGroupId) {
     }
 }
 
-function removeActiveCommentAndGroup(){
+function removeActiveCommentAndGroup() {
     const activeComment = document.querySelector('.codeView .activeComment');
-    if (activeComment){        
+    if (activeComment) {        
         activeComment.closest('.activeGroup').classList.remove('activeGroup');
         activeComment.classList.remove('activeCommentBorder');
         activeComment.classList.remove('activeComment');
@@ -1986,14 +1986,14 @@ function removeActiveCommentAndGroup(){
     }
 }
 
-function selectRange(rangeToSelect){
+function selectRange(rangeToSelect) {
     const windowSelection = window.getSelection();
     windowSelection.removeAllRanges();
     windowSelection.addRange(rangeToSelect);
 }
 
 //creates and displays the blog mode title, description, and all blog posts
-function displayAllBlogPosts(){
+function displayAllBlogPosts() {
     const blogDiv = document.querySelector(".blogViewContent");
     blogDiv.innerHTML = "";
 
@@ -2011,7 +2011,7 @@ function displayAllBlogPosts(){
     blogDiv.append(outerDeveloperDiv);
     updateBlogPostDevelopersDiv();
   
-    for (let i = 0; i < allComments.length; i++){
+    for (let i = 0; i < allComments.length; i++) {
         const eventID = allComments[i].getAttribute('data-commenteventid');
 
         const indexOfComment = playbackData.comments[eventID].findIndex(item => item.id === allComments[i].getAttribute('data-commentid'))
@@ -2022,13 +2022,13 @@ function displayAllBlogPosts(){
 }
 
 //update the blog mode list of authors who have contributed to a comment
-function updateBlogPostDevelopersDiv(){
+function updateBlogPostDevelopersDiv() {
     const outerDevDiv = document.querySelector(".blogDevelopersDiv");
     outerDevDiv.innerHTML = "";
     //get all unique contributing developerGroupIDs from the comments
     let developerGroupIDs = new Set();
-    for (const comment in playbackData.comments){
-        for (let i = 0; i < playbackData.comments[comment].length; i++){
+    for (const comment in playbackData.comments) {
+        for (let i = 0; i < playbackData.comments[comment].length; i++) {
             developerGroupIDs.add(playbackData.comments[comment][i].developerGroupId);
         }
     }
@@ -2043,7 +2043,7 @@ function updateBlogPostDevelopersDiv(){
     //create a developer div for each developer
     let tempDeveloperGroup = [];    
     developerIDs.forEach(developerID => {
-        if (playbackData.developers[developerID].userName === "Anonymous Developer"){
+        if (playbackData.developers[developerID].userName === "Anonymous Developer") {
             return;
         }
 
@@ -2059,7 +2059,7 @@ function updateBlogPostDevelopersDiv(){
         developerDiv.append(devUserName);
 
         //allows an author to not include their email
-        if (playbackData.developers[developerID].email !== ""){
+        if (playbackData.developers[developerID].email !== "") {
             const devEmail = document.createElement('a');
             devEmail.setAttribute('href', `mailto:${playbackData.developers[developerID].email}`);
             devEmail.classList.add("devEmail");
@@ -2081,12 +2081,12 @@ function updateBlogPostDevelopersDiv(){
 let latestVisableBlogPostID; //the id of the last blog post that has been scrolled to. helpful when switching back to code mode
 
 //create a single blog post from a comment
-function createBlogPost(commentToAdd){
+function createBlogPost(commentToAdd) {
     const blogPost = document.createElement("div");
     blogPost.classList.add("blogStyle");
 
 
-    if (commentToAdd.displayCommentEvent.id === "ev-0"){ 
+    if (commentToAdd.displayCommentEvent.id === "ev-0") { 
         blogPost.classList.add("descriptionBlogPost");       
     }
 
@@ -2097,7 +2097,7 @@ function createBlogPost(commentToAdd){
     //create an observer that will detect when the comment text is fully on the screen
     //it will then make the equivalent comment active in comment mode and scroll to it
     const observer = new IntersectionObserver(function(entries) {
-        if(playbackData.isInBlogMode && entries[0].isIntersecting === true){
+        if(playbackData.isInBlogMode && entries[0].isIntersecting === true) {
             latestVisableBlogPostID = commentToAdd.id;          
         }           
     }, { threshold: [1] });
@@ -2111,8 +2111,8 @@ function createBlogPost(commentToAdd){
     blogPost.append(textDiv);
     addQuestionCommentToDiv(blogPost, commentToAdd, "blog");
 
-    if (commentToAdd.videoURLs.length){
-        for (let i = 0; i < commentToAdd.videoURLs.length; i++){
+    if (commentToAdd.videoURLs.length) {
+        for (let i = 0; i < commentToAdd.videoURLs.length; i++) {
             //create a video and add the required classes
             const newVideo = document.createElement('video');
             newVideo.setAttribute('src', commentToAdd.videoURLs[i]);
@@ -2120,17 +2120,17 @@ function createBlogPost(commentToAdd){
             newVideo.setAttribute('preload', 'metadata');   
 
             //when a video is played, pause any other media that is playing
-            newVideo.onplay = function(){
+            newVideo.onplay = function() {
                 pauseMedia();
 
-                if (newVideo.closest(".commentCard")){
+                if (newVideo.closest(".commentCard")) {
                     //make the comment the video is in active
                     newVideo.closest(".commentCard").click();
                 }
                 newVideo.classList.add("playing");
             };
         
-            $(newVideo).on('pause ended', function(){
+            $(newVideo).on('pause ended', function() {
                 newVideo.classList.remove("playing");
             });
             
@@ -2147,8 +2147,8 @@ function createBlogPost(commentToAdd){
         }
     }
 
-    if (commentToAdd.audioURLs.length){
-        for (let i = 0; i < commentToAdd.audioURLs.length; i ++){
+    if (commentToAdd.audioURLs.length) {
+        for (let i = 0; i < commentToAdd.audioURLs.length; i ++) {
             //create an audio and add the required classes
             const newAudio = document.createElement('audio');
             newAudio.setAttribute('src', commentToAdd.audioURLs[i]);
@@ -2156,10 +2156,10 @@ function createBlogPost(commentToAdd){
             newAudio.setAttribute('preload', 'metadata');
 
             //pause any media that is playing
-            newAudio.onplay = function(){
+            newAudio.onplay = function() {
                 pauseMedia();
 
-                if (newAudio.closest(".commentCard")){
+                if (newAudio.closest(".commentCard")) {
                     //make the comment the audio is in active
                     newAudio.closest(".commentCard").click();
                 }        
@@ -2167,7 +2167,7 @@ function createBlogPost(commentToAdd){
             }
 
             //removes the playing class from a media file
-            $(newAudio).on('pause ended', function(){
+            $(newAudio).on('pause ended', function() {
                 newAudio.classList.remove("playing");
             })                
          
@@ -2186,7 +2186,7 @@ function createBlogPost(commentToAdd){
 
 
 
-    if (commentToAdd.viewableBlogText && commentToAdd.viewableBlogText.length){
+    if (commentToAdd.viewableBlogText && commentToAdd.viewableBlogText.length) {
         const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
 
         editor.session.selection.clearSelection()
@@ -2208,7 +2208,7 @@ function createBlogPost(commentToAdd){
         editor.session.selection.clearSelection();
         blogPostCodeEditor.session.selection.clearSelection();
 
-        for (let i = 0; i < commentToAdd.selectedCodeBlocks.length; i++){
+        for (let i = 0; i < commentToAdd.selectedCodeBlocks.length; i++) {
             const selection = commentToAdd.selectedCodeBlocks[i];
             blogPostCodeEditor.getSession().addMarker(new ace.Range(selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn), 'highlight', 'text', true);
         }
@@ -2236,18 +2236,18 @@ function createBlogPost(commentToAdd){
     }    
 
 
-    if (commentToAdd.imageURLs.length){
+    if (commentToAdd.imageURLs.length) {
         let imagesDiv = document.createElement('div');
         imagesDiv.classList.add("blogModeImageDiv");
 
-        for (let i = 0; i < commentToAdd.imageURLs.length; i++){
+        for (let i = 0; i < commentToAdd.imageURLs.length; i++) {
             const imgDiv = document.createElement('div');
             imgDiv.classList.add("blogImageDiv");
             const img = document.createElement('img');
             img.classList.add("blogImage");
             img.src = commentToAdd.imageURLs[i];
 
-            img.addEventListener('load', function(){
+            img.addEventListener('load', function() {
                 imgDiv.style.height = img.height > 500 ? "500px" : img.height + "px";
             });
 
@@ -2266,7 +2266,7 @@ function createBlogPost(commentToAdd){
 }
 
 //delete a blog post from blog mode
-function deleteBlogPost(commentToDelete){
+function deleteBlogPost(commentToDelete) {
     const allBlogPosts = getAllBlogPosts();
     const indexToDelete = allBlogPosts.findIndex(item => item.getAttribute("data-commentid") === commentToDelete.id);
     allBlogPosts[indexToDelete].remove();    
@@ -2274,12 +2274,12 @@ function deleteBlogPost(commentToDelete){
 }
 
 //add a blog post to blog blog mode
-function insertBlogPost(commentToInsert){
+function insertBlogPost(commentToInsert) {
     const allPostedComments = getAllComments();
     const allBlogPosts = getAllBlogPosts();
     const indexOfInsertion = allPostedComments.findIndex(item => item.getAttribute("data-commentid") === commentToInsert.id)
 
-    if (indexOfInsertion !== allPostedComments.length - 1){
+    if (indexOfInsertion !== allPostedComments.length - 1) {
         allBlogPosts[0].parentNode.insertBefore(createBlogPost(commentToInsert), allBlogPosts[indexOfInsertion]);
     }
     else{
@@ -2289,7 +2289,7 @@ function insertBlogPost(commentToInsert){
 }
 
 //edit a blog post
-function updateBlogPost(commentToEdit){
+function updateBlogPost(commentToEdit) {
     const allBlogPosts = getAllBlogPosts();
     const indexOfEdit = allBlogPosts.findIndex(item => item.getAttribute('data-commentid') === commentToEdit.id);
     allBlogPosts[indexOfEdit].parentNode.replaceChild(createBlogPost(commentToEdit), allBlogPosts[indexOfEdit]);
@@ -2297,7 +2297,7 @@ function updateBlogPost(commentToEdit){
 }
 
 //handles the highlighting of a blog mode preview selection by mouse dragging or by shift+arrow
-function highlightBlogModeVisibleArea(){
+function highlightBlogModeVisibleArea() {
     clearNewCodeHighlights();
     
     blogModeHighlightHelper();
@@ -2308,27 +2308,27 @@ function highlightBlogModeVisibleArea(){
 }
 
 //handles selection of text using shift+arrow 
-function blogModeHighlightHelperShiftArrow(event){
-    if (event.shiftKey && (event.key === "ArrowRight" || event.key === "ArrowLeft" || event.key === "ArrowDown" || event.key === "ArrowUp")){
+function blogModeHighlightHelperShiftArrow(event) {
+    if (event.shiftKey && (event.key === "ArrowRight" || event.key === "ArrowLeft" || event.key === "ArrowDown" || event.key === "ArrowUp")) {
         aceTempRanges = [];
         waitToGetSelection();
     }
 }
 
 //without a small wait, the selection isn't updated fast enough
-function waitToGetSelection(){
+function waitToGetSelection() {
     setTimeout(blogModeHighlightHelper, 5);
 }
 
 let aceTempMarker;
 let aceTempRange;
 //helper function to assist in the highligting of a blog mode preview
-function blogModeHighlightHelper(){    
+function blogModeHighlightHelper() {    
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
     
     const selection = editor.getSelectedText();
 
-    if (selection !== ""){
+    if (selection !== "") {
         const numbersAbove = Number(blogModeNumberAboveSelector.value);
         const numbersBelow = Number(blogModeNumberBelowSelector.value);       
 
@@ -2364,7 +2364,7 @@ function blogModeHighlightHelper(){
 //clears any blog mode preview highlights or selections
 //removes any event listeners added to the editor for selection
 //resets the line above/below buttons to their default states
-function undoBlogModeHighlight(){
+function undoBlogModeHighlight() {
     const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
 
     editor.session.removeMarker(aceTempMarker)
@@ -2380,26 +2380,26 @@ function undoBlogModeHighlight(){
     blogModeNumberBelowSelector.value = 3;
 }
 
-function getAllComments(){
+function getAllComments() {
     return [...document.querySelectorAll('.codeView [data-commentid]')];
 }
 
-function getAllBlogPosts(){
+function getAllBlogPosts() {
     return [...document.querySelectorAll(".blogView [data-commentid]")];
 }
 
 //empty the drop down list of comment tags
-function emptyCommentTagDropDownMenu(){
+function emptyCommentTagDropDownMenu() {
     document.querySelectorAll('.commentTagDropDownItem').forEach(option => option.remove()); 
 }
 
 //build the drop down list of comment tags when adding or editing a comment
-function populateCommentTagDropDownList(tagsToExclude){    
+function populateCommentTagDropDownList(tagsToExclude) {    
     emptyCommentTagDropDownMenu();
 
     getAllSortedCommentTags().forEach(tag => {
         //if the current tag is meant to be excluded from the dropdown list
-        if (tagsToExclude && tagsToExclude.includes(tag)){
+        if (tagsToExclude && tagsToExclude.includes(tag)) {
             return;
         }
 
@@ -2408,7 +2408,7 @@ function populateCommentTagDropDownList(tagsToExclude){
         newTag.href = "#";
         newTag.appendChild(document.createTextNode(tag));
     
-        newTag.addEventListener("click", function(){
+        newTag.addEventListener("click", function() {
             addCommentTagForThisComment(tag);
             newTag.remove();
         })
@@ -2417,35 +2417,35 @@ function populateCommentTagDropDownList(tagsToExclude){
 }
 
 //format tags as lower case with dashes connecting words
-function getFormattedCommentTag(commentTag){
+function getFormattedCommentTag(commentTag) {
     return commentTag.toLowerCase().replaceAll(' ', '-')
 }
 
 //returns a sorted list of all tags
-function getAllSortedCommentTags(){
+function getAllSortedCommentTags() {
     return Object.keys(allCommentTagsWithCommentId).sort();
 }
 
 //adds a new tag to the tag search data
-function addCommentTagsToTagObject(commentTag, commentObject){
+function addCommentTagsToTagObject(commentTag, commentObject) {
     commentTag = getFormattedCommentTag(commentTag);
 
-    if (!allCommentTagsWithCommentId[commentTag]){
+    if (!allCommentTagsWithCommentId[commentTag]) {
         allCommentTagsWithCommentId[commentTag] = [commentObject.id] 
     }
-    else if (!allCommentTagsWithCommentId[commentTag].includes(commentObject.id)){    
+    else if (!allCommentTagsWithCommentId[commentTag].includes(commentObject.id)) {    
         allCommentTagsWithCommentId[commentTag].push(commentObject.id)
     }
 }
 
 //remove a deleted tag from the search data
-function removeDeletedCommentTagsFromTagObject(oldTagsList, newTagsList, commentId){
+function removeDeletedCommentTagsFromTagObject(oldTagsList, newTagsList, commentId) {
      oldTagsList.forEach(tag =>{
-        if (!newTagsList.includes(tag)){
+        if (!newTagsList.includes(tag)) {
             const index = allCommentTagsWithCommentId[tag].indexOf(commentId)
             allCommentTagsWithCommentId[tag].splice(index, 1);
 
-            if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)){
+            if (allCommentTagsWithCommentId[tag].length === 0 && !permanentCommentTags.includes(tag)) {
                 delete allCommentTagsWithCommentId[tag];
             }
         }
@@ -2453,8 +2453,8 @@ function removeDeletedCommentTagsFromTagObject(oldTagsList, newTagsList, comment
 }
 
 //add a new tag to a comments tag list when adding or editing a comment
-function addCommentTagForThisComment(commentTag){
-    if (getAllTagsOnScreen().includes(commentTag)){
+function addCommentTagForThisComment(commentTag) {
+    if (getAllTagsOnScreen().includes(commentTag)) {
         return;
     }
 
@@ -2469,7 +2469,7 @@ function addCommentTagForThisComment(commentTag){
     deleteButton.title = "Remove tag from comment";
     tagDiv.append(deleteButton);
 
-    deleteButton.addEventListener("click", function(){
+    deleteButton.addEventListener("click", function() {
         tagDiv.remove();
 
         //rebuild the drop down menu with the deleted tag
@@ -2480,7 +2480,7 @@ function addCommentTagForThisComment(commentTag){
 }
 
 //formats the cloned comment div for the search results
-function setUpSearchResultComment(commentDiv){
+function setUpSearchResultComment(commentDiv) {
     const commentId = commentDiv.getAttribute("data-commentid");
 
     //remove any active classes from the original comment
@@ -2492,14 +2492,14 @@ function setUpSearchResultComment(commentDiv){
 
     //remove any carousels because the original event listeners wont work
     const carousel = commentDiv.querySelector(".carousel")
-    if (carousel){
+    if (carousel) {
         while (carousel.firstChild)
         carousel.removeChild(carousel.firstChild)
     }
 
     //remove any audio divs because the original event listeners wont work
     const audioDiv = commentDiv.querySelectorAll(".textLeft")
-    if (audioDiv.length){
+    if (audioDiv.length) {
         audioDiv.forEach(audio =>{
             audio.remove()
         })
@@ -2514,7 +2514,7 @@ function setUpSearchResultComment(commentDiv){
 
         //remove active classes from the comment and the images in the comment
         const activeComment = document.querySelector(".activeSearchResultComment");
-        if (activeComment){
+        if (activeComment) {
             activeComment.querySelectorAll(".activeCarousel").forEach(img =>{
                 img.classList.remove("activeCarousel")
             })
@@ -2531,7 +2531,7 @@ function setUpSearchResultComment(commentDiv){
 }
 
 //get all comment tags that are currently on screen for a comment
-function getAllTagsOnScreen(){ 
+function getAllTagsOnScreen() { 
     const tagDivs = [...document.querySelectorAll(".commentTagDiv")];
     let retVal = [];
     tagDivs.forEach(tagDiv => {
@@ -2541,14 +2541,14 @@ function getAllTagsOnScreen(){
 }
 
 //builds up wordSearchData to later search by words
-function buildSearchData(commentObject){    
+function buildSearchData(commentObject) {    
     //comment text
     getWordsFromText(commentObject.commentText).forEach(word =>{
         buildSearchDataHelper(word, "commentText", commentObject.id)
     })
     
     //comment tags
-    if (commentObject.commentTags.length){
+    if (commentObject.commentTags.length) {
         commentObject.commentTags.forEach(tag =>{
             tag = tag.replaceAll('-', ' ');
             words = tag.split(' ');
@@ -2560,7 +2560,7 @@ function buildSearchData(commentObject){
     }
 
     //highlighted code
-    if (commentObject.selectedCodeBlocks.length){
+    if (commentObject.selectedCodeBlocks.length) {
         commentObject.selectedCodeBlocks.forEach(block =>{
             getWordsFromText(block.selectedText, true).forEach(word =>{
                 buildSearchDataHelper(word, "highlightedCode", commentObject.id)
@@ -2570,9 +2570,9 @@ function buildSearchData(commentObject){
 }
 
 //delete words from the search data after a comment is edited 
-function deleteWordsFromSearchData(oldComment, newComment){
+function deleteWordsFromSearchData(oldComment, newComment) {
     //commentText
-    if (oldComment.commentText !== newComment.commentText){
+    if (oldComment.commentText !== newComment.commentText) {
         const oldWords = getWordsFromText(oldComment.commentText)
 
         const newWords = getWordsFromText(newComment.commentText)
@@ -2588,7 +2588,7 @@ function deleteWordsFromSearchData(oldComment, newComment){
     //determining if any tags have been deleted
     const deletedTags = [...new Set(oldComment.commentTags.filter(oldTag => !newComment.commentTags.includes(oldTag)))];
 
-    if (deletedTags.length){ 
+    if (deletedTags.length) { 
         deletedTags.forEach(tag =>{
             tag = tag.replaceAll("-", " ");
             //split the tag into an array of words
@@ -2625,14 +2625,14 @@ function deleteWordsFromSearchData(oldComment, newComment){
     })
 
     oldSelectedTextWords.forEach(oldWord =>{
-        if (!newSelectedTextWords.includes(oldWord)){
+        if (!newSelectedTextWords.includes(oldWord)) {
             deleteWordsFromSearchDataHelper(oldWord, "highlightedCode", oldComment.id)
         }
     })    
 }
 
 //when a comment is deleted and all of it's data has to be removed from the search data
-function deleteCommentFromSearchData(comment){
+function deleteCommentFromSearchData(comment) {
     //commentText
     getWordsFromText(comment.commentText).forEach(oldWord =>{
         deleteWordsFromSearchDataHelper(oldWord, "commentText", comment.id);
@@ -2656,29 +2656,29 @@ function deleteCommentFromSearchData(comment){
 }
 
 //generic deleter that can be called for any search criteria
-function deleteWordsFromSearchDataHelper(word, criteriaType, commentId){
-    if (!wordSearchData[word] || !wordSearchData[word][criteriaType] || !wordSearchData[word][criteriaType].includes(commentId)){
+function deleteWordsFromSearchDataHelper(word, criteriaType, commentId) {
+    if (!wordSearchData[word] || !wordSearchData[word][criteriaType] || !wordSearchData[word][criteriaType].includes(commentId)) {
         return
     }
 
     const index = wordSearchData[word][criteriaType].indexOf(commentId);
     wordSearchData[word][criteriaType].splice(index, 1); //delete the word
 
-    if (wordSearchData[word][criteriaType].length === 0){ //if this word doesn't appear in the criteria anymore
+    if (wordSearchData[word][criteriaType].length === 0) { //if this word doesn't appear in the criteria anymore
         delete wordSearchData[word][criteriaType];
-        if (Object.keys(wordSearchData[word]).length === 0){ //if this word doesn't appear in any criteria anymore
+        if (Object.keys(wordSearchData[word]).length === 0) { //if this word doesn't appear in any criteria anymore
             delete wordSearchData[word];
         }
     }            
 }
 
 //generic helper function that can build any criteria
-function buildSearchDataHelper(word, criteriaType, commentId){
+function buildSearchDataHelper(word, criteriaType, commentId) {
     word = word.toLowerCase();
-    if (word.length > 1 || criteriaType === "highlightedCode"){ //words from highlighted code can be any length
-        if (wordSearchData[word]){//if the word already exists in the object
-            if (wordSearchData[word][criteriaType]){//if the word exists for the criteria
-                if (!wordSearchData[word][criteriaType].includes(commentId)){//if the commentId doesn't exist
+    if (word.length > 1 || criteriaType === "highlightedCode") { //words from highlighted code can be any length
+        if (wordSearchData[word]) {//if the word already exists in the object
+            if (wordSearchData[word][criteriaType]) {//if the word exists for the criteria
+                if (!wordSearchData[word][criteriaType].includes(commentId)) {//if the commentId doesn't exist
                     wordSearchData[word][criteriaType].push(commentId);
                 }
             }
@@ -2693,14 +2693,14 @@ function buildSearchDataHelper(word, criteriaType, commentId){
 }
 
 //returns an array of words with all special characters removed
-function getWordsFromText(stringToStrip, isCode){
+function getWordsFromText(stringToStrip, isCode) {
     //remove all html from text that isn't highlighted code
     //the highlighted code html might be something somebody wants to search for
-    if (!isCode){ 
+    if (!isCode) { 
         stringToStrip = stringToStrip.replace(/(<([^>]+)>)/gi, "");
     }
     const retVal =  [...new Set(stringToStrip.replace(/[^a-zA-Z ]/g, " ").split(/[\s ]+/))]
-    if (retVal.indexOf("") !== -1){
+    if (retVal.indexOf("") !== -1) {
         retVal.splice(retVal.indexOf(""), 1)
     }
     return retVal;
@@ -2708,7 +2708,7 @@ function getWordsFromText(stringToStrip, isCode){
 
 //TODO this can be changed/deleted because it's not very useful right now
 //a single place to handle the values of the drop down menu
-function handleCommentSearchDropDownOptions(){
+function handleCommentSearchDropDownOptions() {
     activeOption = document.querySelector(".commentSearchOption.active").text;
     retVal = 'All';
     switch (activeOption) {
@@ -2732,11 +2732,11 @@ function handleCommentSearchDropDownOptions(){
 }
 
 //only allow one right answer check box to be checked at a time in question comments
-function rightAnswerCheckBoxHandler(checkbox){
-    checkbox.addEventListener('click', function(event){
+function rightAnswerCheckBoxHandler(checkbox) {
+    checkbox.addEventListener('click', function(event) {
         const checkedBoxes = document.querySelectorAll('.rightAnswerCheckBox:checked');       
         checkedBoxes.forEach(checkbox =>{
-            if (checkbox.id !== event.target.id){
+            if (checkbox.id !== event.target.id) {
                 checkbox.checked = false;
             }
         })        
@@ -2744,7 +2744,7 @@ function rightAnswerCheckBoxHandler(checkbox){
 }
 
 //builds and returns the divs for adding question comment data
-function getCommentQuestion(){
+function getCommentQuestion() {
     const outerDiv = document.createElement('div');
     outerDiv.classList.add('form-group', 'extraQuestion');
 
@@ -2779,16 +2779,16 @@ function getCommentQuestion(){
     removeAnswerButton.classList.add("btn", "btn-outline-secondary", "removeAnswerButton");
     removeAnswerButton.setAttribute("type", "button");
 
-    removeAnswerButton.addEventListener('click', function(event){
+    removeAnswerButton.addEventListener('click', function(event) {
         event.target.closest(".extraQuestion").remove();
     })
 
     //add a class that will highlight the border of the answer that will be deleted by pressing the removeAnswerButton
-    removeAnswerButton.addEventListener('mouseover', function(event){
+    removeAnswerButton.addEventListener('mouseover', function(event) {
         event.target.closest(".extraQuestion").querySelector(".questionCommentInput").classList.add("answerToDelete");
     })
 
-    removeAnswerButton.addEventListener('mouseout', function(event){
+    removeAnswerButton.addEventListener('mouseout', function(event) {
         event.target.closest(".extraQuestion").querySelector(".questionCommentInput").classList.remove("answerToDelete");
     })
 
@@ -2805,8 +2805,8 @@ function getCommentQuestion(){
 }
 
 //returns the question comment question, answers, and right answer
-function getQuestionCommentData(button){
-    if (!document.getElementById("questionCheckBox").checked){
+function getQuestionCommentData(button) {
+    if (!document.getElementById("questionCheckBox").checked) {
         return null;
     };
     
@@ -2816,30 +2816,30 @@ function getQuestionCommentData(button){
     let correctAnswer = '';
 
 
-    if (!question.length){
+    if (!question.length) {
         setQuestionCommentAlertMessage(button, "Question field cannot be empty");
         noProblems = false;
     }
 
-    if (noProblems){
+    if (noProblems) {
         document.querySelectorAll('.questionCommentInput').forEach(field =>{
-            if (field.value.length){
+            if (field.value.length) {
                 allAnswers.push(field.value);
             }
         });
     
-        if (allAnswers.length < 2){
+        if (allAnswers.length < 2) {
             setQuestionCommentAlertMessage(button, "At least two answers must be entered");
             noProblems = false;
         }
     }
 
-    if (noProblems){
+    if (noProblems) {
         const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
-        if (rightAnswerCheckBox){            
+        if (rightAnswerCheckBox) {            
             correctAnswer = rightAnswerCheckBox.closest('.form-group').querySelector('.questionCommentInput').value;
     
-            if (!correctAnswer.length){
+            if (!correctAnswer.length) {
                 noProblems = false;
                 setQuestionCommentAlertMessage(button, "Correct answer must be filled in");
             }
@@ -2854,7 +2854,7 @@ function getQuestionCommentData(button){
 }
 
 //set the alert message that will be displayed on a popover button
-function setQuestionCommentAlertMessage(button, message){
+function setQuestionCommentAlertMessage(button, message) {
 
     button.setAttribute('data-content', message);
     $(button).popover('enable');
@@ -2865,7 +2865,7 @@ function setQuestionCommentAlertMessage(button, message){
 }
 
 //reset the question comment input div
-function resetQuestionCommentDiv(){
+function resetQuestionCommentDiv() {
     document.querySelectorAll('.extraQuestion').forEach(question => {
         question.remove();
     })
@@ -2879,19 +2879,19 @@ function resetQuestionCommentDiv(){
     questionDiv.style.height = '100px';
 
     const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
-    if (rightAnswerCheckBox){
+    if (rightAnswerCheckBox) {
         rightAnswerCheckBox.checked = false;
     }
 
     const checkbox = document.getElementById('questionCheckBox');
-    if (checkbox.checked){
+    if (checkbox.checked) {
         checkbox.click();
     }
 }
 
 //add question comment data to a div
-function addQuestionCommentToDiv(divToAddTo, commentObject, source){
-    if (commentObject.questionCommentData.allAnswers.length > 0){
+function addQuestionCommentToDiv(divToAddTo, commentObject, source) {
+    if (commentObject.questionCommentData.allAnswers.length > 0) {
         const HR = document.createElement("HR");
         HR.classList.add("questionCommentHR");
 
@@ -2914,7 +2914,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
         divToAddTo.append(questionNumberDiv);
         divToAddTo.append(questionAnswerDiv);
 
-        for (let i = 0; i < commentObject.questionCommentData.allAnswers.length; i++){
+        for (let i = 0; i < commentObject.questionCommentData.allAnswers.length; i++) {
             const outerDiv = document.createElement('div');
             outerDiv.classList.add('form-check');
         
@@ -2923,10 +2923,10 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
             input.setAttribute('type', 'radio');    
             input.setAttribute('id', commentObject.id + '*' + source + '*' + i);
 
-            input.addEventListener('click', function(event){
+            input.addEventListener('click', function(event) {
                 const parentDiv = event.target.closest('.questionAnswerDiv');
                 parentDiv.querySelectorAll('.form-check-input:checked').forEach(input =>{
-                    if (event.target.id !== input.id){
+                    if (event.target.id !== input.id) {
                         input.checked = false;
                     }
                 })
@@ -2952,14 +2952,14 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
 
         checkAnswerButton.setAttribute('id', commentObject.id + "*" + source + "*check");
 
-        checkAnswerButton.addEventListener('click', function(event){
+        checkAnswerButton.addEventListener('click', function(event) {
             const parentDiv = event.target.parentNode;
 
-            if (parentDiv.querySelector('.form-check-input:checked')){
+            if (parentDiv.querySelector('.form-check-input:checked')) {
                 const checkedAnswer = parentDiv.querySelector('.form-check-input:checked');
                 const selectedAnswer = checkedAnswer.nextSibling.innerText;
 
-                if (selectedAnswer === commentObject.questionCommentData.correctAnswer){
+                if (selectedAnswer === commentObject.questionCommentData.correctAnswer) {
                     checkedAnswer.parentNode.querySelector('.commentQuestionAnswer').classList.add('rightAnswer');
                     checkedAnswer.parentNode.querySelector('.iconDiv').classList.add('rightAnswerCheck');
                 }
@@ -2968,7 +2968,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
                     checkedAnswer.parentNode.querySelector('.iconDiv').classList.add('wrongAnswerX');
 
                     parentDiv.querySelectorAll('.commentQuestionAnswer').forEach(answer =>{
-                        if (answer.innerText === commentObject.questionCommentData.correctAnswer){
+                        if (answer.innerText === commentObject.questionCommentData.correctAnswer) {
                             answer.classList.add('rightAnswer');
                             answer.parentNode.querySelector('.iconDiv').classList.add('rightAnswerCheck');
                         }
@@ -2990,7 +2990,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
         clearAnswerButton.appendChild(document.createTextNode('Clear Answer'));  
         clearAnswerButton.setAttribute('id', commentObject.id + "*" + source + "*clear");
 
-        clearAnswerButton.addEventListener('click', function(event){
+        clearAnswerButton.addEventListener('click', function(event) {
 
             const parentDiv = event.target.parentNode;
 
@@ -3021,7 +3021,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source){
 }
 
 //update the numbers that display after selecting an answer in a question comment
-function updateCommentQuestionsRunningCounts(){
+function updateCommentQuestionsRunningCounts() {
     const attempts = document.querySelectorAll('.codeView .clearAnswerButton:not(.hiddenQuestionButton)').length;
     const rightAnswers = document.querySelectorAll('.codeView .rightAnswer').length - document.querySelectorAll('.codeView .wrongAnswer').length;
 
@@ -3031,7 +3031,7 @@ function updateCommentQuestionsRunningCounts(){
 }
 
 //on press of checkAnswerButton in either mode (blog or code), ensure the same question is in the same state in the other mode 
-function synchronizeCheckAnswerButtonBetweenModes(event){
+function synchronizeCheckAnswerButtonBetweenModes(event) {
     const selectedAnswerId  = event.target.parentNode.querySelector('.form-check-input:checked').id;
 
     const idParts = selectedAnswerId.split('*');
@@ -3044,14 +3044,14 @@ function synchronizeCheckAnswerButtonBetweenModes(event){
     const newButtonId = idParts[0] + "*" + modeToChangeTo + "*check";
     const checkButtonInOtherMode = document.getElementById(newButtonId);
 
-    if (!checkButtonInOtherMode.classList.contains("hiddenQuestionButton")){
+    if (!checkButtonInOtherMode.classList.contains("hiddenQuestionButton")) {
         optionInOtherMode.click();
         checkButtonInOtherMode.click();
     }
 }
 
 //on press of clearAnswerButton in either mode (blog or code), ensure the same question is in the same state in the other mode 
-function synchronizeClearAnswerButtonBetweenModes(event){
+function synchronizeClearAnswerButtonBetweenModes(event) {
     const buttonId = event.target.id;
     const idParts = buttonId.split('*');
     const modeToChangeTo = idParts[1] === "blog" ? "commentView" : "blog"; 
@@ -3059,7 +3059,7 @@ function synchronizeClearAnswerButtonBetweenModes(event){
     const newButtonId = idParts[0] + "*" + modeToChangeTo + "*clear";
     const clearButtonInOtherMode = document.getElementById(newButtonId);
 
-    if (!clearButtonInOtherMode.classList.contains("hiddenQuestionButton")){
+    if (!clearButtonInOtherMode.classList.contains("hiddenQuestionButton")) {
         clearButtonInOtherMode.click();
     }
 }
@@ -3067,25 +3067,25 @@ function synchronizeClearAnswerButtonBetweenModes(event){
 //when a comment is added or edited, displayAllComments is called to rebuild codeView, resetting all comments and questions back to their default states. 
 //blogMode will only add or edit the one comment so any previously answered questions will stay in their answered state.
 //this function resets all of those questions back to their default state to match codeView
-function resetAllBlogModeQuestionComments(){
+function resetAllBlogModeQuestionComments() {
     [...document.querySelectorAll('.blogView .clearAnswerButton:not(.hiddenQuestionButton)')].forEach(clearButton =>{
         clearButton.click();
     })
 }
 
 //update the question numbers in question comments in both modes (code and blog)
-function updateQuestionCommentCounts(){
+function updateQuestionCommentCounts() {
     const allQuestionsCode = document.querySelectorAll('.codeView .questionNumberDiv');
     const allQuestionsBlog = document.querySelectorAll('.blogView .questionNumberDiv');
 
-    for (let i = 0; i < allQuestionsCode.length; i++){        
+    for (let i = 0; i < allQuestionsCode.length; i++) {        
         allQuestionsCode[i].childNodes[0].nodeValue = i + 1 + '.';
         allQuestionsBlog[i].childNodes[0].nodeValue = i + 1 + '.';
     }
 }
 
 //Removes any selected text in the page.
-function removeSelectedTextFromPage(){
+function removeSelectedTextFromPage() {
     if (window.getSelection) {
         if (window.getSelection().empty) {  // Chrome
             window.getSelection().empty();

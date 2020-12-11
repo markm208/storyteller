@@ -1663,7 +1663,7 @@
                 boldButton.classList.add("btn-default");
                 var boldButtonText = document.createElement("span");
                 boldButtonText.innerHTML = "<strong>B</strong>";
-                boldButton.addEventListener("click", function(){
+                boldButton.addEventListener("click", function() {
                     document.execCommand("bold");
                 });
                 boldButton.appendChild(boldButtonText);
@@ -1673,7 +1673,7 @@
                 italicsButton.classList.add("btn-default");
                 var italicsButtonText = document.createElement("span");
                 italicsButtonText.innerHTML = "<em>I</em>";
-                italicsButton.addEventListener("click", function(){
+                italicsButton.addEventListener("click", function() {
                     document.execCommand("italic");
                 });
                 italicsButton.appendChild(italicsButtonText);
@@ -1696,7 +1696,7 @@
                 var linkButtonText = document.createElement("span");
                 linkButtonText.innerHTML = "Create Link";
                 linkButton.appendChild(linkButtonText);
-                linkButton.addEventListener("click", function(){
+                linkButton.addEventListener("click", function() {
                     var uri = linkTextBox.value;
                     document.execCommand("createLink", false, uri);
                 });
@@ -1951,7 +1951,7 @@
 
                     } else { //the keydown did not happen in one of the editable text areas
 
-                        if(e.keyCode === 37){ //left
+                        if(e.keyCode === 37) { //left
 
                             //if this is a shift + arrow
                             if(e.shiftKey) {            
@@ -1981,7 +1981,7 @@
                                 document.querySelector("#stepBackwardButton").click();
                             }
 
-                        } else if(e.keyCode === 39){ //right
+                        } else if(e.keyCode === 39) { //right
                             
                             //if this is a shift + arrow
                             if(e.shiftKey) { 
@@ -2010,7 +2010,7 @@
                                 document.querySelector("#stepForwardButton").click();
                             }
 
-                        } else if(e.keyCode === 38 && e.shiftKey){ //shift + up
+                        } else if(e.keyCode === 38 && e.shiftKey) { //shift + up
 
                             //alt key is pressed too
                             if(e.altKey) {
@@ -2024,7 +2024,7 @@
                                 document.querySelector("#playbackSpeedIncreaseButton").click();
                             }
 
-                        } else if(e.keyCode === 40 && e.shiftKey){ //shift + down
+                        } else if(e.keyCode === 40 && e.shiftKey) { //shift + down
 
                             //alt key is pressed too
                             if(e.altKey) {
@@ -2038,42 +2038,42 @@
                                 document.querySelector("#playbackSpeedDecreaseButton").click();
                             }
 
-                        } else if(e.keyCode === 80 && e.shiftKey){ //shift + p
+                        } else if(e.keyCode === 80 && e.shiftKey) { //shift + p
 
                             //toggle the pause for comments option
                             document.querySelector("#userWantsPauseOnCommentsCheckbox").click();
 
-                        } else if(e.keyCode === 66 && e.shiftKey){ //shift + b
+                        } else if(e.keyCode === 66 && e.shiftKey) { //shift + b
 
                             //toggle the show cuts/pastes in blocks option
                             document.querySelector("#cutPasteInBlocksCheckbox").click();
 
-                        } else if(e.keyCode === 72 && e.shiftKey){ //shift + h
+                        } else if(e.keyCode === 72 && e.shiftKey) { //shift + h
 
                             //toggle the show recent highlights option
                             document.querySelector("#showRecentHighlightsCheckbox").click();
 
-                        } else if(e.keyCode === 79 && e.shiftKey){ //shift + o
+                        } else if(e.keyCode === 79 && e.shiftKey) { //shift + o
 
                             //open the options modal
                             $('#playbackOptionsModal').modal('show');
 
-                        } else if(e.keyCode === 70 && e.shiftKey){ //shift + f
+                        } else if(e.keyCode === 70 && e.shiftKey) { //shift + f
 
                             //open the filters modal
                             $('#filtersModal').modal('show');
 
-                        } else if(e.keyCode === 68 && e.shiftKey){ //shift + d
+                        } else if(e.keyCode === 68 && e.shiftKey) { //shift + d
 
                             //open the download modal
                             $('#saveStateModal').modal('show');
 
-                        } else if(e.keyCode === 67 && e.shiftKey){ //shift + c
+                        } else if(e.keyCode === 67 && e.shiftKey) { //shift + c
 
                             //clear all the recent changes
                             clearPreviousEventHighlights();
 
-                        } else if(e.keyCode === 32){ //space bar
+                        } else if(e.keyCode === 32) { //space bar
 
                             //space bar outside of the text area
 
@@ -2227,7 +2227,7 @@
                     if(e.target.checked === true) {
 
                         //go through all of them
-                        for(var i = 0;i < allDeletedFileAndDirectoryCheckBoxes.length;i++){
+                        for(var i = 0;i < allDeletedFileAndDirectoryCheckBoxes.length;i++) {
 
                             //hide by adding a class that makes them display: none
                             allDeletedFileAndDirectoryCheckBoxes[i].classList.add("deletedFileOrDirectoryNotVisible");
@@ -2236,7 +2236,7 @@
                     } else { //the user want to see the deleted files and directories
 
                         //go through them all
-                        for(var i = 0;i < allDeletedFileAndDirectoryCheckBoxes.length;i++){
+                        for(var i = 0;i < allDeletedFileAndDirectoryCheckBoxes.length;i++) {
 
                             //show them by removing the class that hides them
                             allDeletedFileAndDirectoryCheckBoxes[i].classList.remove("deletedFileOrDirectoryNotVisible");
@@ -2486,7 +2486,7 @@
                     var fileReader = new FileReader();
 
                     //once the data is done being read
-                    fileReader.onload = function(data){
+                    fileReader.onload = function(data) {
 
                         //get the selected playback.json file
                         var playbackDataBranch2 = JSON.parse(data.target.result);
@@ -2779,7 +2779,7 @@
                     var fileReader = new FileReader();
 
                     //once the data is done being read
-                    fileReader.onload = function(data){
+                    fileReader.onload = function(data) {
 
                         //get the text of the file and turn it into json                        
                         //store the playback data from the file
@@ -3394,7 +3394,7 @@
                     //pause the playback
                     pausePlayback();
 
-                } else if(playbackData.playbackState === "paused"){ //the playback is paused
+                } else if(playbackData.playbackState === "paused") { //the playback is paused
 
                     //start playing the playback
                     playPlayback();
@@ -4046,7 +4046,7 @@
                     if(playbackData.delay > 0) {
                         
                         //set a timer to remove the .briefDeleteHighlight class and to actually hide the event
-                        window.setTimeout(function(codeElement, fileId){                            
+                        window.setTimeout(function(codeElement, fileId) {                            
                             
                             //remove the recent brief highlight class
                             codeElement.classList.remove("briefDeleteHighlight");
@@ -8463,7 +8463,7 @@
                 dirFilterCheckBox.classList.add("filterCheckBox");
                 
                 //add an event handler 
-                dirFilterCheckBox.addEventListener("click", function(e){
+                dirFilterCheckBox.addEventListener("click", function(e) {
 
                     //when the checkbox is checked, get a reference to the ul that is holding the dir
                     var dirUL = document.querySelector("#dirUL_" + dir.id);
@@ -10143,8 +10143,8 @@
                 commentContainer.classList.add("readableComment");
 
                 //when someone clicks the comment
-                commentContainer.addEventListener("click", function(e){
-                //commentContainer.addEventListener("mouseenter", function(e){ //for mouse over instead of a click
+                commentContainer.addEventListener("click", function(e) {
+                //commentContainer.addEventListener("mouseenter", function(e) { //for mouse over instead of a click
 
                     //get the active comment (might be null if this is there has been no comments clicked yet)
                     activeCommentContainer = document.querySelector(".activeComment");
@@ -10180,7 +10180,7 @@
                     smallImageLink.appendChild(smallImage);
 
                     //add the event handler
-                    smallImageLink.addEventListener("click", function(e){
+                    smallImageLink.addEventListener("click", function(e) {
                         
                         //add the image to the large display
                         var largeImageDisplay = document.querySelector("#largeImageDisplay");
@@ -10444,12 +10444,12 @@
 
                 //insert the comment on the server
                 var xmlhttp = new XMLHttpRequest();   
-                xmlhttp.addEventListener("load", function(){
+                xmlhttp.addEventListener("load", function() {
 
                     console.log("successfully added a comment and receieved a response");
                 });
 
-                xmlhttp.addEventListener("error", function(){
+                xmlhttp.addEventListener("error", function() {
                     
                     //notify the user that there was a problem
                     makeAnAlert("We were unable to permanently store your comment", "alert-danger", "commentAlertArea");
@@ -10495,13 +10495,13 @@
                 
                 //update the comment on the server
                 var xmlhttp = new XMLHttpRequest();   
-                xmlhttp.addEventListener("load", function(){
+                xmlhttp.addEventListener("load", function() {
 
                     //TODO add something to the UI
                     console.log("successfully updated a comment and receieved a response");
                 });
 
-                xmlhttp.addEventListener("error", function(){
+                xmlhttp.addEventListener("error", function() {
                     
                     //notify the user that there was a problem
                     makeAnAlert("We were unable to update your comment", "alert-danger", "commentAlertArea");
@@ -10539,13 +10539,13 @@
 
                 //update the comment on the server
                 var xmlhttp = new XMLHttpRequest();   
-                xmlhttp.addEventListener("load", function(){
+                xmlhttp.addEventListener("load", function() {
 
                     //TODO add something to the UI
                     console.log("successfully updated a comment position and receieved a response");
                 });
 
-                xmlhttp.addEventListener("error", function(){
+                xmlhttp.addEventListener("error", function() {
                     
                     //notify the user that there was a problem
                     makeAnAlert("We were unable to update your comment position", "alert-danger", "commentAlertArea");
@@ -10601,13 +10601,13 @@
                 
                 //delete the comment on the server
                 var xmlhttp = new XMLHttpRequest();   
-                xmlhttp.addEventListener("load", function(){
+                xmlhttp.addEventListener("load", function() {
 
                     //TODO add something to the UI
                     console.log("successfully deleted a comment and receieved a response");
                 });
 
-                xmlhttp.addEventListener("error", function(){
+                xmlhttp.addEventListener("error", function() {
 
                     //TODO add a message to the UI indicating that there is no server to respond
                     console.log("was not able to delete a comment");
@@ -10629,13 +10629,13 @@
                 
                 //update the title and description on the server
                 var xmlhttp = new XMLHttpRequest();   
-                xmlhttp.addEventListener("load", function(){
+                xmlhttp.addEventListener("load", function() {
 
                     //TODO add something to the UI
                     console.log("successfully updated a comment and receieved a response");
                 });
 
-                xmlhttp.addEventListener("error", function(){
+                xmlhttp.addEventListener("error", function() {
 
                     //TODO add a message to the UI indicating that there is no server to respond
                     console.log("was not able to update a comment");
@@ -10725,7 +10725,7 @@
                 var editCommentPictureModal = document.querySelector("#editCommentPictureModal");
 
                 //capture mouse moves and always have a current mouse position
-                canvasData.commentCanvas.addEventListener("mousemove", function(e){
+                canvasData.commentCanvas.addEventListener("mousemove", function(e) {
 
                     //store the old current mouse position and the previous mouse position
                     canvasData.previousMousePosition.x = canvasData.currentMousePosition.x;
@@ -11386,7 +11386,7 @@
                 commentImageStartingPointLink.appendChild(commentImageStartingPointImage);
 
                 //when the user clicks on this link
-                commentImageStartingPointLink.addEventListener("click", function(e){
+                commentImageStartingPointLink.addEventListener("click", function(e) {
 
                     //clear any undo history since this will start a 'fresh' image
                     clearUndoHistory();

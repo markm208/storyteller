@@ -115,7 +115,7 @@ document.getElementById('deleteMediaButton').addEventListener('click', async eve
     const allAudiosDeleted = await deleteSelectedAudios();
 
     //if one ore more of any of the types of media was in a comment when the user attemped to delete it from the server
-    if (!allImagesDeleted || !allVideosDeleted || !allAudiosDeleted){
+    if (!allImagesDeleted || !allVideosDeleted || !allAudiosDeleted) {
        $('#deleteMediaButton').popover('enable');
 
        $('#deleteMediaButton').popover('show');
@@ -295,7 +295,7 @@ async function deleteSelectedImages() {
             const filePath = selectedImages[i].getAttribute('src');
 
             //if the filePath does not match an images src that is currently in a comment
-            if (imagesInComments.findIndex(image => image.getElementsByTagName('img')[0].getAttribute('src') === filePath) === -1){
+            if (imagesInComments.findIndex(image => image.getElementsByTagName('img')[0].getAttribute('src') === filePath) === -1) {
                 filePaths.push(filePath);
                 imagesRemoved.push(selectedImages[i]);
             }
@@ -349,7 +349,7 @@ async function deleteSelectedVideos() {
             const filePath = selectedVideos[i].querySelector('[src*="/media/videos"]').getAttribute('src');
 
             //if the filePath does not match a videos src that is currently in a comment
-            if (videosInComments.findIndex(video => video.getAttribute('src') === filePath) === -1){
+            if (videosInComments.findIndex(video => video.getAttribute('src') === filePath) === -1) {
                 filePaths.push(filePath);
                 videosRemoved.push(selectedVideos[i]);
             }
@@ -402,7 +402,7 @@ async function deleteSelectedAudios() {
             const filePath = selectedAudios[i].querySelector('[src*="/media/audios"]').getAttribute('src');
 
             //if the filePath does not match an audio src that is currently in a comment
-            if (audiosInComments.findIndex(audio => audio.getAttribute('src') === filePath) === -1){
+            if (audiosInComments.findIndex(audio => audio.getAttribute('src') === filePath) === -1) {
                 filePaths.push(filePath);
                 audiosRemoved.push(selectedAudios[i]);
             }
