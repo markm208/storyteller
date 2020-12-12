@@ -609,7 +609,7 @@ function createEditCommentButton(commentObject, buttonText) {
         commentObject.commentTags.forEach(tag => addCommentTagForThisComment(tag));    
 
         const addCommentButton =  document.getElementById("addCommentButton");
-        const updateCommentButton = document.getElementById("UpdateCommentButton");
+        const updateCommentButton = document.getElementById("updateCommentButton");
         addCommentButton.style.display = "none";
         updateCommentButton.removeAttribute("style");
         //cancelUpdateButton.removeAttribute("style");
@@ -2805,63 +2805,76 @@ function createAnswerInput() {
 }
 
 //returns the question comment question, answers, and right answer
-function getQuestionCommentData(button) {
-    if (!document.getElementById("questionCheckBox").checked) {
-        return null;
+function getQuestionCommentData() {
+    const retVal = {
+        questionData: {
+            allAnswers: [], 
+            correctAnswer: "",
+            question: ""
+        },
+        questionState: "no question",
+        errorMessage: ""
     };
-    
-    let noProblems = true;
-    const question = document.getElementById("commentQuestion").innerText.trim();
-    const allAnswers = [];
-    let correctAnswer = '';
 
+    var question;
+    var allAnswers = [];
+    var correctAnswer;
+    var emptyAnswers = 0;
 
-    if (!question.length) {
-        setQuestionCommentAlertMessage(button, "Question field cannot be empty");
-        noProblems = false;
-    }
+    //if the user checked the box to ask a question
+    if (document.getElementById("questionCheckBox").checked) {
+        //assume there is invalid input until I know otherwise
+        retVal.questionState = "invalid input";
 
-    if (noProblems) {
-        document.querySelectorAll('.questionCommentInput').forEach(field =>{
-            if (field.value.length) {
-                allAnswers.push(field.value);
+        //grab the question text
+        question = document.getElementById("commentQuestion").innerText.trim();
+        
+        //if there is some question text
+        if (question.length > 0) {
+            //get the users supplied answers
+            const questionCommentInputs = document.querySelectorAll('.questionCommentInput');
+
+            //collect the answers
+            for(let i = 0; i < questionCommentInputs.length;i++) {
+                const questionCommentInput = questionCommentInputs[i];
+                const answerText = questionCommentInput.value.trim();
+
+                //if there is some answer text, store it
+                if (answerText.length > 0) {
+                    allAnswers.push(answerText);
+                } else { 
+                    //count how many empty answers there are
+                    emptyAnswers++;
+                }
             }
-        });
-    
-        if (allAnswers.length < 2) {
-            setQuestionCommentAlertMessage(button, "At least two answers must be entered");
-            noProblems = false;
-        }
-    }
-
-    if (noProblems) {
-        const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
-        if (rightAnswerCheckBox) {            
-            correctAnswer = rightAnswerCheckBox.closest('.form-group').querySelector('.questionCommentInput').value;
-    
-            if (!correctAnswer.length) {
-                noProblems = false;
-                setQuestionCommentAlertMessage(button, "Correct answer must be filled in");
+            //if there are no empty answers
+            if(emptyAnswers === 0) {
+                //if there are enough filled answers
+                if (allAnswers.length >= 2) {
+                    const rightAnswerCheckBox = document.querySelector('.rightAnswerCheckBox:checked');
+                    //if a correct answer was chosen
+                    if (rightAnswerCheckBox) {
+                        correctAnswer = rightAnswerCheckBox.closest('.form-group').querySelector('.questionCommentInput').value;
+                        
+                        //all the data is good, store it in the return object     
+                        retVal.questionState = "valid question";
+                        retVal.questionData.correctAnswer = correctAnswer;
+                        retVal.questionData.question = question;
+                        retVal.questionData.allAnswers = allAnswers;
+                    } else { //must select one answer as correct
+                        retVal.errorMessage = "One correct answer must be selected";
+                    }
+                } else { //can't have less than two answers
+                    retVal.errorMessage = "At least two answers must be entered";
+                }
+            } else { //can't have an empty answer
+                retVal.errorMessage = "An answer field cannot be empty";
             }
+        } else { //can't have an empty question
+            retVal.errorMessage = "Question field cannot be empty";
         }
-        else{
-            setQuestionCommentAlertMessage(button, "Correct answer must be selected");
-            noProblems = false;
-        }
-    }
-    
-    return noProblems ? {allAnswers, correctAnswer, question} : undefined;
-}
-
-//set the alert message that will be displayed on a popover button
-function setQuestionCommentAlertMessage(button, message) {
-
-    button.setAttribute('data-content', message);
-    $(button).popover('enable');
-
-    $(button).popover('show');
-
-    // $('.popover-header').css('background-color', 'red');
+    } //user did not choose to add a question  
+    return retVal;
 }
 
 //reset the question comment input div

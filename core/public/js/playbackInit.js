@@ -328,64 +328,69 @@ function setupEventListeners()
             editor.selection.setRange(aceTempRange)
             viewableBlogText = editor.getSelectedText();    
         }
+        
+        const currentFilePath = document.querySelector(".st-editor-tab.active").title;
+        //get the question state
+        const questionCommentData = getQuestionCommentData();
 
-       const currentFilePath = document.querySelector(".st-editor-tab.active").title;
-
-        //if there was a comment, or at least one media file
-        if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length)
-        {
+        //if there was a question OR no question with comment text or a media file
+        if (questionCommentData.questionState === "valid question" || 
+           (questionCommentData.questionState === "no question" && (commentText.length > 0 || currentImageOrder.length > 0 || currentVideoOrder.length > 0 || currentAudioOrder.length > 0))) {
             //get the event to playback this comment
             const eventIndex = playbackData.nextEventPosition - 1;
-
             const commentEvent = playbackData.events[eventIndex];
 
             const tags = getAllTagsOnScreen();
 
-            const questionCommentData = getQuestionCommentData(document.querySelector('#addCommentButton'));
-            if (questionCommentData !== undefined) {
-                //create an object that has all of the comment info
-                const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);                
+            //create an object that has all of the comment info
+            const comment = createCommentObject(commentText, commentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData.questionData);                
 
-                //determine if any comments already exist for this event 
-                //if so add the new comment
-                //if not create a new array for the comments then add the comments
-                if (!playbackData.comments[commentEvent.id]) {
-                    playbackData.comments[commentEvent.id] = [];
-                }
-
-                //send comment to server and recieve back a full comment with id and developerGroup
-                const newComment = await sendCommentToServer(comment);        
-
-                buildSearchData(newComment);
-                tags.forEach(tag =>{
-                    addCommentTagsToTagObject(tag, newComment)
-                })
-
-                playbackData.comments[commentEvent.id].push(newComment);
-
-                //display a newly added comment on the current event
-                displayAllComments();
-                updateAllCommentHeaderCounts();
-                resetAllBlogModeQuestionComments();
-                insertBlogPost(newComment);
-                updateQuestionCommentCounts();
-
-                //rebuild the slider with the new comment pip
-                setUpSliderTickMarks();
-
-                document.getElementById("CancelUpdateButton").click();
-
-                const activeComment = document.querySelector(`.codeView [data-commentid="${newComment.id}"]`);
-                document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
-                activeComment.click();            
+            //determine if any comments already exist for this event 
+            //if so add the new comment
+            //if not create a new array for the comments then add the comments
+            if (!playbackData.comments[commentEvent.id]) {
+                playbackData.comments[commentEvent.id] = [];
             }
-            else{
-                ranges.forEach(range =>{
-                    editor.selection.setRange(range)
-                })
+
+            //send comment to server and recieve back a full comment with id and developerGroup
+            const newComment = await sendCommentToServer(comment);        
+
+            buildSearchData(newComment);
+            tags.forEach(tag =>{
+                addCommentTagsToTagObject(tag, newComment)
+            });
+
+            playbackData.comments[commentEvent.id].push(newComment);
+
+            //display a newly added comment on the current event
+            displayAllComments();
+            updateAllCommentHeaderCounts();
+            resetAllBlogModeQuestionComments();
+            insertBlogPost(newComment);
+            updateQuestionCommentCounts();
+
+            //rebuild the slider with the new comment pip
+            setUpSliderTickMarks();
+
+            document.getElementById("CancelUpdateButton").click();
+
+            const activeComment = document.querySelector(`.codeView [data-commentid="${newComment.id}"]`);
+            document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100; 
+            activeComment.click();            
+        } else { //no comment was created
+            //display an error message over the add comment button
+            var errorMessage = "";
+            if(questionCommentData.questionState === "no question") {
+                //must be a problem with the comment text or media files
+                errorMessage = "You must supply some comment text, a media file, or a question";
+            } else if(questionCommentData.questionState === "invalid input") {
+                errorMessage = questionCommentData.errorMessage;
             }
-        }
-        else{
+            const addCommentButton = document.querySelector('#addCommentButton');
+            addCommentButton.setAttribute('data-content', errorMessage);
+            $(addCommentButton).popover('enable');
+            $(addCommentButton).popover('show');
+        
             ranges.forEach(range =>{
                 editor.selection.setRange(range)
             })
@@ -419,7 +424,7 @@ function setupEventListeners()
 
         document.getElementById("addCommentButton").removeAttribute("style");
 
-        document.getElementById("UpdateCommentButton").style.display='none';
+        document.getElementById("updateCommentButton").style.display='none';
         document.getElementById("fsViewTabTab").classList.remove("disabled");
         document.getElementById("viewCommentsTab").classList.remove("disabled");
         document.getElementById("searchCommentTab").classList.remove("disabled");
@@ -659,11 +664,11 @@ function setupEventListeners()
 
     $('#addCommentButton').popover('disable');
 
-    $('#UpdateCommentButton').on("hidden.bs.popover", function() {
-        $('#UpdateCommentButton').popover("disable");
+    $('#updateCommentButton').on("hidden.bs.popover", function() {
+        $('#updateCommentButton').popover("disable");
     });
 
-    $('#UpdateCommentButton').popover('disable');
+    $('#updateCommentButton').popover('disable');
 
     document.getElementById("continuousPlayButton").addEventListener('click', event => {
         removeActiveCommentAndGroup();
@@ -1416,77 +1421,85 @@ async function updateComment() {
         viewableBlogText = editor.getSelectedText();
     }
 
-   const currentFilePath = document.querySelector(".st-editor-tab.active").title;
-   
-    //if there was a comment, or at least one media file
-    if (commentText || currentImageOrder.length || currentVideoOrder.length || currentAudioOrder.length) {   
+    const currentFilePath = document.querySelector(".st-editor-tab.active").title;
+    //get the question state
+    const questionCommentData = getQuestionCommentData();
 
+    //if there was a question OR no question with comment text or a media file
+    if (questionCommentData.questionState === "valid question" || 
+       (questionCommentData.questionState === "no question" && (commentText.length > 0 || currentImageOrder.length > 0 || currentVideoOrder.length > 0 || currentAudioOrder.length > 0))) {
         //if the user entered a tag but forgot to add it, add it now
         document.getElementById("addCommentTagButton").click(); 
 
         const tags = getAllTagsOnScreen();
 
-        const questionCommentData = getQuestionCommentData(document.getElementById("UpdateCommentButton"));
-        if (questionCommentData !== undefined) {
-            //create an object that has all of the comment info
-            const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData);
-            //add the developer group id to the comment object and its id
-            comment.developerGroupId = commentObject.developerGroupId;
-            comment.id = commentObject.id;
+        //create an object that has all of the comment info
+        const comment = createCommentObject(commentText, commentObject.displayCommentEvent, rangeArray, currentImageOrder, currentVideoOrder, currentAudioOrder, linesAboveValue, linesBelowValue, currentFilePath, viewableBlogText, tags, questionCommentData.questionData);
+        //add the developer group id to the comment object and its id
+        comment.developerGroupId = commentObject.developerGroupId;
+        comment.id = commentObject.id;
 
-            //let oldComment = commentObject;
+        //determine if any comments already exist for this event 
+        //if so add the new comment
+        //if not create a new array for the comments then add the comments
+        if (!playbackData.comments[comment.displayCommentEvent.id]) {
+            playbackData.comments[comment.displayCommentEvent.id] = [];
+        }
 
-            //determine if any comments already exist for this event 
-            //if so add the new comment
-            //if not create a new array for the comments then add the comments
-            if (!playbackData.comments[comment.displayCommentEvent.id]) {
-                playbackData.comments[comment.displayCommentEvent.id] = [];
+        //send comment to server and recieve back a full comment with id and developerGroup
+        const newComment = await updateCommentOnServer(comment);
+
+        deleteWordsFromSearchData(commentObject, newComment);
+        removeDeletedCommentTagsFromTagObject(commentObject.commentTags, newComment.commentTags, newComment.id);
+        buildSearchData(newComment);
+        tags.forEach(tag =>{
+            addCommentTagsToTagObject(tag, newComment)
+        });
+
+        //replace the old comment with the new one
+        for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++) {
+            if (playbackData.comments[newComment.displayCommentEvent.id][i].id === newComment.id) {
+                playbackData.comments[newComment.displayCommentEvent.id].splice(i , 1, newComment);
+                break;
             }
+        }
 
-            //send comment to server and recieve back a full comment with id and developerGroup
-            const newComment = await updateCommentOnServer(comment);
+        //clear out the text area
+        textCommentTextArea.innerHTML = '';
 
-            deleteWordsFromSearchData(commentObject, newComment);
-            removeDeletedCommentTagsFromTagObject(commentObject.commentTags, newComment.commentTags, newComment.id);
-            buildSearchData(newComment);
-            tags.forEach(tag =>{
-                addCommentTagsToTagObject(tag, newComment)
-            })
+        //display a newly added comment on the current event
+        displayAllComments();
+        resetAllBlogModeQuestionComments();
+        updateBlogPost(newComment);
+        updateQuestionCommentCounts();
 
-            //replace the old comment with the new one
-            for (let i = 0; i < playbackData.comments[newComment.displayCommentEvent.id].length; i++) {
-                if (playbackData.comments[newComment.displayCommentEvent.id][i].id === newComment.id) {
-                    playbackData.comments[newComment.displayCommentEvent.id].splice(i , 1, newComment);
-                    break;
-                }
-            }
+    
+        //reset the comment previews
+        $('.audio-preview')[0].style.display='none';
+        $('.audio-preview')[0].innerHTML = '';
+        $('.video-preview')[0].style.display='none';
+        $('.video-preview')[0].innerHTML = '';
+        $('.image-preview')[0].style.display='none';
+        $('.image-preview')[0].innerHTML = '';
 
-            //clear out the text area
-            textCommentTextArea.innerHTML = '';
-
-            //display a newly added comment on the current event
-            displayAllComments();
-            resetAllBlogModeQuestionComments();
-            updateBlogPost(newComment);
-            updateQuestionCommentCounts();
-
+        document.querySelector(".tagsInComment").innerHTML = '';
+    } else { //the comment is not updated
+        //display an error message over the update comment button
+        var errorMessage = "";
+        if(questionCommentData.questionState === "no question") {
+            //must be a problem with the comment text or media files
+            errorMessage = "You must supply some comment text, a media file, or a question";
+        } else if(questionCommentData.questionState === "invalid input") {
+            errorMessage = questionCommentData.errorMessage;
+        }
+        const updateCommentButton = document.querySelector('#updateCommentButton');
+        updateCommentButton.setAttribute('data-content', errorMessage);
+        $(updateCommentButton).popover('enable');
+        $(updateCommentButton).popover('show');
         
-            //reset the comment previews
-            $('.audio-preview')[0].style.display='none';
-            $('.audio-preview')[0].innerHTML = '';
-            $('.video-preview')[0].style.display='none';
-            $('.video-preview')[0].innerHTML = '';
-            $('.image-preview')[0].style.display='none';
-            $('.image-preview')[0].innerHTML = '';
-
-            //tempTags = [];
-
-            document.querySelector(".tagsInComment").innerHTML = '';
-        }
-        else{
-            retVal = false;
-        }
+        retVal = false;
     }
+
     return retVal;
 }
 
