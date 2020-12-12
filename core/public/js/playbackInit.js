@@ -20,7 +20,7 @@ async function initializePlayback()
     step(playbackData.numNonRelevantEvents);
   
     //add permanent comment tags to searchData
-    permanentCommentTags.forEach(tag =>{
+    permanentCommentTags.forEach(tag => {
         allCommentTagsWithCommentId[tag] = [];
     })
 
@@ -41,8 +41,7 @@ async function initializePlayback()
         //grab any existing media from the server and display it in the media control modal
         initImageGallery();        
         document.getElementById("mainAddCommentButton").classList.remove("mainAddCommentButtonNoEdit");
-    }
-    else{
+    } else {
         commentsDiv.style.height = "90vh";
     }
 
@@ -236,7 +235,7 @@ function setupEventListeners()
         document.body.classList.remove('popup');
     };
 
-    document.getElementById("addCommentTagButton").addEventListener('click', event =>{
+    document.getElementById("addCommentTagButton").addEventListener('click', event => {
         //get the new tag
         const tagInput = document.getElementById("tagInput");
         let text = tagInput.value.replace(/ +(?= )/g,'').trim();
@@ -261,7 +260,7 @@ function setupEventListeners()
         event.stopPropagation(); 
     }); 
 
-    document.querySelector('#addCommentButton').addEventListener('click', async event =>{        
+    document.querySelector('#addCommentButton').addEventListener('click', async event => {        
         stopAutomaticPlayback();        
         clearHighlights();
 
@@ -356,7 +355,7 @@ function setupEventListeners()
             const newComment = await sendCommentToServer(comment);        
 
             buildSearchData(newComment);
-            tags.forEach(tag =>{
+            tags.forEach(tag => {
                 addCommentTagsToTagObject(tag, newComment)
             });
 
@@ -391,7 +390,7 @@ function setupEventListeners()
             $(addCommentButton).popover('enable');
             $(addCommentButton).popover('show');
         
-            ranges.forEach(range =>{
+            ranges.forEach(range => {
                 editor.selection.setRange(range)
             })
         }
@@ -527,15 +526,14 @@ function setupEventListeners()
             const pauseButton = document.getElementById("pausePlayButton");
             if (pauseButton.classList.contains("automaticPlaybackInactive")) {
                 playButton.click();
-            }
-            else{
+            } else {
                 pauseButton.click();
             }
         }
     });
 
     //moves forward in the playback comment by comment
-    fastForwardButton.addEventListener('click', event =>{
+    fastForwardButton.addEventListener('click', event => {
         removeSelectedTextFromPage();
         stopAutomaticPlayback();
 
@@ -573,9 +571,7 @@ function setupEventListeners()
                 const indexOfSelected = allCommentDivs.findIndex(item => item.getAttribute("data-commenteventid") === eventId);
                 activeComment = allCommentDivs[indexOfSelected];     
             }            
-        }
-        //if a comment is selected
-        else{
+        } else { //if a comment is selected
             //find the current active comment div, and make the next one after it active
             const index = allCommentDivs.findIndex(item => item.classList.contains('activeComment'));;
             activeComment = allCommentDivs[index + 1];
@@ -584,10 +580,7 @@ function setupEventListeners()
         if (activeComment) {
             activeComment.click();    
             document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;              
-        }
-        //if activeComment hasn't been assigned, then no comment was found at, or forward of the slider position
-        //step to the last event and unselect any selected comment
-        else{
+        } else { //if activeComment hasn't been assigned, then no comment was found at, or forward of the slider position step to the last event and unselect any selected comment
             step(playbackData.numEvents - playbackData.nextEventPosition);
             removeActiveCommentAndGroup();            
         }      
@@ -608,8 +601,7 @@ function setupEventListeners()
             const afterElement = getDragAfterElement(imageDrop, event.clientY);
             if (typeof afterElement === 'undefined') {
                 imageDrop.appendChild(draggable.parentElement);
-            }
-            else{
+            } else {
                 imageDrop.insertBefore(draggable.parentElement, afterElement.parentElement);
             }            
         }        
@@ -861,15 +853,15 @@ function setupEventListeners()
        })
     });
 
-    document.getElementById("tagInput").addEventListener("keydown", event =>{
+    document.getElementById("tagInput").addEventListener("keydown", event => {
         const keyPressed = event.key;
         if (keyPressed === "Enter") {
             document.getElementById("addCommentTagButton").click();
         }
     })
 
-    document.querySelectorAll(".commentSearchOption").forEach(option =>{
-        option.addEventListener('click', event=>{
+    document.querySelectorAll(".commentSearchOption").forEach(option => {
+        option.addEventListener('click', event=> {
            //handleSearchCriteriaDropdown(event.currentTarget.innerText);   
 
             document.querySelector(".commentSearchOption.active").classList.remove("active");           
@@ -886,7 +878,7 @@ function setupEventListeners()
     })
 
     //clear text input and search results div
-    document.getElementById("searchTabClearButton").addEventListener("click", event=>{
+    document.getElementById("searchTabClearButton").addEventListener("click", event=> {
         document.getElementById("searchContentDiv").innerHTML = '';
         document.getElementById("commentSearchBar").value = '';
     })
@@ -907,21 +899,20 @@ function setupEventListeners()
         const results = new Set();
 
         if (searchType !== "All") {
-            words.forEach(word =>{
+            words.forEach(word => {
                 if (wordSearchData[word]) {
                     if(searchType in wordSearchData[word]) {
-                        wordSearchData[word][searchType].forEach(commentId =>{
+                        wordSearchData[word][searchType].forEach(commentId => {
                             results.add(commentId);
                         })
                     }
                 }
             })
-        }
-        else{
-            words.forEach(word =>{
+        } else {
+            words.forEach(word => {
                 if (wordSearchData[word]) { //if the word is found
-                    Object.keys(wordSearchData[word]).forEach(key =>{ //search all the criteria where the word was found
-                        wordSearchData[word][key].forEach(commentId =>{ //add all the commentIds
+                    Object.keys(wordSearchData[word]).forEach(key => { //search all the criteria where the word was found
+                        wordSearchData[word][key].forEach(commentId => { //add all the commentIds
                             results.add(commentId);
                         })
                     })
@@ -932,7 +923,7 @@ function setupEventListeners()
         const contentDiv = document.getElementById("searchContentDiv");
 
         //go through all the comments in the comments div to get the proper order of search results
-        getAllComments().forEach(comment =>{
+        getAllComments().forEach(comment => {
             const commentId = comment.getAttribute("data-commentid");
             if (results.has(commentId) && commentId !== "commentId-0") { //skip the description comment
 
@@ -944,14 +935,14 @@ function setupEventListeners()
         })
     })
 
-    document.getElementById("commentSearchBar").addEventListener('keyup', event=>{
+    document.getElementById("commentSearchBar").addEventListener('keyup', event=> {
         event.stopPropagation();
         if (event.key === "Enter") {
             document.getElementById("commentSearchButton").click();
         }
     })
 
-    document.getElementById("commentSearchBar").addEventListener('focus', event=>{
+    document.getElementById("commentSearchBar").addEventListener('focus', event=> {
         document.getElementById("commentSearchBar").value = '';
     })
 
@@ -970,13 +961,12 @@ function setupEventListeners()
            //scroll to the bottom of the div to get all the options in view
            const addCommentPanel = document.getElementById("addCommentPanel");
            addCommentPanel.scrollTop = addCommentPanel.scrollHeight - addCommentPanel.clientHeight;
-        }
-        else{
+        } else {
             document.querySelector('.questionComment').classList.add("hiddenDiv");
         }
     })
 
-    document.querySelectorAll(".rightAnswerCheckBox").forEach(checkbox =>{
+    document.querySelectorAll(".rightAnswerCheckBox").forEach(checkbox => {
         rightAnswerCheckBoxHandler(checkbox)
     })
 
@@ -988,8 +978,7 @@ function setupEventListeners()
         const questionDiv = document.getElementById('commentQuestion');
         if (!questionDiv.innerText.trim().length) {
             questionDiv.focus();
-        }
-        else{
+        } else {
             const answerInputs = [...document.querySelectorAll('.questionCommentInput')]
             answerInputs[answerInputs.findIndex(item => item.value === "")].focus();
         }
@@ -1143,9 +1132,7 @@ function jumpToPreviousComment()
             const indexOfSelected = allCommentDivs.reverse().findIndex(item => item.getAttribute("data-commenteventid") === eventId);
             activeComment = allCommentDivs[indexOfSelected];     
         }            
-    }
-    //if a comment is selected
-    else{
+    } else { //if a comment is selected
         //find the current active comment div, and make the previous one active
         const index = allCommentDivs.findIndex(item => item.classList.contains('activeComment'));
         activeComment = allCommentDivs[index - 1];
@@ -1154,10 +1141,7 @@ function jumpToPreviousComment()
     if (activeComment) {
         activeComment.click();   
         document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;      
-    }
-    //if activeComment hasn't been assigned, then no comment was found at, or behind the slider position
-    //make the description active
-    else{
+    } else {//if activeComment hasn't been assigned, then no comment was found at, or behind the slider position make the description active
         document.querySelector(`.codeView [data-commenteventid="ev-0"`).click(); 
         document.querySelector(".commentsDivScroll").scrollTop = 0; 
     }      
@@ -1175,8 +1159,7 @@ function getDragAfterElement(container, y) {
 
         if (offset < 0 && offset > closest.offset) {
             return {offset: offset, element: child};
-        }
-        else{
+        } else {
             return closest;
         }
     },{offset: Number.NEGATIVE_INFINITY}).element
@@ -1452,7 +1435,7 @@ async function updateComment() {
         deleteWordsFromSearchData(commentObject, newComment);
         removeDeletedCommentTagsFromTagObject(commentObject.commentTags, newComment.commentTags, newComment.id);
         buildSearchData(newComment);
-        tags.forEach(tag =>{
+        tags.forEach(tag => {
             addCommentTagsToTagObject(tag, newComment)
         });
 

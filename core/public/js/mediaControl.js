@@ -298,8 +298,7 @@ async function deleteSelectedImages() {
             if (imagesInComments.findIndex(image => image.getElementsByTagName('img')[0].getAttribute('src') === filePath) === -1) {
                 filePaths.push(filePath);
                 imagesRemoved.push(selectedImages[i]);
-            }
-            else{
+            } else {
                 noConflict = false;
             }
 
@@ -352,8 +351,7 @@ async function deleteSelectedVideos() {
             if (videosInComments.findIndex(video => video.getAttribute('src') === filePath) === -1) {
                 filePaths.push(filePath);
                 videosRemoved.push(selectedVideos[i]);
-            }
-            else{
+            } else {
                 noConflict = false;
             }
         }
@@ -405,8 +403,7 @@ async function deleteSelectedAudios() {
             if (audiosInComments.findIndex(audio => audio.getAttribute('src') === filePath) === -1) {
                 filePaths.push(filePath);
                 audiosRemoved.push(selectedAudios[i]);
-            }
-            else{
+            } else {
                 noConflict = false;
             }
 

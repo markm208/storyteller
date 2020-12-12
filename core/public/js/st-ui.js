@@ -105,10 +105,10 @@ function displayAllComments() {
             commentGroupDiv.append(titleCard);
 
             if (firstTimeThrough) {            
-                commentBlock.forEach(comment =>{
+                commentBlock.forEach(comment => {
                     buildSearchData(comment)               
 
-                    comment.commentTags.forEach(tag =>{
+                    comment.commentTags.forEach(tag => {
                         addCommentTagsToTagObject(tag, comment)
                     })                   
                 })
@@ -153,7 +153,7 @@ function displayAllComments() {
             if (firstTimeThrough) {                
                 buildSearchData(commentObject)
                 
-                commentObject.commentTags.forEach(tag =>{
+                commentObject.commentTags.forEach(tag => {
                     addCommentTagsToTagObject(tag, commentObject)
                 })   
             }
@@ -512,8 +512,7 @@ function updateActiveComment(commentToMakeActive)
             activeComment.closest(".activeGroup").classList.remove("activeGroup");
             activeComment.classList.remove("activeCommentBorder")
             activeComment.classList.remove("activeComment");
-        }
-        else{
+        } else {
             commentAlreadyActive = true;
         }
     }
@@ -522,7 +521,7 @@ function updateActiveComment(commentToMakeActive)
     commentToMakeActive.closest(".commentGroupSpacing").classList.add("activeGroup"); 
 
     //add activeCarousel class to all images in this comment
-    commentToMakeActive.querySelectorAll('.carousel-item').forEach(img =>{
+    commentToMakeActive.querySelectorAll('.carousel-item').forEach(img => {
         img.classList.remove('nonActiveCarousel');
         img.classList.add('activeCarousel')
     })
@@ -667,9 +666,8 @@ function createEditCommentButton(commentObject, buttonText) {
                 document.getElementById("CancelUpdateButton").click();
                 const activeComment = document.querySelector(`.codeView .activeComment`);
                 document.getElementById("commentContentDiv").scrollTop = activeComment.offsetTop - 100;    
-            }
-            else{
-                ranges.forEach(range =>{
+            } else {
+                ranges.forEach(range => {
                     editor.selection.setRange(range)
                 })
             }
@@ -751,7 +749,7 @@ function addImageToCarousel(src, carousel, giveEventListener) {
             const activeSRC = carousel.querySelector('.carousel-item.active img').getAttribute('src');
 
             //add all images from the small carousel to the larger one
-            carousel.querySelectorAll('.carousel-item img').forEach(img =>{
+            carousel.querySelectorAll('.carousel-item img').forEach(img => {
                 addImageToCarousel(img.getAttribute('src'),expandedCarousel, false);
             })
             //set the active img of the new carousel to the same image as the small one.
@@ -868,8 +866,7 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
         if (!commentBlock.length) {
             card.parentElement.parentElement.remove();
             delete playbackData.comments[eventID];
-        }
-        else{
+        } else {
             //if there are other comments left in the commentBlock, only remove the deleted comment
             card.remove();
         }
@@ -975,8 +972,7 @@ function createMediaControllerCommentVideoUI(srcPath, makeSelected, returnWithEv
 
     if (returnWithEventistener) {
         newVideo.classList.add('mediaVideo');
-    }        
-    else{
+    } else {
         newVideo.classList.add('mediaResizable');
     }       
 
@@ -1050,8 +1046,7 @@ function createMediaControllerCommentAudioUI(srcPath, makeSelected, returnWithEv
     
     if (returnWithEventistener) {
         newAudio.classList.add('mediaAudio');
-    }
-    else{
+    } else {
         newAudio.classList.add('mediaResizable');
         cardBody.classList.add("textLeft");
     }
@@ -1137,7 +1132,7 @@ function addCancelButtonToImage(image, panelToDeleteFrom) {
     let button = createXButtonForCloseOrCancel("Remove image from comment");
     button.classList.add('imageCancelButton');
 
-    button.addEventListener('click', event =>{
+    button.addEventListener('click', event => {
         panelToDeleteFrom.removeChild(imageDiv);
  
 
@@ -1168,7 +1163,7 @@ function addCancelButtonToCard(card, panelToDeleteFrom) {
     let button = createXButtonForCloseOrCancel("Remove media from comment");
 
     //removes the selected media from the preview and from the stored list of selected media
-    button.addEventListener('click',event =>{
+    button.addEventListener('click',event => {
         panelToDeleteFrom.removeChild(card);
 
         //hides the div if there are none of the media type left
@@ -1254,8 +1249,7 @@ function makeDivDroppable(div, useID = true) {
             const afterElement = getDragAfterElement(divDrop, event.clientY);
             if (afterElement === null) {
                 divDrop.appendChild(draggable);
-            }
-            else{
+            } else {
                 divDrop.insertBefore(draggable, afterElement);
             }            
         }    
@@ -1979,7 +1973,7 @@ function removeActiveCommentAndGroup() {
         activeComment.classList.remove('activeComment');
 
         //remove active class from all images in the active comment
-        activeComment.querySelectorAll('.activeCarousel').forEach(img =>{
+        activeComment.querySelectorAll('.activeCarousel').forEach(img => {
             img.classList.remove('activeCarousel');
             img.classList.add('nonActiveCarousel');    
         })
@@ -2281,8 +2275,7 @@ function insertBlogPost(commentToInsert) {
 
     if (indexOfInsertion !== allPostedComments.length - 1) {
         allBlogPosts[0].parentNode.insertBefore(createBlogPost(commentToInsert), allBlogPosts[indexOfInsertion]);
-    }
-    else{
+    } else {
         allBlogPosts[0].parentNode.appendChild(createBlogPost(commentToInsert));
     }
     updateBlogPostDevelopersDiv();
@@ -2352,7 +2345,7 @@ function blogModeHighlightHelper() {
         aceTempRange = higlightedRange;
 
         aceTempMarker = editor.session.addMarker(higlightedRange, 'highlight', 'text', true);
-    }else{
+    } else {
         editor.session.removeMarker(aceTempMarker);
         clearHighlights();
 
@@ -2440,7 +2433,7 @@ function addCommentTagsToTagObject(commentTag, commentObject) {
 
 //remove a deleted tag from the search data
 function removeDeletedCommentTagsFromTagObject(oldTagsList, newTagsList, commentId) {
-     oldTagsList.forEach(tag =>{
+     oldTagsList.forEach(tag => {
         if (!newTagsList.includes(tag)) {
             const index = allCommentTagsWithCommentId[tag].indexOf(commentId)
             allCommentTagsWithCommentId[tag].splice(index, 1);
@@ -2500,7 +2493,7 @@ function setUpSearchResultComment(commentDiv) {
     //remove any audio divs because the original event listeners wont work
     const audioDiv = commentDiv.querySelectorAll(".textLeft")
     if (audioDiv.length) {
-        audioDiv.forEach(audio =>{
+        audioDiv.forEach(audio => {
             audio.remove()
         })
     }
@@ -2515,7 +2508,7 @@ function setUpSearchResultComment(commentDiv) {
         //remove active classes from the comment and the images in the comment
         const activeComment = document.querySelector(".activeSearchResultComment");
         if (activeComment) {
-            activeComment.querySelectorAll(".activeCarousel").forEach(img =>{
+            activeComment.querySelectorAll(".activeCarousel").forEach(img => {
                 img.classList.remove("activeCarousel")
             })
 
@@ -2524,7 +2517,7 @@ function setUpSearchResultComment(commentDiv) {
 
         //add the active class to the comment and the images in the comment
         this.classList.add("activeSearchResultComment");
-        this.querySelectorAll(".carousel-item").forEach(img =>{
+        this.querySelectorAll(".carousel-item").forEach(img => {
             img.classList.add("activeCarousel")
         })
     })
@@ -2543,17 +2536,17 @@ function getAllTagsOnScreen() {
 //builds up wordSearchData to later search by words
 function buildSearchData(commentObject) {    
     //comment text
-    getWordsFromText(commentObject.commentText).forEach(word =>{
+    getWordsFromText(commentObject.commentText).forEach(word => {
         buildSearchDataHelper(word, "commentText", commentObject.id)
     })
     
     //comment tags
     if (commentObject.commentTags.length) {
-        commentObject.commentTags.forEach(tag =>{
+        commentObject.commentTags.forEach(tag => {
             tag = tag.replaceAll('-', ' ');
             words = tag.split(' ');
 
-            words.forEach(word =>{
+            words.forEach(word => {
                 buildSearchDataHelper(word, "commentTags", commentObject.id)
             })
         })
@@ -2561,8 +2554,8 @@ function buildSearchData(commentObject) {
 
     //highlighted code
     if (commentObject.selectedCodeBlocks.length) {
-        commentObject.selectedCodeBlocks.forEach(block =>{
-            getWordsFromText(block.selectedText, true).forEach(word =>{
+        commentObject.selectedCodeBlocks.forEach(block => {
+            getWordsFromText(block.selectedText, true).forEach(word => {
                 buildSearchDataHelper(word, "highlightedCode", commentObject.id)
             })
         })
@@ -2578,7 +2571,7 @@ function deleteWordsFromSearchData(oldComment, newComment) {
         const newWords = getWordsFromText(newComment.commentText)
         const deletedWords = [...new Set(oldWords.filter(oldWord => !newWords.includes(oldWord)))]; //array of words that were in the oldComment but not in the newComment
 
-        deletedWords.forEach(word =>{            
+        deletedWords.forEach(word => {            
             deleteWordsFromSearchDataHelper(word, "commentText", oldComment.id);
         })
     }
@@ -2589,12 +2582,12 @@ function deleteWordsFromSearchData(oldComment, newComment) {
     const deletedTags = [...new Set(oldComment.commentTags.filter(oldTag => !newComment.commentTags.includes(oldTag)))];
 
     if (deletedTags.length) { 
-        deletedTags.forEach(tag =>{
+        deletedTags.forEach(tag => {
             tag = tag.replaceAll("-", " ");
             //split the tag into an array of words
             const tagWords = tag.split(/[\s ]+/); 
 
-            tagWords.forEach(tagWord =>{
+            tagWords.forEach(tagWord => {
                 deleteWordsFromSearchDataHelper(tagWord, "commentTags", oldComment.id)
             })
         })
@@ -2605,26 +2598,26 @@ function deleteWordsFromSearchData(oldComment, newComment) {
     //build a list of the old selected words for this comment, and the new
     //then compare the two lists to determine if any words need to be removed from the search data
     const oldSelectedTextWords = [];
-    oldComment.selectedCodeBlocks.forEach(block =>{
+    oldComment.selectedCodeBlocks.forEach(block => {
         //const fullText = getWordsFromText(block.selectedText)
         const words = getWordsFromText(block.selectedText, true)
 
-        words.forEach(word =>{
+        words.forEach(word => {
             oldSelectedTextWords.push(word);
         })       
     })
 
     const newSelectedTextWords = [];
-    newComment.selectedCodeBlocks.forEach(block =>{
+    newComment.selectedCodeBlocks.forEach(block => {
         //const fullText = getWordsFromText(block.selectedText)
         const words = getWordsFromText(block.selectedText, true)
 
-        words.forEach(word =>{
+        words.forEach(word => {
             newSelectedTextWords.push(word);
         })
     })
 
-    oldSelectedTextWords.forEach(oldWord =>{
+    oldSelectedTextWords.forEach(oldWord => {
         if (!newSelectedTextWords.includes(oldWord)) {
             deleteWordsFromSearchDataHelper(oldWord, "highlightedCode", oldComment.id)
         }
@@ -2634,22 +2627,22 @@ function deleteWordsFromSearchData(oldComment, newComment) {
 //when a comment is deleted and all of it's data has to be removed from the search data
 function deleteCommentFromSearchData(comment) {
     //commentText
-    getWordsFromText(comment.commentText).forEach(oldWord =>{
+    getWordsFromText(comment.commentText).forEach(oldWord => {
         deleteWordsFromSearchDataHelper(oldWord, "commentText", comment.id);
     })
 
     //commentTags
-    comment.commentTags.forEach(tag =>{
+    comment.commentTags.forEach(tag => {
         tag = tag.replaceAll('-', ' ');
         const oldTags = tag.split(/[\s ]+/);
-        oldTags.forEach(oldTag =>{
+        oldTags.forEach(oldTag => {
             deleteWordsFromSearchDataHelper(oldTag, "commentTags", comment.id)
         })
     })
 
     //highlighted code
-    comment.selectedCodeBlocks.forEach(block =>{
-        getWordsFromText(block.selectedText).forEach(word =>{
+    comment.selectedCodeBlocks.forEach(block => {
+        getWordsFromText(block.selectedText).forEach(word => {
             deleteWordsFromSearchDataHelper(word, "highlightedCode", comment.id)
         })
     })
@@ -2681,12 +2674,10 @@ function buildSearchDataHelper(word, criteriaType, commentId) {
                 if (!wordSearchData[word][criteriaType].includes(commentId)) {//if the commentId doesn't exist
                     wordSearchData[word][criteriaType].push(commentId);
                 }
-            }
-            else{//create a new array for the current word at the current criteria
+            } else {//create a new array for the current word at the current criteria
                 wordSearchData[word][criteriaType] = [commentId];
             }
-        }
-        else{//add the word/criteria type/commentId to the object
+        } else {//add the word/criteria type/commentId to the object
             wordSearchData[word] = {[criteriaType]: [commentId]};
         }
     }
@@ -2735,7 +2726,7 @@ function handleCommentSearchDropDownOptions() {
 function rightAnswerCheckBoxHandler(checkbox) {
     checkbox.addEventListener('click', function(event) {
         const checkedBoxes = document.querySelectorAll('.rightAnswerCheckBox:checked');       
-        checkedBoxes.forEach(checkbox =>{
+        checkedBoxes.forEach(checkbox => {
             if (checkbox.id !== event.target.id) {
                 checkbox.checked = false;
             }
@@ -2938,7 +2929,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source) {
 
             input.addEventListener('click', function(event) {
                 const parentDiv = event.target.closest('.questionAnswerDiv');
-                parentDiv.querySelectorAll('.form-check-input:checked').forEach(input =>{
+                parentDiv.querySelectorAll('.form-check-input:checked').forEach(input => {
                     if (event.target.id !== input.id) {
                         input.checked = false;
                     }
@@ -2975,12 +2966,11 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source) {
                 if (selectedAnswer === commentObject.questionCommentData.correctAnswer) {
                     checkedAnswer.parentNode.querySelector('.commentQuestionAnswer').classList.add('rightAnswer');
                     checkedAnswer.parentNode.querySelector('.iconDiv').classList.add('rightAnswerCheck');
-                }
-                else{
+                } else {
                     checkedAnswer.parentNode.querySelector('.commentQuestionAnswer').classList.add('wrongAnswer');
                     checkedAnswer.parentNode.querySelector('.iconDiv').classList.add('wrongAnswerX');
 
-                    parentDiv.querySelectorAll('.commentQuestionAnswer').forEach(answer =>{
+                    parentDiv.querySelectorAll('.commentQuestionAnswer').forEach(answer => {
                         if (answer.innerText === commentObject.questionCommentData.correctAnswer) {
                             answer.classList.add('rightAnswer');
                             answer.parentNode.querySelector('.iconDiv').classList.add('rightAnswerCheck');
@@ -2988,7 +2978,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source) {
                     });
                 }
 
-                parentDiv.querySelectorAll('.form-check-input').forEach(input =>{
+                parentDiv.querySelectorAll('.form-check-input').forEach(input => {
                     input.disabled = true;
                 })
                 checkAnswerButton.classList.add('hiddenQuestionButton');
@@ -3007,7 +2997,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source) {
 
             const parentDiv = event.target.parentNode;
 
-            parentDiv.querySelectorAll('.form-check-label').forEach(label =>{
+            parentDiv.querySelectorAll('.form-check-label').forEach(label => {
                 label.classList.remove("rightAnswer", "wrongAnswer");
 
                 const iconDiv = label.parentNode.querySelector('.iconDiv');
@@ -3015,7 +3005,7 @@ function addQuestionCommentToDiv(divToAddTo, commentObject, source) {
                 iconDiv.innerHTML = '';
             })
 
-            parentDiv.querySelectorAll('.form-check-input').forEach(input =>{
+            parentDiv.querySelectorAll('.form-check-input').forEach(input => {
                 input.disabled = false;
             })
 
@@ -3038,7 +3028,7 @@ function updateCommentQuestionsRunningCounts() {
     const attempts = document.querySelectorAll('.codeView .clearAnswerButton:not(.hiddenQuestionButton)').length;
     const rightAnswers = document.querySelectorAll('.codeView .rightAnswer').length - document.querySelectorAll('.codeView .wrongAnswer').length;
 
-    document.querySelectorAll('.rightAnswerCheck').forEach(answer =>{
+    document.querySelectorAll('.rightAnswerCheck').forEach(answer => {
         answer.innerHTML = rightAnswers +'/'+attempts;
     })
 }
@@ -3081,7 +3071,7 @@ function synchronizeClearAnswerButtonBetweenModes(event) {
 //blogMode will only add or edit the one comment so any previously answered questions will stay in their answered state.
 //this function resets all of those questions back to their default state to match codeView
 function resetAllBlogModeQuestionComments() {
-    [...document.querySelectorAll('.blogView .clearAnswerButton:not(.hiddenQuestionButton)')].forEach(clearButton =>{
+    [...document.querySelectorAll('.blogView .clearAnswerButton:not(.hiddenQuestionButton)')].forEach(clearButton => {
         clearButton.click();
     })
 }
