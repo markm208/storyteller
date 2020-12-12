@@ -4,13 +4,8 @@
  */
 class DeveloperGroup {
     constructor(id, memberIds) {
-        //if an id is supplied, use it
-        if(id) {
-            this.id = id;
-        } else {
-            //generate an id
-            this.id = this.generateId();
-        }
+        //generate an id if one is not supplied
+        this.id = id || this.generateId();
         //if the member ids are supplied use them
         if(memberIds) {
             this.memberIds = memberIds;

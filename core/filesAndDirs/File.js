@@ -12,13 +12,8 @@ class File extends FileSystemElement {
     constructor(parentDirectoryId, currentPath, lastModifiedDate, textFileInsertEvents, isDeleted, id) {
         super(parentDirectoryId, currentPath);
         
-        //if an id is supplied, use it
-        if(id) {
-            this.id = id;
-        } else {
-            //generate an id, store the last mod date of the file, and create an empty array of lines
-            this.id = this.generateId();
-        }
+        //generate an id if one is not supplied
+        this.id = id || this.generateId();
 
         this.lastModifiedDate = lastModifiedDate;
         

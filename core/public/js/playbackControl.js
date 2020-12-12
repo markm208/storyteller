@@ -176,8 +176,7 @@ function stepForward(numSteps) {
 
         //const t1 = performance.now();
         //console.log(`step forward took: ${t1-t0} ms`);
-    }
-    else{
+    } else {
         stopAutomaticPlayback();
     }
 }

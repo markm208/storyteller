@@ -7,14 +7,9 @@ const FileSystemElement = require('./FileSystemElement.js');
 class Directory extends FileSystemElement {
     constructor(parentDirectoryId, currentPath, isDeleted, id) {
         super(parentDirectoryId, currentPath);
-
-        //if an id is supplied, use it
-        if(id) {
-            this.id = id;
-        } else {
-            //generate an id for the directory
-            this.id = this.generateId();
-        }
+        
+        //generate an id if one is not supplied
+        this.id = id || this.generateId();
 
         //if the isDeleted value is supplied, use it
         if(isDeleted) {

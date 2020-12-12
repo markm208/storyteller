@@ -58,7 +58,7 @@ class ProjectManager extends FileBackedCollection {
 
             //create the root dir, /
             this.createDirectory(this.storytellerDirPath, false);
-            
+
             //add the description comment
             this.commentManager.addComment({
                 commentText: 'Enter a playback description',
@@ -68,7 +68,17 @@ class ProjectManager extends FileBackedCollection {
                 selectedCodeBlocks: [],
                 imageURLs: [],
                 videoURLs: [],
-                audioURLs: []
+                audioURLs: [],
+                linesAbove: 0,
+                linesBelow: 0,
+                currentFilePath: "",
+                viewableBlogText: "",
+                commentTags: [],
+                questionCommentData: {
+                    allAnswers: [], 
+                    correctAnswer: "", 
+                    question: ""
+                }
             });
 
         }
