@@ -458,8 +458,7 @@ function setupEventListeners()
         //prevent keyboard presses within the comment textbox from triggering actions 
         if (e.key !== "Escape" && e.target.id === 'textCommentTextArea' || e.target.id === 'playbackTitleDiv' || e.target.id === 'descriptionHeader' || e.target.id === 'tagInput' || e.target.id === 'commentSearchBar' || e.target.classList.contains('questionCommentInput') || e.target.id === 'commentQuestion') {
             return;
-        }
-        else if ($('#imgExpandModal').is(':visible')) {
+        } else if ($('#imgExpandModal').is(':visible')) {
             if (e.key !== "Escape") {
                 return;
             }
@@ -475,52 +474,39 @@ function setupEventListeners()
                 stopAutomaticPlayback();
                 //left and right arrow are step one
                 step(1);                
-            }
-            else
-            {
+            } else {
                 if (ctrlPressed)
                 {
                     //shift + control is jump to beginning or end
                     step(playbackData.events.length - playbackData.nextEventPosition);
-                }
-                else
-                {
+                } else {
                     //shift + left/right arrow is jump to next comment
                     fastForwardButton.click();
                 }
             }
-        }
-        else if (keyPressed === 'ArrowLeft') {
+        } else if (keyPressed === 'ArrowLeft') {
             if (!shiftPressed)
             {
                 stopAutomaticPlayback();
                 //left and right arrow are step one
                 step(-1);
-            }
-            else
-            {
+            } else {
                 if (ctrlPressed)
                 {
                     //shift + control is jump to beginning or end
                     step(-playbackData.nextEventPosition);
-                }
-                else
-                {
+                } else {
                     //shift + left/right arrow is jump to next comment
                     jumpToPreviousComment();
                 }
             }
-        }
-        else if (keyPressed === "c" && ctrlPressed) {
+        } else if (keyPressed === "c" && ctrlPressed) {
             if (playbackData.isEditable) {
                 document.getElementById('mainAddCommentButton').click();
             }
-           
-        }
-        else if (keyPressed === "Escape") {            
+        } else if (keyPressed === "Escape") {            
             document.getElementById("CancelUpdateButton").click();
-        }
-        else if (e.code === "Space") {
+        } else if (e.code === "Space") {
             e.preventDefault();
             const playButton = document.getElementById("continuousPlayButton");
             const pauseButton = document.getElementById("pausePlayButton");

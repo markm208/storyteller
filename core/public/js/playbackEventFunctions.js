@@ -6,14 +6,10 @@ function insertEvent(nextEvent) {
     if(nextEvent.character.length === 1) {
         //get the Ace editor that the insert will go into and insert at the row/column of the event
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, nextEvent.character);
-    }    
-    //If the character is a '\n' or '\r\n', insert a new line 
-    else if (nextEvent.character === 'NEWLINE' || nextEvent.character === 'CR-LF') {
+    } else if (nextEvent.character === 'NEWLINE' || nextEvent.character === 'CR-LF') { //If the character is a '\n' or '\r\n', insert a new line 
         //get the Ace editor the new line will go into and insert at the row/column of the event
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, '\n');
-    }
-    //If the character is a '\t', insert a tab 
-    else if (nextEvent.character === 'TAB') {
+    } else if (nextEvent.character === 'TAB') {//If the character is a '\t', insert a tab 
         //get the Ace editor the new line will go into and insert at the row/column of the event
         playbackData.editors[nextEvent.fileId].getSession().insert({row: nextEvent.lineNumber -1,column: nextEvent.column -1}, '\t');
     }
@@ -34,8 +30,7 @@ function deleteEvent(nextEvent) {
         //create a new AceRange from the end of the starting line to the beginning of the next line
         //remove characters in that range from the Ace editor
         playbackData.editors[nextEvent.fileId].getSession().remove(new AceRange(nextEvent.lineNumber-1, nextEvent.column-1,nextEvent.lineNumber, 0));
-    }
-    else if (nextEvent.character.length === 1) {
+    } else if (nextEvent.character.length === 1) {
         //create a new AceRange from the index of the character to the index + 1
         //remove takes a range with an inclusive start and non-inclusive end
         //remove that range from the Ace editor

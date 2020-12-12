@@ -115,9 +115,7 @@ function displayAllComments() {
             }
 
             startingValue += 1;
-        }
-        else
-        {
+        } else {
             commentGroupDiv.classList.add('commentBlockPadding');
         }
 
@@ -815,8 +813,7 @@ function toggleEditAcceptButtons(currentButtonType, id) {
     if (currentButtonType === "edit") {
         $('#' + "edit" + id)[0].style.display = "none";
         $('#' + "accept" + id)[0].removeAttribute("style");
-    }
-    else if (currentButtonType === "accept") {
+    } else if (currentButtonType === "accept") {
         $('#' + "accept" + id)[0].style.display = "none";
         $('#' + "edit" + id)[0].removeAttribute("style");
     }
@@ -2425,8 +2422,7 @@ function addCommentTagsToTagObject(commentTag, commentObject) {
 
     if (!allCommentTagsWithCommentId[commentTag]) {
         allCommentTagsWithCommentId[commentTag] = [commentObject.id] 
-    }
-    else if (!allCommentTagsWithCommentId[commentTag].includes(commentObject.id)) {    
+    } else if (!allCommentTagsWithCommentId[commentTag].includes(commentObject.id)) {    
         allCommentTagsWithCommentId[commentTag].push(commentObject.id)
     }
 }
