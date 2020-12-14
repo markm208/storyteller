@@ -229,10 +229,8 @@ function clearDeleteLineNumbers() {
 }
 function scrollToLine(fileId, lineNumber, column) {
     if(playbackData.editors[fileId]) {
-        //scroll to the cursor
-
+        //scroll the code window to the correct place in the code, and bring the cursor to the correct line
         playbackData.editors[fileId].renderer.scrollCursorIntoView({row: lineNumber, column: column}, 0.5);
-        playbackData.editors[fileId].gotoLine(lineNumber)
+        playbackData.editors[fileId].gotoLine(lineNumber + 1)
     }
-
 }
