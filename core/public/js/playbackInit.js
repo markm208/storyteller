@@ -398,7 +398,6 @@ function setupEventListeners()
 
     document.getElementById("CancelUpdateButton").addEventListener('click', event => {
         stopAutomaticPlayback();
-        undoBlogModeHighlight();
 
         document.querySelector('.createCommentQuestionCheckbox').classList.remove('hiddenDiv');
 
@@ -428,7 +427,8 @@ function setupEventListeners()
         document.getElementById("viewCommentsTab").classList.remove("disabled");
         document.getElementById("searchCommentTab").classList.remove("disabled");
         document.getElementById("viewCommentsTab").click();      
-        
+
+        undoBlogModeHighlight();
         resetQuestionCommentDiv();        
     });
 

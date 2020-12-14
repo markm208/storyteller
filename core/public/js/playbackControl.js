@@ -18,6 +18,8 @@ function step(numSteps) {
  * Handles moving forward through some events.
  */
 function stepForward(numSteps) {
+    const firstEvent = playbackData.nextEventPosition === 1;
+
     //if there is room to move in the forward direction
     if(playbackData.nextEventPosition < playbackData.numEvents) {
         //holds the next event to animate
@@ -147,6 +149,14 @@ function stepForward(numSteps) {
             if(playbackData.nextEventPosition === playbackData.events.length) {
                 break;
             }
+        }
+
+        //this is a fix for an issue where, if the playback is at the first event and a comment that has highlighted code is clicked
+        //it would have to be clicked again to get the code window to scroll to the highlighted code
+        if (firstEvent) {
+            setTimeout(() => {
+                scrollToLine(activeFileId, activeLineNumber, activeColumn);
+            }, 1);
         }
 
         //make the correct editor active
