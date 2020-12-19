@@ -1267,5 +1267,11 @@ border-radius: 0;
 .codeView .carousel-item img {
     max-height: 400px;
     cursor: zoom-in;
+} 
+
+.blogModeHighlightInCodeView{
+    position: absolute;
+    z-index: 20;
+    background-color: rgb(221,221,221);
+    opacity: 10%;
 }
- 

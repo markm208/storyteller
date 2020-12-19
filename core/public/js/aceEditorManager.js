@@ -73,6 +73,18 @@ function addHighlight(fileId, startRow, startColumn, endRow, endColumn) {
     }
 }
 
+function addBlogModeHighlightInCodeView(fileId, range){
+    const editor = playbackData.editors[fileId];
+
+    if(editor) {
+        //create a marker in the right range
+        const marker = editor.getSession().addMarker(new AceRange(range.start.row, range.start.column, range.end.row, range.end.column), 'blogModeHighlightInCodeView', 'text', true);
+
+        playbackData.blogModeHighlights[fileId] = marker;
+    }
+
+}
+
 /*
 * Function to clear all the highlights.
 */
@@ -92,9 +104,11 @@ function clearHighlights() {
                 //remove the marker
                 editor.getSession().removeMarker(highlightMarkerIds[i]);
             }
+            editor.getSession().removeMarker(playbackData.blogModeHighlights[fileId]);
         }
         //get rid of the highlights for this file
         delete playbackData.highlights[fileId];
+        delete playbackData.blogModeHighlights[fileId];
     }
 }
 /*
