@@ -845,6 +845,8 @@ function addEditButtonsToCard(card, eventID, commentID, commentBlock, uniqueNumb
         //dont trigger the click handler of the parentElement of deleteButton
         event.stopPropagation();
 
+        clearHighlights();
+
         let comment;
         //find the comment object associated with the card being deleted
         for (let indexToDelete = 0; indexToDelete < playbackData.comments[eventID].length; indexToDelete++) {
