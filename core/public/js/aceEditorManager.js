@@ -52,15 +52,61 @@ function destroyAceEditor(fileId) {
     delete playbackData.editors[fileId];
 }
 /*
-* Create a highlight (ace calls these 'markers')
-*/
-function addHighlight(fileId, startRow, startColumn, endRow, endColumn) {
+ * Adds all of the primary code highlights (selected code) and the secondary context 
+ * highlights (lines above and below the selected code).
+ */
+function addCodeHighlights(commentObject) {
+    //row numbers for secondary highlights above and below the selected code
+    let smallestRowNumber = Number.MAX_SAFE_INTEGER;
+    let largestRowNumber = Number.MIN_SAFE_INTEGER;
+    
+    //every comment is in one file
+    let fileId;
+    
+    //add primary highlights for the comment
+    for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
+    {
+        //get relevant primary code highlight data from the comment 
+        fileId = commentObject.selectedCodeBlocks[j].fileId;
+        const startRow = commentObject.selectedCodeBlocks[j].startRow
+        const startColumn = commentObject.selectedCodeBlocks[j].startColumn;
+        const endRow = commentObject.selectedCodeBlocks[j].endRow;
+        const endColumn = commentObject.selectedCodeBlocks[j].endColumn;
+        
+        //add the primary highlight
+        addCodeHighlight(fileId, startRow, startColumn, endRow, endColumn, 'highlight');
+
+        //if this is the smallest row number with selected code, store it
+        if(startRow < smallestRowNumber) {
+            smallestRowNumber = startRow;
+        }
+
+        //if this is the largest row number with selected code, store it
+        if(endRow > largestRowNumber) {
+            largestRowNumber = endRow;
+        }
+    }
+
+    //if there is a need for a secondary highlight
+    if(smallestRowNumber !== Number.MAX_SAFE_INTEGER && largestRowNumber !== Number.MIN_SAFE_INTEGER) {
+        //get the row numbers above and below
+        const secondaryHighlightStartRow = smallestRowNumber - Number(commentObject.linesAbove);
+        const secondaryHighlightEndRow = largestRowNumber + Number(commentObject.linesBelow) + 1;
+        
+        //add the secondary highlight
+        addCodeHighlight(fileId, secondaryHighlightStartRow, 0, secondaryHighlightEndRow, 0, 'secondaryHighlight');
+    }
+}
+/*
+ * Create a highlight (ace calls these 'markers')
+ */
+function addCodeHighlight(fileId, startRow, startColumn, endRow, endColumn, cssClass) {
     //get the editor where the highlight will take place
     const editor = playbackData.editors[fileId];
     //if it still exists (editors can be removed when moving in reverse)
     if(editor) {
         //create a marker in the right range
-        const marker = editor.getSession().addMarker(new AceRange(startRow, startColumn, endRow, endColumn), 'highlight', 'text', true);
+        const marker = editor.getSession().addMarker(new AceRange(startRow, startColumn, endRow, endColumn), cssClass, 'text', true);
         //editor.session.selection.addRange(new ace.Range(startRow, startColumn, endRow, endColumn));
         
         //if there is not an entry for this file yet
@@ -72,7 +118,6 @@ function addHighlight(fileId, startRow, startColumn, endRow, endColumn) {
         playbackData.highlights[fileId].push(marker);
     }
 }
-
 /*
 * Function to clear all the highlights.
 */

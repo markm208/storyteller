@@ -294,11 +294,8 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         updateActiveComment(cardFinal);
         cardFinal.classList.add("activeCommentBorder");
 
-        //add highlights for the comment
-        for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
-        {
-            addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
-        }
+        //add the code highlights for the comment (primary and secondary)
+        addCodeHighlights(commentObject);
 
         //if there is some highlighted code
         if(commentObject.selectedCodeBlocks.length > 0) {
