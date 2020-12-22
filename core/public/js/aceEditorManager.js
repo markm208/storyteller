@@ -74,7 +74,7 @@ function addCodeHighlights(commentObject) {
         const endColumn = commentObject.selectedCodeBlocks[j].endColumn;
         
         //add the primary highlight
-        addCodeHighlight(fileId, startRow, startColumn, endRow, endColumn, 'highlight');
+        addCodeHighlight(fileId, startRow, startColumn, endRow, endColumn, 'highlight', 'text');
 
         //if this is the smallest row number with selected code, store it
         if(startRow < smallestRowNumber) {
@@ -94,19 +94,19 @@ function addCodeHighlights(commentObject) {
         const secondaryHighlightEndRow = largestRowNumber + Number(commentObject.linesBelow) + 1;
         
         //add the secondary highlight
-        addCodeHighlight(fileId, secondaryHighlightStartRow, 0, secondaryHighlightEndRow, 0, 'secondaryHighlight');
+        addCodeHighlight(fileId, secondaryHighlightStartRow, 0, secondaryHighlightEndRow, 0, 'secondaryHighlight', 'fullLine');
     }
 }
 /*
  * Create a highlight (ace calls these 'markers')
  */
-function addCodeHighlight(fileId, startRow, startColumn, endRow, endColumn, cssClass) {
+function addCodeHighlight(fileId, startRow, startColumn, endRow, endColumn, cssClass, markerType) {
     //get the editor where the highlight will take place
     const editor = playbackData.editors[fileId];
     //if it still exists (editors can be removed when moving in reverse)
     if(editor) {
         //create a marker in the right range
-        const marker = editor.getSession().addMarker(new AceRange(startRow, startColumn, endRow, endColumn), cssClass, 'text', true);
+        const marker = editor.getSession().addMarker(new AceRange(startRow, startColumn, endRow, endColumn), cssClass, markerType, true);
         //editor.session.selection.addRange(new ace.Range(startRow, startColumn, endRow, endColumn));
         
         //if there is not an entry for this file yet
