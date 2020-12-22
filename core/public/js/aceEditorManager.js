@@ -91,11 +91,14 @@ function addCodeHighlights(commentObject) {
     if(smallestRowNumber !== Number.MAX_SAFE_INTEGER && largestRowNumber !== Number.MIN_SAFE_INTEGER) {
         //get the row numbers above and below
         const secondaryHighlightStartRow = smallestRowNumber - Number(commentObject.linesAbove);
-        const secondaryHighlightEndRow = largestRowNumber + Number(commentObject.linesBelow) + 1;
+        const secondaryHighlightEndRow = largestRowNumber + Number(commentObject.linesBelow);
         
         //add the secondary highlight
         addCodeHighlight(fileId, secondaryHighlightStartRow, 0, secondaryHighlightEndRow, 0, 'secondaryHighlight', 'fullLine');
     }
+    //get the editor where the highlight will take place and remove the cursor
+    const editor = playbackData.editors[fileId];
+    editor.setOptions({highlightActiveLine: false, highlightGutterLine: false});
 }
 /*
  * Create a highlight (ace calls these 'markers')
