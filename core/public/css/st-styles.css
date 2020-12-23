@@ -334,8 +334,8 @@
 .newCodeHighlight {
     position:absolute;
     z-index:10; /* place in a layer above anything with a lower z-index */
-    background-color:rgb(111, 177, 119);
-    opacity: 2%;
+    background-color:rgb(21, 27, 56);
+    opacity: 7%;
 }
 
 /* .playbackDirNameLabel {

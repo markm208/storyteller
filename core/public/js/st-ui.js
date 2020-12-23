@@ -2219,15 +2219,14 @@ function createBlogPost(commentToAdd) {
             highlightActiveLine: false,
             highlightGutterLine: false,
             showPrintMargin: false
-       });
-
-       blogPostCodeEditor.session.setOptions({
-           mode: getEditorModeForFilePath(commentToAdd.currentFilePath),
-           useWorker: false
-       });
-
+        });
+        blogPostCodeEditor.renderer.$cursorLayer.element.style.display = "none";
+        
+        blogPostCodeEditor.session.setOptions({
+            mode: getEditorModeForFilePath(commentToAdd.currentFilePath),
+            useWorker: false
+        });
         blogPostEditor.append(blogPostCodeEditor);
-
         blogPost.append(blogPostFileNameDiv);
         blogPost.append(blogPostEditor);       
        
