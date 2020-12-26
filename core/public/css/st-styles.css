@@ -170,8 +170,7 @@
 }
 
 .deleteOnLine {
-    font-style: italic;
-    color: red;
+    color: rgb(184, 75, 75);
 }
 
 .devImage{
@@ -257,10 +256,9 @@
 }
 
 .insertOnLine {
-    text-decoration: underline;
-    font-weight: bold;
+    font-style: italic;
 }
-  
+
 @keyframes zoom {
     from {transform:scale(0)}
     to {transform:scale(1)}
@@ -334,8 +332,13 @@
 .newCodeHighlight {
     position:absolute;
     z-index:10; /* place in a layer above anything with a lower z-index */
-    background-color:rgb(21, 27, 56);
-    opacity: 7%;
+    /*background-color:rgb(21, 27, 56);*/
+    opacity: 60%;
+    border-bottom-style: dotted;
+    border-bottom-width: 3px;
+    border-bottom-color: rgb(33, 130, 36);
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
 }
 
 /* .playbackDirNameLabel {

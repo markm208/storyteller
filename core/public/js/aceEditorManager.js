@@ -61,7 +61,7 @@ function addCodeHighlights(commentObject) {
     let largestRowNumber = Number.MIN_SAFE_INTEGER;
     
     //every comment is in one file
-    let fileId;
+    let fileId = commentObject.displayCommentEvent.fileId;
     
     //add primary highlights for the comment
     for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
@@ -240,23 +240,32 @@ function highlightNewCode(newCodeMarkers) {
     for(let fileId in newCodeMarkers) {
         //if the editor is still present (files and associated editors can get removed by moving backwards)
         if(playbackData.editors[fileId]) {
+            //get the editor where the highlight will take place
+            const editor = playbackData.editors[fileId];
             //get the edit session
-            const editSession = playbackData.editors[fileId].getSession();
+            const editSession = editor.getSession();
 
             //add the new code highlights in this file
             for(let i = 0;i < newCodeMarkers[fileId].length;i++) {
                 //get a range to highlight
                 const range = newCodeMarkers[fileId][i];
-                //create an Ace marker in the right range
-                const marker = editSession.addMarker(new AceRange(range.startRow, range.startColumn, range.endRow, range.endColumn), 'newCodeHighlight', 'fullLine', false);    //TODO shouldn't this be new ace.Range ??         
+
+                //get all the individual line-by-line ranges
+                const allRanges = getAllPrimaryCodeRanges(editor, range.startRow, range.startColumn, range.endRow, range.endColumn);
                 
-                //if an array of markers does not exist for the file in the global playbackData object
-                if(!playbackData.newCodeHighlights[fileId]) {
-                    //create an array to hold markers for this file
-                    playbackData.newCodeHighlights[fileId] = [];
+                //mark each line
+                for(let j = 0;j < allRanges.length;j++) {
+                    //create an Ace marker in the right range
+                    const marker = editSession.addMarker(allRanges[j], 'newCodeHighlight', 'text', false);
+                    
+                    //if an array of markers does not exist for the file in the global playbackData object
+                    if(!playbackData.newCodeHighlights[fileId]) {
+                        //create an array to hold markers for this file
+                        playbackData.newCodeHighlights[fileId] = [];
+                    }
+                    //add the id of the new marker so it can be cleared later
+                    playbackData.newCodeHighlights[fileId].push(marker);
                 }
-                //add the id of the new marker so it can be cleared later
-                playbackData.newCodeHighlights[fileId].push(marker);
             }
         }
     }
