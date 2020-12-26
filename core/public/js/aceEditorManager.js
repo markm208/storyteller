@@ -52,16 +52,149 @@ function destroyAceEditor(fileId) {
     delete playbackData.editors[fileId];
 }
 /*
-* Create a highlight (ace calls these 'markers')
-*/
-function addHighlight(fileId, startRow, startColumn, endRow, endColumn) {
+ * Adds all of the primary code highlights (selected code) and the secondary context 
+ * highlights (lines above and below the selected code).
+ */
+function addCodeHighlights(commentObject) {
+    //row numbers for secondary highlights above and below the selected code
+    let smallestRowNumber = Number.MAX_SAFE_INTEGER;
+    let largestRowNumber = Number.MIN_SAFE_INTEGER;
+    
+    //every comment is in one file
+    let fileId = commentObject.displayCommentEvent.fileId;
+    
+    //add primary highlights for the comment
+    for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
+    {
+        //get relevant primary code highlight data from the comment 
+        fileId = commentObject.selectedCodeBlocks[j].fileId;
+        const startRow = commentObject.selectedCodeBlocks[j].startRow
+        const startColumn = commentObject.selectedCodeBlocks[j].startColumn;
+        const endRow = commentObject.selectedCodeBlocks[j].endRow;
+        const endColumn = commentObject.selectedCodeBlocks[j].endColumn;
+        
+        //add the primary highlight
+        addPrimaryCodeHighlight(fileId, startRow, startColumn, endRow, endColumn);
+
+        //if this is the smallest row number with selected code, store it
+        if(startRow < smallestRowNumber) {
+            smallestRowNumber = startRow;
+        }
+
+        //if this is the largest row number with selected code, store it
+        if(endRow > largestRowNumber) {
+            largestRowNumber = endRow;
+        }
+    }
+
+    //if there is a need for a secondary highlight
+    if(smallestRowNumber !== Number.MAX_SAFE_INTEGER && largestRowNumber !== Number.MIN_SAFE_INTEGER) {
+        //get the row numbers above and below
+        const secondaryHighlightStartRow = smallestRowNumber - Number(commentObject.linesAbove);
+        const secondaryHighlightEndRow = largestRowNumber + Number(commentObject.linesBelow);
+        
+        //add the secondary highlight
+        addSecondaryCodeHighlight(fileId, secondaryHighlightStartRow, secondaryHighlightEndRow);
+    }
+    //get the editor where the highlight will take place and remove the cursor
+    const editor = playbackData.editors[fileId];
+    editor.setOptions({highlightActiveLine: false, highlightGutterLine: false});
+    editor.renderer.$cursorLayer.element.style.display = "none";
+}
+/*
+ * Cretes a group of Ace ranges for primary highlights. It goes through a (possible multi-line) range
+ * and creates a new range for every line. Each line skips leading and trailing whitespace.
+ */
+function getAllPrimaryCodeRanges(editor, startRow, startColumn, endRow, endColumn) {
+    //all the line-by-line ranges in a bigger range
+    const aceRanges = [];
+
+    //go through all of the rows in a range
+    for(let row = startRow;row <= endRow;row++) {
+        //get the line of text in the row
+        const rowOfText = editor.getSession().getLine(row);
+        
+        let newStartColumn;
+        //if this is the first row of the range
+        if(row === startRow) {
+            //store the supplied column
+            newStartColumn = startColumn;
+        } else { //not on the starting row
+            //start at the beginning of the row
+            newStartColumn = 0;
+        }
+        //from the beginning, skip whitespace
+        for(let i = newStartColumn;i < rowOfText.length;i++) {
+            //is it a whitespace?
+            if(rowOfText[i] === ' ' || rowOfText[i] === '\t') {
+                //move the start of the range forward one
+                newStartColumn++;
+            } else { //first non-whitespace
+                break;
+            }
+        }
+
+        let newEndColumn;
+        //if this is the last row of the range
+        if(row === endRow) {
+            //store the supplied column minus one (because I will add one when creating a marker)
+            newEndColumn = endColumn - 1;
+        } else {
+            //start at the end of the row
+            newEndColumn = rowOfText.length - 1;
+        }
+        //from the end, skip whitespace
+        for(let i = newEndColumn;i >= 0;i--) {
+            //is it a whitespace?
+            if(rowOfText[i] === '\n' || rowOfText[i] === ' ' || rowOfText[i] === '\t') {
+                //move the end of the range backward one
+                newEndColumn--;
+            } else { //last non-whitespace
+                break;
+            }
+        }
+        //create a new range and add it to the collection of all ranges
+        aceRanges.push(new AceRange(row, newStartColumn, row, newEndColumn + 1));
+    }
+    return aceRanges;
+}
+/*
+ * Create a highlight (ace calls these 'markers')
+ */
+function addPrimaryCodeHighlight(fileId, startRow, startColumn, endRow, endColumn) {
     //get the editor where the highlight will take place
     const editor = playbackData.editors[fileId];
     //if it still exists (editors can be removed when moving in reverse)
     if(editor) {
+        //get all the individual line-by-line ranges
+        const allRanges = getAllPrimaryCodeRanges(editor, startRow, startColumn, endRow, endColumn);
+        //mark each line
+        for(let i = 0;i < allRanges.length;i++) {
+            //create a marker in the right range
+            const marker = editor.getSession().addMarker(allRanges[i], 'highlight', 'text', true);
+            
+            //if there is not an entry for this file yet
+            if(!playbackData.highlights[fileId]) {
+                //create an array to hold ace marker ids
+                playbackData.highlights[fileId] = [];
+            }
+            //add the id of the new marker so it can be cleared later
+            playbackData.highlights[fileId].push(marker);
+        }
+    }
+}
+/*
+ * Create a secondary highlight of all the code that will show up in blog mode.
+ */
+function addSecondaryCodeHighlight(fileId, startRow, endRow) {
+    //get the editor where the highlight will take place
+    const editor = playbackData.editors[fileId];
+    //if it still exists (editors can be removed when moving in reverse)
+    if(editor) {
+        //get the last line of text in the range
+        const endRowOfText = editor.getSession().getLine(endRow);
         //create a marker in the right range
-        const marker = editor.getSession().addMarker(new AceRange(startRow, startColumn, endRow, endColumn), 'highlight', 'text', true);
-        //editor.session.selection.addRange(new ace.Range(startRow, startColumn, endRow, endColumn));
+        const marker = editor.getSession().addMarker(new AceRange(startRow, 0, endRow, endRowOfText.length), 'secondaryHighlight', 'fullLine', true);
         
         //if there is not an entry for this file yet
         if(!playbackData.highlights[fileId]) {
@@ -107,23 +240,32 @@ function highlightNewCode(newCodeMarkers) {
     for(let fileId in newCodeMarkers) {
         //if the editor is still present (files and associated editors can get removed by moving backwards)
         if(playbackData.editors[fileId]) {
+            //get the editor where the highlight will take place
+            const editor = playbackData.editors[fileId];
             //get the edit session
-            const editSession = playbackData.editors[fileId].getSession();
+            const editSession = editor.getSession();
 
             //add the new code highlights in this file
             for(let i = 0;i < newCodeMarkers[fileId].length;i++) {
                 //get a range to highlight
                 const range = newCodeMarkers[fileId][i];
-                //create an Ace marker in the right range
-                const marker = editSession.addMarker(new AceRange(range.startRow, range.startColumn, range.endRow, range.endColumn), 'newCodeHighlight', 'text', false);    //TODO shouldn't this be new ace.Range ??         
+
+                //get all the individual line-by-line ranges
+                const allRanges = getAllPrimaryCodeRanges(editor, range.startRow, range.startColumn, range.endRow, range.endColumn);
                 
-                //if an array of markers does not exist for the file in the global playbackData object
-                if(!playbackData.newCodeHighlights[fileId]) {
-                    //create an array to hold markers for this file
-                    playbackData.newCodeHighlights[fileId] = [];
+                //mark each line
+                for(let j = 0;j < allRanges.length;j++) {
+                    //create an Ace marker in the right range
+                    const marker = editSession.addMarker(allRanges[j], 'newCodeHighlight', 'text', false);
+                    
+                    //if an array of markers does not exist for the file in the global playbackData object
+                    if(!playbackData.newCodeHighlights[fileId]) {
+                        //create an array to hold markers for this file
+                        playbackData.newCodeHighlights[fileId] = [];
+                    }
+                    //add the id of the new marker so it can be cleared later
+                    playbackData.newCodeHighlights[fileId].push(marker);
                 }
-                //add the id of the new marker so it can be cleared later
-                playbackData.newCodeHighlights[fileId].push(marker);
             }
         }
     }
