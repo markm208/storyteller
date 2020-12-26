@@ -294,11 +294,8 @@ function createCommentCard(commentObject, currentComment, commentCount, i)
         updateActiveComment(cardFinal);
         cardFinal.classList.add("activeCommentBorder");
 
-        //add highlights for the comment
-        for (let j = 0; j < commentObject.selectedCodeBlocks.length; j++)
-        {
-            addHighlight(commentObject.selectedCodeBlocks[j].fileId, commentObject.selectedCodeBlocks[j].startRow, commentObject.selectedCodeBlocks[j].startColumn, commentObject.selectedCodeBlocks[j].endRow, commentObject.selectedCodeBlocks[j].endColumn);
-        }
+        //add the code highlights for the comment (primary and secondary)
+        addCodeHighlights(commentObject);
 
         //if there is some highlighted code
         if(commentObject.selectedCodeBlocks.length > 0) {
@@ -2199,9 +2196,18 @@ function createBlogPost(commentToAdd) {
         editor.session.selection.clearSelection();
         blogPostCodeEditor.session.selection.clearSelection();
 
+        //for each primary comment highlight
         for (let i = 0; i < commentToAdd.selectedCodeBlocks.length; i++) {
+            //get a selection from the comment
             const selection = commentToAdd.selectedCodeBlocks[i];
-            blogPostCodeEditor.getSession().addMarker(new ace.Range(selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn), 'highlight', 'text', true);
+            //convert the selection into a line-by-line group of ranges accounting for the limited amount of code on the screen
+            const allRanges = getAllPrimaryCodeRanges(blogPostCodeEditor, selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn);
+
+            //go through the ranges and highlight them
+            for(let j = 0;j < allRanges.length;j++) {
+                //create a marker in the right range
+                blogPostCodeEditor.getSession().addMarker(allRanges[j], 'highlight', 'text', true);
+            }
         }
 
         blogPostCodeEditor.setOptions({
@@ -2211,16 +2217,16 @@ function createBlogPost(commentToAdd) {
             fontSize: 16,
             firstLineNumber: startRow + 1,
             highlightActiveLine: false,
+            highlightGutterLine: false,
             showPrintMargin: false
-       });
-
-       blogPostCodeEditor.session.setOptions({
-           mode: getEditorModeForFilePath(commentToAdd.currentFilePath),
-           useWorker: false
-       });
-
+        });
+        blogPostCodeEditor.renderer.$cursorLayer.element.style.display = "none";
+        
+        blogPostCodeEditor.session.setOptions({
+            mode: getEditorModeForFilePath(commentToAdd.currentFilePath),
+            useWorker: false
+        });
         blogPostEditor.append(blogPostCodeEditor);
-
         blogPost.append(blogPostFileNameDiv);
         blogPost.append(blogPostEditor);       
        

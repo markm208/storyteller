@@ -1,12 +1,13 @@
 function step(numSteps) {
     //clear any existing highlights
     clearHighlights();
-    clearNewCodeHighlights();
-    clearInsertLineNumbers();
-    clearDeleteLineNumbers();
-    clearHighlightChangedFiles();
     removeActiveCommentAndGroup();
- 
+    if(numSteps !== 0) {
+        clearNewCodeHighlights();
+        clearInsertLineNumbers();
+        clearDeleteLineNumbers();
+        clearHighlightChangedFiles();
+    } 
     //move forward
     if(numSteps > 0) {
         stepForward(numSteps);
