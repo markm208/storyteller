@@ -712,16 +712,19 @@ function setupEventListeners()
     })    
 
     $('#imgExpandModal').on('hide.bs.modal', event => {
-        const largeModalActiveSrc = event.currentTarget.querySelector('.carousel-item.active img').getAttribute('src');
-        const idOfOriginalCarousel = event.currentTarget.querySelector('[data-returnCarouselId]').getAttribute('data-returnCarouselId');
-        const originalCarousel = document.getElementById(idOfOriginalCarousel);
-
-        //if the active src of the expanded modal and the active src of the smaller modal aren't the same,
-        //set the smaller modals active image to the same image as the larger one
-        if (originalCarousel.querySelector('.carousel-item.active img').getAttribute('src') !== largeModalActiveSrc) {
-            originalCarousel.querySelector('.carousel-item.active img').closest('.carousel-item').classList.remove('active');
-            originalCarouselImages = [...originalCarousel.querySelectorAll('.carousel-item img')];
-            originalCarouselImages[originalCarouselImages.findIndex(item => item.getAttribute('src') === largeModalActiveSrc)].closest('.carousel-item').classList.add('active');
+        //if the modal has a carousel in it
+        if (event.currentTarget.querySelector('.carousel-item.active img')){
+            const largeModalActiveSrc = event.currentTarget.querySelector('.carousel-item.active img').getAttribute('src');
+            const idOfOriginalCarousel = event.currentTarget.querySelector('[data-returnCarouselId]').getAttribute('data-returnCarouselId');
+            const originalCarousel = document.getElementById(idOfOriginalCarousel);
+            
+            //if the active src of the expanded carousel and the active src of the smaller carousel are not the same,
+            //set the smaller carousels active image to the same image as the larger one
+            if (originalCarousel.querySelector('.carousel-item.active img').getAttribute('src') !== largeModalActiveSrc) {
+                originalCarousel.querySelector('.carousel-item.active img').closest('.carousel-item').classList.remove('active');
+                originalCarouselImages = [...originalCarousel.querySelectorAll('.carousel-item img')];
+                originalCarouselImages[originalCarouselImages.findIndex(item => item.getAttribute('src') === largeModalActiveSrc)].closest('.carousel-item').classList.add('active');
+            }
         }
 
         const img = document.createElement("img");
