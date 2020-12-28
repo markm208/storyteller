@@ -105,7 +105,7 @@ function addCodeHighlights(commentObject) {
  * Cretes a group of Ace ranges for primary highlights. It goes through a (possible multi-line) range
  * and creates a new range for every line. Each line skips leading and trailing whitespace.
  */
-function getAllPrimaryCodeRanges(editor, startRow, startColumn, endRow, endColumn) {
+function splitRangeIgnoreLeadingAndTrailingSpaces(editor, startRow, startColumn, endRow, endColumn) {
     //all the line-by-line ranges in a bigger range
     const aceRanges = [];
 
@@ -167,7 +167,7 @@ function addPrimaryCodeHighlight(fileId, startRow, startColumn, endRow, endColum
     //if it still exists (editors can be removed when moving in reverse)
     if(editor) {
         //get all the individual line-by-line ranges
-        const allRanges = getAllPrimaryCodeRanges(editor, startRow, startColumn, endRow, endColumn);
+        const allRanges = splitRangeIgnoreLeadingAndTrailingSpaces(editor, startRow, startColumn, endRow, endColumn);
         //mark each line
         for(let i = 0;i < allRanges.length;i++) {
             //create a marker in the right range
@@ -251,7 +251,7 @@ function highlightNewCode(newCodeMarkers) {
                 const range = newCodeMarkers[fileId][i];
 
                 //get all the individual line-by-line ranges
-                const allRanges = getAllPrimaryCodeRanges(editor, range.startRow, range.startColumn, range.endRow, range.endColumn);
+                const allRanges = splitRangeIgnoreLeadingAndTrailingSpaces(editor, range.startRow, range.startColumn, range.endRow, range.endColumn);
                 
                 //mark each line
                 for(let j = 0;j < allRanges.length;j++) {

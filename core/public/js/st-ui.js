@@ -2201,7 +2201,7 @@ function createBlogPost(commentToAdd) {
             //get a selection from the comment
             const selection = commentToAdd.selectedCodeBlocks[i];
             //convert the selection into a line-by-line group of ranges accounting for the limited amount of code on the screen
-            const allRanges = getAllPrimaryCodeRanges(blogPostCodeEditor, selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn);
+            const allRanges = splitRangeIgnoreLeadingAndTrailingSpaces(blogPostCodeEditor, selection.startRow - startRow, selection.startColumn, selection.endRow - startRow, selection.endColumn);
 
             //go through the ranges and highlight them
             for(let j = 0;j < allRanges.length;j++) {
