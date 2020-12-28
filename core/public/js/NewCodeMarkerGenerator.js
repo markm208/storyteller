@@ -30,8 +30,14 @@ class NewCodeMarkerGenerator {
             //create a new file marker
             this.newCodeFileMarkers[insertEvent.fileId] = new NewCodeFileMarker();
         }
+        
+        let insertEventCharacter = insertEvent.character;
+        if(insertEvent.character === 'NEWLINE' || insertEvent.character === 'CR-LF') {
+            insertEventCharacter = '\n';
+        }
+        
         //handle the insert
-        this.newCodeFileMarkers[insertEvent.fileId].insert(insertEvent.lineNumber - 1, insertEvent.column - 1, insertEvent.character === 'NEWLINE' ? '\n' : insertEvent.character);
+        this.newCodeFileMarkers[insertEvent.fileId].insert(insertEvent.lineNumber - 1, insertEvent.column - 1, insertEventCharacter);
     }
 
     /*
@@ -43,8 +49,12 @@ class NewCodeMarkerGenerator {
             //create a new file marker
             this.newCodeFileMarkers[deleteEvent.fileId] = new NewCodeFileMarker();
         }
+        let deleteEventCharacter = deleteEvent.character;
+        if(deleteEvent.character === 'NEWLINE' || deleteEvent.character === 'CR-LF') {
+            deleteEventCharacter = '\n';
+        }
         //handle the delete
-        this.newCodeFileMarkers[deleteEvent.fileId].delete(deleteEvent.lineNumber - 1, deleteEvent.column - 1, deleteEvent.character === 'NEWLINE' ? '\n' : deleteEvent.character);
+        this.newCodeFileMarkers[deleteEvent.fileId].delete(deleteEvent.lineNumber - 1, deleteEvent.column - 1, deleteEventCharacter);
     }
 
     /*
@@ -61,6 +71,17 @@ class NewCodeMarkerGenerator {
         }
 
         return allNewCodeMarkers;
+    }
+
+    /*
+     * Gets all of the file markers for the changed files.
+     */
+    toDebugString() {
+        for(let fileId in this.newCodeFileMarkers) {
+            console.log(`File id: ${fileId}`);
+            console.log(this.newCodeFileMarkers[fileId].toDebugString());
+            console.log("");
+        }
     }
 
     /*

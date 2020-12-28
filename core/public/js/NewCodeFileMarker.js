@@ -5,10 +5,10 @@
  * highlight in the line number gutter.
  * 
  * There are objects for every line of a file up to a change. The objects hold
- * and array of characters that hold either a '.' or an 'X'. A '.' is a 
- * placeholder and an 'X' is an actual changed character. The ranges are created
- * by looking for lines with one or more 'X' in a file. The object also holds 
- * whether a line has had an insert or delete in it.
+ * and array of characters that hold either a '\0' or the newly inserted character. 
+ * A '\0' is a placeholder for an unknown but existing character. The ranges are 
+ * created by looking for lines with one or more non-'\0' in a file. The object also 
+ * holds whether a line has had an insert or delete in it.
  * 
  * The line changes are created to record the minimum changes necessary to make
  * the markers. For example, if this is the starting text at a pause point:
@@ -27,8 +27,8 @@
  * 
  * This class will record the minimal changes:
  * 1) 
- * 2) .............XXX
- * 3) ................XXXXXXXXXXXXXX
+ * 2) .............cool
+ * 3) ................really awesome
  * 
  * There is no need to record lines 4 or 5 or any text on a line after the new
  * code.
@@ -45,39 +45,32 @@ class NewCodeFileMarker {
      */
     insert(row, col, insertText) {
         //inserting a newline
-        if(insertText === '\n' || insertText === '\r\n') {
+        if(insertText === '\n') {
+            //the new row after the newline
+            const nextRow = {
+                characters: [],
+                insertsOnLine: false,
+                deletesOnLine: false
+            };
             //the newline is being added amongst other existing new code
             if(this.lineChanges[row] && this.lineChanges[row].characters[col]) {
                 //grab all of the new code after the newline and add it to a new row underneath
-                const nextRowNewCharacters = this.lineChanges[row].characters.splice(col);
-                //create a new row and add it underneath this one
-                const nextRow = {
-                    characters: nextRowNewCharacters,
-                    insertsOnLine: true,
-                    deletesOnLine: false
-                }
-                this.lineChanges.splice(row + 1, 0, nextRow);
+                nextRow.characters = this.lineChanges[row].characters.splice(col);
             } else { //the newline is outside of the existing new code
                 //expand the rows (if necessary)
                 this.expandToRowAndColumn(row, col);
-
-                //newline is an insert for this line
-                this.lineChanges[row].insertsOnLine = true;
-                //add an entry for the newline (mark the row and (row + 1) as having inserts)
-                this.lineChanges.splice(row + 1, 0, {
-                    characters: [],
-                    insertsOnLine: true,
-                    deletesOnLine: false
-                });
             }
+            //add the new row
+            this.lineChanges.splice(row + 1, 0, nextRow);            
         } else { //not a new line
             //expand the rows (if necessary)
             this.expandToRowAndColumn(row, col);
             
             //mark the position as new code and an insert on the line
-            this.lineChanges[row].characters.push('X');
-            this.lineChanges[row].insertsOnLine = true;
+            this.lineChanges[row].characters.splice(col, 0, insertText);
         }
+        //mark the newline on the current row
+        this.lineChanges[row].insertsOnLine = true;
     }
 
     /*
@@ -98,7 +91,7 @@ class NewCodeFileMarker {
         //if the columns before the new text do not exist yet
         while(col > this.lineChanges[row].characters.length) {
             //add a placeholder for code
-            this.lineChanges[row].characters.push('.');
+            this.lineChanges[row].characters.push('\0');
         }
     }
 
@@ -108,21 +101,13 @@ class NewCodeFileMarker {
      */
     delete(row, col, deleteText) {
         //deleting a newline
-        if(deleteText === '\n' || deleteText === '\r\n') {
+        if(deleteText === '\n') {
             //the newline is being deleted amongst other new code
             if(row < this.lineChanges.length) {
-                //mark a delete on the line
-                this.lineChanges[row].deletesOnLine = true;
-
                 //if there is a row of new code underneath
                 if(this.lineChanges[row + 1]) {
                     //if there is some new code on the line underneath
                     if(this.lineChanges[row + 1].characters.length > 0) {
-                        //create empty columns until there are enough placeholders to reach the newline
-                        while(col > this.lineChanges[row].characters.length) {
-                            //add a placeholder for code
-                            this.lineChanges[row].push('.');
-                        }
                         //now add the new code on the row underneath to the end of this row
                         for(let i = 0;i < this.lineChanges[row + 1].characters.length;i++) {
                             this.lineChanges[row].characters.push(this.lineChanges[row + 1].characters[i]);
@@ -134,22 +119,36 @@ class NewCodeFileMarker {
             } else { //the newline is outside of the existing new code rows and can be ignored
                 //expand the rows (if necessary)
                 this.expandToRowAndColumn(row, col);
-                //mark a delete on the line
-                this.lineChanges[row].deletesOnLine = true;
             }
         } else { //not a new line
             //the text is being deleted amongst other new code
             if(this.lineChanges[row] && this.lineChanges[row].characters[col]) {
                 //remove the new code (or placeholder)
                 this.lineChanges[row].characters.splice(col, 1);
-                this.lineChanges[row].deletesOnLine = true;
             } else {//the newline is outside of the existing new code 
                 //expand the rows (if necessary)
                 this.expandToRowAndColumn(row, col);
-                //mark a delete on the line
-                this.lineChanges[row].deletesOnLine = true;
             }
         }
+        //mark a delete on the line
+        this.lineChanges[row].deletesOnLine = true;
+    }
+
+    toDebugString() {
+        let retVal = "";
+        for(let row = 0;row < this.lineChanges.length;row++) {
+            retVal += `${(row + 1)}. `;
+            for(let col = 0;col < this.lineChanges[row].characters.length;col++) {
+                if(this.lineChanges[row].characters[col] === '\0') {
+                    retVal += '.'
+                } else if ((this.lineChanges[row].characters[col] !== '\n')) {
+                    retVal += this.lineChanges[row].characters[col];
+                }
+            }
+            retVal += "\n";
+        }
+
+        return retVal;
     }
 
     /*
@@ -167,7 +166,7 @@ class NewCodeFileMarker {
                 //go through the placeholders and inserts on the line
                 for(let col = 0;col < this.lineChanges[row].characters.length;col++) {
                     //if this is some new code
-                    if(this.lineChanges[row].characters[col] === 'X') {
+                    if(this.lineChanges[row].characters[col] !== '\0') {
                         //if a marker has been started already
                         if(markerStarted) {
                             latestMarker['endColumn'] = col + 1;
