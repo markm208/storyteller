@@ -36,6 +36,8 @@ function createAceEditor(codeDiv, filePath, fileId)
     tempEditor.setFontSize(playbackData.aceFontSize);
     //sets the mode for the editor based on the file it will display
     setEditorMode(tempEditor, filePath);
+    //make it possible to scroll past the end of the text
+    tempEditor.setOptions({scrollPastEnd: true});
 
     //adds editor as a key/value pair to the list of editors using fileId as the key
     playbackData.editors[fileId] = tempEditor;
