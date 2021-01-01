@@ -261,7 +261,9 @@ function setupEventListeners()
     }); 
 
     document.querySelector('#addCommentButton').addEventListener('click', async event => {        
-        stopAutomaticPlayback();        
+        const commentEditable = document.querySelector('#commentEditable');
+        commentEditable.dataset.commentEditable = false;
+        stopAutomaticPlayback();
         clearHighlights();
 
         //if the user entered a tag but forgot to add it, add it now
@@ -398,7 +400,8 @@ function setupEventListeners()
 
     document.getElementById("CancelUpdateButton").addEventListener('click', event => {
         stopAutomaticPlayback();
-
+        const commentEditable = document.querySelector('#commentEditable');
+        commentEditable.dataset.commentEditable = false;
         document.querySelector('.createCommentQuestionCheckbox').classList.remove('hiddenDiv');
 
         const imagePreviewDiv = document.getElementsByClassName("image-preview")[0];
@@ -595,7 +598,11 @@ function setupEventListeners()
     makeDivDroppable($('.video-preview')[0], false);
     makeDivDroppable($('.audio-preview')[0], false);
 
-    document.getElementById("mainAddCommentButton").addEventListener('click', event => {     
+    document.getElementById("mainAddCommentButton").addEventListener('click', event => {  
+        //indicate that the user is editing a comment
+        const commentEditable = document.querySelector('#commentEditable');
+        commentEditable.dataset.commentEditable = true;
+        
         stopAutomaticPlayback();
         clearHighlights();
 

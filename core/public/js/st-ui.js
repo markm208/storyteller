@@ -540,6 +540,9 @@ function createEditCommentButton(commentObject, buttonText) {
         //prevents the edit button from triggering the event listeners of its parent divs
         event.preventDefault();
         event.stopPropagation();
+        const commentEditable = document.querySelector('#commentEditable');
+        commentEditable.dataset.commentEditable = true;
+
 
         if (commentObject.id === "commentId-0") {
             document.querySelector('.createCommentQuestionCheckbox').classList.add('hiddenDiv');
@@ -649,7 +652,9 @@ function createEditCommentButton(commentObject, buttonText) {
   
         updateCommentButton.addEventListener( 'click' ,async event => {
             event.stopImmediatePropagation();
-
+            const commentEditable = document.querySelector('#commentEditable');
+            commentEditable.dataset.commentEditable = false;
+    
             pauseMedia();
             //get the active editor
             const editor = playbackData.editors[playbackData.activeEditorFileId] ? playbackData.editors[playbackData.activeEditorFileId] : playbackData.editors[''];
