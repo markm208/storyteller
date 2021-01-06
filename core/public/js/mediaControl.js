@@ -125,41 +125,53 @@ document.getElementById('deleteMediaButton').addEventListener('click', async eve
     
 });
 
+window.addEventListener("paste", pasteEvent => {
+    // //check to see if the user is pasting an image into a new or editable comment
+    // const updateCommentButton = document.getElementById("updateCommentButton");
+    // const updateButtonStyle = updateCommentButton.getAttribute("style");
+    // //the 'update comment' button's style is 'display: none;' when there is NOT a comment being edited
+    // //the 'style' is removed completely when a comment is being edited
+    // const addCommentButton = document.getElementById("addCommentButton");
+    // const addButtonStyle = addCommentButton.getAttribute("style");
+    const commentEditable = document.querySelector('#commentEditable');
+
+    //if there is no 'style' on this button then a comment is being edited
+    if(commentEditable.dataset.commentEditable === "true") {
+        //whether the paste data has images or not
+        let pasteHasImages = false;
+        //check for clipboard data
+        if(pasteEvent.clipboardData) {
+            //acceptable image mime types
+            const acceptableImageMimeTypes = ['image/apng', 'image/bmp', 'image/gif', 'image/ico', 'image/jpeg', 'image/png', 'image/svg+xml'];
+            //get all of the files on the clipboard
+            const files = pasteEvent.clipboardData.files;
+            //go through the clipboard files if there are any
+            for(let i = 0; i < files.length; i++) {
+                //if the clipboard data has any files and they are acceptable images
+                if (acceptableImageMimeTypes.includes(files[i].type)) {
+                    //indicate that the images will be added to the media pop up
+                    pasteHasImages = true;
+                    break;
+                }
+            }
+            //if new images will be added to the media pop up
+            if(pasteHasImages) {
+                //prevent a paste in the comment text box if it has the focus
+                pasteEvent.preventDefault();
+
+                //open the media pop up
+                document.getElementById('addMediaButton').click();
+
+                //add the files from the clipboard to the media pop up and server
+                addImageFiles(pasteEvent.clipboardData.files);
+            }
+        }
+    } //else- no comment being edited
+});
+
 document.getElementById('addImageButton').addEventListener('change', async event => {
-    try {
-        //create some form data
-        const formData = new FormData();
-
-        //get the selected files
-        const files = event.target.files;
-
-        //go through all of the selected files
-        //if there is only one the FormData will add it, if there are many it 
-        //will create an array of the files
-        for(let i = 0;i < files.length;i++) {
-            //add the file to the form data
-            formData.append('newImageFiles', files[i]);
-        }
-
-        //post to the server
-        const fetchConfigData = {
-            method: 'POST',
-            body: formData, 
-        };
-        const response = await fetch('/newMedia/image', fetchConfigData);
-    
-        //check the response
-        if(response.ok) {
-            const imageInfo = await response.json();
-            
-            //add the new images to the gallery
-            addImagesToGallery(imageInfo.filePaths, true);
-        } else {
-            console.log('Error with the response data');
-        }
-    } catch(error) {
-        console.log('Error with request');
-    }
+        //get the selected files and add them to the media pop up and server
+        addImageFiles(event.target.files);
 });
 
 document.getElementById('addVideoButton').addEventListener('change', async event => {
@@ -236,6 +248,40 @@ document.getElementById('addAudioButton').addEventListener('change', async event
     }
 });
 
+async function addImageFiles(files) {
+    try {
+        //create some form data
+        const formData = new FormData();
+
+        //go through all of the selected files
+        //if there is only one the FormData will add it, if there are many it 
+        //will create an array of the files
+        for(let i = 0;i < files.length;i++) {
+            //add the file to the form data
+            formData.append('newImageFiles', files[i]);
+        }
+
+        //post to the server
+        const fetchConfigData = {
+            method: 'POST',
+            body: formData, 
+        };
+        const response = await fetch('/newMedia/image', fetchConfigData);
+    
+        //check the response
+        if(response.ok) {
+            const imageInfo = await response.json();
+            
+            //add the new images to the gallery
+            addImagesToGallery(imageInfo.filePaths, true);
+        } else {
+            console.log('Error with the response data');
+        }
+    } catch(error) {
+        console.log('Error with request');
+    }
+}
+
 function addImagesToGallery(filePaths, makeSelected) {
     //go through all of the file paths
     for(let i = 0;i < filePaths.length;i++) {
@@ -301,8 +347,6 @@ async function deleteSelectedImages() {
             } else {
                 noConflict = false;
             }
-
-            
         }
 
         //delete to the server
@@ -345,14 +389,16 @@ async function deleteSelectedVideos() {
         for(let i = 0;i < selectedVideos.length;i++) {
             //get the src from the nested card and add it to the array of paths to send to the 
             //server to delete from the public dir
-            const filePath = selectedVideos[i].querySelector('[src*="/media/videos"]').getAttribute('src');
-
-            //if the filePath does not match a videos src that is currently in a comment
-            if (videosInComments.findIndex(video => video.getAttribute('src') === filePath) === -1) {
-                filePaths.push(filePath);
-                videosRemoved.push(selectedVideos[i]);
-            } else {
-                noConflict = false;
+            let filePath = selectedVideos[i].querySelector('[src*="media/videos"]');
+            if(filePath) {
+                filePath = filePath.getAttribute('src');
+                //if the filePath does not match a videos src that is currently in a comment
+                if (videosInComments.findIndex(video => video.getAttribute('src') === filePath) === -1) {
+                    filePaths.push(filePath);
+                    videosRemoved.push(selectedVideos[i]);
+                } else {
+                    noConflict = false;
+                }
             }
         }
 
@@ -397,16 +443,17 @@ async function deleteSelectedAudios() {
         for(let i = 0;i < selectedAudios.length;i++) {
             //get the src from the nested card and add it to the array of paths to send to the 
             //server to delete from the public dir
-            const filePath = selectedAudios[i].querySelector('[src*="/media/audios"]').getAttribute('src');
-
-            //if the filePath does not match an audio src that is currently in a comment
-            if (audiosInComments.findIndex(audio => audio.getAttribute('src') === filePath) === -1) {
-                filePaths.push(filePath);
-                audiosRemoved.push(selectedAudios[i]);
-            } else {
-                noConflict = false;
+            let filePath = selectedAudios[i].querySelector('[src*="media/audios"]');
+            if(filePath) {
+                filePath = filePath.getAttribute('src');
+                //if the filePath does not match an audio src that is currently in a comment
+                if (audiosInComments.findIndex(audio => audio.getAttribute('src') === filePath) === -1) {
+                    filePaths.push(filePath);
+                    audiosRemoved.push(selectedAudios[i]);
+                } else {
+                    noConflict = false;
+                }
             }
-
         }
 
         //delete to the server
