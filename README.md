@@ -30,6 +30,7 @@ The output of the Storyteller tool is called a 'playback'. Here are a collection
 * [An Animated Introduction to Programming in C++](https://markm208.github.io/cppbook/)
 * [An Animated Introduction to Programming with Python](https://markm208.github.io/pybook/)
 * [An Animated Introduction to Clojure](https://markm208.github.io/cljbook/)
+* [Programming with SQLite](https://markm208.github.io/sqlitebook/)
 
 (this tool is not solely for educational purposes- it is for anyone who wants to show others how they thought about a problem while coding it).
 
