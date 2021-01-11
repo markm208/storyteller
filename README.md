@@ -26,7 +26,7 @@ In addition to moving the code comments out of the code, Storyteller was designe
 - It is possible to create comments using a richer media than plain text so that developers can better describe their ideas and thought processes. Storyteller allows you to draw pictures, store screenshots that can be marked up, and record video in your comments.
 
 ## Examples
-The output of the Storyteller tool is called a 'playback'. Here are a collection of playbacks in C++ and Clojure that I used for some of my computer science courses:
+The output of the Storyteller tool is called a 'playback'. Here are a collection of playbacks that I use for some of my computer science courses:
 * [An Animated Introduction to Programming in C++](https://markm208.github.io/cppbook/)
 * [An Animated Introduction to Programming with Python](https://markm208.github.io/pybook/)
 * [OO Design Patterns with Java](https://markm208.github.io/patternbook/)
