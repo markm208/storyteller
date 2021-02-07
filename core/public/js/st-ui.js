@@ -2187,7 +2187,9 @@ function createBlogPost(commentToAdd) {
         const blogPostEditor = document.createElement('div')
         blogPostEditor.classList.add("blogEditorDiv") 
 
-        let blogPostCodeEditor = ace.edit(blogPostEditor);
+        let blogPostCodeEditor = ace.edit(blogPostEditor, {
+            useWorker: false
+        });
 
         const blogPostFileNameDiv = document.createElement('div');
         blogPostFileNameDiv.classList.add("blogPostFileName")

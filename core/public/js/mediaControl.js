@@ -284,7 +284,7 @@ async function addImageFiles(files) {
 
 function addImagesToGallery(filePaths, makeSelected) {
     //go through all of the file paths
-    for(let i = 0;i < filePaths.length;i++) {
+    for(let i = filePaths.length - 1;i >= 0;i--) {
         //get the image gallery
         const gallery = document.getElementById('imageGallery');
         
@@ -292,13 +292,13 @@ function addImagesToGallery(filePaths, makeSelected) {
         const newImg = createMediaControllerCommentImageUI(filePaths[i], makeSelected);
         
         //add the image
-        gallery.appendChild(newImg);
+        gallery.insertBefore(newImg, gallery.firstChild);
     }
 }
 
 function addVideosToGallery(filePaths, makeSelected) {
     //go through all of the file paths
-    for(let i = 0;i < filePaths.length;i++) {
+    for(let i = filePaths.length - 1;i >= 0;i--) {
         //get the video gallery
         const gallery = document.getElementById('videoGallery');
 
@@ -306,13 +306,13 @@ function addVideosToGallery(filePaths, makeSelected) {
         const cardDiv = createMediaControllerCommentVideoUI(filePaths[i], makeSelected);
 
         //add the video
-        gallery.appendChild(cardDiv);
+        gallery.insertBefore(cardDiv, gallery.firstChild);
     }
 }
 
 function addAudiosToGallery(filePaths, makeSelected) {
     //go through all of the file paths
-    for(let i = 0;i < filePaths.length;i++) {
+    for(let i = filePaths.length - 1;i >= 0;i--) {
         //get the audio gallery
         const gallery = document.getElementById('audioGallery');
 
@@ -320,7 +320,7 @@ function addAudiosToGallery(filePaths, makeSelected) {
         const cardDiv = createMediaControllerCommentAudioUI(filePaths[i], makeSelected);
 
         //add the audio
-        gallery.appendChild(cardDiv);
+        gallery.insertBefore(cardDiv, gallery.firstChild);
     }
 }
 

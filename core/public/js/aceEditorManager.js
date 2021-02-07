@@ -22,7 +22,9 @@ function getEditorModeForFilePath(filePath) {
 function createAceEditor(codeDiv, filePath, fileId)
 {
     //creates a new Ace editor pointing to the passed codeDiv
-    const tempEditor = ace.edit(codeDiv);
+    const tempEditor = ace.edit(codeDiv, {
+        useWorker: false
+    });
     //disables edits from the browser
     tempEditor.setReadOnly(true);
     //sets the theme for the editor
