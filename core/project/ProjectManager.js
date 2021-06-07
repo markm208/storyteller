@@ -564,7 +564,7 @@ function loadPlaybackData() {
     playbackData.isEditable = ${makeEditable ? 'true' : 'false'};
     playbackData.developers = ${JSON.stringify(this.developerManager.allDevelopers)};
     playbackData.developerGroups = ${JSON.stringify(this.developerManager.allDeveloperGroups)};
-    playbackData.playbackTitle = '${this.project.title}';
+    playbackData.playbackTitle = '${this.project.title.replace(/'/g, "&#39;")}';
     playbackData.branchId = '${this.project.branchId}';
 }`;
 //TODO add an exports at the end
