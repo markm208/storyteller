@@ -546,7 +546,8 @@ function openPlaybackInBrowser(playbackForComment) {
             spawn(command, ['http://localhost:53140/playback.html?comment=true']);
         } else { //no comment, just a regular playback
             //now start the browser with the URL of the latest playback
-            spawn(command, ['http://localhost:53140/playback.html']);
+            //spawn(command, ['http://localhost:53140/playback.html']);
+            spawn(command, ['http://localhost:53140/index.html']);
         }
     }
 }

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playback</title>
+    <!-- external resources (editor, zip)-->
+    <script src="js/ext/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/ext/src-min-noconflict/ext-modelist.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/ext/jszip.min.js" type="text/javascript" charset="utf-8"></script>
+    <!-- non-ui playback -->
+    <script src="js/playbackEngine/EditorState.js"></script>
+    <script src="js/playbackEngine/CodeDownloader.js"></script>
+    <script src="js/playbackEngine/NewCodeFileMarker.js"></script>
+    <script src="js/playbackEngine/NewCodeMarkerGenerator.js"></script>
+    <script src="js/playbackEngine/PlaybackEngine.js"></script>
+    <!-- playback ui -->
+    <script src="js/AceEditor.js"></script>
+    <script src="js/App.js"></script>
+    <script src="js/BlogCodeSnippet.js"></script>
+    <script src="js/BlogComponent.js"></script>
+    <script src="js/BlogView.js"></script>
+    <script src="js/CodeView.js"></script>
+    <script src="js/CommentGroup.js"></script>
+    <script src="js/CommentNavigator.js"></script>
+    <script src="js/CommentView.js"></script>
+    <script src="js/DevAvatar.js"></script>
+    <script src="js/DevGroupAvatar.js"></script>
+    <script src="js/EditorFileTabs.js"></script>
+    <script src="js/EditorView.js"></script>
+    <script src="js/FileSystemNavigator.js"></script>
+    <script src="js/ImageGallery.js"></script>
+    <script src="js/PlaybackControls.js"></script>
+    <script src="js/PlaybackNavigator.js"></script>
+    <script src="js/PlaybackSlider.js"></script>
+    <script src="js/SearchNavigator.js"></script>
+    <script src="js/TitleBar.js"></script>
+    <!-- playback data -->
+    <script src="js/loadPlayback.js"></script>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        background-color: rgb(51, 51, 51);
+        color: lightgray;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      //create an alias for an Ace type
+      const AceRange = ace.require('ace/range').Range;
+
+      //get the playback data and pass it to the app
+      const playbackData = {};
+      loadPlaybackData(playbackData);
+
+      //check if this is a small screen
+      let initialMode = 'code';
+      if(window.innerWidth < 800) {
+        initialMode = 'blog';
+      } 
+      const app = new App(playbackData, initialMode);
+      document.body.appendChild(app);
+    </script>
+  </body>
+</html>
