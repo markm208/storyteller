@@ -53,7 +53,7 @@ class AceEditor extends HTMLElement {
         }
 
         .insertOnLine {
-          color: rgb(161, 179, 167);
+          color: rgb(33, 130, 36);
           font-weight: bold;
         }
 
