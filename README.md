@@ -35,6 +35,8 @@ The output of the Storyteller tool is called a 'playback'. Here are a collection
 * [OO Design Patterns with Java](https://markm208.github.io/patternbook/)
 * [Programming with SQLite](https://markm208.github.io/sqlitebook/)
 
+You can find all of my 'books' of playbacks here: [markm208.github.io](https://markm208.github.io/)
+
 (this tool is not solely for educational purposes- it is for anyone who wants to show others how they thought about a problem while coding it).
 
 Some notes about playback. You can use the pause/play button (`space bar`) to stop/restart a playback. To speed things up use `shift + up arrow` (`shift + down arrow` slows things down too). You can skip the animation of code altogether and just focus on the code and comments by selecting the forward button `>>` (`shift + right arrow` will accomplish this as well). 
