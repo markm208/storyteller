@@ -72,9 +72,13 @@ class CodeView extends HTMLElement {
     dragBar.addEventListener('touchstart', this.addTouchEventListeners);
 
     //double clicking the drag bar will divide the comment navigator and editor view 50/50
-    dragBar.addEventListener('dblclick', ()=>{
+    dragBar.addEventListener('dblclick', (event)=>{
+      const currentXPos = event.pageX;
       const codeView = this.shadowRoot.host;
-      this.setWidthInPixels(codeView.getBoundingClientRect().width / 2);
+      const screenWidthHalf = codeView.getBoundingClientRect().width / 2;
+      if (screenWidthHalf != currentXPos){
+        this.setWidthInPixels(screenWidthHalf);
+      }
     });
   }
 
