@@ -347,4 +347,34 @@ class PlaybackEngine {
       throw Error(`Invalid event type: ${currentEvent.type}`);
     }
   }
+
+  performSearch(searchText){
+    const relevantComments = [];
+    //search all the comments text, code and tags for the matching search text
+    for(let i = 0;i < this.flattenedComments.length;i++) {
+      const comment = this.flattenedComments[i];
+      
+      let isRelevantComment = false;
+      comment.selectedCodeBlocks.some(block => {
+        if(block.selectedText.toLowerCase().includes(searchText.toLowerCase())) {
+          isRelevantComment = true;
+        }
+      });    
+
+      if(comment.commentText.toLowerCase().includes(searchText.toLowerCase())) {
+        isRelevantComment = true;
+      }    
+    
+      if(comment.commentTags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()))) {
+        isRelevantComment = true;
+      }
+
+      //collect the comments that have the search text
+      if (isRelevantComment){
+        relevantComments.push(comment);
+      }
+      
+    }
+    return relevantComments;
+  }
 }

@@ -52,7 +52,7 @@ class App extends HTMLElement {
     //create the initial components
     //title bar
     const titleBar = this.shadowRoot.querySelector('.titleBar');
-    titleBar.appendChild(new TitleBar(this.playbackEngine.playbackData.playbackTitle, this.initialMode));
+    titleBar.appendChild(new TitleBar(this.playbackEngine.playbackData.playbackTitle, this.initialMode, this.playbackEngine));
     
     //set the initial mode ('code' or 'blog')
     this.changeMode(this.initialMode);
@@ -157,6 +157,22 @@ class App extends HTMLElement {
       this.changePlaybackNavigatorTab(event.detail.newPlaybackNavTab)
       event.preventDefault();
     });
+
+    this.shadowRoot.addEventListener('search', event => {
+      const eventText = event.detail.searchText;
+      this.handleSearch(eventText);
+    });
+  }
+
+  handleSearch(searchText){
+    //handles the search from the search bar
+    if (this.activeMode === 'code'){
+      const codeView = this.shadowRoot.querySelector('st-code-view');
+      codeView.performSearch(searchText);
+    }else{
+      const blogView = this.shadowRoot.querySelector('st-blog-view');
+      blogView.performSearch(searchText);
+    }
   }
 
   //used to switch from play->pause and pause->play

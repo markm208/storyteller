@@ -181,6 +181,18 @@ class PlaybackNavigator extends HTMLElement {
       fileSystemNavigator.updateActiveFile();
     }
   }
+
+  performSearch(searchText){
+    //make the search tab active
+    this.activeTab = 'search';  
+
+    const searchTab = this.shadowRoot.querySelector(".search");
+    searchTab.click();
+
+    //perform the search
+    const searchNavigator = this.shadowRoot.querySelector('st-search-navigator');
+    searchNavigator.performSearch(searchText);
+  }
 }
 
 window.customElements.define('st-playback-navigator', PlaybackNavigator);

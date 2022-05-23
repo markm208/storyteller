@@ -1,9 +1,10 @@
 class TitleBar extends HTMLElement {
-  constructor(playbackTitle, activeMode) {
+  constructor(playbackTitle, activeMode, playbackEngine) {
     super();
     
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
+    this.playbackEngine = playbackEngine;
 
     this.activeMode = activeMode;
     this.playbackTitle = playbackTitle;
@@ -27,10 +28,13 @@ class TitleBar extends HTMLElement {
         background-color: transparent;
         border: 1px solid transparent;
         color: gray;
+        display: none;
+        cursor: pointer;
       }
 
       .activeModeButton {
         color:rgb(201, 226, 242);
+        display: block;
       }
 
       .playbackTitle {
@@ -42,6 +46,10 @@ class TitleBar extends HTMLElement {
         font-size: 1.25rem;
         font-weight: 500;
       }
+
+      .optionsButtonsGroup{
+        display: flex;
+      }      
     </style>
 
     <!-- Logo and playback title -->
@@ -49,8 +57,9 @@ class TitleBar extends HTMLElement {
       <span class="stLogo">Storyteller: </span>
       <span class="playbackTitle"></span>
     </div>
-    <!-- code/blog mode buttons and options button -->
+    <!-- search bar, code/blog mode buttons and options button -->
     <div class="optionsButtonsGroup" role="group" aria-label="Options Button Group">
+      <st-search-bar></st-search-bar>
       <button id="enterCodeModeButton" type="button" class="modeButton" title="Code View">
         <!-- icon url: https://icons.getbootstrap.com/icons/code/ -->
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-code-slash" viewBox="0 0 16 16">
@@ -106,8 +115,8 @@ class TitleBar extends HTMLElement {
     //update the look of the selected button
     const enterCodeModeButton = this.shadowRoot.getElementById('enterCodeModeButton');
     const enterBlogModeButton = this.shadowRoot.getElementById('enterBlogModeButton');    
-    enterCodeModeButton.classList.add('activeModeButton');
-    enterBlogModeButton.classList.remove('activeModeButton');
+    enterCodeModeButton.classList.remove('activeModeButton');
+    enterBlogModeButton.classList.add('activeModeButton');
     
     //notify the app of the mode change
     this.notifyModeSelected('code');
@@ -117,8 +126,8 @@ class TitleBar extends HTMLElement {
     //update the look of the selected button
     const enterCodeModeButton = this.shadowRoot.getElementById('enterCodeModeButton');
     const enterBlogModeButton = this.shadowRoot.getElementById('enterBlogModeButton');    
-    enterBlogModeButton.classList.add('activeModeButton');
-    enterCodeModeButton.classList.remove('activeModeButton');
+    enterBlogModeButton.classList.remove('activeModeButton');
+    enterCodeModeButton.classList.add('activeModeButton');
     
     //notify the app of the mode change
     this.notifyModeSelected('blog');

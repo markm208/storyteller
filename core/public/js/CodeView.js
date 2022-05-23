@@ -167,6 +167,11 @@ class CodeView extends HTMLElement {
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
     playbackNavigator.updateActiveFile();
   }
+
+  performSearch(searchText){
+    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
+    playbackNavigator.performSearch(searchText);
+  }
 }
 
 window.customElements.define('st-code-view', CodeView);
