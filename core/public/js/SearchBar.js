@@ -4,6 +4,7 @@ class SearchBar extends HTMLElement {
       
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(this.getTemplate());
+      this.previousSearchText = '';
     }
   
     getTemplate() {
@@ -43,8 +44,13 @@ class SearchBar extends HTMLElement {
     connectedCallback() {
         const searchBar = this.shadowRoot.querySelector("#searchBar");
         searchBar.addEventListener('keyup', event=>{
-          const searchText = this.shadowRoot.querySelector("#searchBar").value;
-          this.sendSearchRequest(searchText);
+          const currentSearchText = this.shadowRoot.querySelector("#searchBar").value;
+
+          //only conduct the search if the search text has changed
+          if (currentSearchText != this.previousSearchText){
+            this.sendSearchRequest(currentSearchText);
+            this.previousSearchText = currentSearchText;
+          }
         });
     }
   
