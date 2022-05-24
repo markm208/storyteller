@@ -50,6 +50,7 @@ class SearchBar extends HTMLElement {
           if (currentSearchText != this.previousSearchText){
             this.sendSearchRequest(currentSearchText);
             this.previousSearchText = currentSearchText;
+            event.stopPropagation(); 
           }
         });
     }
