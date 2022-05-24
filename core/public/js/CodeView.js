@@ -170,6 +170,11 @@ class CodeView extends HTMLElement {
     playbackNavigator.updateSelectedComment();
   }
 
+  updateEditorFontSize(newFontSize) {
+    const editorView = this.shadowRoot.querySelector('st-editor-view');
+    editorView.updateEditorFontSize(newFontSize);
+  }
+
   updateActiveFile() {
     const editorView = this.shadowRoot.querySelector('st-editor-view');
     editorView.updateActiveFile();

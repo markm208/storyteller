@@ -228,9 +228,29 @@ class PlaybackEngine {
     }
   }
 
+  stepToPreviousComment() {
+    if(this.activeComment.pausedOnComment) {
+      //if there is at least one more comment to move to
+      if (this.activeComment.positionInFlattenedArray > 0) {
+        const prevComment = this.flattenedComments[this.activeComment.positionInFlattenedArray - 1];
+        this.stepToCommentById(prevComment.id);
+      }
+    } else {
+      //go through all of the indexes in events where there is a comment
+      for(let i = this.commentGroupEventPositions.length - 1;i > 0;i--) {
+        const commentEventPos = this.commentGroupEventPositions[i];
+        //if the paused event index exceeds the comment position
+        if(this.currentEventIndex > commentEventPos) {
+          this.stepToEventNumber(commentEventPos);
+          break;
+        }
+      }
+    }
+  }
+
   stepToBeginning() {
     //go back to the beginning of the playback
-    this.stepToEventNumber(this.firstRelevantEventIndex);
+    this.stepToEventNumber(this.firstRelevantEventIndex - 1);
   }
 
   stepToEnd() {

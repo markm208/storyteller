@@ -162,6 +162,56 @@ class App extends HTMLElement {
       const eventText = event.detail.searchText;
       this.handleSearch(eventText);
     });
+
+    document.addEventListener('keydown', event => {
+      //get the state of the keys
+      const keyPressed = event.key;
+      const shiftPressed = event.shiftKey;
+      const ctrlPressed = event.ctrlKey;
+
+      //keyboard controls
+      if (ctrlPressed && shiftPressed && keyPressed === 'ArrowRight') { //ctrl + shift + right arrow press
+        this.moveToEndOfPlayback();
+        event.preventDefault();
+      } else if(shiftPressed && keyPressed === 'ArrowRight') { //shift + right arrow press
+        this.moveToNextComment();
+        event.preventDefault();
+      } else if(keyPressed === 'ArrowRight') { //right arrow press
+        //move to the next event
+        this.togglePlayPause(true);
+        this.playNextEvent();
+        event.preventDefault();
+      } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowLeft') { //ctrl + shift + left arrow press
+        this.moveToBeginningOfPlayback();
+        event.preventDefault();
+      } else if (shiftPressed && keyPressed === 'ArrowLeft') { //shift + left arrow press
+        this.moveToPreviousComment();
+        event.preventDefault();
+      } else if (keyPressed === 'ArrowLeft') {//left arrow press
+          //move to the previous event
+          this.togglePlayPause(true);
+          this.playPreviousEvent();
+          event.preventDefault();
+      } else if (ctrlPressed && keyPressed === '=') { //ctrl + plus button press (the + is a key combo shift + =)
+        //make the font bigger
+        this.editorProperties.fontSize = this.editorProperties.fontSize + 4;
+        const codeView = this.shadowRoot.querySelector('st-code-view');
+        //update the editor
+        codeView.updateEditorFontSize(this.editorProperties.fontSize);
+        event.preventDefault();
+      } else if (ctrlPressed && keyPressed === '-') { //ctrl + minus button press
+        //make the font smaller
+        this.editorProperties.fontSize = this.editorProperties.fontSize - 2;
+        const codeView = this.shadowRoot.querySelector('st-code-view');
+        //update the editor
+        codeView.updateEditorFontSize(this.editorProperties.fontSize);
+        event.preventDefault();
+      } else if (event.code === "Space") {
+        //toggle play/pause 
+        this.togglePlayPause(!this.autoPlayback.isPaused);
+        event.preventDefault();
+      }
+    });
   }
 
   handleSearch(searchText){
@@ -213,6 +263,20 @@ class App extends HTMLElement {
     }
   }
 
+  //used to take one step backward
+  playPreviousEvent = () => {
+    //make sure playback is paused
+    this.togglePlayPause(true);
+
+    //move backward one step
+    this.playbackEngine.stepBackward(1);
+    
+    //update the code view
+    const codeView = this.shadowRoot.querySelector('st-code-view');
+    //update the editor 
+    codeView.updateSliderMoved(false);
+  }
+  
   //used when a file tab is selected or a file is chosen in the file system view
   changeActiveFile = (fileId) => {
     //make sure playback is paused
@@ -272,6 +336,45 @@ class App extends HTMLElement {
 
     //move to the next comment
     this.playbackEngine.stepToNextComment();
+
+    //update the editor
+    const codeView = this.shadowRoot.querySelector('st-code-view');
+    codeView.updateSelectedComment();
+  }
+
+  //used when the user wants to move to the previous comment
+  moveToPreviousComment = () => {
+    //make sure playback is paused
+    this.togglePlayPause(true);
+
+    //move to the next comment
+    this.playbackEngine.stepToPreviousComment();
+
+    //update the editor
+    const codeView = this.shadowRoot.querySelector('st-code-view');
+    codeView.updateSelectedComment();
+  }
+
+  //used when the user wants to move to the end of the playback
+  moveToEndOfPlayback = () => {
+    //make sure playback is paused
+    this.togglePlayPause(true);
+
+    //move to the end of the playback
+    this.playbackEngine.stepToEnd();
+
+    //update the editor
+    const codeView = this.shadowRoot.querySelector('st-code-view');
+    codeView.updateSelectedComment();
+  }
+
+  //used when the user wants to move to the beginning of the playback
+  moveToBeginningOfPlayback = () => {
+    //make sure playback is paused
+    this.togglePlayPause(true);
+
+    //move to the beginning of the playback
+    this.playbackEngine.stepToBeginning();
 
     //update the editor
     const codeView = this.shadowRoot.querySelector('st-code-view');

@@ -58,6 +58,11 @@ class EditorView extends HTMLElement {
     const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
     aceEditor.update();
   }
+
+  updateEditorFontSize(newFontSize) {
+    const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
+    aceEditor.updateEditorFontSize(newFontSize);
+  }
 }
 
 window.customElements.define('st-editor-view', EditorView);
