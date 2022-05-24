@@ -41,11 +41,19 @@ class SearchBar extends HTMLElement {
     }
   
     connectedCallback() {
-        const searchBar = this.shadowRoot.querySelector("#searchBar");
-        searchBar.addEventListener('keyup', event=>{
-          const searchText = this.shadowRoot.querySelector("#searchBar").value;
-          this.sendSearchRequest(searchText);
-        });
+      const searchBar = this.shadowRoot.querySelector("#searchBar");
+
+      //add an input listener to get changes to the search bar
+      searchBar.addEventListener('input', event => {
+        //grab the current text from the input
+        const searchText = this.shadowRoot.querySelector("#searchBar").value;
+        //generate the search event
+        this.sendSearchRequest(searchText);
+      });
+      //add a key down listener to stop arrow keys from affecting the playback
+      searchBar.addEventListener('keydown', event => {
+        event.stopImmediatePropagation();
+      });
     }
   
     disconnectedCallback() {

@@ -67,7 +67,6 @@ class PlaybackNavigator extends HTMLElement {
       <div class="tab">
         <button class="tabLink comments activeTab">Comments</button>
         <button class="tabLink fileSystem">File&nbsp;System</button>
-        <button class="tabLink search">Search</button>
       </div>
       <div class="subNavigatorsTab"></div>`;
 
@@ -88,9 +87,6 @@ class PlaybackNavigator extends HTMLElement {
 
     const fileSystemNavigator = new FileSystemNavigator(this.playbackEngine);
     subNavigatorsTab.appendChild(fileSystemNavigator);
-
-    const searchNavigator = new SearchNavigator(this.playbackEngine);
-    subNavigatorsTab.appendChild(searchNavigator);
   }
 
   disconnectedCallback() {
@@ -110,12 +106,10 @@ class PlaybackNavigator extends HTMLElement {
     //get each of the subnavigators
     const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
     const fileSystemNavigator = this.shadowRoot.querySelector('st-file-system-navigator');
-    const searchNavigator = this.shadowRoot.querySelector('st-search-navigator');
 
     //remove the old classes
     commentNavigator.classList.remove('active');
     fileSystemNavigator.classList.remove('active');
-    searchNavigator.classList.remove('active');
 
     //selected comment navigator
     if(event.target.classList.contains('comments')) {
@@ -134,15 +128,6 @@ class PlaybackNavigator extends HTMLElement {
       //update and send event
       fileSystemNavigator.updateActiveFile();
       this.sendEventPlaybackNavigatorTabClick('fileSystem');
-    } else if(event.target.classList.contains('search')) {
-      //make active
-      searchNavigator.classList.add('active');
-      this.activeTab = 'search';
-      //update and send event
-      if(this.playbackEngine.activeComment.pausedOnComment) {
-        searchNavigator.updateSelectedComment();
-      }
-      this.sendEventPlaybackNavigatorTabClick('search');
     }
   }
 
@@ -162,10 +147,7 @@ class PlaybackNavigator extends HTMLElement {
     } else if(this.activeTab === 'fileSystem') {
       const fileSystemNavigator = this.shadowRoot.querySelector('st-file-system-navigator');
       fileSystemNavigator.updateActiveFile();
-    } else if(this.activeTab === 'search') {
-      const searchNavigator = this.shadowRoot.querySelector('st-search-navigator');
-      searchNavigator.updateSelectedComment();
-    }
+    } 
   }
 
   updateSliderMoved() {
@@ -183,15 +165,8 @@ class PlaybackNavigator extends HTMLElement {
   }
 
   performSearch(searchText){
-    //make the search tab active
-    this.activeTab = 'search';  
-
-    const searchTab = this.shadowRoot.querySelector(".search");
-    searchTab.click();
-
-    //perform the search
-    const searchNavigator = this.shadowRoot.querySelector('st-search-navigator');
-    searchNavigator.performSearch(searchText);
+    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+    commentNavigator.performSearch(searchText);
   }
 }
 

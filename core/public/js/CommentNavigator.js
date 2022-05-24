@@ -113,6 +113,30 @@ class CommentNavigator extends HTMLElement {
       newActiveCommentGroup.makeCommentViewActive();
     }
   }
+
+  performSearch(searchText){
+    //clear out old search results
+    const commentGroups = this.shadowRoot.querySelectorAll('st-comment-group');
+    commentGroups.forEach(commentGroup => {
+      commentGroup.revealComments();
+    });
+
+    //if there is some text to search for
+    if(searchText !== '') {
+      //go through all the comments and collect search relevant ones
+      const relevantComments = this.playbackEngine.performSearch(searchText);
+
+      //holds the IDs of the relevant comments
+      const relevantCommentIDs = new Set();
+      relevantComments.forEach(comment => {
+        relevantCommentIDs.add(comment.id);
+      });
+
+      commentGroups.forEach(commentGroup => {
+        commentGroup.hideComments(relevantCommentIDs);
+      });
+    }    
+  }
 }
 
 window.customElements.define('st-comment-navigator', CommentNavigator);

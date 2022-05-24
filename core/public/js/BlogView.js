@@ -129,9 +129,9 @@ class BlogView extends HTMLElement {
   performSearch(searchText) {
     //clear out old search results
     const nonRelComments = this.shadowRoot.querySelectorAll('.nonRelevantSearchResult');
-    nonRelComments.forEach(comment =>{
+    nonRelComments.forEach(comment => {
       comment.classList.remove('nonRelevantSearchResult');
-    })
+    });
 
     //if there is some text to search for
     if(searchText !== '') {
@@ -141,7 +141,7 @@ class BlogView extends HTMLElement {
       //holds the IDs of the relevant comments
       const relevantCommentIDs = new Set();
 
-      relevantComments.forEach(comment =>{
+      relevantComments.forEach(comment => {
         relevantCommentIDs.add(comment.id);
       });
 
@@ -150,7 +150,7 @@ class BlogView extends HTMLElement {
       blogComponents.forEach(blogComponent => {
         const commentID = blogComponent.comment.id;
         //if a blog component is not in the search results, then add a non relevant class
-        if (!relevantCommentIDs.has(commentID)){
+        if (!relevantCommentIDs.has(commentID)) {
           blogComponent.classList.add('nonRelevantSearchResult');
         }
       });

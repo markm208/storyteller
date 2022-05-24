@@ -28,6 +28,10 @@ class CommentGroup extends HTMLElement {
           border-radius: .2rem;
           padding: 0px 0px;
         }
+
+        .nonRelevantSearchResult{
+          display: none;
+        }
       </style>
 
       <div class="commentViews"></div>`;
@@ -81,6 +85,35 @@ class CommentGroup extends HTMLElement {
       //scroll to the active comment
       newActiveComment.scrollIntoView(true)
     }
+  }
+
+  hideComments(hideAllButThese) {
+    //get all of the comment views in this group
+    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+    allCommentViews.forEach(commentView => {
+      //if a comment view is not among the relevant search comments
+      if(hideAllButThese.has(commentView.comment.id) === false) {
+        //hide the comment
+        //commentView.classList.add('nonRelevantSearchResult');
+        commentView.hideComment();
+      }
+    });
+  }
+
+  revealComments() {
+    // //get all of the hidden comments
+    // const allCommentViews = this.shadowRoot.querySelectorAll('.nonRelevantSearchResult');
+    // allCommentViews.forEach(commentView => {
+    //   //reveal them by removing the hidden class
+    //   commentView.classList.remove('nonRelevantSearchResult');
+    // });
+
+    //get all of the comment views in this group
+    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+    allCommentViews.forEach(commentView => {
+    // commentView.classList.remove('nonRelevantSearchResult');
+      commentView.revealComment();
+    });
   }
 }
 
