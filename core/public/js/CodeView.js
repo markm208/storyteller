@@ -37,7 +37,7 @@ class CodeView extends HTMLElement {
       </style>
 
       <div class="playbackNavigatorSlot"></div>
-      <div class="dragBar" onmousedown="return false" onselectstart="return false">
+      <div class="dragBar">
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="32" fill="gray" className="bi bi-grip-vertical" viewBox="4 2 8 8">
           <path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
         </svg>
