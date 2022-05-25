@@ -158,6 +158,7 @@ class App extends HTMLElement {
       event.preventDefault();
     });
 
+    //new search bar text entered
     this.shadowRoot.addEventListener('search', event => {
       const eventText = event.detail.searchText;
       this.handleSearch(eventText);
@@ -219,13 +220,18 @@ class App extends HTMLElement {
     //get the search results and then display them
     const searchResults = this.playbackEngine.performSearch(searchText);
 
-    if (this.activeMode === 'code'){
+    //display results in code/blog mode
+    if (this.activeMode === 'code') {
       const codeView = this.shadowRoot.querySelector('st-code-view');
       codeView.displaySearchResults(searchResults);
-    }else{
+    } else {
       const blogView = this.shadowRoot.querySelector('st-blog-view');
       blogView.displaySearchResults(searchResults);
     }
+
+    //display search results in the title bar
+    const titleBar = this.shadowRoot.querySelector('st-title-bar');
+    titleBar.displaySearchResults(searchResults);
   }
 
   //used to switch from play->pause and pause->play
