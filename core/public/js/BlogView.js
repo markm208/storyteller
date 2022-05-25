@@ -126,35 +126,28 @@ class BlogView extends HTMLElement {
     }
   }
 
-  performSearch(searchText) {
+  displaySearchResults(searchResults) {
     //clear out old search results
     const nonRelComments = this.shadowRoot.querySelectorAll('.nonRelevantSearchResult');
     nonRelComments.forEach(comment => {
       comment.classList.remove('nonRelevantSearchResult');
     });
 
-    //if there is some text to search for
-    if(searchText !== '') {
-      //go through all the comments and collect search relevant ones
-      const relevantComments = this.playbackEngine.performSearch(searchText);
+    //holds the IDs of the relevant comments
+    const relevantCommentIDs = new Set();
+    searchResults.forEach(searchResult => {
+      relevantCommentIDs.add(searchResult.commentId);
+    });
 
-      //holds the IDs of the relevant comments
-      const relevantCommentIDs = new Set();
-
-      relevantComments.forEach(comment => {
-        relevantCommentIDs.add(comment.id);
-      });
-
-      //find all the blog components that are not relevant to the search
-      const blogComponents = this.shadowRoot.querySelectorAll('st-blog-component');
-      blogComponents.forEach(blogComponent => {
-        const commentID = blogComponent.comment.id;
-        //if a blog component is not in the search results, then add a non relevant class
-        if (!relevantCommentIDs.has(commentID)) {
-          blogComponent.classList.add('nonRelevantSearchResult');
-        }
-      });
-    }    
+    //find all the blog components that are not relevant to the search
+    const blogComponents = this.shadowRoot.querySelectorAll('st-blog-component');
+    blogComponents.forEach(blogComponent => {
+      const commentID = blogComponent.comment.id;
+      //if a blog component is not in the search results, then add a non relevant class
+      if (!relevantCommentIDs.has(commentID)) {
+        blogComponent.classList.add('nonRelevantSearchResult');
+      }
+    });
   }
 }
 

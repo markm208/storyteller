@@ -214,14 +214,17 @@ class App extends HTMLElement {
     });
   }
 
-  handleSearch(searchText){
-    //handles the search from the search bar
+  //handles the search from the search bar
+  handleSearch(searchText) {
+    //get the search results and then display them
+    const searchResults = this.playbackEngine.performSearch(searchText);
+
     if (this.activeMode === 'code'){
       const codeView = this.shadowRoot.querySelector('st-code-view');
-      codeView.performSearch(searchText);
+      codeView.displaySearchResults(searchResults);
     }else{
       const blogView = this.shadowRoot.querySelector('st-blog-view');
-      blogView.performSearch(searchText);
+      blogView.displaySearchResults(searchResults);
     }
   }
 

@@ -68,27 +68,12 @@ class CommentView extends HTMLElement {
           width: 100%;
           padding-bottom: 5px;
         }
-
-        .nonRelevantSearchResult{
-          display: none;
-        }
-
-        .clearSearch {
-          display: none;
-        }
-
-        .x {
-          display: block;
-        }
       </style>
-      <div class="commentView">
-        <div class="commentTopBar"></div>
-        <div class="commentText"></div>
-        <div class="media"></div>
-        <div class="questions"></div>
-      </div>
-      <div class="clearSearch">Filtered Out By Search</div>
-      `;
+
+      <div class="commentTopBar"></div>
+      <div class="commentText"></div>
+      <div class="media"></div>
+      <div class="questions"></div>`;
 
     return template.content.cloneNode(true);
   }
@@ -170,25 +155,6 @@ class CommentView extends HTMLElement {
       commentBar.appendChild(devGroup);
       commentBar.appendChild(commentCount);
       commentTopBar.appendChild(commentBar);
-    }
-  }
-
-  hideComment() {
-    const commentView = this.shadowRoot.querySelector('.commentView');
-    commentView.classList.add('nonRelevantSearchResult');
-    const clearSearch = this.shadowRoot.querySelector('.clearSearch');
-    clearSearch.classList.remove('clearSearch');
-    clearSearch.classList.add('x');
-
-  }
-
-  revealComment() {
-    const commentView = this.shadowRoot.querySelector('.commentView');
-    commentView.classList.remove('nonRelevantSearchResult');
-    const clearSearch = this.shadowRoot.querySelector('.x');
-    if(clearSearch) {
-      clearSearch.classList.remove('x');
-      clearSearch.classList.add('clearSearch');
     }
   }
 

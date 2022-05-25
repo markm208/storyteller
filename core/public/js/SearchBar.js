@@ -33,7 +33,7 @@ class SearchBar extends HTMLElement {
         </style>
         
         <div class="searchControls">
-        <input type="text" id='searchBar' class="searchInput" placeholder="Search comments...                                                     "></input>
+          <input type="search" id='searchBar' class="searchInput" placeholder="Search comments...                                                     "></input>
         </div>
         `;
   

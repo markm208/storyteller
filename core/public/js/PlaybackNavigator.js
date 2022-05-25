@@ -164,9 +164,9 @@ class PlaybackNavigator extends HTMLElement {
     }
   }
 
-  performSearch(searchText){
+  displaySearchResults(searchResults){
     const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-    commentNavigator.performSearch(searchText);
+    commentNavigator.displaySearchResults(searchResults);
   }
 }
 
