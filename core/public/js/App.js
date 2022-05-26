@@ -205,11 +205,11 @@ class App extends HTMLElement {
           event.preventDefault();
       } else if (ctrlPressed && keyPressed === '=') { //ctrl + plus button press (the + is a key combo shift + =)
         //make the font bigger
-        increaseEditorFontSize();
+        this.increaseEditorFontSize();
         event.preventDefault();
       } else if (ctrlPressed && keyPressed === '-') { //ctrl + minus button press
         //make the font smaller
-        decreaseEditorFontSize();
+        this.decreaseEditorFontSize();
         event.preventDefault();
       } else if (event.code === "Space") {
         //toggle play/pause 
