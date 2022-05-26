@@ -203,11 +203,11 @@ class App extends HTMLElement {
           this.togglePlayPause(true);
           this.playPreviousEvent();
           event.preventDefault();
-      } else if (ctrlPressed && keyPressed === '=') { //ctrl + plus button press (the + is a key combo shift + =)
+      } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowUp') { //ctrl + shift + up arrow press
         //make the font bigger
         this.increaseEditorFontSize();
         event.preventDefault();
-      } else if (ctrlPressed && keyPressed === '-') { //ctrl + minus button press
+      } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowDown') { //ctrl + shift + down arrow press
         //make the font smaller
         this.decreaseEditorFontSize();
         event.preventDefault();
