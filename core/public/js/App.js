@@ -435,6 +435,10 @@ class App extends HTMLElement {
   }
 
   increaseEditorFontSize() {
+    if (this.activeMode === 'blog'){
+      return;
+    }
+    
     //make the font bigger
     this.editorProperties.fontSize = this.editorProperties.fontSize + 4;
     const codeView = this.shadowRoot.querySelector('st-code-view');
@@ -443,6 +447,10 @@ class App extends HTMLElement {
   }
 
   decreaseEditorFontSize() {
+    if (this.activeMode === 'blog'){
+      return;
+    }
+
     //make the font smaller
     this.editorProperties.fontSize = this.editorProperties.fontSize - 2;
     const codeView = this.shadowRoot.querySelector('st-code-view');
