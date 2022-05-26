@@ -59,6 +59,8 @@ function activate(context) {
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.removeDevelopersFromActiveGroup', removeDevelopersFromActiveGroup));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipProject', zipProject));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipViewablePlayback', zipViewablePlayback));
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.previewPerfectProgrammer', previewPerfectProgrammer));
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.replaceWithPerfectProgrammer', replaceWithPerfectProgrammer));
 
     //if there is an open workspace then attempt to open storyteller without requiring user interaction
     if(vscode.workspace.workspaceFolders) {
@@ -1388,6 +1390,15 @@ function addMediaToZip(dirPath, mediaType, zip) {
         const fileBuffer = fs.readFileSync(fullPathToFile);
         zip.file(`media/${mediaType}/${fileName}`, fileBuffer);
     }
+}
+
+function previewPerfectProgrammer() {
+    console.log('previewPerfectProgrammer');
+    projectManager.setNextPlaybackPerfectProgrammer();
+    startPlayback(false);
+}
+function replaceWithPerfectProgrammer() {
+    console.log('replaceWithPerfectProgrammer');
 }
 
 module.exports = {
