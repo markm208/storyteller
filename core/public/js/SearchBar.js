@@ -4,6 +4,7 @@ class SearchBar extends HTMLElement {
       
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(this.getTemplate());
+      this.previousSearchText = '';
     }
   
     getTemplate() {
