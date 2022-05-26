@@ -164,6 +164,16 @@ class App extends HTMLElement {
       this.handleSearch(eventText);
     });
 
+    //request an increase in the editor font size
+    this.shadowRoot.addEventListener('increase-font', event => {
+      this.increaseEditorFontSize();
+    });
+
+    //request a decrease in the editor font size
+    this.shadowRoot.addEventListener('decrease-font', event => {
+      this.decreaseEditorFontSize();
+    });
+    
     document.addEventListener('keydown', event => {
       //get the state of the keys
       const keyPressed = event.key;
@@ -195,17 +205,11 @@ class App extends HTMLElement {
           event.preventDefault();
       } else if (ctrlPressed && keyPressed === '=') { //ctrl + plus button press (the + is a key combo shift + =)
         //make the font bigger
-        this.editorProperties.fontSize = this.editorProperties.fontSize + 4;
-        const codeView = this.shadowRoot.querySelector('st-code-view');
-        //update the editor
-        codeView.updateEditorFontSize(this.editorProperties.fontSize);
+        increaseEditorFontSize();
         event.preventDefault();
       } else if (ctrlPressed && keyPressed === '-') { //ctrl + minus button press
         //make the font smaller
-        this.editorProperties.fontSize = this.editorProperties.fontSize - 2;
-        const codeView = this.shadowRoot.querySelector('st-code-view');
-        //update the editor
-        codeView.updateEditorFontSize(this.editorProperties.fontSize);
+        decreaseEditorFontSize();
         event.preventDefault();
       } else if (event.code === "Space") {
         //toggle play/pause 
@@ -397,6 +401,22 @@ class App extends HTMLElement {
 
   setplaybackNavigatorWidth(newWidth) {
     this.playbackNavigatorWidth = newWidth;
+  }
+
+  increaseEditorFontSize() {
+    //make the font bigger
+    this.editorProperties.fontSize = this.editorProperties.fontSize + 4;
+    const codeView = this.shadowRoot.querySelector('st-code-view');
+    //update the editor
+    codeView.updateEditorFontSize(this.editorProperties.fontSize);
+  }
+
+  decreaseEditorFontSize() {
+    //make the font smaller
+    this.editorProperties.fontSize = this.editorProperties.fontSize - 2;
+    const codeView = this.shadowRoot.querySelector('st-code-view');
+    //update the editor
+    codeView.updateEditorFontSize(this.editorProperties.fontSize);
   }
 }
 
