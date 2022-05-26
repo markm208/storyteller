@@ -134,6 +134,12 @@ class TitleBar extends HTMLElement {
     this.notifyModeSelected('blog');
   }
 
+  displaySearchResults(searchResults) {
+    //send the number of comments shown and total to the search bar
+    const titleBar = this.shadowRoot.querySelector('st-search-bar');
+    titleBar.displaySearchResults(searchResults.length, this.playbackEngine.flattenedComments.length);
+  }
+
   notifyModeSelected(newMode) {
     const event = new CustomEvent('mode-change', { 
       detail: {mode: newMode}, 

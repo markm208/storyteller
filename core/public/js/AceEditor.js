@@ -127,6 +127,11 @@ class AceEditor extends HTMLElement {
     }
   }
 
+  updateEditorFontSize(newFontSize) {
+    //update the font of the editor
+    this.aceEditor.setFontSize(newFontSize);
+  }
+
   getEditorModeForFilePath(filePath) {
     const modelist = ace.require("ace/ext/modelist");
     const fileMode = modelist.getModeForPath(filePath);
