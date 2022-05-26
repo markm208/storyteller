@@ -111,6 +111,9 @@ class CodeView extends HTMLElement {
     this.setWidthInPixels(newWidth);
     this.width = newWidth;
     this.sendEventNewWidth(newWidth);
+
+    //prevent selection during a drag
+    event.preventDefault();
   }
 
   stopDrag = event => {
@@ -170,6 +173,11 @@ class CodeView extends HTMLElement {
     playbackNavigator.updateSelectedComment();
   }
 
+  updateEditorFontSize(newFontSize) {
+    const editorView = this.shadowRoot.querySelector('st-editor-view');
+    editorView.updateEditorFontSize(newFontSize);
+  }
+
   updateActiveFile() {
     const editorView = this.shadowRoot.querySelector('st-editor-view');
     editorView.updateActiveFile();
@@ -178,9 +186,9 @@ class CodeView extends HTMLElement {
     playbackNavigator.updateActiveFile();
   }
 
-  performSearch(searchText){
+  displaySearchResults(searchResults){
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.performSearch(searchText);
+    playbackNavigator.displaySearchResults(searchResults);
   }
 }
 

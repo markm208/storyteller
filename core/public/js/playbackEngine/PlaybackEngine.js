@@ -228,9 +228,29 @@ class PlaybackEngine {
     }
   }
 
+  stepToPreviousComment() {
+    if(this.activeComment.pausedOnComment) {
+      //if there is at least one more comment to move to
+      if (this.activeComment.positionInFlattenedArray > 0) {
+        const prevComment = this.flattenedComments[this.activeComment.positionInFlattenedArray - 1];
+        this.stepToCommentById(prevComment.id);
+      }
+    } else {
+      //go through all of the indexes in events where there is a comment
+      for(let i = this.commentGroupEventPositions.length - 1;i > 0;i--) {
+        const commentEventPos = this.commentGroupEventPositions[i];
+        //if the paused event index exceeds the comment position
+        if(this.currentEventIndex > commentEventPos) {
+          this.stepToEventNumber(commentEventPos);
+          break;
+        }
+      }
+    }
+  }
+
   stepToBeginning() {
     //go back to the beginning of the playback
-    this.stepToEventNumber(this.firstRelevantEventIndex);
+    this.stepToEventNumber(this.firstRelevantEventIndex - 1);
   }
 
   stepToEnd() {
@@ -349,32 +369,44 @@ class PlaybackEngine {
   }
 
   performSearch(searchText){
-    const relevantComments = [];
+    const searchResults = [];
     //search all the comments text, code and tags for the matching search text
     for(let i = 0;i < this.flattenedComments.length;i++) {
       const comment = this.flattenedComments[i];
-      
+
       let isRelevantComment = false;
+      const searchResult = {
+        commentId: null,
+        inSelectedText: false,
+        inCommentText: false,
+        inTags: false,
+        searchText: searchText
+      };
+
       comment.selectedCodeBlocks.some(block => {
         if(block.selectedText.toLowerCase().includes(searchText.toLowerCase())) {
           isRelevantComment = true;
+          searchResult.inSelectedText = true;
         }
       });    
 
       if(comment.commentText.toLowerCase().includes(searchText.toLowerCase())) {
         isRelevantComment = true;
+        searchResult.inCommentText = true;
       }    
     
       if(comment.commentTags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()))) {
         isRelevantComment = true;
+        searchResult.inTags = true;
       }
 
       //collect the comments that have the search text
       if (isRelevantComment){
-        relevantComments.push(comment);
+        searchResult.commentId = comment.id;
+        searchResults.push(searchResult);
       }
       
     }
-    return relevantComments;
+    return searchResults;
   }
 }

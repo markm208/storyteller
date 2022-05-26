@@ -4,15 +4,17 @@ class SearchBar extends HTMLElement {
       
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(this.getTemplate());
+      this.previousSearchText = '';
     }
   
     getTemplate() {
       const template = document.createElement('template');
       template.innerHTML = `<style>
-
         .searchControls {
             display: flex;
-            padding: 10px;
+            padding: 3px;
+            justify-content: flex-end;
+            align-items: baseline;
         }
         .searchInput {
             color: lightgray;
@@ -25,15 +27,21 @@ class SearchBar extends HTMLElement {
             flex: 1;
         }
         .searchInput:focus {
-            outline: none;/*1px solid gray;*/
+            outline: none;
         }
-        .searchComment:hover{
-            background-color: gray !important;
+
+        #clearSearchResults {
+          color: gray;
+          padding-right: 5px;
+          font-size: smaller;
+          font-weight: bold;
         }
         </style>
         
         <div class="searchControls">
-        <input type="text" id='searchBar' class="searchInput" placeholder="Search comments...                                                     "></input>
+          <div id="clearSearchResults"></div>
+          <input type="search" id='searchBar' class="searchInput" placeholder="Search comments...">
+          </input>
         </div>
         `;
   
@@ -41,16 +49,39 @@ class SearchBar extends HTMLElement {
     }
   
     connectedCallback() {
-        const searchBar = this.shadowRoot.querySelector("#searchBar");
-        searchBar.addEventListener('keyup', event=>{
-          const searchText = this.shadowRoot.querySelector("#searchBar").value;
-          this.sendSearchRequest(searchText);
-        });
+      const searchBar = this.shadowRoot.querySelector("#searchBar");
+
+      //add an input listener to get changes to the search bar
+      searchBar.addEventListener('input', event => {
+        //grab the current text from the input
+        const searchText = this.shadowRoot.querySelector("#searchBar").value;
+        //generate the search event
+        this.sendSearchRequest(searchText);
+      });
+      //add a key down listener to stop arrow keys from affecting the playback
+      searchBar.addEventListener('keydown', event => {
+        event.stopImmediatePropagation();
+      });
     }
   
     disconnectedCallback() {
     }    
 
+    displaySearchResults(numSearchComments, numTotalComments) {
+      //get the contents of the search bar
+      const searchText = this.shadowRoot.querySelector("#searchBar").value;
+      //get the element that holds the search results message
+      const clearSearchResults = this.shadowRoot.querySelector('#clearSearchResults');
+      //if the search bar is empty
+      if(searchText === '') {
+        //display nothing about how many search results there are
+        clearSearchResults.innerHTML = '';
+      } else { //search bar has something in it
+        //display how many comment are being shown
+        clearSearchResults.innerHTML = `Displaying ${numSearchComments} out of ${numTotalComments} comments`;
+      }
+    }
+  
     sendSearchRequest(searchText) {
         const event = new CustomEvent('search', { 
           detail: {searchText: searchText}, 
