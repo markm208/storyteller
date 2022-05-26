@@ -62,9 +62,8 @@ class OptionsMenu extends HTMLElement {
             }
         
             #modal-Opener{
-                background: top;
-                border: navajowhite;
-                padding-top: 10px;
+                background: transparent;
+                border: none;
                 color: rgb(201, 226, 242);
                 cursor: pointer;
             }
