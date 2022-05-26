@@ -181,7 +181,7 @@ class App extends HTMLElement {
     });
 
     //playback speed decreased
-    this.shadowRoot.addEventListener('decrease-playback-speed'){
+    this.shadowRoot.addEventListener('decrease-playback-speed', () => {
       const isPlaying = this.autoPlayback.isPaused === false;
 
       if (isPlaying){
@@ -192,9 +192,8 @@ class App extends HTMLElement {
 
       if (isPlaying){
         this.togglePlayPause(true);
-      }
-  
-    }
+      }  
+    });
   }
 
   handleSearch(searchText){
