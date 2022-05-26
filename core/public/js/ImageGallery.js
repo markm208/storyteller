@@ -24,17 +24,13 @@ class ImageGallery extends HTMLElement {
           display: none;
         }
 
-        .hideButton {
-          display: none;
-        }
-
         .prevButton, .nextButton {
           cursor: pointer;
           position: absolute;
           top: 50%;
           width: auto;
           margin-top: -22px;
-          padding: 8px;
+          padding: 16px;
           color: lightgray;
           font-weight: bold;
           font-size: 18px;
@@ -155,14 +151,6 @@ class ImageGallery extends HTMLElement {
   connectedCallback() {
     const galleryContainer = this.shadowRoot.querySelector('.galleryContainer');
 
-    //if there is only one pic in the gallery hide the buttons
-    if(this.imageURLs.length === 1) {
-      const nextButton = this.shadowRoot.querySelector('.nextButton');
-      const prevButton = this.shadowRoot.querySelector('.prevButton');
-      nextButton.classList.add('hideButton');
-      prevButton.classList.add('hideButton');
-    }
-    
     for(let i = 0;i < this.imageURLs.length;i++) {
       const imageURL = this.imageURLs[i];
 

@@ -28,10 +28,6 @@ class CommentGroup extends HTMLElement {
           border-radius: .2rem;
           padding: 0px 0px;
         }
-
-        :host(.nonRelevantSearchResult) {
-          display: none;
-        }
       </style>
 
       <div class="commentViews"></div>`;
@@ -84,42 +80,6 @@ class CommentGroup extends HTMLElement {
     if (commentRectangle.bottom - 50 < 0 || commentRectangle.top > window.innerHeight - 50) {
       //scroll to the active comment
       newActiveComment.scrollIntoView(true)
-    }
-  }
-
-  hideIrrelevantSearchResults(hideAllButThese) {
-    //number of comments in the group that are not in the search results
-    let hiddenCommentCount = 0;
-    //get all of the comment views in this group
-    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
-    allCommentViews.forEach(commentView => {
-      //if a comment view is not among the relevant search comments
-      if(hideAllButThese.has(commentView.comment.id) === false) {
-        //hide the comment
-        commentView.classList.add('nonRelevantSearchResult');
-        //count how many comments in the group are hidden
-        hiddenCommentCount++;
-      }
-    });
-
-    //if all of the comments in a group are hidden
-    if(hiddenCommentCount === allCommentViews.length) {
-      //hide the comment group too so it doesn't take up space in the UI
-      this.classList.add('nonRelevantSearchResult');
-    }
-  }
-
-  revealCommentsBeforeSearch() {
-    //get all of the hidden comment views
-    const allCommentViews = this.shadowRoot.querySelectorAll('.nonRelevantSearchResult');
-    allCommentViews.forEach(commentView => {
-      //reveal them by removing the hidden class
-      commentView.classList.remove('nonRelevantSearchResult');
-    });
-
-    //if this comment group was previously hidden, make it visible again
-    if(this.classList.contains('nonRelevantSearchResult')) {
-      this.classList.remove('nonRelevantSearchResult');
     }
   }
 }
