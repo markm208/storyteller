@@ -158,10 +158,43 @@ class App extends HTMLElement {
       event.preventDefault();
     });
 
+    //search bar has a key press
     this.shadowRoot.addEventListener('search', event => {
       const eventText = event.detail.searchText;
       this.handleSearch(eventText);
     });
+
+    //playback speed increased
+    this.shadowRoot.addEventListener('increase-playback-speed', () => {
+      const isPlaying = this.autoPlayback.isPaused === false;
+
+      if (isPlaying){
+        this.togglePlayPause(true);
+      }
+
+      this.autoPlayback.playbackSpeedMs -= 5;
+
+      if (isPlaying){
+        this.togglePlayPause(true);
+      }
+  
+    });
+
+    //playback speed decreased
+    this.shadowRoot.addEventListener('decrease-playback-speed'){
+      const isPlaying = this.autoPlayback.isPaused === false;
+
+      if (isPlaying){
+        this.togglePlayPause(true);
+      }
+
+      this.autoPlayback.playbackSpeedMs += 5;
+
+      if (isPlaying){
+        this.togglePlayPause(true);
+      }
+  
+    }
   }
 
   handleSearch(searchText){
