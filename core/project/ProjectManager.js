@@ -544,24 +544,32 @@ class ProjectManager extends FileBackedCollection {
     getPlaybackData(makeEditable) {
         //get all the events from the file
         let events = this.eventManager.read();
+        
+        //make a deep copy of the comments
+        const copyOfComments = {};
+        for(let eventId in this.commentManager.comments) {
+            //copy of all of the comments at an event
+            const copyCommentsAtPosition = [];
+            //copy all of the comments
+            for(let i = 0;i < this.commentManager.comments[eventId].length;i++) {
+                const copyComment = Object.assign({}, this.commentManager.comments[eventId][i]);
+                //for paths in the browser, make sure the comment urls don't have a leading slash
+                copyComment.imageURLs = copyComment.imageURLs.map(imageURL => imageURL[0] === '/' ? imageURL.substring(1) : imageURL);
+                copyComment.videoURLs = copyComment.videoURLs.map(videoURL => videoURL[0] === '/' ? videoURL.substring(1) : videoURL);
+                copyComment.audioURLs = copyComment.audioURLs.map(audioURL => audioURL[0] === '/' ? audioURL.substring(1) : audioURL);
 
-        //make sure the comment urls don't have a leading slash
-        const copyOfComments = Object.assign({}, this.commentManager.comments);
-        for(let eventId in copyOfComments) {
-            const comments = copyOfComments[eventId];
-            for(let i = 0;i < comments.length;i++) {
-                const comment = comments[i];
-                comment.imageURLs = comment.imageURLs.map(imageURL => imageURL[0] === '/' ? imageURL.substring(1) : imageURL);
-                comment.videoURLs = comment.videoURLs.map(videoURL => videoURL[0] === '/' ? videoURL.substring(1) : videoURL);
-                comment.audioURLs = comment.audioURLs.map(audioURL => audioURL[0] === '/' ? audioURL.substring(1) : audioURL);
+                copyCommentsAtPosition.push(copyComment);
             }
+            copyOfComments[eventId] = copyCommentsAtPosition;
         }
-
+        //if this playback is a preview of a 'perfect programmer' change 
         if(this.updateEventDataForPerfectProgrammer) {
             //edit the event data to include only events tht made the comment points
             events = this.editEventsForPerfectProgrammer(events, copyOfComments);
             //future playbacks will be normal
             this.updateEventDataForPerfectProgrammer = false;
+            //'perfect programmer' preview playbacks can't be edited
+            makeEditable = false;
         }
 
         //create the text for a js function that loads the playback into a global called playbackData
@@ -589,45 +597,89 @@ function loadPlaybackData() {
     editEventsForPerfectProgrammer(originalEvents, comments) {
         //holds the insert events of all the files during playback
         const allFiles = {};
-        //a new updated list of events with some thrown out
+
+        //an updated list of events with some thrown out from originalEvents
         const updatedEvents = [];
 
-        //marks the start and end of a group of events in between two comments
+        //marks the start and end of a range of events in between two comments
         let startPos = 0;
         let endPos;
+        //there's always a comment at position 0 so start at position 1
         for(let i = 1;i < originalEvents.length;i++) {
+            const event = originalEvents[i];
             //if there is a comment at this event or at the end of playback
-            if(comments[originalEvents.id] || i === originalEvents.length - 1) {
-                //don't include the event where the comment is
-                endPos = i - 1;
+            if(comments[event.id]) {
+                //store the position in the events where the comment is
+                endPos = i;
 
-                //remove any events added and then deleted between the comments
-                this.editEventsBetweenTwoComments(startPos, endPos, originalEvents, allFiles, updatedEvents);
+                //fill updatedEvents with the events that will not be removed
+                this.editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, comments, allFiles, false);
 
-                //start after the comment
+                //the next range will start after this comment
                 startPos = i + 1;
             }
         }
+        //handle the range from the last comment to the end of the playback
+        this.editEventsBetweenTwoComments(startPos, originalEvents.length - 1, originalEvents, updatedEvents, comments, allFiles, true);
 
+        //return the filtered and edited events
         return updatedEvents;
     }
 
-    editEventsBetweenTwoComments(startPos, endPos, originalEvents, allFiles, updatedEvents) {
-        //for back to back comments
-        if(startPos >= endPos) return;
+    editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, comments, allFiles, includeEndPos) {
+        //if there is no space in between comments then there is nothing to do, return
+        if(startPos >= endPos) {
+            return;
+        }
 
+        //ids of the events to be filtered out in the range startPos to endPos
+        const insertsToBeRemoved = new Set();
+        const deletesToBeRemoved = new Set();
+
+        //get the events that can be removed in the range startPos to endPos
+        this.getSuperfluousEvents(startPos, (includeEndPos ? (endPos + 1): endPos), originalEvents, insertsToBeRemoved, deletesToBeRemoved);
+
+        //go through all of the events in the range
+        for(let i = startPos;i <= endPos;i++) {
+            const event = originalEvents[i];
+            if(event.type === 'INSERT') {
+                //if this is an insert that will be removed
+                if(insertsToBeRemoved.has(event.id)) {
+                    //mark the event as one that will be removed
+                    event.removePerfectProgrammer = true;
+                    //add it in the file
+                    this.addInsertEvent(event, allFiles);
+                } else { //this insert event is not being removed
+                    //add it in the file
+                    this.addInsertEvent(event, allFiles);
+                    //add the (possibly) updated event and comment
+                    this.addEventEditComments(event, updatedEvents, comments);
+                }
+            } else if(event.type === 'DELETE') {
+                //remove the delete from the file
+                this.addDeleteEvent(event, allFiles);
+                //if this delete is NOT being removed
+                if(deletesToBeRemoved.has(event.id) === false) {
+                    //add the (possibly) updated event and comment
+                    this.addEventEditComments(event, updatedEvents, comments);
+                }
+            } else { //non insert/delete events
+                //add the (possibly) updated event and comment
+                this.addEventEditComments(event, updatedEvents, comments);
+            }
+        }
+    }
+
+    getSuperfluousEvents(startPos, endPos, originalEvents, insertsToBeRemoved, deletesToBeRemoved) {
+        //map of insert/delete ids that will be removed 
         //key: id of insert event that is removed, value: id of delete that removes it
         const insertsDeletedInThisSpan = {
             //insertEventId: deleteEventId
         };
-        //ids of the events to be filtered out
-        const insertsToBeRemoved = new Set();
-        const deletesToBeRemoved = new Set();
-        
-        //search backwards 
-        for(let i = endPos;i >= startPos;i--) {
+
+        //search backwards through the range (but don't include the comment event)
+        for(let i = endPos - 1;i >= startPos;i--) {
             const event = originalEvents[i];
-            
             //check the event type
             if(event.type === 'DELETE') {
                 const deletedInsertId = event.previousNeighborId;
@@ -643,38 +695,21 @@ function loadPlaybackData() {
                 }
             } 
         }
+    }
 
-        //go through all of the events in the range
-        for(let i = startPos;i <= endPos;i++) {
-            const event = originalEvents[i];
-            if(event.type === 'INSERT') {
-                //if this is an insert that needs to be removed
-                if(insertsToBeRemoved.has(event.id)) {
-                    //add a new property to the event
-                    event.removePerfectProgrammer = true;
-                    //add it in the file
-                    this.addInsertEvent(event, allFiles);
-                } else { //no need to remove this insert event
-                    //add it in the file
-                    this.addInsertEvent(event, allFiles);
-                    //update the sequence number and add it to the new list of events
-                    event.eventSequenceNumber = updatedEvents.length;
-                    updatedEvents.push(event);
-                }
-            } else if(event.type === 'DELETE') {
-                //remove the insert from the file
-                this.addDeleteEvent(event, allFiles);
-                //if this delete is NOT being removed
-                if(deletesToBeRemoved.has(event.id) === false) {
-                    //update the sequence number and add it to the new list of events
-                    event.eventSequenceNumber = updatedEvents.length;
-                    updatedEvents.push(event);
-                }
-            } else { //non insert/delete events
-                //update the sequence number and add it to the new list of events
-                event.eventSequenceNumber = updatedEvents.length;
-                updatedEvents.push(event);
-            }
+    addEventEditComments(event, updatedEvents, comments) {
+        //update the event's sequence number and add it to the new list of events
+        event.eventSequenceNumber = updatedEvents.length;
+        updatedEvents.push(event);
+        
+        //if there is one or more comments at this point of the playback
+        if(comments[event.id]) {
+            //go through each of the comments and update the event associated with it
+            //(the event sequence number is used to make the comment pips)
+            comments[event.id].forEach(comment => {
+                //copy the updated event into the comment
+                comment.displayCommentEvent = event;
+            });
         }
     }
 
@@ -685,7 +720,7 @@ function loadPlaybackData() {
             allFiles[event.fileId] = [];
         }
 
-        //get the 2D array for this event's file
+        //get the 2D array of events for this file
         const textFileInsertEvents = allFiles[event.fileId];
 
         //if this is the first insert on a new row (underneath the current last row)
@@ -706,59 +741,147 @@ function loadPlaybackData() {
             textFileInsertEvents.splice((event.lineNumber - 1) + 1, 0, restOfLine); 
         }
 
-        //if this event is not being removed and it is not the first character in a file
+        //console.log(`Insert: ${event.character} LineNum: ${event.lineNumber} Col: ${event.column}`);
+        
+        //an event that is not being removed may need to be edited (lineNumber, column, previousNeighborId, and sequenceNumber)
+        //if this event is NOT being removed and it NOT the first insert in a file (it has a prev neighbor)
         if(!event.removePerfectProgrammer && event.previousNeighborId) {
-            //calculate the row/col of its previous neighbor
-            let prevNeighborRow = (event.lineNumber - 1);
-            let prevNeighborCol = (event.column - 1);
-
-            //go back one to the event's previous neighbor
-            if(prevNeighborCol === 0) {
-                prevNeighborRow = prevNeighborRow - 1;
-                prevNeighborCol = textFileInsertEvents[prevNeighborRow].length - 1;
-            } else {
-                prevNeighborCol = prevNeighborCol - 1;
+            //adjust the previous neighbor id (if necessary)
+            const newPreviousNeighborId = this.getAdjustedPreviousNeighborId(event, textFileInsertEvents);
+            //adjust the column number (if necessary)
+            const newLineNumber = this.getAdjustedLineNumber(textFileInsertEvents, event);
+            //adjust the line number (if necessary)
+            const newColumn = this.getAdjustedColumn(textFileInsertEvents, event);
+            
+            //update the event if it has changed
+            if(event.previousNeighborId !== newPreviousNeighborId) {
+                event.previousNeighborId !== newPreviousNeighborId;
+                //console.log(`Updated Prev Neighbor ID: ${event.previousNeighborId}`);
             }
 
-            //while the previous neighbor is a removed insert
-            while(textFileInsertEvents[prevNeighborRow][prevNeighborCol].removePerfectProgrammer) {
-                //go back another event
-                if(prevNeighborCol === 0) {
-                    prevNeighborRow = prevNeighborRow - 1;
-                    prevNeighborCol = textFileInsertEvents[prevNeighborRow].length - 1;
-                } else {
-                    prevNeighborCol = prevNeighborCol - 1;
-                }
+            if(event.lineNumber !== newLineNumber) {
+                event.lineNumber = newLineNumber;
+                //console.log(`Updated LineNum: ${event.lineNumber}`);
             }
-            //store the event's new row, col, and prev neighbor id
-            event.lineNumber = prevNeighborRow + 1;
-            event.column = prevNeighborCol + 2;
-            event.previousNeighborId = textFileInsertEvents[prevNeighborRow][prevNeighborCol].id;
+
+            if(event.column !== newColumn) {
+                event.column = newColumn;
+                //console.log(`Updated Col: ${event.column}`);
+            }
+        } //else- the insert won't be altered
+        //this.debugPrint(textFileInsertEvents);
+    }
+
+    getAdjustedPreviousNeighborId(event, textFileInsertEvents) {
+        //used to find the position of the event's previous neighbor
+        const prevNeighborPosition = {};
+        //get the position of this insert event's previous neighbor
+        this.getPositionOfNeighbor((event.lineNumber - 1), (event.column - 1), prevNeighborPosition, textFileInsertEvents);
+
+        //while the previous neighbor is a removed insert
+        while(textFileInsertEvents[prevNeighborPosition.row][prevNeighborPosition.col].removePerfectProgrammer) {
+            //calculate the next previous neighbor
+            this.getPositionOfNeighbor(prevNeighborPosition.row, prevNeighborPosition.col, prevNeighborPosition, textFileInsertEvents);
+        }
+        //return the previous neighbor id
+        return  textFileInsertEvents[prevNeighborPosition.row][prevNeighborPosition.col].id;
+    }
+
+    getPositionOfNeighbor(row, col, prevNeighborPosition, textFileInsertEvents) {
+        //if the event is at the beginning of a line
+        if(col === 0) {
+            //go up a row
+            prevNeighborPosition.row = row - 1;
+            //go to the last col of that row
+            prevNeighborPosition.col = textFileInsertEvents[prevNeighborPosition.row].length - 1;
+        } else { //the event is after the first character on a line
+            //use the same row
+            prevNeighborPosition.row = row;
+            //use the previous column
+            prevNeighborPosition.col = col - 1;
         }
     }
 
+    getAdjustedColumn(textFileInsertEvents, event) {
+        //count of how many events are marked as removePerfectProgrammer on a line
+        let countableEvents = 0;
+        let row = (event.lineNumber - 1);
+        let col = (event.column - 1);
+
+        //there may be several lines of textFileInsertEvents that are considered one line 
+        //if some of the newline's events are being removed
+        while(true) {
+            //go through the events preceding the passed in event on a line
+            for(let i = col;i >= 0;i--) {
+                //if this event will be NOT removed, count it
+                if(!textFileInsertEvents[row][i].removePerfectProgrammer) {
+                    countableEvents++;
+                }
+            }
+            //check if the newline preceding this line will be removed from the playback
+            //if there is a row above this one
+            if(row > 0) {
+                //move up a row
+                row = row - 1;
+                //move to the end of the line
+                col = textFileInsertEvents[row].length - 1;
+                //get the previous line's newline event
+                const previousNewlineEvent = textFileInsertEvents[row][col];
+                
+                //if the newline is staying
+                if(!previousNewlineEvent.removePerfectProgrammer) {
+                    //stop moving through events
+                    break;
+                } //else- the line above has to be counted as the same line since newline is being removed
+            } else { //on the first row
+                //stop moving through the lines above
+                break;
+            }
+        }
+
+        //return how many events come before the event on the same line
+        return countableEvents;
+    }
+
+    getAdjustedLineNumber(textFileInsertEvents, event) {
+        //count how many lines come before an insert event
+        let numberOfLinesAbove = 0;
+        //go through the lines up to the event's line number
+        for(let i = 0;i < (event.lineNumber - 1);i++) {
+            //get the last event on the line (this is always a newline)
+            const newlineEvent = textFileInsertEvents[i][textFileInsertEvents[i].length - 1];
+            //if the newline is not being removed
+            if(!newlineEvent.removePerfectProgrammer) {
+                //this is a countable line 
+                numberOfLinesAbove++;
+            } //else- the newline is being removed and this won't be a countable line
+        }
+        //return the new line number
+        return numberOfLinesAbove + 1;
+    }
+
     addDeleteEvent(event, allFiles) {
-        //get the 2D array for this event's file
+        //get the 2D array for this event's file and the number of events per line
         const textFileInsertEvents = allFiles[event.fileId];
 
+        //get the insert event that is being deleted
+        const insertEventBeingDeleted = textFileInsertEvents[(event.lineNumber - 1)][(event.column - 1)];
+
         //if we are removing a newline character
-        if(textFileInsertEvents[(event.lineNumber - 1)][(event.column - 1)].character === 'NEWLINE' || textFileInsertEvents[(event.lineNumber - 1)][(event.column - 1)].character === 'CR-LF') {
-            //remove the newline character from its line
+        if(insertEventBeingDeleted.character === 'NEWLINE' || insertEventBeingDeleted.character === 'CR-LF') {
+            //remove the newline event from its line
             textFileInsertEvents[(event.lineNumber - 1)].splice((event.column - 1), 1);
 
-            //if there is a 'next' row, move all the elements up to this row
-            if((event.lineNumber - 1) + 1 < textFileInsertEvents.length) {
-                //get the next row (it may be an empty row)
-                const copyElements = textFileInsertEvents[(event.lineNumber - 1) + 1].splice(0);
+            //get the next row (it may be an empty row)
+            const copyElements = textFileInsertEvents[(event.lineNumber - 1) + 1].splice(0);
 
-                //add the elements to the current row
-                for(let i = 0;i < copyElements.length;i++) {
-                    textFileInsertEvents[(event.lineNumber - 1)].push(copyElements[i]);                
-                }
-                
-                //remove the row that we copied all of the elements over
-                textFileInsertEvents.splice((event.lineNumber - 1) + 1, 1);
-            } //else- this is the last row in the file- there is not another row after this one to copy over            
+            //add the elements to the current row
+            for(let i = 0;i < copyElements.length;i++) {
+                textFileInsertEvents[(event.lineNumber - 1)].push(copyElements[i]);
+            }
+            
+            //remove the row that we copied all of the elements over
+            textFileInsertEvents.splice((event.lineNumber - 1) + 1, 1);
         } else { //removing a non-newline
             //remove the id
             textFileInsertEvents[(event.lineNumber - 1)].splice((event.column - 1), 1);
@@ -769,6 +892,35 @@ function loadPlaybackData() {
             //remove the row
             textFileInsertEvents.splice((event.lineNumber - 1), 1);
         }
+        //console.log(`Delete: ${insertEventBeingDeleted.character} LineNum: ${event.lineNumber} Col: ${event.column}`);
+        //this.debugPrint(textFileInsertEvents);
+    }
+
+    debugPrint(textFileInsertEvents) {
+        textFileInsertEvents.forEach(line => {
+            let lineString = '';
+            line.forEach(event => {
+                if(!event.removePerfectProgrammer) {
+                    lineString += event.character + '  ';
+                }
+            });
+            console.log(lineString);
+        });
+        console.log('');
+
+        textFileInsertEvents.forEach(line => {
+            let lineString = '';
+            line.forEach(event => {
+                if(!event.removePerfectProgrammer) {
+                    lineString += event.character + '  ';
+                } else {
+                    lineString += '*' + event.character + ' ';
+                }
+            });
+            console.log(lineString);
+        });
+        console.log('');
+        console.log('');
     }
 }
 
