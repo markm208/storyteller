@@ -545,6 +545,8 @@ class ProjectManager extends FileBackedCollection {
         //get all the events from the file
         let events = this.eventManager.read();
         
+        //TODO do I need to make a copy here and update the URLs? Check to see if any modern playbacks have a leading slash. Is it a win/mac/nix thing? Or, can I get rig of it altogether and just use the raw comments?
+
         //make a deep copy of the comments
         const copyOfComments = {};
         for(let eventId in this.commentManager.comments) {
@@ -572,12 +574,41 @@ class ProjectManager extends FileBackedCollection {
             makeEditable = false;
         }
 
+        return this.getLoadPlaybackDataFunc(events, copyOfComments, makeEditable);
+    }
+
+    replaceEventsCommentsWithPerfectProgrammerData() {
+        //get all the events from the file
+        let events = this.eventManager.read();
+
+        //make a deep copy of the comments
+        const copyOfComments = {};
+        for(let eventId in this.commentManager.comments) {
+            //copy of all of the comments at an event
+            const copyCommentsAtPosition = [];
+            //copy all of the comments
+            for(let i = 0;i < this.commentManager.comments[eventId].length;i++) {
+                const copyComment = Object.assign({}, this.commentManager.comments[eventId][i]);
+                copyCommentsAtPosition.push(copyComment);
+            }
+            copyOfComments[eventId] = copyCommentsAtPosition;
+        }
+        
+        //edit the event data to include only events tht made the comment points
+        events = this.editEventsForPerfectProgrammer(events, copyOfComments);
+        
+        //store the new data so it becomes part of the project
+        this.eventManager.writeUpdated(events);
+        this.commentManager.writeUpdated(copyOfComments);
+    }
+
+    getLoadPlaybackDataFunc(events, comments, makeEditable) {
         //create the text for a js function that loads the playback into a global called playbackData
         const func = 
 `
 function loadPlaybackData() {
     playbackData.events = ${JSON.stringify(events)};
-    playbackData.comments = ${JSON.stringify(copyOfComments)};
+    playbackData.comments = ${JSON.stringify(comments)};
     playbackData.numEvents = ${events.length};
     playbackData.isEditable = ${makeEditable ? 'true' : 'false'};
     playbackData.developers = ${JSON.stringify(this.developerManager.allDevelopers)};
