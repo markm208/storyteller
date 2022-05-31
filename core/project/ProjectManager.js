@@ -663,6 +663,12 @@ function loadPlaybackData() {
             return;
         }
 
+        //clear out the min earliest event for any existing files
+        for(let fileId in allFiles) {
+            allFiles[fileId].minEarliestRemovedRow = Number.MAX_SAFE_INTEGER;
+            allFiles[fileId].minEarliestRemovedCol = Number.MAX_SAFE_INTEGER;
+        }
+
         //ids of the events to be filtered out in the range startPos to endPos
         const insertsToBeRemoved = new Set();
         const deletesToBeRemoved = new Set();
@@ -747,12 +753,16 @@ function loadPlaybackData() {
     addInsertEvent(event, allFiles) {
         //if this is the first insert in a new file
         if(!allFiles[event.fileId]) {
-            //create an empty 2D array
-            allFiles[event.fileId] = [];
+            //create an empty 2D array and the min position of a removed event
+            allFiles[event.fileId] = {
+                textFileInsertEvents: [],
+                minEarliestRemovedRow: Number.MAX_SAFE_INTEGER,
+                minEarliestRemovedCol: Number.MAX_SAFE_INTEGER
+            };
         }
 
         //get the 2D array of events for this file
-        const textFileInsertEvents = allFiles[event.fileId];
+        const textFileInsertEvents = allFiles[event.fileId].textFileInsertEvents;
 
         //if this is the first insert on a new row (underneath the current last row)
         if((event.lineNumber - 1) === textFileInsertEvents.length) { 
@@ -772,11 +782,17 @@ function loadPlaybackData() {
             textFileInsertEvents.splice((event.lineNumber - 1) + 1, 0, restOfLine); 
         }
 
+        //update the earliest removed event (it is used to determine if it is necessary to update the event)
+        this.updateEarliestRemovedEvent(event, allFiles[event.fileId]);
+
         //console.log(`Insert: ${event.character} LineNum: ${event.lineNumber} Col: ${event.column}`);
         
         //an event that is not being removed may need to be edited (lineNumber, column, previousNeighborId, and sequenceNumber)
-        //if this event is NOT being removed and it NOT the first insert in a file (it has a prev neighbor)
-        if(!event.removePerfectProgrammer && event.previousNeighborId) {
+        //if this event is NOT being removed and it NOT the first insert in a file (it has a prev neighbor) and it comes before the first removed event in the file
+        //all events that come before the first removed one do not need to be updated, the other do
+        if(!event.removePerfectProgrammer && event.previousNeighborId && this.eventComesBeforeEarliestRemove(event, allFiles[event.fileId]) === false) {
+            console.log(`Adjusting insert at event line: ${event.lineNumber} col: ${event.column}`);
+            
             //adjust the previous neighbor id (if necessary)
             const newPreviousNeighborId = this.getAdjustedPreviousNeighborId(event, textFileInsertEvents);
             //adjust the column number (if necessary)
@@ -786,7 +802,7 @@ function loadPlaybackData() {
             
             //update the event if it has changed
             if(event.previousNeighborId !== newPreviousNeighborId) {
-                event.previousNeighborId !== newPreviousNeighborId;
+                event.previousNeighborId = newPreviousNeighborId;
                 //console.log(`Updated Prev Neighbor ID: ${event.previousNeighborId}`);
             }
 
@@ -801,6 +817,76 @@ function loadPlaybackData() {
             }
         } //else- the insert won't be altered
         //this.debugPrint(textFileInsertEvents);
+    }
+
+    updateEarliestRemovedEvent(event, fileInfo) {
+        //if this is an event that will be removed
+        if(event.removePerfectProgrammer) {
+            //if it comes before the previous earliest
+            if(this.eventComesBeforeEarliestRemove(event, fileInfo)) {
+                //store this event as the earliest
+                fileInfo.minEarliestRemovedRow = event.lineNumber;
+                fileInfo.minEarliestRemovedCol = event.column; 
+            } //else- it comes after the earliest, no need to do anything
+        } else { //this event will not be removed but it may affect the earliest 
+            //if there has already been a removed event
+            if(fileInfo.minEarliestRemovedRow !== Number.MAX_SAFE_INTEGER) {
+                if(event.type === 'INSERT') {
+                    //if it is a newline
+                    if(event.character === 'NEWLINE' || event.character === 'CR-LF') {
+                        if(event.lineNumber < fileInfo.minEarliestRemovedRow) {
+                            //increase the min row one line forward
+                            fileInfo.minEarliestRemovedRow++;
+                        } else if(event.lineNumber === fileInfo.minEarliestRemovedRow && event.column <= fileInfo.minEarliestRemovedCol) {
+                            //a newline happens on the same line and before the earliest
+                            //increase the min row one line forward
+                            fileInfo.minEarliestRemovedRow++;
+                            //the new column is the difference between the earliest and the new newline
+                            fileInfo.minEarliestRemovedCol = fileInfo.minEarliestRemovedCol - event.column + 1;
+                        } //else- its after the min, nothing to do
+                    } else { //it is not a newline
+                        //if the new event is on the same line as the earliest but comes before it
+                        if(event.lineNumber === fileInfo.minEarliestRemovedRow && event.column <= fileInfo.minEarliestRemovedCol) {
+                            //a new event has been added somewhere on the same line, push the col forward one
+                            fileInfo.minEarliestRemovedCol++;
+                        } //else- it comes on a previous line or a later line, neither affect the min
+                    }
+                } else if (event.type === 'DELETE') {
+                    if(event.character === 'NEWLINE' || event.character === 'CR-LF') {
+                        if(event.lineNumber < fileInfo.minEarliestRemovedRow - 1) {
+                            //reduce the min row one line back
+                            fileInfo.minEarliestRemovedRow--;
+                        } else if(event.lineNumber === fileInfo.minEarliestRemovedRow - 1) {
+                            //if the newline on the line above is being deleted
+                            //reduce the min row one line back
+                            fileInfo.minEarliestRemovedRow--;
+                            //store the event's column as the new min
+                            fileInfo.minEarliestRemovedCol = event.column + fileInfo.minEarliestRemovedCol - 1;
+                        } //else- its after the min, nothing to do
+                    } else { //it is not a newline
+                        //if the new event is on the same line as the earliest but comes before it
+                        if(event.lineNumber === fileInfo.minEarliestRemovedRow && event.column < fileInfo.minEarliestRemovedCol) {
+                            //an event has been deleted somewhere on the same line, move the col back one
+                            fileInfo.minEarliestRemovedCol--;
+                        } //else- it comes on a previous line or a later line, neither affect the min
+                    }
+                }
+            } //else- no previously removed event so do nothing
+        }
+    }
+
+    eventComesBeforeEarliestRemove(event, fileInfo) {
+        //assume the event does NOT come before the earliest removed event
+        let retVal = false;
+        //if the event is on a lower line number
+        if(event.lineNumber < fileInfo.minEarliestRemovedRow) {
+            //then it comes before
+            retVal = true;
+        } else if(event.lineNumber === fileInfo.minEarliestRemovedRow && event.column < fileInfo.minEarliestRemovedCol) {
+            //if the event is on the same line and before the column then it comes before
+            retVal = true;
+        }//else- it does not come before
+        return retVal;
     }
 
     getAdjustedPreviousNeighborId(event, textFileInsertEvents) {
@@ -893,7 +979,7 @@ function loadPlaybackData() {
 
     addDeleteEvent(event, allFiles) {
         //get the 2D array for this event's file and the number of events per line
-        const textFileInsertEvents = allFiles[event.fileId];
+        const textFileInsertEvents = allFiles[event.fileId].textFileInsertEvents;
 
         //get the insert event that is being deleted
         const insertEventBeingDeleted = textFileInsertEvents[(event.lineNumber - 1)][(event.column - 1)];
