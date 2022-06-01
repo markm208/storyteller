@@ -14,135 +14,159 @@ class ImageGallery extends HTMLElement {
     const template = document.createElement('template');
     template.innerHTML = `
       <style>
-        .galleryContainer {
-          max-width: 1000px;
-          position: relative;
-          margin: auto;
+        .close{
+          color: lightgray;
+          font-size: 40px;
+          font-weight: bold;
+          position: absolute;
+          right: 35px;
+          top: 15px;
         }
 
-        .slide {
+        .close:hover, .close:focus{
+          color: #bbb;
+          cursor: pointer;
+          text-decoration: none;
+        }
+
+        .fade{
+          animation-duration: 1.0s;
+          animation-name: fade;
+          webkit-animation-duration: 1.0s;
+          webkit-animation-name: fade;
+        }
+
+        .galleryContainer{
+          margin: auto;
+          max-width: 1000px;
+          position: relative;
+        }
+
+        .galleryImage{
+          width: 80%;
+        }
+
+        .mediaDiv{
+          align-items: center;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 10px 0px 5px 0px;
+        }
+
+        .modal{
+          background-color: rgb(0,0,0);
+          background-color: rgba(0,0,0,0.9);
+          display: none;
+          height: 100%;
+          left: 0;
+          overflow: auto;
+          padding-top: 100px;
+          position: fixed;
+          top: 0;
+          width: 100%;
+          z-index: 100;
+        }
+
+        .modalButton{
           display: none;
         }
 
-        .prevButton, .nextButton {
-          cursor: pointer;
-          position: absolute;
-          top: 50%;
-          width: auto;
-          margin-top: -22px;
-          padding: 16px;
-          color: lightgray;
-          font-weight: bold;
-          font-size: 18px;
-          transition: 0.3s ease;
-          border-radius: 0 3px 3px 0;
-          user-select: none;
+        .modalContent{
+          animation-duration: 0.6s;
+          animation-name: zoom;
+          display: block;
+          margin: auto;
+          max-height: 80%;
+          max-width: 80%;
+          object-fit: contain;
+          overflow: scroll;
         }
 
-        .nextButton {
-          right: 0;
+        .nextButton, .modalNextButton{
           border-radius: 3px 0 0 3px;
+          right: 0;
         }
 
-        .prevButton:hover, .nextButton:hover {
-          background-color: rgba(0,0,0,0.25);
+        .numbers{
+          bottom: 11%;
+          font-size: 40px;
+          margin-left: 50%;
+          position: absolute;
         }
 
-        .numberText {
+        .numberText{
           color: lightgray;
           padding: 8px 12px;
         }
 
-        .galleryImage {
-          width: 80%;
-        }
-
-        .mediaDiv {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          padding: 10px 0px 5px 0px;
-        }
-
-        .fade {
-          -webkit-animation-name: fade;
-          -webkit-animation-duration: 1.0s;
-          animation-name: fade;
-          animation-duration: 1.0s;
-        }
-
-        @-webkit-keyframes fade {
-          from {opacity: .4}
-          to {opacity: 1}
-        }
-
-        @keyframes fade {
-          from {opacity: .4}
-          to {opacity: 1}
-        }
-
-        .modal {
-          display: none;
-          position: fixed;
-          z-index: 100; 
-          padding-top: 100px;
-          left: 0;
-          top: 0;
-          width: 100%; 
-          height: 100%; 
-          overflow: auto; 
-          background-color: rgb(0,0,0); 
-          background-color: rgba(0,0,0,0.9); 
-        }
-
-        .modalContent {
-          margin: auto;
-          display: block;
-          width: unset;
-          height: 90%; 
-          width: unset;
-          overflow: scroll;
-          animation-name: zoom;
-          animation-duration: 0.6s;
-        }
-
-        @keyframes zoom {
-          from {opacity: 0.0}
-          to {opacity: 1.0}
-        }
-
-        .close {
-          position: absolute;
-          top: 15px;
-          right: 35px;
+        .prevButton, .nextButton, .modalPrevButton, .modalNextButton{
+          border-radius: 0 3px 3px 0;
           color: lightgray;
-          font-size: 40px;
-          font-weight: bold;
-        }
-
-        .close:hover,
-        .close:focus {
-          color: #bbb;
-          text-decoration: none;
           cursor: pointer;
+          font-size: 18px;
+          font-weight: bold;
+          margin-top: -22px;
+          padding: 16px;
+          position: absolute;
+          top: 50%;
+          transition: 0.3s ease;
+          user-select: none;
+          width: auto;
         }
 
-        /* 100% Image Width on Smaller Screens */
+        .prevButton:hover, .nextButton:hover{
+          background-color: rgba(0,0,0,0.25);
+        }
+
+        .slide{
+          display: none;
+        }
+
+        @keyframes fade{
+          from{
+            opacity: .4;
+          }
+          to{
+            opacity: 1;
+          }
+        }
+
+        @keyframes zoom{
+          from{
+            opacity: 0.0;
+          }
+          to{
+            opacity: 1.0;
+          }
+        }
+
         @media only screen and (max-width: 700px){
-          .modal-content {
+          .modal-content{
             width: 100%;
+          }
+        }
+        
+        @-webkit-keyframes fade{
+          from{
+            opacity: .4;
+          }
+          to{
+            opacity: 1;
           }
         }
       </style>
 
-      <div class="galleryContainer">
-        <a class="prevButton">&#10094;</a>
-        <a class="nextButton">&#10095;</a>
+      <div class='galleryContainer'>
+        <a class='prevButton'>&#10094;</a>
+        <a class='nextButton'>&#10095;</a>
       </div>
-      <div class="modal">
-        <span class="close">&times;</span>
-        <img class="modalContent">
+      <div class='modal' tabindex='-1'>
+        <a class='modalPrevButton modalButton'>&#10094;</a>
+        <a class='modalNextButton modalButton'>&#10095;</a>          
+        <span class='close'>&times;</span>
+        <img class='modalContent'></img>
+        <div class='numbers'</div>
       </div>`;
 
     return template.content.cloneNode(true);
@@ -181,6 +205,15 @@ class ImageGallery extends HTMLElement {
         //click anywhere in the modal to close it
         const modal = this.shadowRoot.querySelector('.modal');
         modal.addEventListener('click', this.closeModal);
+
+        //handle left and right keyboard arrow presses
+        modal.addEventListener('keyup' , this.handleModalKeyboardArrows);
+
+        const modalPrevButton = this.shadowRoot.querySelector('.modalPrevButton');
+        modalPrevButton.addEventListener('click', this.modalBackward);
+
+        const modalNextButton = this.shadowRoot.querySelector('.modalNextButton');
+        modalNextButton.addEventListener('click', this.modalForward);
       }
       aSlide.appendChild(img);
       aSlide.appendChild(numsDiv);
@@ -213,8 +246,24 @@ class ImageGallery extends HTMLElement {
 
       const modal = this.shadowRoot.querySelector('.modal');
       modal.removeEventListener('click', this.closeModal);
+      modal.removeEventListener('keyup' , this.handleModalKeyboardArrows);
 
       document.removeEventListener('keydown', this.closeModalFromEscape);
+
+      const modalPrevButton = this.shadowRoot.querySelector('.modalPrevButton');
+      modalPrevButton.removeEventListener('click', this.modalBackward);
+
+      const modalNextButton = this.shadowRoot.querySelector('.modalNextButton');
+      modalNextButton.removeEventListener('click', this.modalForward);
+    }
+  }
+
+  handleModalKeyboardArrows = event => {
+    if (event.key === 'ArrowLeft'){
+      this.modalBackward();
+    }
+    if (event.key === 'ArrowRight'){
+      this.modalForward();
     }
   }
 
@@ -224,6 +273,16 @@ class ImageGallery extends HTMLElement {
 
   moveForward = () => {
     this.showSlide(this.slideIndex + 1);
+  }  
+  
+  modalBackward = () => {
+    this.moveBackward();
+    this.zoomPic();
+  }
+
+  modalForward = () => {
+    this.moveForward();
+    this.zoomPic();
   }
 
   showSlide(newSlideIndex) {
@@ -237,9 +296,9 @@ class ImageGallery extends HTMLElement {
     }
 
     for (let i = 0; i < slides.length; i++) {
-        slides[i].style.display = "none";
+        slides[i].style.display = 'none';
     }
-    slides[this.slideIndex].style.display = "flex";
+    slides[this.slideIndex].style.display = 'flex';
   } 
 
   zoomPic = () => {
@@ -248,23 +307,50 @@ class ImageGallery extends HTMLElement {
     const img = slide.firstChild.getAttribute('src');
     const modal = this.shadowRoot.querySelector('.modal');
     const modalImage = this.shadowRoot.querySelector('.modalContent');
-    modalImage.classList.add('expandedPic');
+   // modalImage.classList.add('expandedPic');
 
+    //set the modal number text and add the prev/next buttons if there is more than 1 picture
+    const imagePosition = slide.querySelector('.numberText').innerHTML;
+    if (imagePosition.split('/').pop() !== '1'){
+      const modalNumbersDiv = modal.querySelector('.numbers');
+      modalNumbersDiv.innerHTML = imagePosition;
+
+      const modalButtons = modal.querySelectorAll('.modalButton');
+      modalButtons.forEach(button => {
+        button.style.display = 'block';
+      });
+    };
+    
     modal.style.display = 'block';
     modalImage.setAttribute('src', img);
+
+    //needed for left/right arrow button listener
+    modal.focus();
   }
 
-  closeModal = () => {
-    const modalImage = this.shadowRoot.querySelector('.modalContent');
-    modalImage.classList.add('expandedPic');
-    modalImage.classList.remove('expandedPic');
+  closeModal = event => {
+    //dont close modal when the next/previous image button is clicked
+     if (event.target.classList.contains('modalButton')){
+      return;
+    }
+
+    //const modalImage = this.shadowRoot.querySelector('.modalContent');
+    // modalImage.classList.add('expandedPic');
+    // modalImage.classList.remove('expandedPic');
 
     const modal = this.shadowRoot.querySelector('.modal');
-    modal.style.display = "none";
+
+    //hide the prev/next buttons again
+    const modalButtons = modal.querySelectorAll('.modalButton');
+    modalButtons.forEach(button => {
+      button.style.display = 'none';
+    });
+
+    modal.style.display = 'none';
   }
 
   closeModalFromEvent = event => {
-    this.closeModal();
+    this.closeModal(event);
     event.preventDefault();
   }
 
