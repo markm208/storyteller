@@ -59,6 +59,8 @@ function activate(context) {
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.removeDevelopersFromActiveGroup', removeDevelopersFromActiveGroup));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipProject', zipProject));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipViewablePlayback', zipViewablePlayback));
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.previewPerfectProgrammer', previewPerfectProgrammer));
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.replaceWithPerfectProgrammer', replaceWithPerfectProgrammer));
 
     //if there is an open workspace then attempt to open storyteller without requiring user interaction
     if(vscode.workspace.workspaceFolders) {
@@ -1388,6 +1390,32 @@ function addMediaToZip(dirPath, mediaType, zip) {
         //read the file and store it in the zip
         const fileBuffer = fs.readFileSync(fullPathToFile);
         zip.file(`media/${mediaType}/${fileName}`, fileBuffer);
+    }
+}
+/*
+ * Starts a playback where any insert/delete pair that happens within two
+ * comments is removed. This helps hide embarrassing and/or uninteresting
+ * attempts at problem solving and reduces the amount of data stored in
+ * the project.
+ */
+function previewPerfectProgrammer() {
+    //create a playback with all insert/delete pairs within two comments removed
+    projectManager.setNextPlaybackPerfectProgrammer();
+    startPlayback(false);
+}
+
+/*
+ * Replaces the full project data history with a (potentially) minimized set of
+ * data where uninteresting/embarrassing attempts at problem solving are removed
+ */
+async function replaceWithPerfectProgrammer() {
+    //prompt again since this action will wipe out all of the project's current history
+    const options = ['Yes', 'No'];
+    const selectedOption = await vscode.window.showQuickPick(options, {placeHolder: `Are you sure you want to replace the project's history? This cannot be undone.`});
+    //if the user selected the option to replace the history
+    if(selectedOption === options[0]) {
+        //remove events and update events/comments for the project
+        projectManager.replaceEventsCommentsWithPerfectProgrammerData();
     }
 }
 

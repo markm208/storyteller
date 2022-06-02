@@ -74,6 +74,16 @@
                 "command": "storyteller.zipViewablePlayback",
                 "title": "Zip and Share a Playback",
                 "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.previewPerfectProgrammer",
+                "title": "Preview Playback at Comments Only",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.replaceWithPerfectProgrammer",
+                "title": "Replace the Current History at Comments Only",
+                "category": "Storyteller"
             }
         ]
     },
