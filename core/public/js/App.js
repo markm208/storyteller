@@ -164,6 +164,37 @@ class App extends HTMLElement {
       this.handleSearch(eventText);
     });
 
+    //playback speed increased
+    this.shadowRoot.addEventListener('increase-playback-speed', () => {
+      const isPlaying = this.autoPlayback.isPaused === false;
+
+      if (isPlaying){
+        this.togglePlayPause(true);
+      }
+
+      this.autoPlayback.playbackSpeedMs -= 5;
+
+      if (isPlaying){
+        this.togglePlayPause(false);
+      }
+  
+    });
+
+    //playback speed decreased
+    this.shadowRoot.addEventListener('decrease-playback-speed', () => {
+      const isPlaying = this.autoPlayback.isPaused === false;
+
+      if (isPlaying){
+        this.togglePlayPause(true);
+      }
+
+      this.autoPlayback.playbackSpeedMs += 5;
+
+      if (isPlaying){
+        this.togglePlayPause(false);
+      }    
+    });
+
     //request an increase in the editor font size
     this.shadowRoot.addEventListener('increase-font', event => {
       this.increaseEditorFontSize();
@@ -404,6 +435,10 @@ class App extends HTMLElement {
   }
 
   increaseEditorFontSize() {
+    if (this.activeMode === 'blog'){
+      return;
+    }
+    
     //make the font bigger
     this.editorProperties.fontSize = this.editorProperties.fontSize + 4;
     const codeView = this.shadowRoot.querySelector('st-code-view');
@@ -412,6 +447,10 @@ class App extends HTMLElement {
   }
 
   decreaseEditorFontSize() {
+    if (this.activeMode === 'blog'){
+      return;
+    }
+
     //make the font smaller
     this.editorProperties.fontSize = this.editorProperties.fontSize - 2;
     const codeView = this.shadowRoot.querySelector('st-code-view');
