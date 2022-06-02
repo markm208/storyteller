@@ -639,22 +639,218 @@ function loadPlaybackData() {
         for(let i = 1;i < originalEvents.length;i++) {
             const event = originalEvents[i];
             //if there is a comment at this event or at the end of playback
-            if(comments[event.id]) {
+            if(comments[event.id] || i === originalEvents.length - 1) {
                 //store the position in the events where the comment is
                 endPos = i;
 
                 //fill updatedEvents with the events that will not be removed
-                this.editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, comments, allFiles, false);
+                this.editEventsBetweenTwoComments2(startPos, endPos, originalEvents, updatedEvents, comments, allFiles, false);
 
                 //the next range will start after this comment
                 startPos = i + 1;
             }
         }
         //handle the range from the last comment to the end of the playback
-        this.editEventsBetweenTwoComments(startPos, originalEvents.length - 1, originalEvents, updatedEvents, comments, allFiles, true);
+        //this.editEventsBetweenTwoComments2(startPos, originalEvents.length - 1, originalEvents, updatedEvents, comments, allFiles, true);
 
         //return the filtered and edited events
         return updatedEvents;
+    }
+
+    editEventsBetweenTwoComments2(startPos, endPos, originalEvents, updatedEvents, comments, allFiles, includeEndPos) {
+        //if there is no space in between comments then there is nothing to do, return
+        if(startPos >= endPos) {
+            return;
+        }
+
+        //the fileIds of the files with inserts
+        const filesWithInserts = new Set();
+        //holds the ids of all files created in this range (if they are deleted
+        //in the range then ignore them)
+        const createdFiles = new Set();
+        const ignoreFilesCreatedAndDeleted = new Set();
+        const createdDirs = new Set();
+        const ignoreDirsCreatedAndDeleted = new Set();
+
+        //go through all of the events in the range
+        for(let i = startPos;i <= endPos;i++) {
+            const event = originalEvents[i];
+            if(event.type === 'INSERT') {
+                //add it in the file
+                this.addInsertEvent2(event, allFiles);
+                //make sure to move through the events in this file below
+                filesWithInserts.add(event.fileId);
+            } else if(event.type === 'DELETE') {
+                //remove the delete from the file
+                //if this is an event from a previously handled insert event 
+                //(one from a previous range of events) then add it to be 
+                //processed during playback
+                if(this.addDeleteEvent2(event, allFiles) === true) {
+                    //add the event and update any comments
+                    this.addEventEditComments(event, updatedEvents, comments);
+                }// else- this is a delete of a new insert, no need to add it to the history of events
+            } else { //not an INSERT or DELETE
+                if(event.type === 'CREATE FILE') {
+                    //add the id of the new file
+                    createdFiles.add(event.fileId);
+                } else if(event.type === 'DELETE FILE') {
+                    //if this a file created and deleted in the range
+                    if(createdFiles.has(event.fileId)) {
+                        //store the id of the file to ignore events below
+                        ignoreFilesCreatedAndDeleted.add(event.fileId);
+                    }
+                } else if(event.type === 'CREATE DIRECTORY') {
+                    //add the id of the new dir
+                    createdDirs.add(event.directoryId);
+                } else if(event.type === 'DELETE DIRECTORY') {
+                    //if this a dir created and deleted in the range
+                    if(createdDirs.has(event.directoryId)) {
+                        //store the id of the dir to ignore events below
+                        ignoreDirsCreatedAndDeleted.add(event.directoryId);
+                    }
+                }
+                //add the event and update any comments
+                this.addEventEditComments(event, updatedEvents, comments);
+            }
+        }
+
+        //go through the file and dir events in the range
+        for(let i = updatedEvents.length - 1;i >= 0;i--) {
+            const event = updatedEvents[i];
+            //if this is a file or directory event that should be ignored
+            if((event.fileId && ignoreFilesCreatedAndDeleted.has(event.fileId)) || (event.directoryId && ignoreDirsCreatedAndDeleted.has(event.directoryId))) {
+                //remove the event so it won't be part of the history anymore
+                updatedEvents.splice(i, 1);
+            }
+        }
+
+        //now handle the insert events to files that have inserts
+        filesWithInserts.forEach(fileId => {
+            //get the 2D array of events for this file
+            const textFileInsertEvents = allFiles[fileId].textFileInsertEvents;
+            for(let row = 0;row < textFileInsertEvents.length;row++) {
+                for(let col = 0;col < textFileInsertEvents[row].length;col++) {
+                    const latestEvent = textFileInsertEvents[row][col];
+
+                    if(latestEvent.fileId && ignoreFilesCreatedAndDeleted.has(latestEvent.fileId)) {
+                        //ignore these events since they are in files/dirs that are superfluous
+                    } else {
+                        if(latestEvent.type === 'INSERT' && !latestEvent.handled) {
+                            latestEvent.lineNumber = row + 1;
+                            latestEvent.column = col + 1;
+                            //go backwards one event
+                            //if the event is at the beginning of a row
+                            if(col === 0) {
+                                //if it is after the first row
+                                if(row > 0) {
+                                    //go back a row and to the end to get the id
+                                    latestEvent.previousNeighborId = textFileInsertEvents[row - 1][textFileInsertEvents[row - 1].length - 1].id;
+                                } else { //row 0, col 0
+                                    latestEvent.previousNeighborId = null;
+                                }
+                            } else { //not at the beginning of a row
+                                //go back one column to get the id
+                                latestEvent.previousNeighborId = textFileInsertEvents[row][col - 1].id;
+                            }
+                            //add the event and update any comments
+                            this.addEventEditComments(latestEvent, updatedEvents, comments);
+    
+                            latestEvent.handled = true;
+                        }
+                    }
+                }
+            }
+        });
+
+        //update the events so that the new last event holds the comment
+        //get the original event where the comment was
+        const originalCommentEvent = originalEvents[endPos];
+        if(comments[originalCommentEvent.id]) {
+            //get the last event in the updated list of events
+            const lastUpdatedEvent = updatedEvents[updatedEvents.length - 1];
+            //if the comment event is different than the new last event
+            if(originalCommentEvent.id !== lastUpdatedEvent.id) {
+                //add a new entry using the new event id
+                comments[lastUpdatedEvent.id] = [];
+                //copy the comments over
+                comments[originalCommentEvent.id].forEach(comment => {
+                    //update the event associated with the comment
+                    comment.displayCommentEvent = lastUpdatedEvent;
+                    comments[lastUpdatedEvent.id].push(comment);
+                });
+                //get rid of the old array of comments
+                delete comments[originalCommentEvent.id];
+            }
+        }
+    }
+
+    addInsertEvent2(event, allFiles) {
+        //if this is the first insert in a new file
+        if(!allFiles[event.fileId]) {
+            //create an empty 2D array and the min position of a removed event
+            allFiles[event.fileId] = {
+                textFileInsertEvents: [],
+            };
+        }
+
+        //get the 2D array of events for this file
+        const textFileInsertEvents = allFiles[event.fileId].textFileInsertEvents;
+
+        //if this is the first insert on a new row (underneath the current last row)
+        if((event.lineNumber - 1) === textFileInsertEvents.length) { 
+            //create a new row at the bottom with the new event
+            textFileInsertEvents.push([event]);
+        } else { //the insert is in an existing row
+            //insert somewhere in the middle
+            textFileInsertEvents[(event.lineNumber - 1)].splice((event.column - 1), 0, event);
+        }
+        
+        //if the new character was a newline character
+        if(event.character === 'NEWLINE' || event.character === 'CR-LF') {
+            //get the rest of the line after the newline character
+            const restOfLine = textFileInsertEvents[(event.lineNumber - 1)].splice((event.column - 1) + 1, textFileInsertEvents[(event.lineNumber - 1)].length - (event.column - 1));
+            
+            //add a new row that the newline created with the end of the current line
+            textFileInsertEvents.splice((event.lineNumber - 1) + 1, 0, restOfLine); 
+        }
+    }
+
+    addDeleteEvent2(event, allFiles) {
+        //get the 2D array for this event's file and the number of events per line
+        const textFileInsertEvents = allFiles[event.fileId].textFileInsertEvents;
+
+        //get the insert event that is being deleted
+        const insertEventBeingDeleted = textFileInsertEvents[(event.lineNumber - 1)][(event.column - 1)];
+
+        //if we are removing a newline character
+        if(insertEventBeingDeleted.character === 'NEWLINE' || insertEventBeingDeleted.character === 'CR-LF') {
+            //remove the newline event from its line
+            textFileInsertEvents[(event.lineNumber - 1)].splice((event.column - 1), 1);
+
+            //get the next row (it may be an empty row)
+            const copyElements = textFileInsertEvents[(event.lineNumber - 1) + 1].splice(0);
+
+            //add the elements to the current row
+            for(let i = 0;i < copyElements.length;i++) {
+                textFileInsertEvents[(event.lineNumber - 1)].push(copyElements[i]);
+            }
+            
+            //remove the row that we copied all of the elements over
+            textFileInsertEvents.splice((event.lineNumber - 1) + 1, 1);
+        } else { //removing a non-newline
+            //remove the id
+            textFileInsertEvents[(event.lineNumber - 1)].splice((event.column - 1), 1);
+        }
+
+        //if there is nothing left on the row
+        if(textFileInsertEvents[(event.lineNumber - 1)].length === 0) {
+            //remove the row
+            textFileInsertEvents.splice((event.lineNumber - 1), 1);
+        }
+        //console.log(`Delete: ${insertEventBeingDeleted.character} LineNum: ${event.lineNumber} Col: ${event.column}`);
+        //this.debugPrint(textFileInsertEvents);
+
+        return insertEventBeingDeleted.handled ? true : false;
     }
 
     editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, comments, allFiles, includeEndPos) {
@@ -791,7 +987,7 @@ function loadPlaybackData() {
         //if this event is NOT being removed and it NOT the first insert in a file (it has a prev neighbor) and it comes before the first removed event in the file
         //all events that come before the first removed one do not need to be updated, the other do
         if(!event.removePerfectProgrammer && event.previousNeighborId && this.eventComesBeforeEarliestRemove(event, allFiles[event.fileId]) === false) {
-            console.log(`Adjusting insert at event line: ${event.lineNumber} col: ${event.column}`);
+            //console.log(`Adjusting insert at event line: ${event.lineNumber} col: ${event.column}`);
             
             //adjust the previous neighbor id (if necessary)
             const newPreviousNeighborId = this.getAdjustedPreviousNeighborId(event, textFileInsertEvents);
