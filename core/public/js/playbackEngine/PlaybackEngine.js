@@ -353,7 +353,11 @@ class PlaybackEngine {
     //search all the comments text, code and tags for the matching search text
     for(let i = 0;i < this.flattenedComments.length;i++) {
       const comment = this.flattenedComments[i];
-      
+
+      //remove the old highlights
+      comment.commentText = comment.commentText.replaceAll('<mark>','');
+      comment.commentText = comment.commentText.replaceAll('</mark>','');
+
       let isRelevantComment = false;
       comment.selectedCodeBlocks.some(block => {
         if(block.selectedText.toLowerCase().includes(searchText.toLowerCase())) {
@@ -363,6 +367,9 @@ class PlaybackEngine {
 
       if(comment.commentText.toLowerCase().includes(searchText.toLowerCase())) {
         isRelevantComment = true;
+
+        //surround the matched text in the mark tag which highlights
+        comment.commentText = comment.commentText.replace(new RegExp(searchText, "gi"), (match) => `<mark>${match}</mark>`);
       }    
     
       if(comment.commentTags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()))) {
