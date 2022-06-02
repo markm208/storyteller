@@ -166,6 +166,12 @@ class AceEditor extends HTMLElement {
       //store to remove them later
       this.markers.push(newMarker);
     });
+
+    //if there is at least one highlighted section of code scroll to the first highlight
+    if(commentMarkers.length > 0) {
+      const scrollToLine = commentMarkers[0].startRow;
+      this.aceEditor.scrollToLine(scrollToLine, true, true);
+    }
   }
 
   getCommentMarkers() {
