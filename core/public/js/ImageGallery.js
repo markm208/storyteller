@@ -81,6 +81,7 @@ class ImageGallery extends HTMLElement {
           max-width: 80%;
           object-fit: contain;
           overflow: scroll;
+        }
         .hideButton {
           display: none;
         }
