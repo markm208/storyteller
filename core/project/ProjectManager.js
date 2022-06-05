@@ -644,7 +644,7 @@ function loadPlaybackData() {
                 endPos = i;
 
                 //fill updatedEvents with the events that will be played back in a perfect programmer scenario
-                this.editEventsBetweenTwoComments2(startPos, endPos, originalEvents, updatedEvents, allFiles);
+                this.editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, allFiles);
                 
                 //update the comment (if it needs to be moved because it landed on a filtered out event)
                 this.updateCommentPoisition(endPos, originalEvents, updatedEvents, comments);
@@ -658,50 +658,27 @@ function loadPlaybackData() {
         return updatedEvents;
     }
 
-    editEventsBetweenTwoComments2(startPos, endPos, originalEvents, updatedEvents, allFiles) {
-        //holds all of the perfect programmer events to playback in this range separated by type (file system, delete, insert)
-        const eventsByType = {};
+    editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, allFiles) {
+        //holds all of the perfect programmer events to playback in this range by the file or dir they happen in
+        const eventsByFileOrDir = {};
+
+        //holds the ids of all files/dirs created and then deleted in this range 
+        //events related to these can be ignored (not added to updatedEvents)
+        const ignoreFilesCreatedAndDeleted = new Set();
+        const ignoreDirsCreatedAndDeleted = new Set();
 
         //get the fs, delete, and insert events
-        this.getFileSystemEvents(startPos, endPos, originalEvents, eventsByType);
-        this.getDeleteEvents(startPos, endPos, originalEvents, eventsByType, allFiles);
-        this.getInsertEvents(startPos, endPos, originalEvents, eventsByType, allFiles);
+        this.getFileSystemEvents(startPos, endPos, originalEvents, eventsByFileOrDir, ignoreFilesCreatedAndDeleted, ignoreDirsCreatedAndDeleted);
+        this.getDeleteEvents(startPos, endPos, originalEvents, eventsByFileOrDir, allFiles, ignoreFilesCreatedAndDeleted);
+        this.getInsertEvents(startPos, endPos, originalEvents, eventsByFileOrDir, allFiles, ignoreFilesCreatedAndDeleted);
 
         //to update the event sequence of each of the events
         let newEventSequenceNumber = startPos;
 
         //go through all of the new events and add them to the array updatedEvents while updating the event sequence numbers
-        //file system events first in the order that they occurred
-        eventsByType.fileSystemEvents.forEach(event => {
-            event.eventSequenceNumber = newEventSequenceNumber;
-            updatedEvents.push(event);
-            newEventSequenceNumber++;
-        });
-
-        //then deletes
-        for(let fileId in eventsByType.deleteEvents) {
-            //add the deletes to a file
-            eventsByType.deleteEvents[fileId].forEach(event => {
-                event.eventSequenceNumber = newEventSequenceNumber;
-                updatedEvents.push(event);
-                newEventSequenceNumber++;
-            });
-
-            //right after the deletes, show the inserts if there are any in the same file
-            if(eventsByType.insertEvents[fileId]) {
-                eventsByType.insertEvents[fileId].forEach(event => {
-                    event.eventSequenceNumber = newEventSequenceNumber;
-                    updatedEvents.push(event);
-                    newEventSequenceNumber++;
-                });
-                //already added these inserts to there is no need to handle them below
-                delete eventsByType.insertEvents[fileId];
-            }
-        }
-
-        //then any remaining inserts
-        for(let fileId in eventsByType.insertEvents) {
-            eventsByType.insertEvents[fileId].forEach(event => {
+        for(let fileOrDirId in eventsByFileOrDir) {
+            //add the events for a file or dir
+            eventsByFileOrDir[fileOrDirId].forEach(event => {
                 event.eventSequenceNumber = newEventSequenceNumber;
                 updatedEvents.push(event);
                 newEventSequenceNumber++;
@@ -709,17 +686,10 @@ function loadPlaybackData() {
         }
     }
 
-    getFileSystemEvents(startPos, endPos, originalEvents, eventsByType) {
-        //holds non-insert/delete events
-        eventsByType.fileSystemEvents = [];
-        
+    getFileSystemEvents(startPos, endPos, originalEvents, eventsByFileOrDir, ignoreFilesCreatedAndDeleted, ignoreDirsCreatedAndDeleted) {        
         //used to track which files and dirs are new in this range
-        const createdFiles = new Set();
-        const createdDirs = new Set();
-        //holds the ids of all files/dirs created and then deleted in this range 
-        //events related to these can be ignored (not added to updatedEvents)
-        eventsByType.ignoreFilesCreatedAndDeleted = new Set();
-        eventsByType.ignoreDirsCreatedAndDeleted = new Set();
+        const createdFileIds = new Set();
+        const createdDirIds = new Set();
 
         //go through all of the events in the range and find any files or dirs
         //created and then deleted in the range
@@ -729,45 +699,61 @@ function loadPlaybackData() {
             if(event.type !== 'INSERT' && event.type !== 'DELETE') {
                 if(event.type === 'CREATE FILE') {
                     //add the id of the new file
-                    createdFiles.add(event.fileId);
+                    createdFileIds.add(event.fileId);
                 } else if(event.type === 'DELETE FILE') {
                     //if this a file created and deleted in the range
-                    if(createdFiles.has(event.fileId)) {
+                    if(createdFileIds.has(event.fileId)) {
                         //store the id of the file to ignore events below
-                        eventsByType.ignoreFilesCreatedAndDeleted.add(event.fileId);
+                        ignoreFilesCreatedAndDeleted.add(event.fileId);
                     }
                 } else if(event.type === 'CREATE DIRECTORY') {
                     //add the id of the new dir
-                    createdDirs.add(event.directoryId);
+                    createdDirIds.add(event.directoryId);
                 } else if(event.type === 'DELETE DIRECTORY') {
                     //if this a dir created and deleted in the range
-                    if(createdDirs.has(event.directoryId)) {
+                    if(createdDirIds.has(event.directoryId)) {
                         //store the id of the dir to ignore events below
-                        eventsByType.ignoreDirsCreatedAndDeleted.add(event.directoryId);
+                        ignoreDirsCreatedAndDeleted.add(event.directoryId);
                     }
                 }
-                //store the file system event
-                eventsByType.fileSystemEvents.push(event);
+
+                //if this is a file event
+                if(event.fileId) {
+                    //if this is the first event for this file
+                    if(!eventsByFileOrDir[event.fileId]) {
+                        //create a new array
+                        eventsByFileOrDir[event.fileId] = [];
+                    }
+                    //store the file system event
+                    eventsByFileOrDir[event.fileId].push(event);
+                } else { //this is a dir event
+                    //if this is the first event for this dir
+                    if(!eventsByFileOrDir[event.directoryId]) {
+                        //create a new array
+                        eventsByFileOrDir[event.directoryId] = [];
+                    }
+                    //store the file system event
+                    eventsByFileOrDir[event.directoryId].push(event);
+                }
             }
         }
-        
-        //go through the file system events found above (in reverse because I will remove in the loop)
-        for(let i = eventsByType.fileSystemEvents.length - 1;i >= 0;i--) {
-            const fsEvent = eventsByType.fileSystemEvents[i];
-            //if this is a file or directory event that should be removed 
-            //because it was created and deleted in the same range, then remove it
-            if((fsEvent.fileId && eventsByType.ignoreFilesCreatedAndDeleted.has(fsEvent.fileId))) {
-                eventsByType.fileSystemEvents.splice(i, 1);
-            } else if(fsEvent.directoryId && eventsByType.ignoreDirsCreatedAndDeleted.has(fsEvent.directoryId)) {
-                eventsByType.fileSystemEvents.splice(i, 1);
+        //go through all of the file/dir events
+        for(let fileOrDirId in eventsByFileOrDir) {
+            //go through the file system events found above (in reverse because I will remove in the loop)
+            for(let i = eventsByFileOrDir[fileOrDirId].length - 1;i >= 0;i--) {
+                const fsEvent = eventsByFileOrDir[fileOrDirId][i];
+                //if this is a file or directory event that should be removed 
+                //because it was created and deleted in the same range, then remove it
+                if((fsEvent.fileId && ignoreFilesCreatedAndDeleted.has(fsEvent.fileId))) {
+                    eventsByFileOrDir[fileOrDirId].splice(i, 1);
+                } else if(fsEvent.directoryId && ignoreDirsCreatedAndDeleted.has(fsEvent.directoryId)) {
+                    eventsByFileOrDir[fileOrDirId].splice(i, 1);
+                }
             }
         }
     }
 
-    getDeleteEvents(startPos, endPos, originalEvents, eventsByType, allFiles) {
-        //all delete events of inserts that were added in a previous range
-        eventsByType.deleteEvents = {};
-
+    getDeleteEvents(startPos, endPos, originalEvents, eventsByFileOrDir, allFiles, ignoreFilesCreatedAndDeleted) {
         //track the files with deletes in them
         const filesWithDeletesInThem = new Set();
 
@@ -779,7 +765,7 @@ function loadPlaybackData() {
         for(let i = startPos;i <= endPos;i++) {
             const event = originalEvents[i];
             //if its a delete event and not one to be ignored
-            if(event.type === 'DELETE' && !eventsByType.ignoreFilesCreatedAndDeleted.has(event.fileId)) {
+            if(event.type === 'DELETE' && !ignoreFilesCreatedAndDeleted.has(event.fileId)) {
                 //store the delete event and the file where it happened
                 allDeletedInserts[event.previousNeighborId] = event;
                 filesWithDeletesInThem.add(event.fileId);
@@ -805,12 +791,12 @@ function loadPlaybackData() {
                             deleteEvent.column = col + 1;
 
                             //if there are no deletes for this file yet
-                            if(!eventsByType.deleteEvents[deleteEvent.fileId]) {
+                            if(!eventsByFileOrDir[deleteEvent.fileId]) {
                                 //create an empty array
-                                eventsByType.deleteEvents[deleteEvent.fileId] = [];
+                                eventsByFileOrDir[deleteEvent.fileId] = [];
                             }
                             //add the delete event
-                            eventsByType.deleteEvents[deleteEvent.fileId].push(deleteEvent);
+                            eventsByFileOrDir[deleteEvent.fileId].push(deleteEvent);
                         }
                     }
                 }
@@ -818,24 +804,21 @@ function loadPlaybackData() {
         });
     }
 
-    getInsertEvents(startPos, endPos, originalEvents, eventsByType, allFiles) {
-        //all new insert events in this range
-        eventsByType.insertEvents = {};
-
+    getInsertEvents(startPos, endPos, originalEvents, eventsByFileOrDir, allFiles, ignoreFilesCreatedAndDeleted) {
         //track which files have inserts in them
         const filesWithInserts = new Set();
 
         //go through all of the events in the range
         for(let i = startPos;i <= endPos;i++) {
             const event = originalEvents[i];
-            if(event.type === 'INSERT' && !eventsByType.ignoreFilesCreatedAndDeleted.has(event.fileId)) {
+            if(event.type === 'INSERT' && !ignoreFilesCreatedAndDeleted.has(event.fileId)) {
                 //add it in the file
-                this.addInsertEvent2(event, allFiles);
+                this.addInsertEvent(event, allFiles);
                 //make sure to move through the events in this file below
                 filesWithInserts.add(event.fileId);
-            } else if(event.type === 'DELETE' && !eventsByType.ignoreFilesCreatedAndDeleted.has(event.fileId)) {
+            } else if(event.type === 'DELETE' && !ignoreFilesCreatedAndDeleted.has(event.fileId)) {
                 //remove the delete from the file
-                this.addDeleteEvent2(event, allFiles);
+                this.addDeleteEvent(event, allFiles);
             } //else- not an INSERT or DELETE
         }
 
@@ -849,9 +832,11 @@ function loadPlaybackData() {
 
                     //if the insert event has not been handled yet (added to all insert events)
                     if(!latestEvent.handled) {
+                        //update the initial location of the insert
                         latestEvent.lineNumber = row + 1;
                         latestEvent.column = col + 1;
-                        //go backwards one event for the previous neighbor
+
+                        //go backwards one event to update the previous neighbor
                         //if the event is at the beginning of a row
                         if(col === 0) {
                             //if it is after the first row
@@ -865,20 +850,22 @@ function loadPlaybackData() {
                             //go back one column to get the id
                             latestEvent.previousNeighborId = textFileInsertEvents[row][col - 1].id;
                         }
-                        //indicate that this insert event has been added
+                        //indicate that this insert event has been added (don't add in all future ranges)
                         latestEvent.handled = true;
-                        if(!eventsByType.insertEvents[latestEvent.fileId]) {
-                            eventsByType.insertEvents[latestEvent.fileId] = [];
+                        
+                        //if this is the first event in the file
+                        if(!eventsByFileOrDir[latestEvent.fileId]) {
+                            eventsByFileOrDir[latestEvent.fileId] = [];
                         }
                         //add the insert event
-                        eventsByType.insertEvents[latestEvent.fileId].push(latestEvent);
+                        eventsByFileOrDir[latestEvent.fileId].push(latestEvent);
                     }
                 }
             }
         });
     }
 
-    addInsertEvent2(event, allFiles) {
+    addInsertEvent(event, allFiles) {
         //if this is the first insert in a new file
         if(!allFiles[event.fileId]) {
             //create an empty 2D array
@@ -907,16 +894,13 @@ function loadPlaybackData() {
         }
     }
 
-    addDeleteEvent2(event, allFiles) {
+    addDeleteEvent(event, allFiles) {
         //get the 2D array for this event's file and the number of events per line
         const textFileInsertEvents = allFiles[event.fileId];
 
         //get the insert event that is being deleted
         const insertEventBeingDeleted = textFileInsertEvents[(event.lineNumber - 1)][(event.column - 1)];
 
-        if(!insertEventBeingDeleted) {
-            insertEventBeingDeleted;
-        }
         //if we are removing a newline character
         if(insertEventBeingDeleted.character === 'NEWLINE' || insertEventBeingDeleted.character === 'CR-LF') {
             //remove the newline event from its line
@@ -972,7 +956,7 @@ function loadPlaybackData() {
         }
     }
 
-    editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, comments, allFiles, includeEndPos) {
+    editEventsBetweenTwoComments2(startPos, endPos, originalEvents, updatedEvents, comments, allFiles, includeEndPos) {
         //if there is no space in between comments then there is nothing to do, return
         if(startPos >= endPos) {
             return;
@@ -1000,16 +984,16 @@ function loadPlaybackData() {
                     //mark the event as one that will be removed
                     event.removePerfectProgrammer = true;
                     //add it in the file
-                    this.addInsertEvent(event, allFiles);
+                    this.addInsertEvent2(event, allFiles);
                 } else { //this insert event is not being removed
                     //add it in the file
-                    this.addInsertEvent(event, allFiles);
+                    this.addInsertEvent2(event, allFiles);
                     //add the (possibly) updated event and comment
                     this.addEventEditComments(event, updatedEvents, comments);
                 }
             } else if(event.type === 'DELETE') {
                 //remove the delete from the file
-                this.addDeleteEvent(event, allFiles);
+                this.addDeleteEvent2(event, allFiles);
                 //if this delete is NOT being removed
                 if(deletesToBeRemoved.has(event.id) === false) {
                     //add the (possibly) updated event and comment
@@ -1065,7 +1049,7 @@ function loadPlaybackData() {
         }
     }
 
-    addInsertEvent(event, allFiles) {
+    addInsertEvent2(event, allFiles) {
         //if this is the first insert in a new file
         if(!allFiles[event.fileId]) {
             //create an empty 2D array and the min position of a removed event
@@ -1292,7 +1276,7 @@ function loadPlaybackData() {
         return numberOfLinesAbove + 1;
     }
 
-    addDeleteEvent(event, allFiles) {
+    addDeleteEvent2(event, allFiles) {
         //get the 2D array for this event's file and the number of events per line
         const textFileInsertEvents = allFiles[event.fileId].textFileInsertEvents;
 
