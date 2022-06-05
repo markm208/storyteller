@@ -20,9 +20,15 @@ class CommentView extends HTMLElement {
           border: 1px gray solid;
           padding: 3px 12px;
         }
+        
         :host(.activeComment) {
           background-color: rgb(59,76,98);
         }
+
+        :host(.nonRelevantSearchResult) {
+          display: none;
+        }
+
 
         a {
           color: lightblue;

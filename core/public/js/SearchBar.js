@@ -76,7 +76,8 @@ class SearchBar extends HTMLElement {
       if(searchText === '') {
         //display nothing about how many search results there are
         clearSearchResults.innerHTML = '';
-      } else { //search bar has something in it
+
+    } else { //search bar has something in it
         //display how many comment are being shown
         clearSearchResults.innerHTML = `Displaying ${numSearchComments} out of ${numTotalComments} comments`;
       }

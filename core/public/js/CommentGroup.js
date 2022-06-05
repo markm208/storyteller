@@ -1,3 +1,4 @@
+
 class CommentGroup extends HTMLElement {
   constructor(commentGroupData) {
     super();
@@ -87,18 +88,33 @@ class CommentGroup extends HTMLElement {
     }
   }
 
-  hideIrrelevantSearchResults(hideAllButThese) {
+  hideIrrelevantSearchResults(hideAllButThese, searchText) {
     //number of comments in the group that are not in the search results
     let hiddenCommentCount = 0;
     //get all of the comment views in this group
     const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+
     allCommentViews.forEach(commentView => {
+
+      let commentText = commentView.shadowRoot.querySelector('.commentText');
+      commentText.innerHTML = commentText.innerHTML.replaceAll('<mark>' , '');
+      commentText.innerHTML = commentText.innerHTML.replaceAll('</mark>', '');
+
+
       //if a comment view is not among the relevant search comments
       if(hideAllButThese.has(commentView.comment.id) === false) {
         //hide the comment
         commentView.classList.add('nonRelevantSearchResult');
         //count how many comments in the group are hidden
         hiddenCommentCount++;
+      }
+      else if (!searchText.startsWith('&') && searchText !== '' && searchText !== ' '){
+        let regEx = new RegExp("(" + searchText + ")(?!([^<]+)?>)", "gi");
+        
+        let output = commentText.innerHTML.replace(regEx, "<mark>$1</mark>");
+        commentText.innerHTML = output;
+
+
       }
     });
 

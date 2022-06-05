@@ -186,9 +186,9 @@ class CodeView extends HTMLElement {
     playbackNavigator.updateActiveFile();
   }
 
-  displaySearchResults(searchResults){
+  displaySearchResults(searchResults, searchText){
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.displaySearchResults(searchResults);
+    playbackNavigator.displaySearchResults(searchResults, searchText);
   }
 }
 

@@ -114,7 +114,7 @@ class CommentNavigator extends HTMLElement {
     }
   }
 
-  displaySearchResults(searchResults){
+  displaySearchResults(searchResults, searchText){
     //clear out old search results
     const commentGroups = this.shadowRoot.querySelectorAll('st-comment-group');
     commentGroups.forEach(commentGroup => {
@@ -129,7 +129,7 @@ class CommentNavigator extends HTMLElement {
 
     //hide the comments that are not in the results
     commentGroups.forEach(commentGroup => {
-      commentGroup.hideIrrelevantSearchResults(relevantCommentIDs);
+      commentGroup.hideIrrelevantSearchResults(relevantCommentIDs, searchText);
     });
   }
 }
