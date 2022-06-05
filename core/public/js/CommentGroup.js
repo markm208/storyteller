@@ -109,8 +109,7 @@ class CommentGroup extends HTMLElement {
         hiddenCommentCount++;
       }
       else if (!searchText.startsWith('&') && searchText !== '' && searchText !== ' '){
-        let regEx = new RegExp("(" + searchText + ")(?!([^<]+)?>)", "gi");
-        
+        let regEx = new RegExp("(" + searchText + ")(?!([^<]+)?>)", "gi");        
         let output = commentText.innerHTML.replace(regEx, "<mark>$1</mark>");
         commentText.innerHTML = output;
 

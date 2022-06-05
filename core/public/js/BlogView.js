@@ -126,7 +126,7 @@ class BlogView extends HTMLElement {
     }
   }
 
-  displaySearchResults(searchResults) {
+  displaySearchResults(searchResults, searchText) {
     //clear out old search results
     const nonRelComments = this.shadowRoot.querySelectorAll('.nonRelevantSearchResult');
     nonRelComments.forEach(comment => {
@@ -142,10 +142,19 @@ class BlogView extends HTMLElement {
     //find all the blog components that are not relevant to the search
     const blogComponents = this.shadowRoot.querySelectorAll('st-blog-component');
     blogComponents.forEach(blogComponent => {
+      const blogText = blogComponent.shadowRoot.querySelector('.blogCommentText');
+      blogText.innerHTML = blogText.innerHTML.replaceAll('<mark>' , '');
+      blogText.innerHTML = blogText.innerHTML.replaceAll('</mark>', '');
+      
       const commentID = blogComponent.comment.id;
+
       //if a blog component is not in the search results, then add a non relevant class
       if (!relevantCommentIDs.has(commentID)) {
         blogComponent.classList.add('nonRelevantSearchResult');
+      } else if (!searchText.startsWith('&') && searchText !== '' && searchText !== ' '){
+        let regEx = new RegExp("(" + searchText + ")(?!([^<]+)?>)", "gi");        
+        let output = blogText.innerHTML.replace(regEx, "<mark>$1</mark>");
+        blogText.innerHTML = output;
       }
     });
   }

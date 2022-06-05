@@ -261,7 +261,7 @@ class App extends HTMLElement {
       codeView.displaySearchResults(searchResults, searchText);
     } else {
       const blogView = this.shadowRoot.querySelector('st-blog-view');
-      blogView.displaySearchResults(searchResults);
+      blogView.displaySearchResults(searchResults, searchText);
     }
 
     //display search results in the title bar
