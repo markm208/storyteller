@@ -956,6 +956,7 @@ function loadPlaybackData() {
         }
     }
 
+    /* old version-- this may be useful for editing playbacks in the browser in the future */
     editEventsBetweenTwoComments2(startPos, endPos, originalEvents, updatedEvents, comments, allFiles, includeEndPos) {
         //if there is no space in between comments then there is nothing to do, return
         if(startPos >= endPos) {
