@@ -554,7 +554,8 @@ class ProjectManager extends FileBackedCollection {
             const copyCommentsAtPosition = [];
             //copy all of the comments
             for(let i = 0;i < this.commentManager.comments[eventId].length;i++) {
-                const copyComment = Object.assign({}, this.commentManager.comments[eventId][i]);
+                //make a deep copy of the comment
+                const copyComment = JSON.parse(JSON.stringify(this.commentManager.comments[eventId][i]));
                 //for paths in the browser, make sure the comment urls don't have a leading slash
                 copyComment.imageURLs = copyComment.imageURLs.map(imageURL => imageURL[0] === '/' ? imageURL.substring(1) : imageURL);
                 copyComment.videoURLs = copyComment.videoURLs.map(videoURL => videoURL[0] === '/' ? videoURL.substring(1) : videoURL);
@@ -588,7 +589,8 @@ class ProjectManager extends FileBackedCollection {
             const copyCommentsAtPosition = [];
             //copy all of the comments
             for(let i = 0;i < this.commentManager.comments[eventId].length;i++) {
-                const copyComment = Object.assign({}, this.commentManager.comments[eventId][i]);
+                //make a deep copy of the comment
+                const copyComment = JSON.parse(JSON.stringify(this.commentManager.comments[eventId][i]));
                 copyCommentsAtPosition.push(copyComment);
             }
             copyOfComments[eventId] = copyCommentsAtPosition;
@@ -796,8 +798,8 @@ function loadPlaybackData() {
                         const insertEvent = editedFile[row][col];
                         //if this is a delete of an insert from a previous range
                         if(allDeletedInserts[insertEvent.id]) {
-                            //make a copy of the delete (the original is used later and need the original values)
-                            const deleteEvent = Object.assign({}, allDeletedInserts[insertEvent.id]);
+                            //make a deep copy of the delete (the original is used later and need the original values)
+                            const deleteEvent = JSON.parse(JSON.stringify(allDeletedInserts[insertEvent.id]));
                             //update where the delete is happening
                             deleteEvent.lineNumber = row + 1;
                             deleteEvent.column = col + 1;
