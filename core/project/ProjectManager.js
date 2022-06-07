@@ -644,7 +644,7 @@ function loadPlaybackData() {
                 endPos = i;
 
                 //fill updatedEvents with the events that will be played back in a perfect programmer scenario
-                this.editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, allFiles);
+                this.editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, allFiles, comments);
                 
                 //update the comment (if it needs to be moved because it landed on a filtered out event)
                 this.updateCommentPoisition(endPos, originalEvents, updatedEvents, comments);
@@ -658,7 +658,7 @@ function loadPlaybackData() {
         return updatedEvents;
     }
 
-    editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, allFiles) {
+    editEventsBetweenTwoComments(startPos, endPos, originalEvents, updatedEvents, allFiles, comments) {
         //holds all of the perfect programmer events to playback in this range by the file or dir they happen in
         const eventsByFileOrDir = {};
 
@@ -672,15 +672,27 @@ function loadPlaybackData() {
         this.getDeleteEvents(startPos, endPos, originalEvents, eventsByFileOrDir, allFiles, ignoreFilesCreatedAndDeleted);
         this.getInsertEvents(startPos, endPos, originalEvents, eventsByFileOrDir, allFiles, ignoreFilesCreatedAndDeleted);
 
-        //to update the event sequence of each of the events
-        let newEventSequenceNumber = startPos;
+        //to update the event sequence number of each of event use the number of updated events stored so far 
+        let newEventSequenceNumber = updatedEvents.length;
 
         //go through all of the new events and add them to the array updatedEvents while updating the event sequence numbers
         for(let fileOrDirId in eventsByFileOrDir) {
             //add the events for a file or dir
             eventsByFileOrDir[fileOrDirId].forEach(event => {
+                //update the event's sequence number so that all the 'perfect programmer' events are sequential
                 event.eventSequenceNumber = newEventSequenceNumber;
+
+                //store the relevant event
                 updatedEvents.push(event);
+
+                //if there are comments at this event
+                if(comments[event.id]) {
+                    //go through each comment and update the event sequence number in the redundant copy of the event, displayCommentEvent
+                    comments[event.id].forEach(comment => {
+                        comment.displayCommentEvent.eventSequenceNumber = newEventSequenceNumber;
+                    });
+                }
+                //get ready for the next relevant event update
                 newEventSequenceNumber++;
             });
         }
@@ -953,7 +965,7 @@ function loadPlaybackData() {
                 //get rid of the old array of comments
                 delete comments[originalCommentEvent.id];
             }
-        }
+        } //else- it is the end of a playback without a comment
     }
 
     /* old version-- this may be useful for editing playbacks in the browser in the future */
