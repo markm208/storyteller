@@ -54,7 +54,7 @@ class CommentNavigator extends HTMLElement {
           </svg>
           Add a Comment
         </button>`
-      
+
     return template.content.cloneNode(true);
   }
 
@@ -63,11 +63,11 @@ class CommentNavigator extends HTMLElement {
     let totalNumberOfCommentsSoFar = 0;
 
     //go through each of the comments in this group
-    for(let i = 0;i < this.playbackEngine.commentsInGroups.length;i++) {
+    for (let i = 0; i < this.playbackEngine.commentsInGroups.length; i++) {
       const flattenedCommentGroup = this.playbackEngine.commentsInGroups[i];
 
       const commentGroup = new CommentGroup({
-        comments: flattenedCommentGroup, 
+        comments: flattenedCommentGroup,
         firstCommentGroup: i === 0 ? true : false,
         startingCommentNumber: totalNumberOfCommentsSoFar,
         playbackEngine: this.playbackEngine,
@@ -81,12 +81,12 @@ class CommentNavigator extends HTMLElement {
       });
 
       commentGroups.appendChild(commentGroup);
-      
+
       //update the comment number
       totalNumberOfCommentsSoFar += flattenedCommentGroup.length;
     }
 
-    if(this.playbackEngine.playbackData.isEditable) {
+    if (this.playbackEngine.playbackData.isEditable) {
       const newCommentButton = this.shadowRoot.querySelector('.newCommentButton');
       newCommentButton.classList.add('isEditable');
     }
@@ -98,9 +98,9 @@ class CommentNavigator extends HTMLElement {
   }
 
   updateSelectedComment() {
-    if(this.playbackEngine.activeComment.pausedOnComment) {
+    if (this.playbackEngine.activeComment.pausedOnComment) {
       const activeCommentGroup = this.shadowRoot.querySelector('st-comment-group.activeCommentGroup');
-      if(activeCommentGroup) {
+      if (activeCommentGroup) {
         activeCommentGroup.classList.remove('activeCommentGroup');
         //make the active comment view inactive
         activeCommentGroup.makeCommentViewInactive();
@@ -114,23 +114,33 @@ class CommentNavigator extends HTMLElement {
     }
   }
 
-  displaySearchResults(searchResults, searchText){
+  displaySearchResults(searchResults, searchText) {
     //clear out old search results
     const commentGroups = this.shadowRoot.querySelectorAll('st-comment-group');
     commentGroups.forEach(commentGroup => {
       commentGroup.revealCommentsBeforeSearch();
     });
 
-    //holds the IDs of the comments that were in the results
-    const relevantCommentIDs = new Set();
-    searchResults.forEach(searchResult => {
-      relevantCommentIDs.add(searchResult.commentId);
-    });
+    if (!searchResults.length) {
+      commentGroups.forEach(commentGroup => {
+        commentGroup.hideAllComments();
+      });
+    } else {
+      //holds the IDs of the comments that were in the results
+      const relevantCommentIDs = new Set();
 
-    //hide the comments that are not in the results
-    commentGroups.forEach(commentGroup => {
-      commentGroup.hideIrrelevantSearchResults(relevantCommentIDs, searchText);
-    });
+      searchResults.forEach(searchResult => {
+        relevantCommentIDs.add(searchResult.commentId);
+      });
+
+      //hide the comments that are not in the results
+      commentGroups.forEach(commentGroup => {
+        //if (commentGroup.length)
+        commentGroup.hideIrrelevantSearchResults(relevantCommentIDs, searchResults[0].searchText);
+      });
+    }
+
+
   }
 }
 

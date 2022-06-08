@@ -52,7 +52,7 @@ class PlaybackEngine {
         eventSequenceNumber: this.playbackData.comments[eventId][0].displayCommentEvent.eventSequenceNumber
       });
     });
-    
+
     //sort the info by event position
     commentPositions.sort((first, second) => {
       return first.eventSequenceNumber - second.eventSequenceNumber
@@ -76,7 +76,7 @@ class PlaybackEngine {
         this.commentIndexInFlattenedArray[comment.id] = this.flattenedComments.length - 1;
       });
     });
-    
+
     //store the first comment as the active one
     this.activeComment.comment = this.flattenedComments[0];
     this.activeComment.positionInFlattenedArray = 0;
@@ -104,9 +104,9 @@ class PlaybackEngine {
     this.stepForward(this.firstRelevantEventIndex, false);
   }
 
-  stepForward(numberOfSteps, trackNewCodeChanges=true) {
+  stepForward(numberOfSteps, trackNewCodeChanges = true) {
     //if there is any room to move forward at least one event
-    if (numberOfSteps > 0 && this.currentEventIndex < this.playbackData.events.length - 1) { 
+    if (numberOfSteps > 0 && this.currentEventIndex < this.playbackData.events.length - 1) {
       //create a new code marker generator if the user requests one
       this.newCodeMarkerGenerator = trackNewCodeChanges ? new NewCodeMarkerGenerator() : null;
 
@@ -147,7 +147,7 @@ class PlaybackEngine {
 
         //store the file where the latest event occurred (dir events will return null) 
         this.changeActiveFile(currentEvent.fileId);
-        
+
         //store the active developer group
         this.activeDevGroupId = currentEvent.createdByDevGroupId;
 
@@ -162,14 +162,14 @@ class PlaybackEngine {
   stepToEventNumber(eventNumber) {
     //step to the requested event number
     const eventNumberDiff = eventNumber - this.currentEventIndex;
-    
+
     if (eventNumberDiff > 0) {
       this.stepForward(eventNumberDiff);
     } else if (eventNumberDiff < 0) {
       this.stepBackward(-eventNumberDiff);
     } //else- it is 0 and no change is needed
   }
-  
+
   checkForCommentAtCurrentIndex() {
     const currentEvent = this.playbackData.events[this.currentEventIndex];
     //if there is a comment at the current event index point
@@ -181,9 +181,9 @@ class PlaybackEngine {
       this.activeComment.positionInFlattenedArray = this.commentIndexInFlattenedArray[firstCommentInGroup.id];
       this.activeComment.pausedOnComment = true;
       //if there is some selected code in a comment make sure the file is being displayed
-      for(let i = 0;i < allCommentsAtCurrentEvent.length;i++) {
+      for (let i = 0; i < allCommentsAtCurrentEvent.length; i++) {
         const comment = allCommentsAtCurrentEvent[i];
-        if(comment.selectedCodeBlocks.length > 0) {
+        if (comment.selectedCodeBlocks.length > 0) {
           const activeFileId = comment.selectedCodeBlocks[0].fileId;
           this.changeActiveFile(activeFileId);
           break;
@@ -209,7 +209,7 @@ class PlaybackEngine {
   }
 
   stepToNextComment() {
-    if(this.activeComment.pausedOnComment) {
+    if (this.activeComment.pausedOnComment) {
       //if there is at least one more comment to move to
       if (this.activeComment.positionInFlattenedArray < this.flattenedComments.length - 1) {
         const nextComment = this.flattenedComments[this.activeComment.positionInFlattenedArray + 1];
@@ -217,10 +217,10 @@ class PlaybackEngine {
       }
     } else {
       //go through all of the indexes in events where there is a comment
-      for(let i = 0;i < this.commentGroupEventPositions.length;i++) {
+      for (let i = 0; i < this.commentGroupEventPositions.length; i++) {
         const commentEventPos = this.commentGroupEventPositions[i];
         //if the paused event index exceeds the comment position
-        if(this.currentEventIndex < commentEventPos) {
+        if (this.currentEventIndex < commentEventPos) {
           this.stepToEventNumber(commentEventPos);
           break;
         }
@@ -229,7 +229,7 @@ class PlaybackEngine {
   }
 
   stepToPreviousComment() {
-    if(this.activeComment.pausedOnComment) {
+    if (this.activeComment.pausedOnComment) {
       //if there is at least one more comment to move to
       if (this.activeComment.positionInFlattenedArray > 0) {
         const prevComment = this.flattenedComments[this.activeComment.positionInFlattenedArray - 1];
@@ -237,10 +237,10 @@ class PlaybackEngine {
       }
     } else {
       //go through all of the indexes in events where there is a comment
-      for(let i = this.commentGroupEventPositions.length - 1;i > 0;i--) {
+      for (let i = this.commentGroupEventPositions.length - 1; i > 0; i--) {
         const commentEventPos = this.commentGroupEventPositions[i];
         //if the paused event index exceeds the comment position
-        if(this.currentEventIndex > commentEventPos) {
+        if (this.currentEventIndex > commentEventPos) {
           this.stepToEventNumber(commentEventPos);
           break;
         }
@@ -259,8 +259,8 @@ class PlaybackEngine {
   }
 
   changeActiveFile(fileId) {
-    if(fileId) {
-      if(fileId !== this.activeFileId) {
+    if (fileId) {
+      if (fileId !== this.activeFileId) {
         this.requiresUpdating.activeFile = true;
         this.activeFileId = fileId;
       }
@@ -270,7 +270,7 @@ class PlaybackEngine {
   getActiveFileContents() {
     //if there is an active file get its contents
     let activeFileContents = "";
-    if(this.activeFileId) {
+    if (this.activeFileId) {
       activeFileContents = this.editorState.getFile(this.activeFileId);
     }
     return activeFileContents;
@@ -279,7 +279,7 @@ class PlaybackEngine {
   getNewCodeMarkers() {
     //if there is an active file get the new code markers in it
     let newCodeMarkers = null;
-    if(this.activeFileId && this.newCodeMarkerGenerator) {
+    if (this.activeFileId && this.newCodeMarkerGenerator) {
       newCodeMarkers = this.newCodeMarkerGenerator.getData(this.activeFileId);
     }
     return newCodeMarkers;
@@ -368,10 +368,10 @@ class PlaybackEngine {
     }
   }
 
-  performSearch(searchText){
+  performSearch(searchText) {
     const searchResults = [];
     //search all the comments text, code and tags for the matching search text
-    for(let i = 0;i < this.flattenedComments.length;i++) {
+    for (let i = 0; i < this.flattenedComments.length; i++) {
       const comment = this.flattenedComments[i];
 
       let isRelevantComment = false;
@@ -380,33 +380,102 @@ class PlaybackEngine {
         inSelectedText: false,
         inCommentText: false,
         inTags: false,
-        searchText: searchText
+        searchText: this.handleHTMLInSearchText(searchText)
       };
 
       comment.selectedCodeBlocks.some(block => {
-        if(block.selectedText.toLowerCase().includes(searchText.toLowerCase())) {
+        if (block.selectedText.toLowerCase().includes(searchText.toLowerCase())) {
           isRelevantComment = true;
           searchResult.inSelectedText = true;
         }
-      });    
+      });
 
-      if(comment.commentText.toLowerCase().includes(searchText.toLowerCase())) {
+      //use searchResult.searchText here to get the formatted searchText
+      const testing = this.getIndexesOfValidSearchResultsInCommentText(comment.commentText, searchResult.searchText);
+
+      if (testing.length || searchText === '' || searchText === ' ') {
         isRelevantComment = true;
         searchResult.inCommentText = true;
-      }    
-    
-      if(comment.commentTags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()))) {
+      }
+
+      if (comment.commentTags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()))) {
         isRelevantComment = true;
         searchResult.inTags = true;
       }
 
       //collect the comments that have the search text
-      if (isRelevantComment){
+      if (isRelevantComment) {
         searchResult.commentId = comment.id;
         searchResults.push(searchResult);
       }
-      
+
     }
     return searchResults;
+  }
+
+  //TODO change function name
+  handleHTMLInSearchText(searchText) {
+    let output = searchText.toLowerCase();
+    output = output.replaceAll('>', '&gt;');
+    output = output.replaceAll('<', '&lt;')
+    output = output.replaceAll('&', '&amp;');
+    output = output.replaceAll('^', '&Hat;');
+    //output = output.replaceAll(' ', '&nbsp;');
+
+    return output
+  }
+
+
+  //TODO change function name
+  //returns all starting indexes in commentText that match searchText excluding HTML
+  getIndexesOfValidSearchResultsInCommentText(commentText, searchText) {
+    //not sure about this
+    if (searchText === '' || searchText === ' ') {
+      return [];
+    }
+
+
+
+    commentText = commentText.toLowerCase();
+    searchText = searchText.toLowerCase();
+
+    const HTMLEntities = new Set(['nbsp', 'lt', 'gt', 'amp', 'quot', 'apos']);
+    //TODO searchText of '?' breaks this
+    //or a character and then '?'
+    //or '$'
+    const regEx = new RegExp("(" + searchText + ")(?!([^<]+)?>)", "gi");
+    let result;
+
+    let includedInEntity = false;
+
+    //TODO go through each entity and see if the searchText matches 
+    HTMLEntities.forEach(entity => {
+      if (entity.includes(searchText)) {
+        includedInEntity = true;
+        return;
+      }
+    });
+
+    let matchIndexs = [];
+
+    if (includedInEntity || searchText === ';') {
+      while ((result = regEx.exec(commentText))) {
+        //TODO
+        //faster to check if each letter is in the set of entities
+        for (let i = result.index - 1; i >= 0; i--) {
+          if (commentText[i] === ' ' || (i === 0 && commentText[i] !== '&')) {
+            matchIndexs.push(result.index);
+            break;
+          } else if (commentText[i] === '&') {
+            break;
+          }
+        }
+      }
+    } else {
+      while ((result = regEx.exec(commentText))) {
+        matchIndexs.push(result.index);
+      }
+    }
+    return matchIndexs;
   }
 }

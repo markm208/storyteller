@@ -40,7 +40,7 @@ class SearchBar extends HTMLElement {
         
         <div class="searchControls">
           <div id="clearSearchResults"></div>
-          <input type="search" id='searchBar' class="searchInput" placeholder="Search comments...">
+          <input type="search" id='searchBar' class="searchInput" placeholder="Search comments..." spellcheck="false">
           </input>
         </div>
         `;
