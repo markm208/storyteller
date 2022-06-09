@@ -168,6 +168,20 @@ class PlaybackNavigator extends HTMLElement {
     const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
     commentNavigator.displaySearchResults(searchResults);
   }
+
+  addNewComment() {
+    if(this.activeTab === 'comments') {
+      const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+      commentNavigator.addNewComment();
+    }
+  }
+
+  cancelAddEditComment() {
+    if(this.activeTab === 'comments') {
+      const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+      commentNavigator.cancelAddEditComment();
+    }
+  }
 }
 
 window.customElements.define('st-playback-navigator', PlaybackNavigator);

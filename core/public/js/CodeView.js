@@ -190,6 +190,16 @@ class CodeView extends HTMLElement {
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
     playbackNavigator.displaySearchResults(searchResults);
   }
+
+  addNewComment() {
+    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
+    playbackNavigator.addNewComment();
+  }
+
+  cancelAddEditComment() {
+    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
+    playbackNavigator.cancelAddEditComment();
+  }
 }
 
 window.customElements.define('st-code-view', CodeView);

@@ -205,6 +205,13 @@ class App extends HTMLElement {
       this.decreaseEditorFontSize();
     });
     
+    this.shadowRoot.addEventListener('cancel-add-edit-comment', event => {
+      if (this.activeMode === 'code') {
+        const codeView = this.shadowRoot.querySelector('st-code-view');
+        codeView.cancelAddEditComment();
+      }
+    });
+
     document.addEventListener('keydown', event => {
       //get the state of the keys
       const keyPressed = event.key;
@@ -246,6 +253,11 @@ class App extends HTMLElement {
         //toggle play/pause 
         this.togglePlayPause(!this.autoPlayback.isPaused);
         event.preventDefault();
+      } else if (ctrlPressed && shiftPressed && keyPressed === 'Enter') {
+        if (this.activeMode === 'code') {
+          const codeView = this.shadowRoot.querySelector('st-code-view');
+          codeView.addNewComment();
+        }
       }
     });
   }
