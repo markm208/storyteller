@@ -8,6 +8,8 @@
 class VerticalMediaContainer extends HTMLElement {
     constructor(mediaURLs, mediaType) {
         super();
+        //TODO check for incorrect mediaType
+        //TODO check for bad URLs
 
         this.mediaURLs = mediaURLs;
         this.mediaType = mediaType.toLowerCase();
@@ -18,8 +20,6 @@ class VerticalMediaContainer extends HTMLElement {
 
     getTemplate() {
         const template = document.createElement('template');
-        // const tempType = this.mediaType + 's';
-
         const typeLabel = this.mediaType.charAt(0).toUpperCase() + this.mediaType.slice(1) + 's';
         template.innerHTML = `<style> 
         .mediaContainer{
@@ -35,10 +35,8 @@ class VerticalMediaContainer extends HTMLElement {
             cursor: pointer;
         }
         </style>
-
         
-        <div class='mediaContainer'>${typeLabel}       
-        
+        <div class='mediaContainer'>${typeLabel}           
         </div>`;
         return template.content.cloneNode(true);
     }
@@ -46,59 +44,7 @@ class VerticalMediaContainer extends HTMLElement {
     connectedCallback() {
         const mediaContainer = this.shadowRoot.querySelector('.mediaContainer');
         this.mediaURLs.forEach(mediaURL => {
-            const mediaDiv = document.createElement('div');
-            mediaDiv.classList.add('mediaDiv');
-
-            //clean this all up
-            let media;
-            if (this.mediaType === 'image') {
-                media = document.createElement('img');
-            } else { //video and audio
-                media = document.createElement(this.mediaType);
-                media.setAttribute('controls', '');
-                media.onplay = () => {
-                    media.classList.add('playing');
-                    //send event to pause all media in all VMCs
-                };
-
-                media.onpause = () => {
-                    media.classList.remove('playing');
-                    console.log('paused');
-                }
-            }
-            media.setAttribute('src', mediaURL);
-            media.setAttribute('draggable', 'true');
-            media.classList.add('draggable');
-
-            media.addEventListener('dragstart', () => {
-                this.pauseMedia();
-                media.classList.add('dragging');
-            })
-
-            media.addEventListener('dragend', () => {
-                //more needed here?
-                media.classList.remove('dragging');
-            })
-
-            //media.setAttribute('preload', 'metadata');   
-
-
-            //commentVideo.classList.add('commentVideo');
-
-
-            const removeMediaButton = document.createElement('btn');
-            removeMediaButton.classList.add('removeMedia');
-            removeMediaButton.title = `Remove ${this.mediaType}`;
-            removeMediaButton.innerHTML = 'X';
-
-
-            removeMediaButton.addEventListener('click', () =>{
-                mediaContainer.removeChild(mediaDiv);
-            })
-
-            mediaDiv.appendChild(media);
-
-            mediaDiv.appendChild(removeMediaButton);
+            const mediaDiv = this.createMedia(mediaURL);
             mediaContainer.appendChild(mediaDiv);
         })
 
@@ -118,6 +64,71 @@ class VerticalMediaContainer extends HTMLElement {
 
     disconnectedCallback() {
         //TODO remove eventListeners?
+    }
+
+    addMedia(mediaURL, type){
+        //TODO check for type mismatch
+        //TODO check for bad URLs
+
+        const mediaContainer = this.shadowRoot.querySelector('.mediaContainer');
+        const newMedia = this.createMedia(mediaURL);
+        mediaContainer.appendChild(newMedia);        
+    }
+
+    createMedia(mediaURL){
+        const mediaDiv = document.createElement('div');
+        mediaDiv.classList.add('mediaDiv');
+
+        const mediaContainer = this.shadowRoot.querySelector('.mediaContainer');
+
+        let media;
+        if (this.mediaType === 'image') {
+            media = document.createElement('img');
+        } else { //video and audio
+            media = document.createElement(this.mediaType);
+            media.setAttribute('controls', '');
+
+            media.onplay = () => {
+                media.classList.add('playing');
+            };
+
+            media.onpause = () => {
+                media.classList.remove('playing');
+            }
+        }
+        media.setAttribute('src', mediaURL);
+        media.setAttribute('draggable', 'true');
+        media.classList.add('draggable');
+
+        media.addEventListener('dragstart', () => {
+            this.pauseMedia();
+            media.classList.add('dragging');
+        })
+
+        media.addEventListener('dragend', () => {
+            media.classList.remove('dragging');
+        })
+
+        //media.setAttribute('preload', 'metadata');   
+
+
+        //media.classList.add('commentVideo');
+
+
+        const removeMediaButton = document.createElement('btn');
+        removeMediaButton.classList.add('removeMedia');
+        removeMediaButton.title = `Remove ${this.mediaType}`;
+        removeMediaButton.innerHTML = 'X';
+
+
+        removeMediaButton.addEventListener('click', () =>{
+            mediaContainer.removeChild(mediaDiv);
+        })
+
+        mediaDiv.appendChild(media);
+
+        mediaDiv.appendChild(removeMediaButton);
+        return mediaDiv;
     }
     
     getURLsInOrder() {
@@ -155,7 +166,7 @@ class VerticalMediaContainer extends HTMLElement {
 
             if (playing) {
                 playing.pause();
-                playing.classList.remove('playing'); //this probably isn't need cause it happens in the onpause listener
+                playing.classList.remove('playing'); //this probably isn't needed cause it happens in the onpause listener
             }
         }
     }
