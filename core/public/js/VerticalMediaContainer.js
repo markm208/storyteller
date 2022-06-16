@@ -8,11 +8,14 @@
 class VerticalMediaContainer extends HTMLElement {
     constructor(mediaURLs, mediaType) {
         super();
-        //TODO check for incorrect mediaType
-        //TODO check for bad URLs
+
+        this.mediaType = mediaType.toLowerCase();
+
+        if (this.mediaType !== 'audio' && this.mediaType !== 'video' && this.mediaType !== 'image') {
+            return;
+        }
 
         this.mediaURLs = mediaURLs;
-        this.mediaType = mediaType.toLowerCase();
 
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.appendChild(this.getTemplate());
@@ -22,13 +25,26 @@ class VerticalMediaContainer extends HTMLElement {
         const template = document.createElement('template');
         const typeLabel = this.mediaType.charAt(0).toUpperCase() + this.mediaType.slice(1) + 's';
         template.innerHTML = `<style> 
-        .mediaContainer{
-            display: grid;
-        }
         .draggable{
             height: 80%;
             width: 50%;
+
         }
+
+        error{
+            color: red;
+            padding: 10px;
+        }
+
+        .mediaContainer{
+            display: grid;
+            border-style: groove;
+        }
+
+        .mediaDiv{
+            margin: 10px;
+        }
+        
         .removeMedia{
             color: red;
             position: absolute;
@@ -50,15 +66,22 @@ class VerticalMediaContainer extends HTMLElement {
 
         mediaContainer.addEventListener('dragover', event => {
             const draggable = mediaContainer.querySelector('.dragging');
+            event.preventDefault();
+
             if (draggable) {
                 event.preventDefault();
                 const afterElement = this.getDragAfterElement(event.clientY);
                 if (typeof afterElement === 'undefined') {
-                    mediaContainer.appendChild(draggable.parentElement); 
+                    mediaContainer.appendChild(draggable.parentElement);
                 } else {
                     mediaContainer.insertBefore(draggable.parentElement, afterElement.parentElement);
                 }
             }
+        })
+
+        //TODO add ability to drop media files in from operating system
+        mediaContainer.addEventListener('drop', event => {
+            event.preventDefault();
         })
     }
 
@@ -66,16 +89,17 @@ class VerticalMediaContainer extends HTMLElement {
         //TODO remove eventListeners?
     }
 
-    addMedia(mediaURL, type){
-        //TODO check for type mismatch
-        //TODO check for bad URLs
+    addMedia(mediaURL, type) {
+        if (type.toLowerCase() !== this.mediaType) {
+            return;
+        }
 
         const mediaContainer = this.shadowRoot.querySelector('.mediaContainer');
         const newMedia = this.createMedia(mediaURL);
-        mediaContainer.appendChild(newMedia);        
+        mediaContainer.appendChild(newMedia);
     }
 
-    createMedia(mediaURL){
+    createMedia(mediaURL) {
         const mediaDiv = document.createElement('div');
         mediaDiv.classList.add('mediaDiv');
 
@@ -87,21 +111,36 @@ class VerticalMediaContainer extends HTMLElement {
         } else { //video and audio
             media = document.createElement(this.mediaType);
             media.setAttribute('controls', '');
+            const fileExtension = mediaURL.substring(mediaURL.lastIndexOf('.'), mediaURL.length) || mediaURL;
+
+            //message if browser doesn't support playback of the current file type
+            media.innerHTML = `<p>Your browswer does not support playback of *${fileExtension}* files</p>`;
 
             media.onplay = () => {
+                this.pauseMedia(); //TODO can be removed once the event below is handled
+                this.sendPauseAllEvent();
                 media.classList.add('playing');
             };
 
             media.onpause = () => {
                 media.classList.remove('playing');
             }
+
+
         }
+        //TODO add anon functions for eventListeners so listeners can be removed with disconnectedCallback()
+
+
+
+
+
         media.setAttribute('src', mediaURL);
         media.setAttribute('draggable', 'true');
         media.classList.add('draggable');
 
         media.addEventListener('dragstart', () => {
-            this.pauseMedia();
+            this.pauseMedia(); //TODO can be removed once the event below is handled
+            this.sendPauseAllEvent();
             media.classList.add('dragging');
         })
 
@@ -110,8 +149,6 @@ class VerticalMediaContainer extends HTMLElement {
         })
 
         //media.setAttribute('preload', 'metadata');   
-
-
         //media.classList.add('commentVideo');
 
 
@@ -121,8 +158,18 @@ class VerticalMediaContainer extends HTMLElement {
         removeMediaButton.innerHTML = 'X';
 
 
-        removeMediaButton.addEventListener('click', () =>{
+        removeMediaButton.addEventListener('click', () => {
             mediaContainer.removeChild(mediaDiv);
+        })
+
+        //if an error exists with the media, show an error message and allow user to remove media
+        media.addEventListener('error', (event) => {
+            const error = document.createElement('span');
+            error.innerHTML = `Error with file: <b><error>${media.src}</error></b>`;
+            media.replaceWith(error);
+
+
+            // mediaContainer.removeChild(mediaDiv);
         })
 
         mediaDiv.appendChild(media);
@@ -130,7 +177,7 @@ class VerticalMediaContainer extends HTMLElement {
         mediaDiv.appendChild(removeMediaButton);
         return mediaDiv;
     }
-    
+
     getURLsInOrder() {
         const allMedia = this.shadowRoot.querySelectorAll('.draggable');
 
@@ -140,6 +187,16 @@ class VerticalMediaContainer extends HTMLElement {
         })
         return retVal;
     }
+
+    sendPauseAllEvent() {
+        //send an event to pause all vertical media containers
+        const event = new CustomEvent('pause-all-vertical-media-containers', {
+            bubbles: true,
+            composed: true
+        });
+        this.dispatchEvent(event);
+    }
+
 
     getDragAfterElement(y) {
         const container = this.shadowRoot.querySelector('.mediaContainer');
@@ -166,7 +223,7 @@ class VerticalMediaContainer extends HTMLElement {
 
             if (playing) {
                 playing.pause();
-                playing.classList.remove('playing'); //this probably isn't needed cause it happens in the onpause listener
+                playing.classList.remove('playing');
             }
         }
     }

@@ -204,6 +204,10 @@ class App extends HTMLElement {
     this.shadowRoot.addEventListener('decrease-font', event => {
       this.decreaseEditorFontSize();
     });
+
+    this.shadowRoot.addEventListener('pause-all-vertical-media-containers', () =>{
+      //TODO tell other components to pause all vertical media containers
+    })
     
     document.addEventListener('keydown', event => {
       //get the state of the keys
