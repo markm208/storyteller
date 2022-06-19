@@ -28,7 +28,6 @@ class VerticalMediaContainer extends HTMLElement {
         .draggable{
             height: 80%;
             width: 50%;
-
         }
 
         error{
@@ -39,6 +38,7 @@ class VerticalMediaContainer extends HTMLElement {
         .mediaContainer{
             display: grid;
             border-style: groove;
+            overflow-y: auto;
         }
 
         .mediaDiv{
@@ -60,17 +60,17 @@ class VerticalMediaContainer extends HTMLElement {
     connectedCallback() {
         const mediaContainer = this.shadowRoot.querySelector('.mediaContainer');
         this.mediaURLs.forEach(mediaURL => {
-            const mediaDiv = this.createMedia(mediaURL);
-            mediaContainer.appendChild(mediaDiv);
+            this.addMedia(mediaURL);
         })
 
         mediaContainer.addEventListener('dragover', event => {
-            const draggable = mediaContainer.querySelector('.dragging');
             event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';  
+                      const draggable = mediaContainer.querySelector('.dragging');
 
             if (draggable) {
                 event.preventDefault();
-                const afterElement = this.getDragAfterElement(event.clientY);
+                const afterElement = this.#getDragAfterElement(event.clientY);
                 if (typeof afterElement === 'undefined') {
                     mediaContainer.appendChild(draggable.parentElement);
                 } else {
@@ -81,7 +81,20 @@ class VerticalMediaContainer extends HTMLElement {
 
         //TODO add ability to drop media files in from operating system
         mediaContainer.addEventListener('drop', event => {
-            event.preventDefault();
+
+            var data = event.dataTransfer.getData('text/html');
+            if (data === 'internal-drag'){
+                //alert(data);
+            }else if (event.dataTransfer.files){
+                const temp = event.dataTransfer.files;
+                for (let i = 0; i < temp.length; i++){
+                    const file = temp[i];
+                    //alert(file.name);
+                }
+            }
+            
+            event.preventDefault();        
+            event.stopPropagation();
         })
     }
 
@@ -89,17 +102,15 @@ class VerticalMediaContainer extends HTMLElement {
         //TODO remove eventListeners?
     }
 
-    addMedia(mediaURL, type) {
-        if (type.toLowerCase() !== this.mediaType) {
-            return;
-        }
+    addMedia(mediaURL, fromDragIn = false) {
+        //TODO get type from src
 
         const mediaContainer = this.shadowRoot.querySelector('.mediaContainer');
-        const newMedia = this.createMedia(mediaURL);
+        const newMedia = this.#createMedia(mediaURL);
         mediaContainer.appendChild(newMedia);
     }
 
-    createMedia(mediaURL) {
+    #createMedia(mediaURL) {
         const mediaDiv = document.createElement('div');
         mediaDiv.classList.add('mediaDiv');
 
@@ -138,13 +149,20 @@ class VerticalMediaContainer extends HTMLElement {
         media.setAttribute('draggable', 'true');
         media.classList.add('draggable');
 
-        media.addEventListener('dragstart', () => {
+        media.addEventListener('dragstart', (event) => {
+            //event.preventDefault();
+            //set data to 'internal-drag' so we can later identify that this drag came from storyteller and not the OS
+            event.dataTransfer.setData('Text/html',  'internal-drag');
+            //event.dataTransfer.effectAllowed = 'move';
             this.pauseMedia(); //TODO can be removed once the event below is handled
             this.sendPauseAllEvent();
+
             media.classList.add('dragging');
         })
 
-        media.addEventListener('dragend', () => {
+        media.addEventListener('dragend', (event) => {
+            event.preventDefault();
+
             media.classList.remove('dragging');
         })
 
@@ -163,10 +181,15 @@ class VerticalMediaContainer extends HTMLElement {
         })
 
         //if an error exists with the media, show an error message and allow user to remove media
-        media.addEventListener('error', (event) => {
+        media.addEventListener('error', () => {
             const error = document.createElement('span');
             error.innerHTML = `Error with file: <b><error>${media.src}</error></b>`;
+            removeMediaButton.title = 'Remove file';
+
+            //replace the file with an error message and move it to the top of the media container
             media.replaceWith(error);
+            mediaContainer.removeChild(mediaDiv);
+            mediaContainer.firstChild.after(mediaDiv);
 
 
             // mediaContainer.removeChild(mediaDiv);
@@ -187,7 +210,7 @@ class VerticalMediaContainer extends HTMLElement {
         })
         return retVal;
     }
-
+  
     sendPauseAllEvent() {
         //send an event to pause all vertical media containers
         const event = new CustomEvent('pause-all-vertical-media-containers', {
@@ -197,8 +220,7 @@ class VerticalMediaContainer extends HTMLElement {
         this.dispatchEvent(event);
     }
 
-
-    getDragAfterElement(y) {
+    #getDragAfterElement(y) {
         const container = this.shadowRoot.querySelector('.mediaContainer');
         const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')];
         return draggableElements.reduce((closest, child) => {
