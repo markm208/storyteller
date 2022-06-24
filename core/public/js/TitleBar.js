@@ -96,11 +96,6 @@ class TitleBar extends HTMLElement {
 
     const enterBlogModeButton = this.shadowRoot.querySelector('#enterBlogModeButton');
     enterBlogModeButton.addEventListener('click', this.updateToBlogMode);
-
-    const deleteMe = this.shadowRoot.querySelector('.optionsButtonsGroup');
-    let deleteMeToo = new CreateMultipleChoiceQuestion();
-    deleteMe.prepend(deleteMeToo);
-
   }
 
   disconnectedCallback() {

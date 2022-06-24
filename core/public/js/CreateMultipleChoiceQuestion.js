@@ -82,7 +82,12 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
 
             .checkBoxContent{
                 display: flex;
-            }        
+            }
+            
+            #addAnswerButton{
+                cursor: pointer;
+                margin-bottom: 20px;
+            }
         </style>
 
         <div class='questionComment'>
@@ -130,6 +135,9 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
 
         const addAnswerButton = this.shadowRoot.querySelector('#addAnswerButton');
         addAnswerButton.addEventListener('click', this.addNewAnswerBox);
+
+        const questionInput = this.shadowRoot.querySelector('#commentQuestion');
+        questionInput.focus();
     }
 
     disconnectedCallback() {
@@ -195,6 +203,16 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
 
         const questionAnswerContent = this.shadowRoot.querySelector('.questionCommentContent');
         questionAnswerContent.append(newAnswerOuterDiv);
+
+        //focus the question if it's not filled in
+        //or the first question that isn't filled in
+        const questionDiv = this.shadowRoot.getElementById('commentQuestion');
+        if (!questionDiv.innerText.trim().length) {
+            questionDiv.focus();
+        } else {
+            const answerInputs = [...this.shadowRoot.querySelectorAll('.questionCommentInput')]
+            answerInputs[answerInputs.findIndex(item => item.value === '')].focus();
+        }
     }
 
     getMultipleChoiceQuestionData() {
@@ -251,3 +269,14 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     }
 }
 window.customElements.define('st-create-multiple-choice-question', CreateMultipleChoiceQuestion);
+
+
+/*TODO
+-'Correct Answer' and 'Remove Answer' buttons have different text size
+-'+' on addAnswerButton looks wrong
+-Styling
+-Document component
+-Test everything more
+
+
+*/
