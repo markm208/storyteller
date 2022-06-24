@@ -137,6 +137,13 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         addAnswerButton.addEventListener('click', this.addNewAnswerBox);
 
         const questionInput = this.shadowRoot.querySelector('#commentQuestion');
+
+        const answerInputs = this.shadowRoot.querySelectorAll('.questionCommentInput');
+        answerInputs.forEach(answerInput => {
+            answerInput.addEventListener('keydown', this.stopKeypressesFromPropagating);
+        });
+
+        questionInput.addEventListener('keydown', this.stopKeypressesFromPropagating);
         questionInput.focus();
     }
 
@@ -153,6 +160,10 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         })
     }
 
+    stopKeypressesFromPropagating = (event) => {
+        event.stopImmediatePropagation();
+    }
+
     addNewAnswerBox = () => {
         const newAnswerOuterDiv = document.createElement('div');
         newAnswerOuterDiv.classList.add('questionOuterDiv', 'extraQuestion');
@@ -162,6 +173,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         answerInput.value = '';
         answerInput.setAttribute('autocomplete', 'off');
         answerInput.placeholder = 'Answer';
+        answerInput.addEventListener('keydown', this.stopKeypressesFromPropagating);
 
         const checkBoxDiv = document.createElement('div');
         checkBoxDiv.classList.add('checkBoxContent');
@@ -240,7 +252,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         if (!foundError) {
             const answers = this.shadowRoot.querySelectorAll('.questionCommentInput');
 
-            for (let i = 0; i < answers.length; i++){
+            for (let i = 0; i < answers.length; i++) {
                 const thisAnswer = answers[i].value;
                 if (thisAnswer !== '') {
                     retVal.questionData.allAnswers.push(thisAnswer);
@@ -249,7 +261,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
                     retVal.errorMessage = 'An answer field cannot be empty';
                     break;
                 }
-            }       
+            }
         }
 
         if (!foundError) {
@@ -277,6 +289,6 @@ window.customElements.define('st-create-multiple-choice-question', CreateMultipl
 -Styling
 -Document component
 -Test everything more
-
+-Disconnected callback
 
 */
