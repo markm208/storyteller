@@ -58,6 +58,7 @@ class TitleBar extends HTMLElement {
       <span class="playbackTitle"></span>
     </div>
     <!-- search bar, code/blog mode buttons and options button -->
+
     <div class="optionsButtonsGroup" role="group" aria-label="Options Button Group">
       <st-search-bar></st-search-bar>
       <button id="enterCodeModeButton" type="button" class="modeButton" title="Code View">
@@ -95,6 +96,11 @@ class TitleBar extends HTMLElement {
 
     const enterBlogModeButton = this.shadowRoot.querySelector('#enterBlogModeButton');
     enterBlogModeButton.addEventListener('click', this.updateToBlogMode);
+
+    const deleteMe = this.shadowRoot.querySelector('.optionsButtonsGroup');
+    let deleteMeToo = new CreateMultipleChoiceQuestion();
+    deleteMe.prepend(deleteMeToo);
+
   }
 
   disconnectedCallback() {
