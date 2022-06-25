@@ -59,8 +59,8 @@ class PlaybackNavigator extends HTMLElement {
           scrollbar-width: thin;
         }
 
-        .active {
-          display: block;
+        .inactive {
+          display: none;
         }
       </style>
       
@@ -82,10 +82,10 @@ class PlaybackNavigator extends HTMLElement {
     const subNavigatorsTab = this.shadowRoot.querySelector('.subNavigatorsTab');
     //create the sub-navigators
     const commentNavigator = new CommentNavigator(this.playbackEngine);
-    commentNavigator.classList.add('active');
     subNavigatorsTab.appendChild(commentNavigator);
 
     const fileSystemNavigator = new FileSystemNavigator(this.playbackEngine);
+    fileSystemNavigator.classList.add('inactive');
     subNavigatorsTab.appendChild(fileSystemNavigator);
   }
 
@@ -97,70 +97,58 @@ class PlaybackNavigator extends HTMLElement {
   }
 
   tabClick = (event) => {
-    const tabLinks = this.shadowRoot.querySelectorAll('.tabLink');
-    tabLinks.forEach(tabLink => {
-      tabLink.classList.remove('activeTab');
-    });
-    event.target.classList.add('activeTab');
-
-    //get each of the subnavigators
-    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-    const fileSystemNavigator = this.shadowRoot.querySelector('st-file-system-navigator');
-
-    //remove the old classes
-    commentNavigator.classList.remove('active');
-    fileSystemNavigator.classList.remove('active');
-
-    //selected comment navigator
-    if(event.target.classList.contains('comments')) {
-      //make active
-      commentNavigator.classList.add('active');
-      this.activeTab = 'comments';
-      //update and send event
-      if(this.playbackEngine.activeComment.pausedOnComment) {
-        commentNavigator.updateSelectedComment();
+    const activeTab = this.shadowRoot.querySelector('.activeTab');
+    //only handle the click if it is a new tab
+    if(event.target !== activeTab) {
+      //if there is an active tab, make in inactive
+      if(activeTab) {
+        activeTab.classList.remove('activeTab');
       }
-      this.sendEventPlaybackNavigatorTabClick('comments');
-    } else if(event.target.classList.contains('fileSystem')) {
-      //make active
-      fileSystemNavigator.classList.add('active');
-      this.activeTab = 'fileSystem';
-      //update and send event
-      fileSystemNavigator.updateActiveFile();
-      this.sendEventPlaybackNavigatorTabClick('fileSystem');
+      //make the clicked tab active
+      event.target.classList.add('activeTab');
+
+      //get each of the subnavigators
+      const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+      const fileSystemNavigator = this.shadowRoot.querySelector('st-file-system-navigator');
+
+      //remove the old classes
+      commentNavigator.classList.remove('inactive');
+      fileSystemNavigator.classList.remove('inactive');
+
+      //selected comment navigator
+      if(event.target.classList.contains('comments')) {
+        //make the fs inactive
+        fileSystemNavigator.classList.add('inactive');
+        this.activeTab = 'comments';
+      } else if(event.target.classList.contains('fileSystem')) {
+        //make the comments inactive
+        commentNavigator.classList.add('inactive');
+        this.activeTab = 'fileSystem';
+      }
+      //show the latest changes
+      this.updateForPlaybackMovement();
     }
   }
 
-  sendEventPlaybackNavigatorTabClick(newTab) {
-    const event = new CustomEvent('playback-navigator-tab-switch', { 
-      detail: {newPlaybackNavTab: newTab},
-      bubbles: true, 
-      composed: true 
-    });
-    this.dispatchEvent(event);
-  }
-
-  updateSelectedComment() {
+  updateForPlaybackMovement() {
+    //forward the message on to the right tab
     if(this.activeTab === 'comments') {
       const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-      commentNavigator.updateSelectedComment();
+      commentNavigator.updateForPlaybackMovement();
     } else if(this.activeTab === 'fileSystem') {
       const fileSystemNavigator = this.shadowRoot.querySelector('st-file-system-navigator');
-      fileSystemNavigator.updateActiveFile();
-    } 
+      fileSystemNavigator.updateForPlaybackMovement();
+    }
   }
 
-  updateSliderMoved() {
+  updateForSelectedFile() {
+    //forward the message on to the right tab
     if(this.activeTab === 'fileSystem') {
       const fileSystemNavigator = this.shadowRoot.querySelector('st-file-system-navigator');
-      fileSystemNavigator.updateActiveFile();
-    } 
-  }
-
-  updateActiveFile() {
-    if(this.activeTab === 'fileSystem') {
-      const fileSystemNavigator = this.shadowRoot.querySelector('st-file-system-navigator');
-      fileSystemNavigator.updateActiveFile();
+      fileSystemNavigator.updateForSelectedFile();
+    } else if(this.activeTab === 'comments') {
+      const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+      commentNavigator.updateForSelectedFile();
     }
   }
 
@@ -169,18 +157,43 @@ class PlaybackNavigator extends HTMLElement {
     commentNavigator.displaySearchResults(searchResults);
   }
 
-  addNewComment() {
+  updateUIToAddNewComment() {
+    //if the comments are not displayed then make the comment tab the active one
+    if(this.activeTab !== 'comments') {
+      const commentsTab = this.shadowRoot.querySelector('.comments');
+      commentsTab.click();
+    }
+    //pass the message on
+    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+    commentNavigator.updateUIToAddNewComment();
+  }
+
+  updateUIToEditComment(comment) {
+    //if the comments are not displayed then make the comment tab the active one
+    if(this.activeTab !== 'comments') {
+      const commentsTab = this.shadowRoot.querySelector('.comments');
+      commentsTab.click();
+    }
+    //pass the message on
+    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+    commentNavigator.updateUIToEditComment(comment);
+  }
+
+  updateUIToCancelAddEditComment() {
     if(this.activeTab === 'comments') {
       const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-      commentNavigator.addNewComment();
+      commentNavigator.updateUIToCancelAddEditComment();
     }
   }
 
-  cancelAddEditComment() {
-    if(this.activeTab === 'comments') {
-      const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-      commentNavigator.cancelAddEditComment();
-    }
+  updateForNewComment() {
+    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+    commentNavigator.updateForNewComment();
+  }
+
+  updateForCommentEdit(editedComment) {
+    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+    commentNavigator.updateForCommentEdit(editedComment);
   }
 }
 

@@ -1,7 +1,7 @@
 class BlogComponent extends HTMLElement {
-  constructor(comment, editorProperties) {
+  constructor(playbackEngine, comment, editorProperties) {
     super();
-    
+    this.playbackEngine = playbackEngine;
     this.comment = comment;
     this.editorProperties = editorProperties;
 
@@ -103,20 +103,13 @@ class BlogComponent extends HTMLElement {
     }
 
     //add an event handler so users can click comments
-    this.addEventListener('click', this.sendEventActiveComment);
+    this.addEventListener('click', event => {
+      //store this as the active comment
+      this.playbackEngine.activeComment = this.comment;
+    });
   }
 
   disconnectedCallback() {
-    this.removeEventListener('click', this.sendEventActiveComment);
-  }
-
-  sendEventActiveComment() {
-    const event = new CustomEvent('active-comment', { 
-      detail: {activeCommentId: this.comment.id}, 
-      bubbles: true, 
-      composed: true 
-    });
-    this.dispatchEvent(event);
   }
 }
 

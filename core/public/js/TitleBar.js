@@ -1,5 +1,5 @@
 class TitleBar extends HTMLElement {
-  constructor(playbackTitle, activeMode, playbackEngine) {
+  constructor(activeMode, playbackEngine) {
     super();
     
     this.attachShadow({ mode: 'open' });
@@ -7,7 +7,7 @@ class TitleBar extends HTMLElement {
     this.playbackEngine = playbackEngine;
 
     this.activeMode = activeMode;
-    this.playbackTitle = playbackTitle;
+    this.playbackTitle = playbackEngine.playbackData.playbackTitle;
   }
 
   getTemplate() {
@@ -135,9 +135,9 @@ class TitleBar extends HTMLElement {
   }
 
   displaySearchResults(searchResults) {
-    //send the number of comments shown and total to the search bar
+    //send the number of comments shown and total number of comments to the search bar
     const titleBar = this.shadowRoot.querySelector('st-search-bar');
-    titleBar.displaySearchResults(searchResults.length, this.playbackEngine.flattenedComments.length);
+    titleBar.displaySearchResults(searchResults.length, this.playbackEngine.getTotalNumberOfComments());
   }
 
   notifyModeSelected(newMode) {

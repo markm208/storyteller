@@ -6,6 +6,7 @@ class CommentView extends HTMLElement {
     this.playbackEngine = commentViewData.playbackEngine;
     this.isDescriptionComment = commentViewData.isDescriptionComment;
     this.commentNumber = commentViewData.commentNumber;
+    this.totalNumberOfComments = commentViewData.totalNumberOfComments;
     
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
@@ -68,12 +69,20 @@ class CommentView extends HTMLElement {
           width: 100%;
           padding-bottom: 5px;
         }
-      </style>
 
-      <div class="commentTopBar"></div>
-      <div class="commentText"></div>
-      <div class="media"></div>
-      <div class="questions"></div>`;
+        .inactive {
+          display: none;
+        }
+      </style>
+      <div>
+        <div>
+          <div class="commentTopBar"></div>
+          <div class="commentText"></div>
+          <div class="media"></div>
+          <div class="questions"></div>
+        </div>
+        <button id="editCommentButton" class="inactive">edit</button>
+      </div>`;
 
     return template.content.cloneNode(true);
   }
@@ -81,6 +90,14 @@ class CommentView extends HTMLElement {
   connectedCallback() {
     const commentView = this.shadowRoot.host;
     commentView.addEventListener('click', this.commentClicked);
+
+    //if this is an editable playback
+    if(this.playbackEngine.playbackData.isEditable) {
+      //add an edit button
+      const editCommentButton = this.shadowRoot.querySelector('#editCommentButton');
+      editCommentButton.classList.remove('inactive');
+      editCommentButton.addEventListener('click', this.beginEditComment);
+    }
 
     //top of comment view
     this.buildCommentViewTop();
@@ -124,6 +141,17 @@ class CommentView extends HTMLElement {
     commentView.removeEventListener('click', this.commentClicked);
   }
 
+  beginEditComment = () => {
+    const event = new CustomEvent('begin-edit-comment', { 
+      detail: {
+        comment: this.comment
+      },
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
+  }
+
   commentClicked = event => {
     event.preventDefault();
     this.sendActiveCommentEvent();
@@ -150,7 +178,7 @@ class CommentView extends HTMLElement {
 
       const commentCount = document.createElement('div');
       commentCount.classList.add('commentCount');
-      commentCount.innerHTML = `${this.commentNumber}/${this.playbackEngine.flattenedComments.length - 1}`; //subtract one for description comment
+      commentCount.innerHTML = `${this.commentNumber}/${this.totalNumberOfComments - 1}`; //subtract one for description comment
 
       commentBar.appendChild(devGroup);
       commentBar.appendChild(commentCount);

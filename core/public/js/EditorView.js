@@ -1,9 +1,9 @@
 class EditorView extends HTMLElement {
-  constructor(editorViewData) {
+  constructor(playbackEngine, editorProperties) {
     super();
 
-    this.editorProperties = editorViewData.editorProperties;
-    this.playbackEngine = editorViewData.playbackEngine;
+    this.editorProperties = editorProperties;
+    this.playbackEngine = playbackEngine;
     
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
@@ -32,10 +32,7 @@ class EditorView extends HTMLElement {
 
   connectedCallback() {
     const editor = this.shadowRoot.querySelector('.editor');
-    const aceEditor = new AceEditor({
-      editorProperties: this.editorProperties,
-      playbackEngine: this.playbackEngine
-    });
+    const aceEditor = new AceEditor(this.playbackEngine, this.editorProperties);
     editor.appendChild(aceEditor);
 
     const controls = this.shadowRoot.querySelector('.controls');
@@ -46,22 +43,43 @@ class EditorView extends HTMLElement {
   disconnectedCallback() {
   }
 
-  update(isPaused=true) {
+  updateForPlaybackMovement() {
     const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
-    aceEditor.update();
+    aceEditor.updateForPlaybackMovement();
 
     const playbackControls = this.shadowRoot.querySelector('st-playback-controls');
-    playbackControls.update(isPaused);
+    playbackControls.updateForPlaybackMovement();
   }
 
-  updateActiveFile() {
+  updateForSelectedFile() {
     const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
-    aceEditor.update();
+    aceEditor.updateForPlaybackMovement();
   }
 
   updateEditorFontSize(newFontSize) {
     const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
     aceEditor.updateEditorFontSize(newFontSize);
+  }
+
+  updateHandleTextSelection(makeCodeSelectable) {
+    const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
+    aceEditor.updateHandleTextSelection(makeCodeSelectable);
+  }
+  
+  updateLinesAboveBelow(linesAbove, linesBelow) {
+    const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
+    aceEditor.updateLinesAboveBelow(linesAbove, linesBelow);
+  }
+
+  getSelectedCodeInfo() {
+    const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
+    return aceEditor.getSelectedCodeInfo();
+  }
+
+  updateForNewComment() {
+    //make sure there is a pip in the playback controls for the new comment
+    const playbackControls = this.shadowRoot.querySelector('st-playback-controls');
+    playbackControls.updateForNewComment();
   }
 }
 

@@ -14,9 +14,6 @@ class FileSystemNavigator extends HTMLElement {
     const template = document.createElement('template');
     template.innerHTML = `
       <style>
-        :host {
-          display: none;
-        }
         .fsView {
           padding: 8px;
           margin: 8px;
@@ -39,6 +36,10 @@ class FileSystemNavigator extends HTMLElement {
 
         .activeFileSystemFile {
           font-weight: bold;
+        }
+
+        .editedFile::before {
+          content: "*";
         }
 
         .downloadProgressDisplay {
@@ -111,7 +112,12 @@ class FileSystemNavigator extends HTMLElement {
     }
     //create the root and work down
     const fsView = this.shadowRoot.querySelector('.fsView');
-    this.renderHelper(this.root, fsView);
+    //get the changed file ids
+    let changedFileIds = null;
+    if(this.playbackEngine.newCodeMarkerGenerator) {
+      changedFileIds = new Set(this.playbackEngine.newCodeMarkerGenerator.getAllChangedFileIds());
+    }
+    this.renderHelper(this.root, fsView, changedFileIds);
 
     const downloadCodeButton = this.shadowRoot.querySelector('.downloadCodeButton');
     downloadCodeButton.addEventListener('click', this.downloadCodeIntoZip);
@@ -128,7 +134,7 @@ class FileSystemNavigator extends HTMLElement {
     downloadCodeButton.removeEventListener('click', this.downloadCodeIntoZip);
   }
 
-  renderHelper(aDirectory, aList) {
+  renderHelper(aDirectory, aList, changedFileIds) {
     if(aDirectory.isDeleted === false) {
       //get the name of the directory
       const directory = this.playbackEngine.editorState.allDirectories[aDirectory.directoryId];
@@ -153,7 +159,7 @@ class FileSystemNavigator extends HTMLElement {
         const subDirectory = this.playbackEngine.editorState.allDirectories[subDirectoryId];
         
         //recurse down the fs
-        this.renderHelper(subDirectory, newSubDirectoryList);
+        this.renderHelper(subDirectory, newSubDirectoryList, changedFileIds);
       });
 
       //all dirs added, now get all of the files in this directory
@@ -167,8 +173,7 @@ class FileSystemNavigator extends HTMLElement {
         if(file.isDeleted === false) {
           //get the file name
           const indexOfLastSlash = file.filePath.lastIndexOf("/");
-          const fileName = file.filePath.substring(indexOfLastSlash + 1);
-
+          let fileName = file.filePath.substring(indexOfLastSlash + 1);
           //add it as a child to the files list
           const newListItem = document.createElement('li');
           newListItem.innerHTML = fileName;
@@ -176,6 +181,9 @@ class FileSystemNavigator extends HTMLElement {
           newListItem.classList.add('fsFile');
           if (file.fileId === this.playbackEngine.activeFileId) {
             newListItem.classList.add('activeFileSystemFile');
+          }
+          if(changedFileIds && changedFileIds.has(fileId)) {
+            newListItem.classList.add('editedFile');
           }
           newListItem.addEventListener('click', this.handleFileClick);
 
@@ -187,11 +195,34 @@ class FileSystemNavigator extends HTMLElement {
     } 
   }
 
-  updateActiveFile() {
+  updateForPlaybackMovement() {
+    //if there are changes to the fs or the active file
     if(this.playbackEngine.requiresUpdating.fileSystem || this.playbackEngine.requiresUpdating.activeFile) {
       const fsView = this.shadowRoot.querySelector('.fsView');
       fsView.innerHTML = '';
-      this.renderHelper(this.root, fsView);
+      
+      //get the changed file ids
+      let changedFileIds = null;
+      if(this.playbackEngine.newCodeMarkerGenerator) {
+        changedFileIds = new Set(this.playbackEngine.newCodeMarkerGenerator.getAllChangedFileIds());
+      }
+      this.renderHelper(this.root, fsView, changedFileIds);
+    }
+  }
+
+  updateForSelectedFile() {
+    //de-highlight the active file
+    let activeFileSystemFile = this.shadowRoot.querySelector('.activeFileSystemFile');
+    if(activeFileSystemFile) {
+      activeFileSystemFile.classList.remove('activeFileSystemFile');
+    }
+    
+    //highlight the new active file
+    if(this.playbackEngine.activeFileId) {
+      activeFileSystemFile = this.shadowRoot.querySelector(`#${this.playbackEngine.activeFileId}`);
+      if(activeFileSystemFile) {
+        activeFileSystemFile.classList.add('activeFileSystemFile');
+      }
     }
   }
 

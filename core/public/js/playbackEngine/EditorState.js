@@ -37,6 +37,18 @@ class EditorState {
     return textInFile;
   }
 
+  getNumLinesInFile(fileId) {
+    let retVal = 0;
+
+    //get a file representation (if it exists)
+    if(this.filesContents[fileId]) {
+      //get the number of rows in the 2D array
+      const currentFile = this.filesContents[fileId];
+      retVal = currentFile.length;
+    }
+    return retVal;
+  }
+
   getFilePath(fileId) {
     let filePath = '';
     if(this.allFiles[fileId]) {

@@ -1,9 +1,9 @@
 class BlogView extends HTMLElement {
-  constructor(blogViewData) {
+  constructor(playbackEngine, editorProperties) {
     super();
 
-    this.editorProperties = blogViewData.editorProperties;
-    this.playbackEngine = blogViewData.playbackEngine;
+    this.editorProperties = editorProperties;
+    this.playbackEngine = playbackEngine;
 
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
@@ -81,12 +81,13 @@ class BlogView extends HTMLElement {
     //the blog component to scroll to if there is an active comment
     let scrollToElement = null;
 
+    const flattenedComments = this.playbackEngine.getFlattenedComments();
     //go through each comment in the playback
-    for(let i = 0;i < this.playbackEngine.flattenedComments.length;i++) { 
-      const comment = this.playbackEngine.flattenedComments[i];
+    for(let i = 0;i < flattenedComments.length;i++) { 
+      const comment = flattenedComments[i];
       
       //create the content and add it to the page
-      const blogComponent = new BlogComponent(comment, this.editorProperties);
+      const blogComponent = new BlogComponent(this.playbackEngine, comment, this.editorProperties);
       //make each blog component identifiable by id
       blogComponent.setAttribute('id', comment.id);
 
@@ -96,7 +97,7 @@ class BlogView extends HTMLElement {
       }
 
       //if there is an active comment when blog view is created
-      if(this.playbackEngine.activeComment.pausedOnComment && comment.id === this.playbackEngine.activeComment.comment.id) {
+      if(this.playbackEngine.activeComment && comment.id === this.playbackEngine.activeComment.id) {
         blogComponent.classList.add('activeComment');
         //for scrolling, only scroll to non-description comments
         if(blogComponent.classList.contains('descriptionComment') === false) {
@@ -110,19 +111,6 @@ class BlogView extends HTMLElement {
     //scroll to the active comment (if there is one)
     if(scrollToElement) {
       scrollToElement.scrollIntoView(true);
-    }
-  }
-
-  updateSelectedComment() {
-    if(this.playbackEngine.activeComment.pausedOnComment) {
-      //find the active comment and remove it
-      const activeBlogComponent = this.shadowRoot.querySelector('st-blog-component.activeComment');
-      if(activeBlogComponent) {
-        activeBlogComponent.classList.remove('activeComment');
-      }
-      //add the new active comment
-      const newActiveComment = this.shadowRoot.querySelector(`st-blog-component#${this.playbackEngine.activeComment.comment.id}`);
-      newActiveComment.classList.add('activeComment');
     }
   }
 

@@ -5,6 +5,7 @@ class CommentGroup extends HTMLElement {
     this.comments = commentGroupData.comments;
     this.firstCommentGroup = commentGroupData.firstCommentGroup;
     this.startingCommentNumber = commentGroupData.startingCommentNumber;
+    this.totalNumberOfComments = commentGroupData.totalNumberOfComments;
     this.playbackEngine = commentGroupData.playbackEngine;
 
     this.attachShadow({ mode: 'open' });
@@ -49,14 +50,15 @@ class CommentGroup extends HTMLElement {
       if(this.firstCommentGroup && i === 0) {
         isDescriptionComment = true;
       } 
-
+      //create a comment view for the comment
       const commentView = new CommentView({
         comment: comment,
         playbackEngine: this.playbackEngine,
         isDescriptionComment: isDescriptionComment,
         commentNumber: this.startingCommentNumber + i,
+        totalNumberOfComments: this.totalNumberOfComments
       });
-
+      //give the comment view the id of the comment
       commentView.setAttribute('id', comment.id);
 
       commentViews.appendChild(commentView);
@@ -67,24 +69,45 @@ class CommentGroup extends HTMLElement {
   }
 
   makeCommentViewInactive() {
-    const activeComment = this.shadowRoot.querySelector('.activeComment');
-    if(activeComment) {
-      activeComment.classList.remove('activeComment');
+    //get the active comment view and make it inactive
+    const activeCommentView = this.shadowRoot.querySelector('.activeComment');
+    if(activeCommentView) {
+      activeCommentView.classList.remove('activeComment');
     }
   }
 
   makeCommentViewActive() {
-    const newActiveComment = this.shadowRoot.querySelector(`st-comment-view#${this.playbackEngine.activeComment.comment.id}`);
-    newActiveComment.classList.add('activeComment');
+    //get the new active comment view and make it active
+    const newActiveCommentView = this.shadowRoot.querySelector(`st-comment-view#${this.playbackEngine.activeComment.id}`);
+    newActiveCommentView.classList.add('activeComment');
 
     //get the rectangle around the active comment that is displayed
-    const commentRectangle = newActiveComment.getBoundingClientRect();
+    const commentRectangle = newActiveCommentView.getBoundingClientRect();
     
     //if the comment's top/bottom edge is  off of the screen (+/- 50px)
     if (commentRectangle.bottom - 50 < 0 || commentRectangle.top > window.innerHeight - 50) {
       //scroll to the active comment
-      newActiveComment.scrollIntoView(true)
+      newActiveCommentView.scrollIntoView({behavior: "smooth", block: "start", inline: "center"})
     }
+  }
+
+  updateForCommentEdit(editedComment) {
+    //get the old comment view that will be replaces
+    const oldCommentView = this.shadowRoot.querySelector(`st-comment-view#${editedComment.id}`);
+    //create a new comment view with the edited comment
+    const newCommentView = new CommentView({
+        comment: editedComment,
+        playbackEngine: this.playbackEngine,
+        isDescriptionComment: oldCommentView.isDescriptionComment,
+        commentNumber: oldCommentView.commentNumber,
+        totalNumberOfComments: this.totalNumberOfComments
+      }
+    );
+    newCommentView.setAttribute('id', editedComment.id);
+
+    //replace the old comment view with a new one
+    const commentViews = this.shadowRoot.querySelector('.commentViews');
+    commentViews.replaceChild(newCommentView, oldCommentView);
   }
 
   hideIrrelevantSearchResults(hideAllButThese) {

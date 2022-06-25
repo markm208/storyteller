@@ -128,16 +128,27 @@ class PlaybackControls extends HTMLElement {
     this.sendEventPauseClick();
   }
 
-  update(isPaused=true) {
+  updateForPlaybackMovement() {
     this.updateActiveDevGroup();
 
-    if(isPaused !== this.isPaused) {
-      this.isPaused = isPaused;
-      this.updatePlayPauseButton(isPaused);
+    //if there is a reason to pause (reached comment or end of playback)
+    const shouldPause = this.playbackEngine.activeComment || this.playbackEngine.currentEventIndex === this.playbackEngine.playbackData.events.length - 1;
+    if(shouldPause !== this.isPaused) {
+      //pause and change the button
+      this.isPaused = true;
+      this.updatePlayPauseButton(true);
     }
 
     const playbackSlider = this.shadowRoot.querySelector('st-playback-slider');
     playbackSlider.updateToCurrentEventIndex();
+  }
+
+  updateForNewComment() {
+    //for every new comment, rerender the pips in the playback slider
+    const slider = this.shadowRoot.querySelector('.slider');
+    slider.innerHTML = '';
+    const playbackSlider = new PlaybackSlider(this.playbackEngine);
+    slider.appendChild(playbackSlider);
   }
 
   updateActiveDevGroup() {
