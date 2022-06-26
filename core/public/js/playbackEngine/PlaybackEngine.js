@@ -208,16 +208,21 @@ class PlaybackEngine {
       //store the selected comment
       this.activeComment = firstCommentInGroup;
 
+      //find the active file to display for this comment
+      //default to the file where the event took place (if its a file event, undefined otherwise) 
+      let activeFileId = this.activeComment.displayCommentEvent.fileId;
       //if there is some selected code in any comment in the group then make sure the file is being displayed
       for(let i = 0;i < allCommentsAtCurrentEvent.length;i++) {
         const comment = allCommentsAtCurrentEvent[i];
         if(comment.selectedCodeBlocks.length > 0) {
           //get the file id where there is some selected text
-          const activeFileId = comment.selectedCodeBlocks[0].fileId;
-          this.changeActiveFile(activeFileId);
+          activeFileId = comment.selectedCodeBlocks[0].fileId;
           break;
         }
       }
+      //update the active file (if there is one)
+      this.changeActiveFile(activeFileId);
+
     } else { //no comment at the current event
       //clear the active comment info
       this.activeComment = null;
