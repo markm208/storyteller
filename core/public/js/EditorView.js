@@ -81,6 +81,12 @@ class EditorView extends HTMLElement {
     const playbackControls = this.shadowRoot.querySelector('st-playback-controls');
     playbackControls.updateForNewComment();
   }
+
+  updateForDeleteComment() {
+    //make sure the pip in the playback controls is removed
+    const playbackControls = this.shadowRoot.querySelector('st-playback-controls');
+    playbackControls.updateForDeleteComment();
+  }
 }
 
 window.customElements.define('st-editor-view', EditorView);

@@ -109,6 +109,9 @@ class PlaybackSlider extends HTMLElement {
       commentMarker.addEventListener('click', this.addPipEventHandler);
       pips.appendChild(commentMarker);
     });
+
+    //move the slider to the active event index
+    this.updateToCurrentEventIndex();
   }
 
   disconnectedCallback() {

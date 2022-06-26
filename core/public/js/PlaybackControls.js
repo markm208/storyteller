@@ -86,9 +86,8 @@ class PlaybackControls extends HTMLElement {
     const goToNextCommentButton = this.shadowRoot.querySelector('#goToNextCommentButton');
     goToNextCommentButton.addEventListener('click', this.sendEventNextCommentClick);
 
-    const slider = this.shadowRoot.querySelector('.slider');
-    const playbackSlider = new PlaybackSlider(this.playbackEngine);
-    slider.appendChild(playbackSlider);
+    //build the slider
+    this.buildPlaybackSlider();
 
     const playButton = this.shadowRoot.querySelector('#playButton');
     playButton.addEventListener('click', this.playClicked);
@@ -145,6 +144,15 @@ class PlaybackControls extends HTMLElement {
 
   updateForNewComment() {
     //for every new comment, rerender the pips in the playback slider
+    this.buildPlaybackSlider();
+  }
+
+  updateForDeleteComment() {
+    //when the last comment at a position is deleted, remove the pip
+    this.buildPlaybackSlider();
+  }
+
+  buildPlaybackSlider() {
     const slider = this.shadowRoot.querySelector('.slider');
     slider.innerHTML = '';
     const playbackSlider = new PlaybackSlider(this.playbackEngine);

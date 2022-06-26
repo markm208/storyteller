@@ -112,6 +112,11 @@ class CommentNavigator extends HTMLElement {
     this.addCommentsToView();
   }
 
+  updateForDeleteComment() {
+    //rebuild all of the comment groups
+    this.addCommentsToView();
+  }
+  
   addCommentsToView() {
     //clear out any old comment views
     const commentGroups = this.shadowRoot.querySelector('.commentGroups');

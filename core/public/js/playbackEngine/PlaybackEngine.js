@@ -589,4 +589,31 @@ class PlaybackEngine {
       }
     }
   }
+
+  deleteComment(deletedComment) {
+    //get the deleted comment's event id 
+    const eventId = deletedComment.displayCommentEvent.id;
+    
+    //get all of the comments in the group
+    const commentsAtEvent = this.playbackData.comments[eventId];
+    
+    //search for the comment by id
+    for(let i = 0;i < commentsAtEvent.length;i++) {
+      const comment = commentsAtEvent[i];
+      if(comment.id === deletedComment.id) {
+        //delete the comment
+        commentsAtEvent.splice(i, 1);
+
+        //if there are no comments left
+        if(commentsAtEvent.length === 0) {
+          //delete the empty array at this event
+          delete this.playbackData.comments[eventId];
+        }
+
+        //clear out the active comment
+        this.activeComment = null;
+        break;
+      }
+    }
+  }
 }

@@ -141,6 +141,22 @@ class CodeView extends HTMLElement {
       this.updateUIToCancelAddEditComment();
     });
 
+    //delete an existing comment
+    this.shadowRoot.addEventListener('delete-comment', async event => {
+      //get the comment object to delete
+      const comment = event.detail.comment;
+
+      //delete the comment on the st server
+      const serverProxy = new ServerProxy();
+      await serverProxy.deleteCommentFromServer(comment);
+
+      //update the playback engine's data
+      this.playbackEngine.deleteComment(comment);
+
+      //update
+      this.updateForDeleteComment();
+    });
+
     //change to the lines above/below when creating/editing a comment
     this.shadowRoot.addEventListener('lines-above-below-change', event => {
       const linesAbove = event.detail.linesAbove;
@@ -273,6 +289,23 @@ class CodeView extends HTMLElement {
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
     playbackNavigator.updateForCommentEdit(editedComment);
     
+    //update
+    this.updateForPlaybackMovement();
+  }
+
+  updateForDeleteComment() {
+    //the previous comment was made active, display it
+    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
+    playbackNavigator.updateForDeleteComment();
+
+    //get the event where the comment was deleted
+    const commentEvent = this.playbackEngine.getMostRecentEvent();
+    //if there are no more comments at this event
+    if(!this.playbackEngine.playbackData.comments[commentEvent.id]) {
+      //update the editor view to remove the pip
+      const editorView = this.shadowRoot.querySelector('st-editor-view');
+      editorView.updateForDeleteComment();
+    }
     //update
     this.updateForPlaybackMovement();
   }

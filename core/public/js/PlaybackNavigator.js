@@ -195,6 +195,11 @@ class PlaybackNavigator extends HTMLElement {
     const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
     commentNavigator.updateForCommentEdit(editedComment);
   }
+
+  updateForDeleteComment() {
+    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+    commentNavigator.updateForDeleteComment();
+  }
 }
 
 window.customElements.define('st-playback-navigator', PlaybackNavigator);

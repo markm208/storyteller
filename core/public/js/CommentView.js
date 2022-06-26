@@ -82,6 +82,7 @@ class CommentView extends HTMLElement {
           <div class="questions"></div>
         </div>
         <button id="editCommentButton" class="inactive">edit</button>
+        <button id="deleteCommentButton" class="inactive">delete</button>
       </div>`;
 
     return template.content.cloneNode(true);
@@ -97,6 +98,14 @@ class CommentView extends HTMLElement {
       const editCommentButton = this.shadowRoot.querySelector('#editCommentButton');
       editCommentButton.classList.remove('inactive');
       editCommentButton.addEventListener('click', this.beginEditComment);
+
+      //the description comment cannot be deleted, add the button if it is not the description
+      if(!this.isDescriptionComment) {
+        //add a delete button
+        const deleteCommentButton = this.shadowRoot.querySelector('#deleteCommentButton');
+        deleteCommentButton.classList.remove('inactive');
+        deleteCommentButton.addEventListener('click', this.deleteComment);
+      }
     }
 
     //top of comment view
@@ -143,6 +152,17 @@ class CommentView extends HTMLElement {
 
   beginEditComment = () => {
     const event = new CustomEvent('begin-edit-comment', { 
+      detail: {
+        comment: this.comment
+      },
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
+  }
+
+  deleteComment = () => {
+    const event = new CustomEvent('delete-comment', { 
       detail: {
         comment: this.comment
       },
