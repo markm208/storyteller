@@ -33,9 +33,15 @@ class CommentGroup extends HTMLElement {
         :host(.nonRelevantSearchResult) {
           display: none;
         }
+
+        .inactive {
+          display: none;
+        }
       </style>
 
-      <div class="commentViews"></div>`;
+      <div class="commentViews"></div>
+      <button id="editCommentGroupButton" class="inactive">edit group</button>
+      `;
 
     return template.content.cloneNode(true);
   }
@@ -62,6 +68,13 @@ class CommentGroup extends HTMLElement {
       commentView.setAttribute('id', comment.id);
 
       commentViews.appendChild(commentView);
+    }
+    //if this is an editable playback
+    if(this.playbackEngine.playbackData.isEditable) {
+      //add an edit button
+      const editCommentGroupButton = this.shadowRoot.querySelector('#editCommentGroupButton');
+      editCommentGroupButton.classList.remove('inactive');
+      editCommentGroupButton.addEventListener('click', this.beginEditCommentGroup);
     }
   }
 
@@ -92,7 +105,7 @@ class CommentGroup extends HTMLElement {
   }
 
   updateForCommentEdit(editedComment) {
-    //get the old comment view that will be replaces
+    //get the old comment view that will be replaced
     const oldCommentView = this.shadowRoot.querySelector(`st-comment-view#${editedComment.id}`);
     //create a new comment view with the edited comment
     const newCommentView = new CommentView({
@@ -144,6 +157,127 @@ class CommentGroup extends HTMLElement {
     if(this.classList.contains('nonRelevantSearchResult')) {
       this.classList.remove('nonRelevantSearchResult');
     }
+  }
+  
+  updateForCommentGroupEditing() {
+    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+    allCommentViews.forEach(commentView => {
+      commentView.updateForCommentGroupEditing();
+    });
+  }
+  
+  updateForCommentGroupEditingComplete() {
+    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+    allCommentViews.forEach(commentView => {
+      commentView.updateForCommentGroupEditingComplete();
+    });
+  }
+
+  updateForReordering() {
+    //only make comment views draggable if there are more than one
+    if(this.comments.length > 1) {
+      //make all of the comment views in this comment group draggable
+      const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+      for(let i = 0;i < allCommentViews.length;i++) {
+        const commentView = allCommentViews[i];
+
+        commentView.setAttribute('draggable', true);
+        commentView.addEventListener("dragstart", event => {
+          //while being dragged add a class so it can be found later
+          commentView.classList.add('dragging');
+          event.dataTransfer.effectAllowed = "move";
+        });
+
+        //make this CommentGroup a drop zone
+        //when a CommentView is dropped in the CommentGroup
+        this.shadowRoot.host.addEventListener('drop', event => {
+          event.preventDefault();
+          //reorder the comments based on where the comment view was dropped
+          this.sortCommentViews(event.clientY);
+        });
+        this.shadowRoot.host.addEventListener("dragover", event => {
+          event.dataTransfer.dropEffect = "move"
+          event.preventDefault();
+        });
+      }  
+    }
+  }
+
+  sortCommentViews(dropYPosition) {
+    //get the comment view that was being dragged
+    const draggedCommentView = this.shadowRoot.querySelector('.dragging');
+    if(draggedCommentView) {
+      //remove the dragging class
+      draggedCommentView.classList.remove('dragging');
+
+      //the position in the array of comments at this event of the comment being dragged and dropped
+      let dragPos;
+      let dropPos;
+
+      //get all of the comment views
+      const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+      //go through all of the comment views
+      for(let i = 0;i < allCommentViews.length;i++) {
+        const commentView = allCommentViews[i];
+
+        //get the top and bottom position of every comment view
+        const rect = commentView.getBoundingClientRect();
+        const topPos = rect.top;
+        const bottomPos = rect.bottom;
+
+        //if the dragged comment view has been found
+        if(draggedCommentView.comment.id === commentView.comment.id) {
+          dragPos = i;
+        }
+
+        //if the drop position is in between another comment view's top and bottom
+        if(dropYPosition >= topPos && dropYPosition <= bottomPos) {
+          dropPos = i;
+        }
+      }
+
+      //if the comment view needs to move (no need to move to its existing position)
+      if(dragPos !== dropPos) {
+        //create the reordering data
+        const updatedCommentPosition = {
+          eventId: draggedCommentView.comment.displayCommentEvent.id,
+          oldCommentPosition: dragPos,
+          newCommentPosition:dropPos
+        };
+        //send the event to handle reordering
+        this.reorderComments(updatedCommentPosition);
+      }
+    }
+  }
+
+  updateForReorderingComplete() {
+    //make the comment views non-draggable
+    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+    allCommentViews.forEach(commentView => {
+      commentView.removeAttribute('draggable');
+    });
+  }
+
+  beginEditCommentGroup = () => {
+    const event = new CustomEvent('begin-edit-comment-group', { 
+      detail: {
+        selectedCommentGroupId: this.comments[0].id
+      },
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
+  }
+
+  reorderComments = (updatedCommentPosition) => {
+    const event = new CustomEvent('reorder-comments', { 
+      detail: {
+        updatedCommentPosition: updatedCommentPosition
+      },
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
   }
 }
 

@@ -621,4 +621,17 @@ class PlaybackEngine {
       }
     }
   }
+
+  reorderComments(updatedCommentPosition) {
+    //get the group of comments at for an event
+    const allCommentsAtEvent = this.playbackData.comments[updatedCommentPosition.eventId];
+    //get a reference to the comment being moved
+    const movedComment = allCommentsAtEvent[updatedCommentPosition.oldCommentPosition];
+    //remove the comment from its original position
+    allCommentsAtEvent.splice(updatedCommentPosition.oldCommentPosition, 1);
+    //add the comment to its new position
+    allCommentsAtEvent.splice(updatedCommentPosition.newCommentPosition, 0, movedComment);
+    //mark the moved comment as active
+    this.activeComment = movedComment;
+  }
 }

@@ -103,7 +103,6 @@ class CommentView extends HTMLElement {
       if(!this.isDescriptionComment) {
         //add a delete button
         const deleteCommentButton = this.shadowRoot.querySelector('#deleteCommentButton');
-        deleteCommentButton.classList.remove('inactive');
         deleteCommentButton.addEventListener('click', this.deleteComment);
       }
     }
@@ -170,6 +169,30 @@ class CommentView extends HTMLElement {
       composed: true 
     });
     this.dispatchEvent(event);
+  }
+
+  updateForCommentGroupEditing() {
+    //if this is an editable playback
+    if(this.playbackEngine.playbackData.isEditable) {
+      //the description comment cannot be deleted, make it visible if it is not the description
+      if(!this.isDescriptionComment) {
+        //make the delete button visible
+        const deleteCommentButton = this.shadowRoot.querySelector('#deleteCommentButton');
+        deleteCommentButton.classList.remove('inactive');
+      }
+    }
+  }
+
+  updateForCommentGroupEditingComplete() {
+    //if this is an editable playback
+    if(this.playbackEngine.playbackData.isEditable) {
+      //the description comment cannot be deleted, make it visible if it is not the description
+      if(!this.isDescriptionComment) {
+        //make the delete button invisible
+        const deleteCommentButton = this.shadowRoot.querySelector('#deleteCommentButton');
+        deleteCommentButton.classList.add('inactive');
+      }
+    }
   }
 
   commentClicked = event => {

@@ -72,6 +72,24 @@ class CommentNavigator extends HTMLElement {
       addEditCommentComponent.appendChild(new AddEditComment(this.playbackEngine));
     }
 
+    //when a comment group is made editable
+    this.shadowRoot.addEventListener('begin-edit-comment-group', (event) => {
+      //add the delete buttons and make the comment views draggable
+      this.makeCommentGroupEditable(event.detail.selectedCommentGroupId);
+    });
+
+    this.shadowRoot.addEventListener('reorder-comments', async (event) => {
+      //when the reordering of events is complete send the pb engine the new comment ordering
+      this.playbackEngine.reorderComments(event.detail.updatedCommentPosition);
+      
+      //send the new comment ordering to the st server
+      const serverProxy = new ServerProxy();
+      await serverProxy.updateCommentPositionOnServer(event.detail.updatedCommentPosition);
+
+      //update the UI for the new order
+      this.updateForReorderedComments();
+    });
+
     //update to the active comment (usually the first comment)
     this.updateForPlaybackMovement();
   }
@@ -100,7 +118,7 @@ class CommentNavigator extends HTMLElement {
       }
 
       //look for the comment group that contains the new active comment
-      const newActiveCommentGroup = this.shadowRoot.querySelector(`.${this.playbackEngine.activeComment.id}`);
+      const newActiveCommentGroup = this.shadowRoot.querySelector(`st-comment-group.${this.playbackEngine.activeComment.id}`);
       newActiveCommentGroup.classList.add('activeCommentGroup');
       //make the comment view active
       newActiveCommentGroup.makeCommentViewActive();
@@ -117,6 +135,11 @@ class CommentNavigator extends HTMLElement {
     this.addCommentsToView();
   }
   
+  updateForReorderedComments() {
+    //rebuild all of the comment groups
+    this.addCommentsToView();
+  }
+
   addCommentsToView() {
     //clear out any old comment views
     const commentGroups = this.shadowRoot.querySelector('.commentGroups');
@@ -153,6 +176,8 @@ class CommentNavigator extends HTMLElement {
       //update the comment number
       totalNumberOfCommentsSoFar += flattenedCommentGroup.length;
     }
+    //if there is an active comment highlight it
+    this.updateForPlaybackMovement();
   }
 
   updateForSelectedFile() {
@@ -225,6 +250,9 @@ class CommentNavigator extends HTMLElement {
 
     const newCommentButton = this.shadowRoot.querySelector('#newCommentButton');
     newCommentButton.classList.remove('inactive');
+
+    //if there is an active comment highlight it
+    this.updateForPlaybackMovement();
   }
 
   updateForCommentEdit(editedComment) {
@@ -236,6 +264,22 @@ class CommentNavigator extends HTMLElement {
         break;
       }
     }
+  }
+
+  makeCommentGroupEditable(editableGroupId) {
+    //remove any previous editable groups
+    const currentlyEditableCommentGroup = this.shadowRoot.querySelector('st-comment-group.currentlyEditableCommentGroup');
+    if(currentlyEditableCommentGroup) {
+      currentlyEditableCommentGroup.classList.remove('currentlyEditableCommentGroup');
+      currentlyEditableCommentGroup.updateForCommentGroupEditingComplete();
+      currentlyEditableCommentGroup.updateForReorderingComplete();
+    }
+
+    //get the selected group and make it editble
+    const newEditableCommentGroup = this.shadowRoot.querySelector(`st-comment-group.${editableGroupId}`);
+    newEditableCommentGroup.classList.add('currentlyEditableCommentGroup');
+    newEditableCommentGroup.updateForCommentGroupEditing();
+    newEditableCommentGroup.updateForReordering();
   }
 }
 
