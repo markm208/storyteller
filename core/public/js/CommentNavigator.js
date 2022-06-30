@@ -250,9 +250,6 @@ class CommentNavigator extends HTMLElement {
 
     const newCommentButton = this.shadowRoot.querySelector('#newCommentButton');
     newCommentButton.classList.remove('inactive');
-
-    //if there is an active comment highlight it
-    this.updateForPlaybackMovement();
   }
 
   updateForCommentEdit(editedComment) {
@@ -277,9 +274,11 @@ class CommentNavigator extends HTMLElement {
 
     //get the selected group and make it editble
     const newEditableCommentGroup = this.shadowRoot.querySelector(`st-comment-group.${editableGroupId}`);
-    newEditableCommentGroup.classList.add('currentlyEditableCommentGroup');
-    newEditableCommentGroup.updateForCommentGroupEditing();
-    newEditableCommentGroup.updateForReordering();
+    //if(newEditableCommentGroup) {
+      newEditableCommentGroup.classList.add('currentlyEditableCommentGroup');
+      newEditableCommentGroup.updateForCommentGroupEditing();
+      newEditableCommentGroup.updateForReordering();
+    //}
   }
 }
 
