@@ -154,6 +154,7 @@ class CodeView extends HTMLElement {
       this.playbackEngine.deleteComment(comment);
 
       //update
+      this.updateUIToCancelAddEditComment();
       this.updateForDeleteComment();
     });
 
@@ -280,8 +281,6 @@ class CodeView extends HTMLElement {
       const editorView = this.shadowRoot.querySelector('st-editor-view');
       editorView.updateForNewComment();
     }
-    //update
-    this.updateForPlaybackMovement();
   }
 
   updateForCommentEdit(editedComment) {

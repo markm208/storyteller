@@ -23,7 +23,7 @@ class CommentGroup extends HTMLElement {
           flex-direction: column;
         }
 
-        :host(.activeCommentGroup) {
+        :host(.activeCommentGroup) .commentViews {
           background-color: rgb(63, 63, 63);
           border: 3px gray solid;  
           border-radius: .2rem;
@@ -39,25 +39,41 @@ class CommentGroup extends HTMLElement {
         }
 
         #editCommentGroupButton {
-          content: "edit order";
           background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' fill='lightgray' class='bi bi-list-ol' viewBox='0 0 16 16'><path fill-rule='evenodd' d='M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5z'/><path d='M1.713 11.865v-.474H2c.217 0 .363-.137.363-.317 0-.185-.158-.31-.361-.31-.223 0-.367.152-.373.31h-.59c.016-.467.373-.787.986-.787.588-.002.954.291.957.703a.595.595 0 0 1-.492.594v.033a.615.615 0 0 1 .569.631c.003.533-.502.8-1.051.8-.656 0-1-.37-1.008-.794h.582c.008.178.186.306.422.309.254 0 .424-.145.422-.35-.002-.195-.155-.348-.414-.348h-.3zm-.004-4.699h-.604v-.035c0-.408.295-.844.958-.844.583 0 .96.326.96.756 0 .389-.257.617-.476.848l-.537.572v.03h1.054V9H1.143v-.395l.957-.99c.138-.142.293-.304.293-.508 0-.18-.147-.32-.342-.32a.33.33 0 0 0-.342.338v.041zM2.564 5h-.635V2.924h-.031l-.598.42v-.567l.629-.443h.635V5z'/></svg>");
           background-repeat: no-repeat;
-          height: 1.5em;
-          width: 1.5em;
+          height: 2em;
+          width: 2em;
           border: none;    
           margin: 0px 15px;
-          background-color: gray;
+          background-color: transparent;
           opacity: 70%;
+          float: right;
+        }
+        #editCommentGroupButton:hover {
+          opacity: 100%;
         }
 
-        #editCommentGroupButton:hover {
+        #doneEditingCommentGroupButton {
+          background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' fill='lightgray' class='bi bi-check-square' viewBox='0 0 16 16'><path d='M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z'/><path d='M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022z'/></svg>");
+          background-repeat: no-repeat;
+          height: 2em;
+          width: 2em;
+          border: none;    
+          margin: 0px 15px;
+          background-color: transparent;
+          opacity: 70%;
+          float: right;
+        }
+        #doneEditingCommentGroupButton:hover {
           opacity: 100%;
         }
       </style>
 
       <div class="commentViews"></div>
-      <button id="editCommentGroupButton" class="inactive"></button>
-      <button id="doneEditingCommentGroupButton" class="inactive">done</button>
+      <div>
+        <button id="editCommentGroupButton" class="inactive" title="Reorder the comments with drag and drop."></button>
+        <button id="doneEditingCommentGroupButton" class="inactive" title="End comment reordering."></button>
+      </div>
       `;
 
     return template.content.cloneNode(true);
@@ -83,47 +99,52 @@ class CommentGroup extends HTMLElement {
       });
       //give the comment view the id of the comment
       commentView.setAttribute('id', comment.id);
-
+      //add the comment view to this comment group
       commentViews.appendChild(commentView);
     }
     //if this is an editable playback
-    if(this.playbackEngine.playbackData.isEditable) {
+    if(this.playbackEngine.playbackData.isEditable && this.comments.length > 1) {
       //add an edit button
       const editCommentGroupButton = this.shadowRoot.querySelector('#editCommentGroupButton');
-      editCommentGroupButton.classList.remove('inactive');
-      editCommentGroupButton.addEventListener('click', this.beginEditCommentGroup);
+      editCommentGroupButton.addEventListener('click', this.updateForCommentGroupEditing);
 
       const doneEditingCommentGroupButton = this.shadowRoot.querySelector('#doneEditingCommentGroupButton');
-      doneEditingCommentGroupButton.addEventListener('click', event => {
-        this.updateForCommentGroupEditingComplete();
-      });
+      doneEditingCommentGroupButton.addEventListener('click', this.updateForCommentGroupEditingComplete);
     }
   }
 
   disconnectedCallback() {
   }
 
-  makeCommentViewInactive() {
-    //get the active comment view and make it inactive
-    const activeCommentView = this.shadowRoot.querySelector('.activeComment');
-    if(activeCommentView) {
-      activeCommentView.classList.remove('activeComment');
+  makeCommentGroupActive() {
+    //make this comment group active
+    this.shadowRoot.host.classList.add('activeCommentGroup');
+
+    //get the new active comment view and make it active
+    const newActiveCommentView = this.shadowRoot.querySelector(`st-comment-view#${this.playbackEngine.activeComment.id}`);
+    newActiveCommentView.makeCommentViewActive();
+
+    //if there are more than one comments in this group
+    if(this.playbackEngine.playbackData.isEditable && this.comments.length > 1) {
+      //make the order button visible
+      const editCommentGroupButton = this.shadowRoot.querySelector('#editCommentGroupButton');
+      editCommentGroupButton.classList.remove('inactive');
     }
   }
 
-  makeCommentViewActive() {
-    //get the new active comment view and make it active
-    const newActiveCommentView = this.shadowRoot.querySelector(`st-comment-view#${this.playbackEngine.activeComment.id}`);
-    newActiveCommentView.classList.add('activeComment');
+  makeCommentGroupInactive() {
+    //make this comment group inactive
+    this.shadowRoot.host.classList.remove('activeCommentGroup');
 
-    //get the rectangle around the active comment that is displayed
-    const commentRectangle = newActiveCommentView.getBoundingClientRect();
-    
-    //if the comment's top/bottom edge is  off of the screen (+/- 50px)
-    if (commentRectangle.bottom - 50 < 0 || commentRectangle.top > window.innerHeight - 50) {
-      //scroll to the active comment
-      newActiveCommentView.scrollIntoView({behavior: "smooth", block: "start", inline: "center"})
+    //get the active comment view (if there is one) and make it inactive
+    const activeCommentView = this.shadowRoot.querySelector('.activeComment');
+    if(activeCommentView) {
+      activeCommentView.makeCommentViewInactive();
     }
+
+    //if this group has a visible reorder button, make it invisible
+    const editCommentGroupButton = this.shadowRoot.querySelector('#editCommentGroupButton');
+    editCommentGroupButton.classList.add('inactive');
   }
 
   updateForCommentEdit(editedComment) {
@@ -181,12 +202,7 @@ class CommentGroup extends HTMLElement {
     }
   }
   
-  updateForCommentGroupEditing() {
-    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
-    allCommentViews.forEach(commentView => {
-      commentView.updateForCommentGroupEditing();
-    });
-
+  updateForCommentGroupEditing = () => {
     //make the edit button invisible
     const editCommentGroupButton = this.shadowRoot.querySelector('#editCommentGroupButton');
     editCommentGroupButton.classList.add('inactive');
@@ -194,13 +210,33 @@ class CommentGroup extends HTMLElement {
     //make the done button visible
     const doneEditingCommentGroupButton = this.shadowRoot.querySelector('#doneEditingCommentGroupButton');
     doneEditingCommentGroupButton.classList.remove('inactive');
+
+    //make all of the comment views in this comment group draggable
+    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+    for(let i = 0;i < allCommentViews.length;i++) {
+      const commentView = allCommentViews[i];
+      commentView.setAttribute('draggable', true);
+      commentView.addEventListener('dragstart', event => {
+        //while being dragged add a class so it can be found later
+        commentView.classList.add('dragging');
+        event.dataTransfer.effectAllowed = 'move';
+      });
+    }
+    //make this CommentGroup a drop zone
+    //when a CommentView is dropped in the CommentGroup
+    this.shadowRoot.host.addEventListener('drop', event => {
+      event.preventDefault();
+      //reorder the comments based on where the comment view was dropped
+      this.sortCommentViews(event.clientY);
+      console.log('handling a drop');
+    });
+    this.shadowRoot.host.addEventListener('dragover', event => {
+      event.dataTransfer.dropEffect = 'move';
+      event.preventDefault();
+    });
   }
   
-  updateForCommentGroupEditingComplete() {
-    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
-    allCommentViews.forEach(commentView => {
-      commentView.updateForCommentGroupEditingComplete();
-    });
+  updateForCommentGroupEditingComplete = () => {
     //make the edit button visible
     const editCommentGroupButton = this.shadowRoot.querySelector('#editCommentGroupButton');
     editCommentGroupButton.classList.remove('inactive');
@@ -208,6 +244,12 @@ class CommentGroup extends HTMLElement {
     //make the done button invisible
     const doneEditingCommentGroupButton = this.shadowRoot.querySelector('#doneEditingCommentGroupButton');
     doneEditingCommentGroupButton.classList.add('inactive');
+    
+    //make the comment views non-draggable
+    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+    allCommentViews.forEach(commentView => {
+      commentView.removeAttribute('draggable');
+    });
   }
 
   updateForReordering() {
@@ -217,12 +259,11 @@ class CommentGroup extends HTMLElement {
       const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
       for(let i = 0;i < allCommentViews.length;i++) {
         const commentView = allCommentViews[i];
-
         commentView.setAttribute('draggable', true);
-        commentView.addEventListener("dragstart", event => {
+        commentView.addEventListener('dragstart', event => {
           //while being dragged add a class so it can be found later
           commentView.classList.add('dragging');
-          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.effectAllowed = 'move';
         });
 
         //make this CommentGroup a drop zone
@@ -232,8 +273,8 @@ class CommentGroup extends HTMLElement {
           //reorder the comments based on where the comment view was dropped
           this.sortCommentViews(event.clientY);
         });
-        this.shadowRoot.host.addEventListener("dragover", event => {
-          event.dataTransfer.dropEffect = "move"
+        this.shadowRoot.host.addEventListener('dragover', event => {
+          event.dataTransfer.dropEffect = 'move';
           event.preventDefault();
         });
       }  
@@ -285,25 +326,6 @@ class CommentGroup extends HTMLElement {
         this.reorderComments(updatedCommentPosition);
       }
     }
-  }
-
-  updateForReorderingComplete() {
-    //make the comment views non-draggable
-    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
-    allCommentViews.forEach(commentView => {
-      commentView.removeAttribute('draggable');
-    });
-  }
-
-  beginEditCommentGroup = () => {
-    const event = new CustomEvent('begin-edit-comment-group', { 
-      detail: {
-        selectedCommentGroupId: this.comments[0].id
-      },
-      bubbles: true, 
-      composed: true 
-    });
-    this.dispatchEvent(event);
   }
 
   reorderComments = (updatedCommentPosition) => {

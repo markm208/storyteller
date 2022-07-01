@@ -42,7 +42,7 @@ class AceEditor extends HTMLElement {
 
         .surroundingCodeHighlight {
           background-color: rgb(158, 172, 182);
-          opacity: 0.1;
+          opacity: 0.05;
           position: absolute;
         }
 

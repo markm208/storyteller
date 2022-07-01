@@ -1,10 +1,10 @@
 class AddEditComment extends HTMLElement {
-  constructor(playbackEngine) {
+  constructor(playbackEngine, editedComment) {
     super();
 
     this.playbackEngine = playbackEngine;
     //when used for updating a comment (not a brand new comment)
-    this.editedComment = null;
+    this.editedComment = editedComment;
     //hold the number of lines in the file getting a new/edited comment
     this.numLinesInFile = 0;
 
@@ -65,6 +65,10 @@ class AddEditComment extends HTMLElement {
           font-size: 1.2rem;
           font-family: Courier;
         }
+
+        .inactive {
+          display: none;
+        }
       </style>
       <div class="commentTitle promptVisible"
            contenteditable="true" 
@@ -84,7 +88,12 @@ class AddEditComment extends HTMLElement {
         <input type="number" id="linesBelowSelector" value="0" min="0"/>
       </div>
       <button id="cancelButton" class="controlButton">Cancel</button>
-      <button id="submitButton" class="controlButton"></button>`;
+      <button id="submitButton" class="controlButton"></button>
+      <div id="deleteButtonDiv" class="inactive">
+        <hr/>
+        <span>Delete this comment (this can't be undone)</span>
+        <button id="deleteButton">Delete</button>
+      </div>`;
 
     return template.content.cloneNode(true);
   }
@@ -100,6 +109,10 @@ class AddEditComment extends HTMLElement {
     linesAboveSelector.addEventListener('change', this.sendEventNotifyLinesAboveBelowChange);
     linesBelowSelector.addEventListener('change', this.sendEventNotifyLinesAboveBelowChange);
 
+    //delete comment button
+    const deleteButton = this.shadowRoot.querySelector('#deleteButton');
+    deleteButton.addEventListener('click', this.sendEventDeleteComment);
+    
     //main comment buttons
     const cancelButton = this.shadowRoot.querySelector('#cancelButton');
     cancelButton.addEventListener('click', this.sendEventCancelAddEditComment);
@@ -130,8 +143,13 @@ class AddEditComment extends HTMLElement {
     const commentTitle = this.shadowRoot.querySelector('.commentTitle');
     commentTitle.appendChild(new RevealTextInput('Add Comment Title', 'Enter in a comment title (optional)', 'Add', 'add-edit-comment-title'));
 
-    //init this component to be a new comment
-    this.updateAddCommentMode();
+    //if there is a comment associated with this component then fill the inputs with data from it
+    if(this.editedComment) {
+      this.updateEditCommentMode();
+    } else { //no comment, fill with empty default values
+      //init this component to be a new comment
+      this.updateAddCommentMode();
+    }
     
     //prevent normal text editing from firing any keyboard shortcuts
     this.addEventListener('keydown', event => {
@@ -265,23 +283,25 @@ class AddEditComment extends HTMLElement {
     submitButton.innerHTML = 'Add Comment';
   }
 
-  updateEditCommentMode(comment) {
-    //store the comment being edited
-    this.editedComment = comment;
-
+  updateEditCommentMode() {
     //set the main comment text
     const commentText = this.shadowRoot.querySelector('.commentText');
-    commentText.innerHTML = comment.commentText;
+    commentText.innerHTML = this.editedComment.commentText;
     commentText.classList.remove('promptVisible');
     
     //set the lines above/below to what they are in the comment
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
-    linesAboveSelector.setAttribute('value', comment.linesAbove);
+    linesAboveSelector.setAttribute('value', this.editedComment.linesAbove);
     const linesBelowSelector = this.shadowRoot.querySelector('#linesBelowSelector');
-    linesBelowSelector.setAttribute('value', comment.linesBelow);
+    linesBelowSelector.setAttribute('value', this.editedComment.linesBelow);
     //update the max lines above/below from an active file
     this.updateActiveFile();
 
+    //if(this.editedComment.id === this.playbackEngine.getFirstComment().id)
+    //show the delete comment button
+    const deleteButtonDiv = this.shadowRoot.querySelector('#deleteButtonDiv');
+    deleteButtonDiv.classList.remove('inactive');
+    
     //set the text and event handler for the submit button
     const submitButton = this.shadowRoot.querySelector('#submitButton');
     submitButton.innerHTML = 'Edit Comment';
@@ -290,6 +310,11 @@ class AddEditComment extends HTMLElement {
   sendEventCancelAddEditComment = () => {
     //clear out a previously edited comment (if there is one)
     this.editedComment = null;
+
+    //hide the delete comment button
+    const deleteButtonDiv = this.shadowRoot.querySelector('#deleteButtonDiv');
+    deleteButtonDiv.classList.add('inactive');
+    
     //generate and send an event upward to indicate adding/editing is complete
     const customEvent = new CustomEvent('cancel-add-edit-comment', { 
       bubbles: true, 
@@ -316,6 +341,17 @@ class AddEditComment extends HTMLElement {
       composed: true 
     });
     this.dispatchEvent(customEvent);
+  }
+
+  sendEventDeleteComment = () => {
+    const event = new CustomEvent('delete-comment', { 
+      detail: {
+        comment: this.editedComment
+      },
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
   }
 
   buildCommentObjectFromUI() {

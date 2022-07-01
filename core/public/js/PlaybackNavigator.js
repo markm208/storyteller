@@ -182,7 +182,7 @@ class PlaybackNavigator extends HTMLElement {
   updateUIToCancelAddEditComment() {
     if(this.activeTab === 'comments') {
       const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-      commentNavigator.updateUIToCancelAddEditComment();
+      commentNavigator.updateForPlaybackMovement();
     }
   }
 
