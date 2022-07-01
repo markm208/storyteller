@@ -24,7 +24,9 @@ class CommentView extends HTMLElement {
         :host(.activeComment) {
           background-color: rgb(59,76,98);
         }
-
+        :host(.nonRelevantSearchResult) {
+          display: none;
+        }
         #editCommentButton {
           opacity: 80%;
           display: none;
