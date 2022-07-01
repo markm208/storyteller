@@ -395,13 +395,12 @@ class AddEditComment extends HTMLElement {
     //TODO media
     //TODO question/answer
     //TODO tags
-    //TODO if there is a comment title, add it (update code view and blog view with new comment title)
     const comment = {
       id: this.editedComment ? this.editedComment.id : null,
       displayCommentEvent: this.editedComment ? this.editedComment.displayCommentEvent : mostRecentEvent,
       timestamp: this.editedComment ? this.editedComment.timestamp : new Date().getTime(),
       commentText: commentText.innerHTML,
-      commentTitle: commentTitle.textContent,
+      commentTitle: commentTitle.classList.contains('promptVisible') ? '' : commentTitle.textContent,
       selectedCodeBlocks: [], //this will be set in CodeView
       viewableBlogText: '', //this will be set in CodeView
       imageURLs: [],
