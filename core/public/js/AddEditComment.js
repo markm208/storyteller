@@ -70,7 +70,7 @@ class AddEditComment extends HTMLElement {
           display: none;
         }
       </style>
-      <div class="commentTitle promptVisible"
+      <div class="commentTitle"
            contenteditable="true" 
            data-placeholder="Comment Title (Optional)">
       </div>
@@ -139,9 +139,23 @@ class AddEditComment extends HTMLElement {
       }
     });
 
-    //set the placeholder text for the main comment text
+    //set the placeholder text for the comment title
     const commentTitle = this.shadowRoot.querySelector('.commentTitle');
-    commentTitle.appendChild(new RevealTextInput('Add Comment Title', 'Enter in a comment title (optional)', 'Add', 'add-edit-comment-title'));
+    const commentTitlePlaceholder = commentTitle.getAttribute('data-placeholder');
+    commentTitle.addEventListener('focus', event => {
+      const value = commentTitle.textContent;
+      if(value === commentTitlePlaceholder) {
+        commentTitle.innerHTML = '';
+        commentTitle.classList.remove('promptVisible');
+      }
+    });
+    commentTitle.addEventListener('blur', event => {
+      const value = commentTitle.textContent;
+      if(value === '') {
+        commentTitle.innerHTML = commentTitlePlaceholder;
+        commentTitle.classList.add('promptVisible');
+      }
+    });
 
     //if there is a comment associated with this component then fill the inputs with data from it
     if(this.editedComment) {
@@ -269,6 +283,12 @@ class AddEditComment extends HTMLElement {
     const commentTextPlaceholder = commentText.getAttribute('data-placeholder');
     commentText.innerHTML = commentTextPlaceholder;
     commentText.classList.add('promptVisible');
+    
+    //set the placeholder text for the comment title
+    const commentTitle = this.shadowRoot.querySelector('.commentTitle');
+    const commentTitlePlaceholder = commentTitle.getAttribute('data-placeholder');
+    commentTitle.innerHTML = commentTitlePlaceholder;
+    commentTitle.classList.add('promptVisible');
 
     //set the lines above/below to 0
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
@@ -289,6 +309,17 @@ class AddEditComment extends HTMLElement {
     commentText.innerHTML = this.editedComment.commentText;
     commentText.classList.remove('promptVisible');
     
+    //set the placeholder text for the comment title
+    const commentTitle = this.shadowRoot.querySelector('.commentTitle');
+    if(this.editedComment.commentTitle) {
+      commentTitle.innerHTML = this.editedComment.commentTitle;
+      commentTitle.classList.remove('promptVisible');
+    } else {
+      const commentTitlePlaceholder = commentTitle.getAttribute('data-placeholder');
+      commentTitle.innerHTML = commentTitlePlaceholder;
+      commentTitle.classList.add('promptVisible');
+    }
+
     //set the lines above/below to what they are in the comment
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
     linesAboveSelector.setAttribute('value', this.editedComment.linesAbove);
@@ -357,6 +388,7 @@ class AddEditComment extends HTMLElement {
   buildCommentObjectFromUI() {
     //TODO check for minimum data in the comment
     const commentText = this.shadowRoot.querySelector('.commentText');
+    const commentTitle = this.shadowRoot.querySelector('.commentTitle');
     const mostRecentEvent = this.playbackEngine.getMostRecentEvent();
     const activeFilePath = this.playbackEngine.getActiveFilePath();
 
@@ -369,6 +401,7 @@ class AddEditComment extends HTMLElement {
       displayCommentEvent: this.editedComment ? this.editedComment.displayCommentEvent : mostRecentEvent,
       timestamp: this.editedComment ? this.editedComment.timestamp : new Date().getTime(),
       commentText: commentText.innerHTML,
+      commentTitle: commentTitle.textContent,
       selectedCodeBlocks: [], //this will be set in CodeView
       viewableBlogText: '', //this will be set in CodeView
       imageURLs: [],

@@ -68,6 +68,11 @@ class CommentView extends HTMLElement {
           padding: 2px 5px 12px 5px;
         }
 
+        .commentTitle {
+          padding: 2px 5px 12px 5px;
+          font-size: 1.2em;
+        }
+
         .commentAvatar {
           display: inline;
         }
@@ -76,7 +81,7 @@ class CommentView extends HTMLElement {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.25em;
+          font-size: 1.35em;
           padding: 8px 0px;
         }
 
@@ -97,6 +102,7 @@ class CommentView extends HTMLElement {
       <div>
         <div>
           <div class="commentTopBar"></div>
+          <div class="commentTitle"></div>
           <div class="commentText"></div>
           <div class="media"></div>
           <div class="questions"></div>
@@ -121,6 +127,12 @@ class CommentView extends HTMLElement {
 
     //top of comment view
     this.buildCommentViewTop();
+
+    //comment title
+    if(this.comment.commentTitle) {
+      const commentTitle = this.shadowRoot.querySelector('.commentTitle');
+      commentTitle.innerHTML = this.comment.commentTitle;
+    }
     //comment text
     const commentText = this.shadowRoot.querySelector('.commentText');
     commentText.innerHTML = this.comment.commentText;

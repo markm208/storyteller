@@ -41,6 +41,7 @@ class BlogComponent extends HTMLElement {
         }
       </style>
 
+      <h3 class="commentTitle"></h3>
       <div class="blogCommentText"></div>
       <div class="commentVideos"></div>
       <div class="commentAudios"></div>
@@ -51,6 +52,12 @@ class BlogComponent extends HTMLElement {
   }
 
   connectedCallback() {
+    //if there is a comment title add it
+    if(this.comment.commentTitle) {
+      const commentTitle = this.shadowRoot.querySelector('.commentTitle');
+      commentTitle.innerHTML = this.comment.commentTitle;
+    }
+
     //add the comment text
     const blogCommentText = this.shadowRoot.querySelector('.blogCommentText');
     blogCommentText.innerHTML = this.comment.commentText;
