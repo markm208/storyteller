@@ -141,10 +141,6 @@ class VerticalMediaContainer extends HTMLElement {
     }
     //TODO add anon functions for eventListeners so listeners can be removed with disconnectedCallback()
 
-
-
-
-
     media.setAttribute('src', mediaURL);
     media.setAttribute('draggable', 'true');
     media.classList.add('draggable');

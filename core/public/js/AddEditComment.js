@@ -87,6 +87,9 @@ class AddEditComment extends HTMLElement {
         Included lines below selected code
         <input type="number" id="linesBelowSelector" value="0" min="0"/>
       </div>
+      <div id="imagesVMC" class="mediaContainer"></div>
+      <div id="videosVMC" class="mediaContainer"></div>
+      <div id="audiosVMC" class="mediaContainer"></div>
       <div id="questionAnswerContainer">
       </div>
       <button id="cancelButton" class="controlButton">Cancel</button>
@@ -292,6 +295,18 @@ class AddEditComment extends HTMLElement {
     commentTitle.innerHTML = commentTitlePlaceholder;
     commentTitle.classList.add('promptVisible');
 
+    const imagesVMC = this.shadowRoot.querySelector('#imagesVMC');
+    const images = new VerticalMediaContainer([], 'image');
+    imagesVMC.appendChild(images);
+
+    const videosVMC = this.shadowRoot.querySelector('#videosVMC');
+    const videos = new VerticalMediaContainer([], 'video');
+    videosVMC.appendChild(videos);
+
+    const audiosVMC = this.shadowRoot.querySelector('#audiosVMC');
+    const audios = new VerticalMediaContainer([], 'audio');
+    audiosVMC.appendChild(audios);
+
     //add an empty Q&A component
     const questionAnswerContainer = this.shadowRoot.querySelector('#questionAnswerContainer');
     const qAndA = new CreateMultipleChoiceQuestion(null);
@@ -326,6 +341,18 @@ class AddEditComment extends HTMLElement {
       commentTitle.innerHTML = commentTitlePlaceholder;
       commentTitle.classList.add('promptVisible');
     }
+
+    const imagesVMC = this.shadowRoot.querySelector('#imagesVMC');
+    const images = new VerticalMediaContainer(this.editedComment.imageURLs, 'image');
+    imagesVMC.appendChild(images);
+
+    const videosVMC = this.shadowRoot.querySelector('#videosVMC');
+    const videos = new VerticalMediaContainer(this.editedComment.videoURLs, 'video');
+    videosVMC.appendChild(videos);
+
+    const audiosVMC = this.shadowRoot.querySelector('#audiosVMC');
+    const audios = new VerticalMediaContainer(this.editedComment.audioURLs, 'audio');
+    audiosVMC.appendChild(audios);
 
     //add a Q&A component for an existing question
     const questionAnswerContainer = this.shadowRoot.querySelector('#questionAnswerContainer');
@@ -411,7 +438,7 @@ class AddEditComment extends HTMLElement {
     const createMultipleChoiceQuestion = this.shadowRoot.querySelector('st-create-multiple-choice-question');
     const qAndA = createMultipleChoiceQuestion.getMultipleChoiceQuestionData();
     //TODO if invalid question, do something about it
-    
+
     const mostRecentEvent = this.playbackEngine.getMostRecentEvent();
     const activeFilePath = this.playbackEngine.getActiveFilePath();
 
