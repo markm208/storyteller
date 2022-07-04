@@ -211,8 +211,8 @@ class CommentNavigator extends HTMLElement {
       //add the new component to the UI and make it visible
       const addEditCommentComponent = this.shadowRoot.querySelector('#addEditCommentComponent');
       addEditCommentComponent.innerHTML = '';
-      addEditCommentComponent.appendChild(addEditComment);
       addEditCommentComponent.classList.remove('inactive');
+      addEditCommentComponent.appendChild(addEditComment);
     }
   }
 

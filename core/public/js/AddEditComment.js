@@ -87,6 +87,8 @@ class AddEditComment extends HTMLElement {
         Included lines below selected code
         <input type="number" id="linesBelowSelector" value="0" min="0"/>
       </div>
+      <div id="questionAnswerContainer">
+      </div>
       <button id="cancelButton" class="controlButton">Cancel</button>
       <button id="submitButton" class="controlButton"></button>
       <div id="deleteButtonDiv" class="inactive">
@@ -290,6 +292,11 @@ class AddEditComment extends HTMLElement {
     commentTitle.innerHTML = commentTitlePlaceholder;
     commentTitle.classList.add('promptVisible');
 
+    //add an empty Q&A component
+    const questionAnswerContainer = this.shadowRoot.querySelector('#questionAnswerContainer');
+    const qAndA = new CreateMultipleChoiceQuestion(null);
+    questionAnswerContainer.appendChild(qAndA);
+
     //set the lines above/below to 0
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
     linesAboveSelector.setAttribute('value', 0);
@@ -320,6 +327,11 @@ class AddEditComment extends HTMLElement {
       commentTitle.classList.add('promptVisible');
     }
 
+    //add a Q&A component for an existing question
+    const questionAnswerContainer = this.shadowRoot.querySelector('#questionAnswerContainer');
+    const qAndA = new CreateMultipleChoiceQuestion(this.editedComment.questionCommentData);
+    questionAnswerContainer.appendChild(qAndA);
+    
     //set the lines above/below to what they are in the comment
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
     linesAboveSelector.setAttribute('value', this.editedComment.linesAbove);
@@ -391,8 +403,15 @@ class AddEditComment extends HTMLElement {
 
   buildCommentObjectFromUI() {
     //TODO check for minimum data in the comment
+    //comment text
     const commentText = this.shadowRoot.querySelector('.commentText');
+    //comment title
     const commentTitle = this.shadowRoot.querySelector('.commentTitle');
+    //comment question
+    const createMultipleChoiceQuestion = this.shadowRoot.querySelector('st-create-multiple-choice-question');
+    const qAndA = createMultipleChoiceQuestion.getMultipleChoiceQuestionData();
+    //TODO if invalid question, do something about it
+    
     const mostRecentEvent = this.playbackEngine.getMostRecentEvent();
     const activeFilePath = this.playbackEngine.getActiveFilePath();
 
@@ -414,7 +433,7 @@ class AddEditComment extends HTMLElement {
       linesBelow: 0, //this will be set in CodeView
       currentFilePath: this.editedComment ? this.editedComment.currentFilePath : activeFilePath,
       commentTags: [],
-      questionCommentData: {}
+      questionCommentData: qAndA.questionState === 'valid question' ? qAndA.questionData : null
     };
 
     return comment;
