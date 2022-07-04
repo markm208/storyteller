@@ -186,15 +186,15 @@ class App extends HTMLElement {
     //display results in code/blog mode
     if (this.activeMode === 'code') {
       const codeView = this.shadowRoot.querySelector('st-code-view');
-      codeView.displaySearchResults(searchResults);
+      codeView.updateToDisplaySearchResults(searchResults);
     } else {
       const blogView = this.shadowRoot.querySelector('st-blog-view');
-      blogView.displaySearchResults(searchResults);
+      blogView.updateToDisplaySearchResults(searchResults);
     }
 
     //display search results in the title bar
     const titleBar = this.shadowRoot.querySelector('st-title-bar');
-    titleBar.displaySearchResults(searchResults);
+    titleBar.updateToDisplaySearchResults(searchResults);
   }
 
   increaseEditorFontSize() {

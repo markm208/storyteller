@@ -116,7 +116,6 @@ class EditorFileTabs extends HTMLElement {
     }
   }
 
-
   isFileDeleted(fileId) {
     let retVal = false;
     const file = this.playbackEngine.editorState.allFiles[fileId];

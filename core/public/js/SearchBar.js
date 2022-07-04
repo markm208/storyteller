@@ -67,7 +67,7 @@ class SearchBar extends HTMLElement {
     disconnectedCallback() {
     }    
 
-    displaySearchResults(numSearchComments, numTotalComments) {
+    updateToDisplaySearchResults(numSearchComments, numTotalComments) {
       //get the contents of the search bar
       const searchText = this.shadowRoot.querySelector("#searchBar").value;
       //get the element that holds the search results message

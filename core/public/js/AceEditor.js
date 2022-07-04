@@ -110,12 +110,15 @@ class AceEditor extends HTMLElement {
   disconnectedCallback() {
   }
   
+  updateForCommentSelected() {
+    //highlight any selected code from the selected comment
+    this.addSelectedCodeAndSurroundingTextMarkers();
+  }
+
   updateForPlaybackMovement() {
     //update any changes to the file tabs
-    if(this.playbackEngine.requiresUpdating.fileSystem || this.playbackEngine.requiresUpdating.activeFile) {
-      const editorFileTabs = this.shadowRoot.querySelector('st-editor-file-tabs');
-      editorFileTabs.createFileTabs();
-    }
+    const editorFileTabs = this.shadowRoot.querySelector('st-editor-file-tabs');
+    editorFileTabs.createFileTabs();
 
     //update the code in the editor
     if(this.playbackEngine.activeFileId) {
@@ -129,8 +132,13 @@ class AceEditor extends HTMLElement {
       const fileMode = modelist.getModeForPath(filePath);
       this.aceEditor.getSession().setMode(fileMode.mode);
 
+      //scroll to the most recent line number to show the latest code
+      if(this.playbackEngine.mostRecentChanges.fileEditLineNumber > 0) {
+        this.aceEditor.scrollToLine(this.playbackEngine.mostRecentChanges.fileEditLineNumber, true, true);
+      }
+
       //go through the markers and highlight them
-      this.addMarkers();
+      this.addChangedCodeMarkers();
     }
   }
 
@@ -156,8 +164,16 @@ class AceEditor extends HTMLElement {
           const aceRange = new AceRange(selectedCodeBlock.startRow, selectedCodeBlock.startColumn, selectedCodeBlock.endRow, selectedCodeBlock.endColumn);
           this.aceEditor.getSelection().addRange(aceRange);
         });
+        //update the lines above/below
+        this.linesAboveSelection = this.playbackEngine.activeComment.linesAbove;
+        this.linesBelowSelection = this.playbackEngine.activeComment.linesBelow;
+
         //highlight the code around the new selections
         this.handleSelectionLinesAboveBelow();
+      } else { //no commment or no selected code
+        //update the lines above/below to zero
+        this.linesAboveSelection = 0;
+        this.linesBelowSelection = 0;
       }
     } else { //the above/below highlighting is being turned off
       //remove a listener to get changes in the selected text
@@ -208,45 +224,42 @@ class AceEditor extends HTMLElement {
     this.handleSelectionLinesAboveBelow();
   }
 
-  addMarkers() {
+  addChangedCodeMarkers() {
     //clear any recent markers
     this.clearInsertLineMarkers();
     this.clearDeleteLineMarkers();
-    this.clearSelectedCodeMarkers();
-    this.clearSurroundingTextMarker();
     this.clearNewCodeMarkers();
 
     //highlight changes in the line numbers
     this.addInsertLineMarkers();
     this.addDeleteLineMarkers();
 
-    //if there is a comment highlight the code and surrounding text
-    if(this.playbackEngine.activeComment) {
-      this.addSelectedCodeAndSurroundingTextMarkers(this.playbackEngine.activeComment);
-    }
     //highlight the new code
     this.addNewCodeMarkers();
-
-    //if there is at least one highlighted section of code scroll to the first highlight
-    if(this.playbackEngine.activeComment && this.playbackEngine.activeComment.selectedCodeBlocks.length > 0) {
-      const scrollToLine = this.playbackEngine.activeComment.selectedCodeBlocks[0].startRow;
-      this.aceEditor.scrollToLine(scrollToLine, true, true);
-    }
   }
 
-  addSelectedCodeAndSurroundingTextMarkers(comment) {
-    //if the comment has code highlights
-    if(comment.selectedCodeBlocks.length > 0) {
+  addSelectedCodeAndSurroundingTextMarkers() {
+    //clear any old results
+    this.clearSelectedCodeMarkers();
+    this.clearSurroundingTextMarker();
+
+    //if there is an active comment that has selected code highlights, highlight the code and surrounding text
+    if(this.playbackEngine.activeComment && this.playbackEngine.activeComment.selectedCodeBlocks.length > 0) {
       //if the selected code is in the active file then add the highlights
-      if(comment.selectedCodeBlocks[0].fileId === this.playbackEngine.activeFileId) {
+      if(this.playbackEngine.activeComment.selectedCodeBlocks[0].fileId === this.playbackEngine.activeFileId) {
+        //highlight the selected code
         this.addSelectedCodeMarkers();
+
         //add the surrounding highlights
-        this.linesAboveSelection = comment.linesAbove;
-        this.linesBelowSelection = comment.linesBelow;
-        const startLineNumber = comment.selectedCodeBlocks[0].startRow - comment.linesAbove;
-        const endLineNumber = comment.selectedCodeBlocks[comment.selectedCodeBlocks.length - 1].endRow + comment.linesBelow;
+        this.linesAboveSelection = this.playbackEngine.activeComment.linesAbove;
+        this.linesBelowSelection = this.playbackEngine.activeComment.linesBelow;
+        const startLineNumber = this.playbackEngine.activeComment.selectedCodeBlocks[0].startRow - this.playbackEngine.activeComment.linesAbove;
+        const endLineNumber = this.playbackEngine.activeComment.selectedCodeBlocks[this.playbackEngine.activeComment.selectedCodeBlocks.length - 1].endRow + this.playbackEngine.activeComment.linesBelow;
         this.addSurroundingTextMarker(startLineNumber, endLineNumber);
       }
+      //scroll to the highlighted code
+      const scrollToLine = this.playbackEngine.activeComment.selectedCodeBlocks[0].startRow;
+      this.aceEditor.scrollToLine(scrollToLine, true, true);
     }
   }
 

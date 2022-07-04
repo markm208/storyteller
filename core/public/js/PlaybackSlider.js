@@ -83,6 +83,17 @@ class PlaybackSlider extends HTMLElement {
   }
 
   connectedCallback() {
+    this.buildSliderAndPips();
+  }
+
+  disconnectedCallback() {
+    const commentMarkers = this.shadowRoot.querySelectorAll('.commentMarker');
+    commentMarkers.forEach(commentMarker => {
+      commentMarker.removeEventListener('click', this.addPipEventHandler);
+    });
+  }
+
+  buildSliderAndPips() {
     const slider = this.shadowRoot.querySelector('.slider');
     slider.setAttribute('min', this.playbackEngine.firstRelevantEventIndex - 1);
     slider.setAttribute('max', this.playbackEngine.numRelevantEvents);
@@ -109,16 +120,6 @@ class PlaybackSlider extends HTMLElement {
       commentMarker.addEventListener('click', this.addPipEventHandler);
       pips.appendChild(commentMarker);
     });
-
-    //move the slider to the active event index
-    this.updateToCurrentEventIndex();
-  }
-
-  disconnectedCallback() {
-    const commentMarkers = this.shadowRoot.querySelectorAll('.commentMarker');
-    commentMarkers.forEach(commentMarker => {
-      commentMarker.removeEventListener('click', this.addPipEventHandler);
-    });
   }
 
   addPipEventHandler = event => {
@@ -132,10 +133,17 @@ class PlaybackSlider extends HTMLElement {
     this.sendEventSliderClick(newPosition);
   }
 
-  updateToCurrentEventIndex() {
-    const slider = this.shadowRoot.querySelector('.slider');
-    if(slider.value !== this.playbackEngine.currentEventIndex) {
-      slider.value = this.playbackEngine.currentEventIndex;
+  updateForPlaybackMovement() {
+    //if there is a different number of comment groups than before
+    if(this.playbackEngine.mostRecentChanges.numberOfCommentGroupsChanged) {
+      //rebuild
+      this.buildSliderAndPips();
+    } else { //the comment groups have not changed
+      const slider = this.shadowRoot.querySelector('.slider');
+      //if the playback has moved update the slider
+      if(slider.value !== this.playbackEngine.currentEventIndex) {
+        slider.value = this.playbackEngine.currentEventIndex;
+      }
     }
   }
 

@@ -97,7 +97,14 @@ class CodeView extends HTMLElement {
     this.shadowRoot.addEventListener('begin-edit-comment', event => {
       this.updateUIToEditComment(event.detail.comment);
     });
-    
+
+    //cancel the creating/editing of a comment
+    this.shadowRoot.addEventListener('cancel-add-edit-comment', event => {
+      //rebuild all comment views
+      this.updateForAddEditDeleteComment();
+      this.updateForCommentSelected();
+    });
+
     //new comment successfully created
     this.shadowRoot.addEventListener('add-comment', async event => {
       //get the comment object (without the selected text)
@@ -113,8 +120,8 @@ class CodeView extends HTMLElement {
       this.playbackEngine.addComment(newComment);
 
       //close the editing UI and display the new comment
-      this.updateUIToCancelAddEditComment();
-      this.updateForNewComment();
+      this.updateForAddEditDeleteComment();
+      this.updateForCommentSelected();
     });
 
     //existing comment successfully edited
@@ -132,13 +139,8 @@ class CodeView extends HTMLElement {
       this.playbackEngine.updateComment(editedComment);
 
       //close the editing UI and display the edited commnt
-      this.updateUIToCancelAddEditComment();
-      this.updateForCommentEdit(editedComment);
-    });
-
-    //cancel the creating/editing of a comment
-    this.shadowRoot.addEventListener('cancel-add-edit-comment', event => {
-      this.updateUIToCancelAddEditComment();
+      this.updateForAddEditDeleteComment();
+      this.updateForCommentSelected();
     });
 
     //delete an existing comment
@@ -154,14 +156,28 @@ class CodeView extends HTMLElement {
       this.playbackEngine.deleteComment(comment);
 
       //update
-      this.updateUIToCancelAddEditComment();
-      this.updateForDeleteComment();
+      this.updateForAddEditDeleteComment();
+      this.updateForCommentSelected();
+    });
+
+    this.shadowRoot.addEventListener('reorder-comments', async (event) => {
+      //when the reordering of events is complete send the pb engine the new comment ordering
+      this.playbackEngine.reorderComments(event.detail.updatedCommentPosition);
+      
+      //send the new comment ordering to the st server
+      const serverProxy = new ServerProxy();
+      await serverProxy.updateCommentPositionOnServer(event.detail.updatedCommentPosition);
+
+      //update
+      this.updateForAddEditDeleteComment();
+      this.updateForCommentSelected();
     });
 
     //change to the lines above/below when creating/editing a comment
     this.shadowRoot.addEventListener('lines-above-below-change', event => {
       const linesAbove = event.detail.linesAbove;
       const linesBelow = event.detail.linesBelow;
+      //send the message to the editor view
       const editorView = this.shadowRoot.querySelector('st-editor-view');
       editorView.updateLinesAboveBelow(linesAbove, linesBelow);
     });
@@ -202,7 +218,7 @@ class CodeView extends HTMLElement {
 
     //a file has been selected
     this.shadowRoot.addEventListener('active-file', event => {
-      this.updateForSelectedFile(event.detail.activeFileId);
+      this.updateForFileSelected(event.detail.activeFileId);
       event.preventDefault();
     });
 
@@ -259,6 +275,15 @@ class CodeView extends HTMLElement {
     dragBar.removeEventListener('touchstart', this.addTouchEventListeners);
   }
 
+  updateForCommentSelected() {
+    //update nav
+    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
+    playbackNavigator.updateForCommentSelected();
+    //update the editor
+    const editorView = this.shadowRoot.querySelector('st-editor-view');
+    editorView.updateForCommentSelected();
+  }
+
   updateForPlaybackMovement() {
     //update nav
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
@@ -268,45 +293,40 @@ class CodeView extends HTMLElement {
     editorView.updateForPlaybackMovement();
   }
 
-  updateForNewComment() {
-    //add the new comment view and mark it as active
+  updateForAddEditDeleteComment() {
+    //update nav
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.updateForNewComment();
+    playbackNavigator.updateForAddEditDeleteComment();
 
-    //get the event where the new comment is being added
-    const commentEvent = this.playbackEngine.getMostRecentEvent();
-    //if there is only one comment here after creating a new one
-    if(this.playbackEngine.playbackData.comments[commentEvent.id].length === 1) {
-      //update the editor view to add a new pip
+    //if there are a different number of comment groups
+    if(this.playbackEngine.mostRecentChanges.numberOfCommentGroupsChanged) {
+      //update the editor's slider
       const editorView = this.shadowRoot.querySelector('st-editor-view');
-      editorView.updateForNewComment();
+      editorView.updateForAddEditDeleteComment();
     }
   }
 
-  updateForCommentEdit(editedComment) {
-    //add the new comment view and mark it as active
-    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.updateForCommentEdit(editedComment);
-    
-    //update
-    this.updateForPlaybackMovement();
+  updateForFileSelected(fileId) {
+    //make sure playback is paused
+    this.pausePlayback(true);
+
+    //update the active file
+    this.playbackEngine.changeActiveFileId(fileId);
+
+    //if there is a new active file
+    if(this.playbackEngine.mostRecentChanges.hasNewActiveFile) {
+      //update the UI
+      const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
+      playbackNavigator.updateForFileSelected();
+
+      const editorView = this.shadowRoot.querySelector('st-editor-view');
+      editorView.updateForFileSelected();
+    }
   }
 
-  updateForDeleteComment() {
-    //the previous comment was made active, display it
+  updateToDisplaySearchResults(searchResults){
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.updateForDeleteComment();
-
-    //get the event where the comment was deleted
-    const commentEvent = this.playbackEngine.getMostRecentEvent();
-    //if there are no more comments at this event
-    if(!this.playbackEngine.playbackData.comments[commentEvent.id]) {
-      //update the editor view to remove the pip
-      const editorView = this.shadowRoot.querySelector('st-editor-view');
-      editorView.updateForDeleteComment();
-    }
-    //update
-    this.updateForPlaybackMovement();
+    playbackNavigator.updateToDisplaySearchResults(searchResults);
   }
 
   updateUIToAddNewComment() {
@@ -323,14 +343,6 @@ class CodeView extends HTMLElement {
 
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
     playbackNavigator.updateUIToEditComment(comment);
-  }
-
-  updateUIToCancelAddEditComment() {
-    const editorView = this.shadowRoot.querySelector('st-editor-view');
-    editorView.updateHandleTextSelection(false);
-
-    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.updateUIToCancelAddEditComment();
   }
 
   addSelectedTextToComment(comment) {
@@ -424,22 +436,15 @@ class CodeView extends HTMLElement {
   playNextEvent = () => {
     //move forward one step
     this.playbackEngine.stepForward(1);
-    
-    //if there is a comment at the new location or it is at the end of a playback
-    if (this.playbackEngine.activeComment || this.playbackEngine.currentEventIndex === this.playbackEngine.playbackData.events.length - 1) {
-      //pause
-      this.pausePlayback(true);
-    }
+
     //update
     this.updateForPlaybackMovement();
-  }
+    this.updateForCommentSelected();
 
-  //adjusts playback speed
-  adjustPlaybackSpeed(delta) {
-    //adjust the playback speed
-    this.autoPlayback.playbackSpeedMs += delta;
-    if(this.autoPlayback.playbackSpeedMs < 0) {
-      this.autoPlayback.playbackSpeedMs = 0;
+    //if there is a comment at the new location or its the end of a playback w/o a comment
+    if (this.playbackEngine.mostRecentChanges.endedOnAComment || this.playbackEngine.currentEventIndex === this.playbackEngine.playbackData.events.length - 1) { 
+      //pause
+      this.pausePlayback(true);
     }
   }
 
@@ -447,25 +452,13 @@ class CodeView extends HTMLElement {
   playPreviousEvent = () => {
     //make sure playback is paused
     this.pausePlayback(true);
+    
     //move backward one step
     this.playbackEngine.stepBackward(1);
+    
     //update
     this.updateForPlaybackMovement();
-  }
-  
-  //used when a file tab is selected or a file is chosen in the file system view
-  updateForSelectedFile = (fileId) => {
-    //make sure playback is paused
-    this.pausePlayback(true);
-
-    //update the active file
-    this.playbackEngine.changeActiveFile(fileId);
-
-    //update the UI
-    const editorView = this.shadowRoot.querySelector('st-editor-view');
-    editorView.updateForSelectedFile();
-    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.updateForSelectedFile();
+    this.updateForCommentSelected();
   }
 
   //used when the slider moves
@@ -478,6 +471,7 @@ class CodeView extends HTMLElement {
 
     //update
     this.updateForPlaybackMovement();
+    this.updateForCommentSelected();
   }
 
   //used when a comment is clicked on
@@ -485,14 +479,12 @@ class CodeView extends HTMLElement {
     //make sure playback is paused
     this.pausePlayback(true);
 
-    //if this requires some movement
-    //if there was not an active comment OR it was paused on a different comment
-    if(!this.playbackEngine.activeComment || this.playbackEngine.activeComment.id !== commentId) {
-      //move to the selected comment
-      this.playbackEngine.stepToCommentById(commentId);
-      //update 
-      this.updateForPlaybackMovement();
-    }
+    //move to the selected comment
+    this.playbackEngine.stepToCommentById(commentId);
+
+    //update 
+    this.updateForPlaybackMovement();
+    this.updateForCommentSelected();
   }
 
   //used when the user clicks the button to move to the next comment
@@ -505,6 +497,7 @@ class CodeView extends HTMLElement {
 
     //update
     this.updateForPlaybackMovement();
+    this.updateForCommentSelected();
   }
 
   //used when the user wants to move to the previous comment
@@ -517,6 +510,7 @@ class CodeView extends HTMLElement {
 
     //update
     this.updateForPlaybackMovement();
+    this.updateForCommentSelected();
   }
 
   //used when the user wants to move to the end of the playback
@@ -529,6 +523,7 @@ class CodeView extends HTMLElement {
 
     //update
     this.updateForPlaybackMovement();
+    this.updateForCommentSelected();
   }
 
   //used when the user wants to move to the beginning of the playback
@@ -541,16 +536,21 @@ class CodeView extends HTMLElement {
 
     //update
     this.updateForPlaybackMovement();
+    this.updateForCommentSelected();
   }
 
   updateEditorFontSize(newFontSize) {
     const editorView = this.shadowRoot.querySelector('st-editor-view');
     editorView.updateEditorFontSize(newFontSize);
   }
-
-  displaySearchResults(searchResults){
-    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.displaySearchResults(searchResults);
+  
+  //adjusts playback speed
+  adjustPlaybackSpeed(delta) {
+    //adjust the playback speed
+    this.autoPlayback.playbackSpeedMs += delta;
+    if(this.autoPlayback.playbackSpeedMs < 0) {
+      this.autoPlayback.playbackSpeedMs = 0;
+    }
   }
 }
 

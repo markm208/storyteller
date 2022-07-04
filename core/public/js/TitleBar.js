@@ -105,7 +105,6 @@ class TitleBar extends HTMLElement {
     enterBlogModeButton.removeEventListener('click', this.updateToBlogMode);
   }
 
-
   updatePlaybackTitle(newTitle) {
     //update title
     const playbackTitle = this.shadowRoot.querySelector('.playbackTitle');
@@ -134,10 +133,10 @@ class TitleBar extends HTMLElement {
     this.notifyModeSelected('blog');
   }
 
-  displaySearchResults(searchResults) {
+  updateToDisplaySearchResults(searchResults) {
     //send the number of comments shown and total number of comments to the search bar
     const titleBar = this.shadowRoot.querySelector('st-search-bar');
-    titleBar.displaySearchResults(searchResults.length, this.playbackEngine.getTotalNumberOfComments());
+    titleBar.updateToDisplaySearchResults(searchResults.length, this.playbackEngine.getTotalNumberOfComments());
   }
 
   notifyModeSelected(newMode) {

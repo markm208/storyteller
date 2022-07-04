@@ -196,21 +196,18 @@ class FileSystemNavigator extends HTMLElement {
   }
 
   updateForPlaybackMovement() {
-    //if there are changes to the fs or the active file
-    if(this.playbackEngine.requiresUpdating.fileSystem || this.playbackEngine.requiresUpdating.activeFile) {
-      const fsView = this.shadowRoot.querySelector('.fsView');
-      fsView.innerHTML = '';
-      
-      //get the changed file ids
-      let changedFileIds = null;
-      if(this.playbackEngine.newCodeMarkerGenerator) {
-        changedFileIds = new Set(this.playbackEngine.newCodeMarkerGenerator.getAllChangedFileIds());
-      }
-      this.renderHelper(this.root, fsView, changedFileIds);
+    const fsView = this.shadowRoot.querySelector('.fsView');
+    fsView.innerHTML = '';
+    
+    //get the changed file ids
+    let changedFileIds = null;
+    if(this.playbackEngine.newCodeMarkerGenerator) {
+      changedFileIds = new Set(this.playbackEngine.newCodeMarkerGenerator.getAllChangedFileIds());
     }
+    this.renderHelper(this.root, fsView, changedFileIds);
   }
 
-  updateForSelectedFile() {
+  updateForFileSelected() {
     //de-highlight the active file
     let activeFileSystemFile = this.shadowRoot.querySelector('.activeFileSystemFile');
     if(activeFileSystemFile) {

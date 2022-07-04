@@ -174,13 +174,14 @@ class CommentView extends HTMLElement {
   }
 
   makeCommentViewActive() {
+    //make this comment view have the active class
     this.shadowRoot.host.classList.add('activeComment');
 
     //get the rectangle around the active comment that is displayed
     const commentRectangle = this.shadowRoot.host.getBoundingClientRect();
 
-    //if the comment's top/bottom edge is  off of the screen (+/- 50px)
-    if (commentRectangle.bottom /*- 50*/ < 0 || commentRectangle.top > window.innerHeight /*- 50*/) {
+    //if the comment's top/bottom edge is  off of the screen (+/- 100px)
+    if (commentRectangle.bottom - 100 < 0 || commentRectangle.top > window.innerHeight - 100) {
       //scroll to the active comment
       this.shadowRoot.host.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'center'})
     }
@@ -190,7 +191,11 @@ class CommentView extends HTMLElement {
     this.shadowRoot.host.classList.remove('activeComment');
   }
 
-  beginEditComment = () => {
+  beginEditComment = (clickEvent) => {
+    //stop the click associated with the button to prevent treating as a comment click
+    clickEvent.stopPropagation();
+    clickEvent.preventDefault();
+
     const event = new CustomEvent('begin-edit-comment', { 
       detail: {
         comment: this.comment

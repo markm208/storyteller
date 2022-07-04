@@ -130,6 +130,11 @@ class PlaybackNavigator extends HTMLElement {
     }
   }
 
+  updateForCommentSelected() {
+    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+    commentNavigator.updateForCommentSelected();
+  }
+
   updateForPlaybackMovement() {
     //forward the message on to the right tab
     if(this.activeTab === 'comments') {
@@ -141,20 +146,25 @@ class PlaybackNavigator extends HTMLElement {
     }
   }
 
-  updateForSelectedFile() {
+  updateForAddEditDeleteComment() {
+    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+    commentNavigator.updateForAddEditDeleteComment();
+  }
+
+  updateForFileSelected() {
     //forward the message on to the right tab
     if(this.activeTab === 'fileSystem') {
       const fileSystemNavigator = this.shadowRoot.querySelector('st-file-system-navigator');
-      fileSystemNavigator.updateForSelectedFile();
+      fileSystemNavigator.updateForFileSelected();
     } else if(this.activeTab === 'comments') {
       const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-      commentNavigator.updateForSelectedFile();
+      commentNavigator.updateForFileSelected();
     }
   }
 
-  displaySearchResults(searchResults){
+  updateToDisplaySearchResults(searchResults){
     const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-    commentNavigator.displaySearchResults(searchResults);
+    commentNavigator.updateToDisplaySearchResults(searchResults);
   }
 
   updateUIToAddNewComment() {
@@ -177,28 +187,6 @@ class PlaybackNavigator extends HTMLElement {
     //pass the message on
     const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
     commentNavigator.updateUIToEditComment(comment);
-  }
-
-  updateUIToCancelAddEditComment() {
-    if(this.activeTab === 'comments') {
-      const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-      commentNavigator.updateForPlaybackMovement();
-    }
-  }
-
-  updateForNewComment() {
-    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-    commentNavigator.updateForNewComment();
-  }
-
-  updateForCommentEdit(editedComment) {
-    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-    commentNavigator.updateForCommentEdit(editedComment);
-  }
-
-  updateForDeleteComment() {
-    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-    commentNavigator.updateForDeleteComment();
   }
 }
 

@@ -126,29 +126,27 @@ class PlaybackControls extends HTMLElement {
     this.updatePlayPauseButton(true);
     this.sendEventPauseClick();
   }
-
+  
   updateForPlaybackMovement() {
-    this.updateActiveDevGroup();
+    //if there has been a change in the dev group, update the dev avatars
+    if(this.playbackEngine.mostRecentChanges.hasNewActiveDevGroup) {
+      this.updateActiveDevGroup();
+    }
 
     //if there is a reason to pause (reached comment or end of playback)
-    const shouldPause = this.playbackEngine.activeComment || this.playbackEngine.currentEventIndex === this.playbackEngine.playbackData.events.length - 1;
+    const shouldPause = this.playbackEngine.mostRecentChanges.endedOnAComment || this.playbackEngine.currentEventIndex === this.playbackEngine.playbackData.events.length - 1;
     if(shouldPause !== this.isPaused) {
       //pause and change the button
       this.isPaused = true;
       this.updatePlayPauseButton(true);
     }
 
+    //update the slider to hold the new position
     const playbackSlider = this.shadowRoot.querySelector('st-playback-slider');
-    playbackSlider.updateToCurrentEventIndex();
+    playbackSlider.updateForPlaybackMovement();
   }
 
-  updateForNewComment() {
-    //for every new comment, rerender the pips in the playback slider
-    this.buildPlaybackSlider();
-  }
-
-  updateForDeleteComment() {
-    //when the last comment at a position is deleted, remove the pip
+  updateForAddEditDeleteComment() {
     this.buildPlaybackSlider();
   }
 
@@ -160,19 +158,17 @@ class PlaybackControls extends HTMLElement {
   }
 
   updateActiveDevGroup() {
-    if(this.previousDevGroupId !== this.playbackEngine.activeDevGroupId) {
-      const devAvatars = this.shadowRoot.querySelector('.devAvatars');
-      devAvatars.innerHTML = '';
+    const devAvatars = this.shadowRoot.querySelector('.devAvatars');
+    devAvatars.innerHTML = '';
 
-      const devGroupAvatar = new DevGroupAvatar({
-        developerGroupId: this.playbackEngine.activeDevGroupId, 
-        developers: this.playbackEngine.playbackData.developers, 
-        developerGroups: this.playbackEngine.playbackData.developerGroups
-      });
-      devAvatars.appendChild(devGroupAvatar);
+    const devGroupAvatar = new DevGroupAvatar({
+      developerGroupId: this.playbackEngine.activeDevGroupId, 
+      developers: this.playbackEngine.playbackData.developers, 
+      developerGroups: this.playbackEngine.playbackData.developerGroups
+    });
+    devAvatars.appendChild(devGroupAvatar);
 
-      this.previousDevGroupId = this.playbackEngine.activeDevGroupId;
-    }
+    this.previousDevGroupId = this.playbackEngine.activeDevGroupId;
   }
 
   updatePlayPauseButton(isPaused) {

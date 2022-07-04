@@ -43,6 +43,11 @@ class EditorView extends HTMLElement {
   disconnectedCallback() {
   }
 
+  updateForCommentSelected() {
+    const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
+    aceEditor.updateForCommentSelected();
+  }
+
   updateForPlaybackMovement() {
     const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
     aceEditor.updateForPlaybackMovement();
@@ -51,9 +56,15 @@ class EditorView extends HTMLElement {
     playbackControls.updateForPlaybackMovement();
   }
 
-  updateForSelectedFile() {
+  updateForAddEditDeleteComment() {
+    const playbackControls = this.shadowRoot.querySelector('st-playback-controls');
+    playbackControls.updateForAddEditDeleteComment();
+  }
+
+  updateForFileSelected() {
     const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
     aceEditor.updateForPlaybackMovement();
+    aceEditor.updateForCommentSelected();
   }
 
   updateEditorFontSize(newFontSize) {
@@ -74,18 +85,6 @@ class EditorView extends HTMLElement {
   getSelectedCodeInfo() {
     const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
     return aceEditor.getSelectedCodeInfo();
-  }
-
-  updateForNewComment() {
-    //make sure there is a pip in the playback controls for the new comment
-    const playbackControls = this.shadowRoot.querySelector('st-playback-controls');
-    playbackControls.updateForNewComment();
-  }
-
-  updateForDeleteComment() {
-    //make sure the pip in the playback controls is removed
-    const playbackControls = this.shadowRoot.querySelector('st-playback-controls');
-    playbackControls.updateForDeleteComment();
   }
 }
 

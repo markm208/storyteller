@@ -328,10 +328,14 @@ class AddEditComment extends HTMLElement {
     //update the max lines above/below from an active file
     this.updateActiveFile();
 
-    //if(this.editedComment.id === this.playbackEngine.getFirstComment().id)
-    //show the delete comment button
-    const deleteButtonDiv = this.shadowRoot.querySelector('#deleteButtonDiv');
-    deleteButtonDiv.classList.remove('inactive');
+    //add a delete button to all but the first comment
+    const allComments = this.playbackEngine.getFlattenedComments();
+    const firstComment = allComments[0];
+    if(this.editedComment.id !== firstComment.id) {
+      //show the delete comment button
+      const deleteButtonDiv = this.shadowRoot.querySelector('#deleteButtonDiv');
+      deleteButtonDiv.classList.remove('inactive');
+    }
     
     //set the text and event handler for the submit button
     const submitButton = this.shadowRoot.querySelector('#submitButton');

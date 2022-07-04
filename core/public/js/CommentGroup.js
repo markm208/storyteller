@@ -102,12 +102,12 @@ class CommentGroup extends HTMLElement {
       //add the comment view to this comment group
       commentViews.appendChild(commentView);
     }
-    //if this is an editable playback
+    //if this is an editable playback with more than one comment in this group
     if(this.playbackEngine.playbackData.isEditable && this.comments.length > 1) {
-      //add an edit button
+      //add an edit order button
       const editCommentGroupButton = this.shadowRoot.querySelector('#editCommentGroupButton');
       editCommentGroupButton.addEventListener('click', this.updateForCommentGroupEditing);
-
+      //and a 'done' button
       const doneEditingCommentGroupButton = this.shadowRoot.querySelector('#doneEditingCommentGroupButton');
       doneEditingCommentGroupButton.addEventListener('click', this.updateForCommentGroupEditingComplete);
     }
@@ -145,25 +145,6 @@ class CommentGroup extends HTMLElement {
     //if this group has a visible reorder button, make it invisible
     const editCommentGroupButton = this.shadowRoot.querySelector('#editCommentGroupButton');
     editCommentGroupButton.classList.add('inactive');
-  }
-
-  updateForCommentEdit(editedComment) {
-    //get the old comment view that will be replaced
-    const oldCommentView = this.shadowRoot.querySelector(`st-comment-view#${editedComment.id}`);
-    //create a new comment view with the edited comment
-    const newCommentView = new CommentView({
-        comment: editedComment,
-        playbackEngine: this.playbackEngine,
-        isDescriptionComment: oldCommentView.isDescriptionComment,
-        commentNumber: oldCommentView.commentNumber,
-        totalNumberOfComments: this.totalNumberOfComments
-      }
-    );
-    newCommentView.setAttribute('id', editedComment.id);
-
-    //replace the old comment view with a new one
-    const commentViews = this.shadowRoot.querySelector('.commentViews');
-    commentViews.replaceChild(newCommentView, oldCommentView);
   }
 
   hideIrrelevantSearchResults(hideAllButThese) {
@@ -250,35 +231,6 @@ class CommentGroup extends HTMLElement {
     allCommentViews.forEach(commentView => {
       commentView.removeAttribute('draggable');
     });
-  }
-
-  updateForReordering() {
-    //only make comment views draggable if there are more than one
-    if(this.comments.length > 1) {
-      //make all of the comment views in this comment group draggable
-      const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
-      for(let i = 0;i < allCommentViews.length;i++) {
-        const commentView = allCommentViews[i];
-        commentView.setAttribute('draggable', true);
-        commentView.addEventListener('dragstart', event => {
-          //while being dragged add a class so it can be found later
-          commentView.classList.add('dragging');
-          event.dataTransfer.effectAllowed = 'move';
-        });
-
-        //make this CommentGroup a drop zone
-        //when a CommentView is dropped in the CommentGroup
-        this.shadowRoot.host.addEventListener('drop', event => {
-          event.preventDefault();
-          //reorder the comments based on where the comment view was dropped
-          this.sortCommentViews(event.clientY);
-        });
-        this.shadowRoot.host.addEventListener('dragover', event => {
-          event.dataTransfer.dropEffect = 'move';
-          event.preventDefault();
-        });
-      }  
-    }
   }
 
   sortCommentViews(dropYPosition) {

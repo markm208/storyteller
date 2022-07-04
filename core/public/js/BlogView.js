@@ -114,7 +114,7 @@ class BlogView extends HTMLElement {
     }
   }
 
-  displaySearchResults(searchResults) {
+  updateToDisplaySearchResults(searchResults) {
     //clear out old search results
     const nonRelComments = this.shadowRoot.querySelectorAll('.nonRelevantSearchResult');
     nonRelComments.forEach(comment => {
