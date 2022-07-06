@@ -87,6 +87,7 @@ class AddEditComment extends HTMLElement {
         Included lines below selected code
         <input type="number" id="linesBelowSelector" value="0" min="0"/>
       </div>
+      <hr/>
       <div id="imagesVMC" class="mediaContainer"></div>
       <div id="videosVMC" class="mediaContainer"></div>
       <div id="audiosVMC" class="mediaContainer"></div>
@@ -439,6 +440,11 @@ class AddEditComment extends HTMLElement {
     const qAndA = createMultipleChoiceQuestion.getMultipleChoiceQuestionData();
     //TODO if invalid question, do something about it
 
+    const imagesVMC = this.shadowRoot.querySelector('#imagesVMC').children[0];
+    const videosVMC = this.shadowRoot.querySelector('#videosVMC').children[0];
+    const audiosVMC = this.shadowRoot.querySelector('#audiosVMC').children[0];
+    
+    
     const mostRecentEvent = this.playbackEngine.getMostRecentEvent();
     const activeFilePath = this.playbackEngine.getActiveFilePath();
 
@@ -453,9 +459,9 @@ class AddEditComment extends HTMLElement {
       commentTitle: commentTitle.classList.contains('promptVisible') ? '' : commentTitle.textContent,
       selectedCodeBlocks: [], //this will be set in CodeView
       viewableBlogText: '', //this will be set in CodeView
-      imageURLs: [],
-      videoURLs: [],
-      audioURLs: [],
+      imageURLs: imagesVMC.getURLsInOrder(),
+      videoURLs: videosVMC.getURLsInOrder(),
+      audioURLs: audiosVMC.getURLsInOrder(),
       linesAbove: 0, //this will be set in CodeView
       linesBelow: 0, //this will be set in CodeView
       currentFilePath: this.editedComment ? this.editedComment.currentFilePath : activeFilePath,

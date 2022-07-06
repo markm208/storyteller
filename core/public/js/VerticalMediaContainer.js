@@ -50,14 +50,38 @@ class VerticalMediaContainer extends HTMLElement {
           position: absolute;
           cursor: pointer;
       }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 15px;
+      }
+
+      #typeLabel {
+        /*padding-left: 20px;*/
+      }
+      #addNewMediaButton {
+        /*padding-right: 20px;*/
+      }
       </style>
-      
-      <div class='mediaContainer'>${typeLabel}           
-      </div>`;
+      <div class="header">
+        <span id="typeLabel">${typeLabel}</span>
+        <span id="addNewMediaButton" title="Click to add a new ${this.mediaType} here.">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
+          </svg>
+        </span>
+      </div>
+      <div class='mediaContainer'></div>
+      <hr/>`;
+
     return template.content.cloneNode(true);
   }
 
   connectedCallback() {
+    const addNewMediaButton = this.shadowRoot.querySelector('#addNewMediaButton');
+    addNewMediaButton.addEventListener('click', event => {console.log('click')});
+    
     const mediaContainer = this.shadowRoot.querySelector('.mediaContainer');
     this.mediaURLs.forEach(mediaURL => {
       this.addMedia(mediaURL);
