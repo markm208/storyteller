@@ -91,23 +91,15 @@ class AddEditComment extends HTMLElement {
       <st-show-hide-component  name='Images'> 
         <div id="imagesVMC" class="mediaContainer" slot='child'></div>
       </st-show-hide-component>
-
       <st-show-hide-component name='Videos'>
-
         <div id="videosVMC" class="mediaContainer" slot='child'></div>
       </st-show-hide-component>
-
       <st-show-hide-component name='Audios'>
-
         <div id="audiosVMC" class="mediaContainer" slot='child'></div>
       </st-show-hide-component>
-
       <st-show-hide-component name='Multiple Choice Question'>            
-        <div id="questionAnswerContainer" slot='child'>
-        </div>
+        <div id="questionAnswerContainer" slot='child'></div>
       </st-show-hide-component>
-
-
       <button id="cancelButton" class="controlButton">Cancel</button>
       <button id="submitButton" class="controlButton"></button>
       <div id="deleteButtonDiv" class="inactive">
