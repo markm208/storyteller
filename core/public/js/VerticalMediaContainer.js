@@ -8,14 +8,21 @@
 class VerticalMediaContainer extends HTMLElement {
   constructor(mediaURLs, mediaType) {
     super();
-
+    //type of media (image, video, audio)
     this.mediaType = mediaType.toLowerCase();
 
+    //verifies the type of media is valid
     if (this.mediaType !== 'audio' && this.mediaType !== 'video' && this.mediaType !== 'image') {
-      return;
+      this.mediaType = 'image'
     }
-
+    
+    //store the urls of the media on the server
     this.mediaURLs = mediaURLs;
+
+    //initial list of acceptable media files (copied from HTTPServer.js)
+    this.acceptableImageMimeTypes = ['image/apng', 'image/bmp', 'image/gif', 'image/ico', 'image/jpeg', 'image/png', 'image/svg+xml'];
+    this.acceptableAudioMimeTypes = ['audio/aac', 'audio/mpeg', 'audio/wav', 'audio/webm'];
+    this.acceptableVideoMimeTypes = ['video/mpeg', 'video/mp4', 'video/webm'];
 
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
@@ -26,8 +33,7 @@ class VerticalMediaContainer extends HTMLElement {
     const typeLabel = this.mediaType.charAt(0).toUpperCase() + this.mediaType.slice(1) + 's';
     template.innerHTML = `<style> 
       .draggable{
-          height: 80%;
-          width: 50%;
+          width: 100%;
       }
 
       error{
@@ -36,19 +42,25 @@ class VerticalMediaContainer extends HTMLElement {
       }
 
       .mediaContainer{
-          display: grid;
-          border-style: groove;
-          overflow-y: auto;
+        display: grid;
+        /*border-style: groove;*/
+        overflow-y: auto;
       }
 
-      .mediaDiv{
-          margin: 10px;
+      .mediaDiv {
+        margin: 10px;
       }
-      
+      .mediaDiv img {
+        border: 1px solid gray;
+      }
+
       .removeMedia{
-          color: red;
-          position: absolute;
           cursor: pointer;
+          background-image: url("data:image/svg+xml,<svg viewBox='0 0 16 16' height='16' width='16' class='bi bi-x-lg' fill='red' xmlns='http://www.w3.org/2000/svg'><path d='M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z'/></svg>");
+          background-repeat: no-repeat;
+          background-color: transparent;
+          height: 1em;
+          width: 1em;
       }
 
       .header {
@@ -58,15 +70,13 @@ class VerticalMediaContainer extends HTMLElement {
       }
 
       #typeLabel {
-        /*padding-left: 20px;*/
       }
       #addNewMediaButton {
-        /*padding-right: 20px;*/
       }
       </style>
       <div class="header">
         <span id="typeLabel">${typeLabel}</span>
-        <span id="addNewMediaButton" title="Click to add a new ${this.mediaType} here.">
+        <span id="addNewMediaButton" title="Click to add a new ${this.mediaType} here or paste a file.">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
           </svg>
@@ -79,14 +89,56 @@ class VerticalMediaContainer extends HTMLElement {
   }
 
   connectedCallback() {
-    const addNewMediaButton = this.shadowRoot.querySelector('#addNewMediaButton');
-    addNewMediaButton.addEventListener('click', event => {console.log('click')});
-    
+    //display all of the media from the comment's url
     const mediaContainer = this.shadowRoot.querySelector('.mediaContainer');
     this.mediaURLs.forEach(mediaURL => {
       this.addMedia(mediaURL);
     })
 
+    //the + button to add new media
+    const addNewMediaButton = this.shadowRoot.querySelector('#addNewMediaButton');
+    addNewMediaButton.addEventListener('click', this.createFileChooser);
+    
+    //the paste file event handler
+    window.addEventListener("paste", pasteEvent => {
+      //check for clipboard data
+      if (pasteEvent.clipboardData) {
+        //whether the paste data has media files or not
+        let pasteHasFiles = false;
+        let acceptableMimeTypes;
+
+        //acceptable image mime types
+        if (this.mediaType === 'image') {
+          acceptableMimeTypes = this.acceptableImageMimeTypes;
+        } else if (this.mediaType === 'video') {
+          acceptableMimeTypes = this.acceptableVideoMimeTypes;
+        } else if (this.mediaType === 'audio') {
+          acceptableMimeTypes = this.acceptableAudioMimeTypes;
+        }
+
+        //get all of the files on the clipboard
+        const files = pasteEvent.clipboardData.files;
+        //go through the clipboard files if there are any
+        for (let i = 0; i < files.length; i++) {
+          //if the clipboard data has any files and they are acceptable images
+          if (acceptableMimeTypes.includes(files[i].type)) {
+            //indicate that media files will be added to the comment
+            pasteHasFiles = true;
+            break;
+          }
+        }
+        //if new images will be added to the media pop up
+        if (pasteHasFiles) {
+          //prevent a paste in the comment text box if it has the focus
+          pasteEvent.preventDefault();
+
+          //add the files from the clipboard to the comment
+          this.sendFilesToServer(pasteEvent.clipboardData.files);
+        }
+      }
+    });
+
+    //dragging and dropping existing media
     mediaContainer.addEventListener('dragover', event => {
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
@@ -94,7 +146,7 @@ class VerticalMediaContainer extends HTMLElement {
 
       if (draggable) {
         event.preventDefault();
-        const afterElement = this.#getDragAfterElement(event.clientY);
+        const afterElement = this.getDragAfterElement(event.clientY);
         if (typeof afterElement === 'undefined') {
           mediaContainer.appendChild(draggable.parentElement);
         } else {
@@ -105,15 +157,13 @@ class VerticalMediaContainer extends HTMLElement {
 
     //TODO add ability to drop media files in from operating system
     mediaContainer.addEventListener('drop', event => {
-
       var data = event.dataTransfer.getData('text/html');
       if (data === 'internal-drag') {
-        //alert(data);
+        //TODO is this being used??
       } else if (event.dataTransfer.files) {
         const temp = event.dataTransfer.files;
         for (let i = 0; i < temp.length; i++) {
           const file = temp[i];
-          //alert(file.name);
         }
       }
 
@@ -126,15 +176,64 @@ class VerticalMediaContainer extends HTMLElement {
     //TODO remove eventListeners?
   }
 
-  addMedia(mediaURL, fromDragIn = false) {
-    //TODO get type from src
+  createFileChooser = (event) = event => {
+    let acceptedFiles;
+    //make some choices based on the type of media container this is
+    if (this.mediaType === 'image') {
+      acceptedFiles = this.acceptableImageMimeTypes.join(',');
+    } else if (this.mediaType === 'video') {
+      acceptedFiles = this.acceptableVideoMimeTypes.join(',');
+    } else if (this.mediaType === 'audio') {
+      acceptedFiles = this.acceptableAudioMimeTypes.join(',');
+    }
 
+    //create a file chooser input with the acceptable files only
+    const fileInput = document.createElement('input');
+    fileInput.setAttribute('type', 'file');
+    fileInput.setAttribute('accept', acceptedFiles);
+    //add the handler when the selection is complete
+    fileInput.addEventListener('change', event => {
+      this.sendFilesToServer(fileInput.files);
+    });
+    //simulate a click on the file chooser
+    fileInput.click();
+  }
+
+  async sendFilesToServer(files) {
+    const serverProxy = new ServerProxy();
+    let serverMethod;
+
+    //choose the server method based on the type of media container this is
+    if (this.mediaType === 'image') {
+      serverMethod = serverProxy.addImageOnServer;
+    } else if (this.mediaType === 'video') {
+      serverMethod = serverProxy.addVideoOnServer;
+    } else if (this.mediaType === 'audio') {
+      serverMethod = serverProxy.addAudioOnServer;
+    }
+
+    //send the request to the server and get the new paths to the files
+    const newFilePaths = await serverMethod(files);
+
+    //add each file path and to the urls and add the media
+    newFilePaths.forEach(newFile => {
+      //add the new url 
+      this.mediaURLs.push(newFile);
+      //build the media UI element
+      this.addMedia(newFile);
+    });
+  }
+
+  addMedia(mediaURL, fromDragIn = false/*Is this needed anymore?? */) {
+    //TODO get type from src
+    
+    //build and add a UI element of the new media file to the container
     const mediaContainer = this.shadowRoot.querySelector('.mediaContainer');
-    const newMedia = this.#createMedia(mediaURL);
+    const newMedia = this.createMedia(mediaURL);
     mediaContainer.appendChild(newMedia);
   }
 
-  #createMedia(mediaURL) {
+  createMedia(mediaURL) {
     const mediaDiv = document.createElement('div');
     mediaDiv.classList.add('mediaDiv');
 
@@ -160,15 +259,13 @@ class VerticalMediaContainer extends HTMLElement {
       media.onpause = () => {
         media.classList.remove('playing');
       }
-
-
     }
-    //TODO add anon functions for eventListeners so listeners can be removed with disconnectedCallback()
-
+    
+    //make the media draggable
     media.setAttribute('src', mediaURL);
     media.setAttribute('draggable', 'true');
     media.classList.add('draggable');
-
+    //handle dragging
     media.addEventListener('dragstart', (event) => {
       //event.preventDefault();
       //set data to 'internal-drag' so we can later identify that this drag came from storyteller and not the OS
@@ -178,27 +275,39 @@ class VerticalMediaContainer extends HTMLElement {
       this.sendPauseAllEvent();
 
       media.classList.add('dragging');
-    })
+    });
 
+    //drag ends
     media.addEventListener('dragend', (event) => {
       event.preventDefault();
-
       media.classList.remove('dragging');
-    })
+    });
 
     //media.setAttribute('preload', 'metadata');   
     //media.classList.add('commentVideo');
 
-
-    const removeMediaButton = document.createElement('btn');
+    //button to remove media from the server and comment
+    const removeMediaButton = document.createElement('div');
     removeMediaButton.classList.add('removeMedia');
     removeMediaButton.title = `Remove ${this.mediaType}`;
-    removeMediaButton.innerHTML = 'X';
 
+    removeMediaButton.addEventListener('click', async () => {
+      const serverProxy = new ServerProxy();
+      let serverMethod;
+      //let relativePath = mediaURL.substring(mediaURL.indexOf('media/'));
+      //make some choices based on the type of media container this is
+      if (this.mediaType === 'image') {
+        serverMethod = serverProxy.deleteImageOnServer;
+      } else if (this.mediaType === 'video') {
+        serverMethod = serverProxy.deleteVideoOnServer;
+      } else if (this.mediaType === 'audio') {
+        serverMethod = serverProxy.deleteAudioOnServer;
+      }
 
-    removeMediaButton.addEventListener('click', () => {
+      //await serverMethod(relativePath);
+      await serverMethod(mediaURL);
       mediaContainer.removeChild(mediaDiv);
-    })
+    });
 
     //if an error exists with the media, show an error message and allow user to remove media
     media.addEventListener('error', () => {
@@ -210,10 +319,7 @@ class VerticalMediaContainer extends HTMLElement {
       media.replaceWith(error);
       mediaContainer.removeChild(mediaDiv);
       mediaContainer.firstChild.after(mediaDiv);
-
-
-      // mediaContainer.removeChild(mediaDiv);
-    })
+    });
 
     mediaDiv.appendChild(media);
 
@@ -226,7 +332,9 @@ class VerticalMediaContainer extends HTMLElement {
 
     let retVal = [];
     allMedia.forEach(media => {
-      retVal.push(media.src);
+      //get only the path from 'media/'
+      const mediaURL = media.src.substring(media.src.indexOf('media/'));
+      retVal.push(mediaURL);
     })
     return retVal;
   }
@@ -240,7 +348,7 @@ class VerticalMediaContainer extends HTMLElement {
     this.dispatchEvent(event);
   }
 
-  #getDragAfterElement(y) {
+  getDragAfterElement(y) {
     const container = this.shadowRoot.querySelector('.mediaContainer');
     const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')];
     return draggableElements.reduce((closest, child) => {

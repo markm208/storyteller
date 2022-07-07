@@ -171,6 +171,12 @@ class AddEditComment extends HTMLElement {
       this.updateAddCommentMode();
     }
     
+    this.addEventListener('pause-all-vertical-media-containers', event => {
+      //get all of the vertical media constainers and pause them
+      const mediaContainers = this.shadowRoot.querySelectorAll('st-vertical-media-container');
+      mediaContainers.forEach(mediaContainer => mediaContainer.pause());
+    });
+
     //prevent normal text editing from firing any keyboard shortcuts
     this.addEventListener('keydown', event => {
       event.stopPropagation();
