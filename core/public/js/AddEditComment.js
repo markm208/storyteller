@@ -174,6 +174,12 @@ class AddEditComment extends HTMLElement {
       this.updateAddCommentMode();
     }
     
+    this.addEventListener('pause-all-vertical-media-containers', event => {
+      //get all of the vertical media constainers and pause them
+      const mediaContainers = this.shadowRoot.querySelectorAll('st-vertical-media-container');
+      mediaContainers.forEach(mediaContainer => mediaContainer.pauseMedia());
+    });
+
     //prevent normal text editing from firing any keyboard shortcuts
     this.addEventListener('keydown', event => {
       event.stopPropagation();
@@ -218,21 +224,12 @@ class AddEditComment extends HTMLElement {
       event.stopPropagation();
     });
 
-    const mediaButton = document.createElement('button');
-    mediaButton.setAttribute('id', 'mediaButton');
-    mediaButton.classList.add('editorControl');
-    mediaButton.innerHTML = 'media';
-    mediaButton.addEventListener('click', event => {
-      console.log('Handle media here');
-    });
-
     //add the buttons to the editorControls div
     const editorControls = this.shadowRoot.querySelector('.editorControls');
     editorControls.appendChild(boldButton);
     editorControls.appendChild(italicButton);
     editorControls.appendChild(codeButton);
     editorControls.appendChild(addLink);
-    editorControls.appendChild(mediaButton);
   }
 
   wrapSelectedText(tagName, attributes = []) {

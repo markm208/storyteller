@@ -10,7 +10,7 @@ const utilities = require('../utilities.js');
 //port number to listen for http requests
 const HTTP_SERVER_PORT = 53140;
 
-//initial list of acceptable media files
+//initial list of acceptable media files (copied into VerticalMediaContainer.js)
 const acceptableImageMimeTypes = ['image/apng', 'image/bmp', 'image/gif', 'image/ico', 'image/jpeg', 'image/png', 'image/svg+xml'];
 const acceptableAudioMimeTypes = ['audio/aac', 'audio/mpeg', 'audio/wav', 'audio/webm'];
 const acceptableVideoMimeTypes = ['video/mpeg', 'video/mp4', 'video/webm'];
@@ -339,7 +339,7 @@ class HttpServer {
             //go through the paths
             for(let i = 0;i < filePaths.length;i++) {
                 //change the relative web path to a full path and delete it 
-                const parts = filePaths[i].split(path.posix.sep);
+                const parts = decodeURI(filePaths[i]).split(path.posix.sep);
                 const fileName = path.join(parts[parts.length - 1]);
                 const fullFilePath = path.join(this.projectManager.commentManager.pathToImagesDir, fileName);
                 fs.unlinkSync(fullFilePath);
@@ -415,7 +415,7 @@ class HttpServer {
             //go through the paths
             for(let i = 0;i < filePaths.length;i++) {
                 //change the relative web path to a full path and delete it 
-                const parts = filePaths[i].split(path.posix.sep);
+                const parts = decodeURI(filePaths[i]).split(path.posix.sep);
                 const fileName = path.join(parts[parts.length - 1]);
                 const fullFilePath = path.join(this.projectManager.commentManager.pathToVideosDir, fileName);
                 fs.unlinkSync(fullFilePath);
@@ -491,7 +491,7 @@ class HttpServer {
             //go through the paths
             for(let i = 0;i < filePaths.length;i++) {
                 //change the relative web path to a full path and delete it 
-                const parts = filePaths[i].split(path.posix.sep);
+                const parts = decodeURI(filePaths[i]).split(path.posix.sep);
                 const fileName = path.join(parts[parts.length - 1]);
                 const fullFilePath = path.join(this.projectManager.commentManager.pathToAudiosDir, fileName);
                 fs.unlinkSync(fullFilePath);

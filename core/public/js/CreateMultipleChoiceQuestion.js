@@ -12,83 +12,87 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     const template = document.createElement('template');
     template.innerHTML = `
       <style>
-          #commentQuestion {
-              min-height: 100px;
-              overflow: auto;
-              resize: vertical;
-              background-color: rgb(51,51,51);
-              color: white;
-              border: 1px solid #CED4D6;
-              border-radius: 0.25rem;
-              width: 250px;               
-          }
+        :host {
+          display: block;
+          padding: 2px 4px;
+          margin: 2px;
+        }
 
-          input[type=text], textarea , #commentQuestion{
-              // -webkit-transition: all 0.30s ease-in-out;
-              // -moz-transition: all 0.30s ease-in-out;
-              // -ms-transition: all 0.30s ease-in-out;
-              // -o-transition: all 0.30s ease-in-out;
-              outline: none;
-              padding: 3px 0px 3px 3px;
-              margin: 5px 1px 3px 0px;
-              border: 1px solid #DDDDDD;
-            }
+        #commentQuestion {
+          min-height: 100px;
+          overflow: auto;
+          resize: vertical;
+          background-color: rgb(51,51,51);
+          color: white;
+          border: 1px solid #CED4D6;
+          border-radius: 0.25rem;
+        }
 
-          input[type=text]:focus, textarea:focus, #commentQuestion:focus {
-              box-shadow: 0 0 5px rgba(91, 122, 237, 1);
-              padding: 3px 0px 3px 3px;
-              margin: 5px 1px 3px 0px;
-              border: 1px solid rgba(91, 122, 237, 1);
-            }
+        input[type=text], textarea , #commentQuestion{
+          // -webkit-transition: all 0.30s ease-in-out;
+          // -moz-transition: all 0.30s ease-in-out;
+          // -ms-transition: all 0.30s ease-in-out;
+          // -o-transition: all 0.30s ease-in-out;
+          outline: none;
+          padding: 3px 0px 3px 3px;
+          /*margin: 5px 1px 3px 0px;*/
+          border: 1px solid #DDDDDD;
+        }
 
-          .questionCommentInput{
-              background-color: rgb(51,51,51);
-              color: white;
-              border: 1px solid #CED4D6;
-              border-radius: 0.25rem;
-              width: 250px;
-          }
+        .questionCommentInput{
+          background-color: rgb(51,51,51);
+          color: white;
+          border: 1px solid #CED4D6;
+          border-radius: 0.25rem;
+          width: 100%;
+        }
 
-          .removeAnswerButton{
-              float: right;
-              background: transparent;
-              border: none;
-              color: white;
-              cursor: pointer;
-          }
+        .removeAnswerButton{
+          float: right;
+          background: transparent;
+          border: none;
+          color: white;
+          cursor: pointer;
+        }
 
-          label{
-              padding-right: 10px;
-          }
+        label{
+          padding-right: 10px;
+        }
 
-          .questionOuterDiv{
-              padding-bottom: 5px;
-          }
+        .questionOuterDiv{
+          padding-bottom: 5px;
+        }
 
-          .removeAnswerButton::before{
-              display: inline-block;
-              content: '';
-              background-image: url("data:image/svg+xml,<svg viewBox='0 0 16 16' class='bi bi-x-circle-fill' fill='white' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z'/></svg>");
-              background-repeat: no-repeat;
-              height: 1em;
-              width: 1.4em;
-              border: none;
-              margin-right: -2px;
-              margin-bottom: -3px;
-          }
-          
-          .removeAnswerButton:hover {
-             background-color: grey;
-          }
+        .removeAnswerButton::before{
+          display: inline-block;
+          content: '';
+          background-image: url("data:image/svg+xml,<svg viewBox='0 0 16 16' class='bi bi-x-circle-fill' fill='white' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z'/></svg>");
+          background-repeat: no-repeat;
+          height: 1em;
+          width: 1.4em;
+          border: none;
+          margin-right: -2px;
+          margin-bottom: -3px;
+        }
+        
+        .removeAnswerButton:hover {
+          background-color: grey;
+        }
 
-          .checkBoxContent{
-              display: flex;
-          }
-          
-          #addAnswerButton{
-              cursor: pointer;
-              margin-bottom: 20px;
-          }
+        .checkBoxContent{
+          display: flex;
+        }
+        
+        #addAnswerButton{
+          background-color: transparent;
+          color: white;
+          border: none;
+          cursor: pointer;
+          margin-bottom: 20px;
+        }
+        #addAnswerButton:hover {
+          background-color: gray;
+        }
       </style>
 
       <div class='questionComment'>
@@ -97,34 +101,13 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
               <label>Question</label>
               <div id='commentQuestion' contenteditable='true' placeholder='Question'></div>
                   <button id='addAnswerButton' type='button'>
-                      <svg width='1em' height='1em' viewBox='0 0 16 16' class='bi bi-plus-circle-fill addQuestionButton' fill='currentColor' xmlns='http://www.w3.org/2000/svg'>
+                      <svg width='1em' height='1em' viewBox='0 0 16 16' class='bi bi-plus-circle-fill addQuestionButton' fill='white' xmlns='http://www.w3.org/2000/svg'>
                           <path fill-rule='evenodd' d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z'/>
                       </svg>
                       Add Answer
                   </button>
               </div>
-              <div id="allAnswersContainer">
-                <!-- TODO REMOVE??
-                <div class='questionOuterDiv'>
-                    <input type='text' class='questionCommentInput' value='' autocomplete='off' placeholder='Answer'>
-                    <div class='checkBoxContent'>
-                        <input class='rightAnswerCheckBox' type='checkbox'  id='checkBox-1'>
-                        <label for='checkBox-1'>
-                    Correct Answer
-                        </label>
-                    </div>
-                </div>
-                <div class='questionOuterDiv'>
-                    <input type='text' class='questionCommentInput' value='' autocomplete='off' placeholder='Answer' '>
-                    <div class='checkBoxContent'>
-                        <input class='rightAnswerCheckBox' type='checkbox'  id='checkBox-2'>
-                        <label for='checkBox-2'>
-                    Correct Answer
-                        </label>
-                    </div>
-                </div>
-                -->
-              </div>
+              <div id="allAnswersContainer"></div>
           </form>
       </div>
       `;
@@ -157,7 +140,6 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     const commentQuestion = this.shadowRoot.querySelector('#commentQuestion');
     commentQuestion.innerHTML = '';
     commentQuestion.addEventListener('keydown', this.stopKeypressesFromPropagating);
-    commentQuestion.focus();
 
     //add the first two answer
     this.addNewAnswerBox('', false, 1);
@@ -169,17 +151,16 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     const commentQuestion = this.shadowRoot.querySelector('#commentQuestion');
     commentQuestion.innerHTML = this.questionCommentData.question;
     commentQuestion.addEventListener('keydown', this.stopKeypressesFromPropagating);
-    commentQuestion.focus();
 
     //now add the answers
     this.questionCommentData.allAnswers.forEach((answer, index) => {
-      let correctAnswer = false;
+      let isCorrectAnswer = false;
       //if this is the correct answer, mark it
       if (answer === this.questionCommentData.correctAnswer) {
-        correctAnswer = true;
+        isCorrectAnswer = true;
       }
       //build the answer UI
-      this.addNewAnswerBox(answer, correctAnswer, index + 1);
+      this.addNewAnswerBox(answer, isCorrectAnswer, index + 1);
     });
 
     this.sendNonEmptyEvent();
@@ -202,7 +183,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     event.stopImmediatePropagation();
   }
 
-  addNewAnswerBox(answerText, rightAnswer, answerNumber) {
+  addNewAnswerBox(answerText, isCorrectAnswer, answerNumber) {
     //create a div to hold the answer
     const newAnswerOuterDiv = document.createElement('div');
     newAnswerOuterDiv.classList.add('questionOuterDiv');
@@ -222,18 +203,18 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     const checkBox = document.createElement('input');
     checkBox.type = 'checkbox';
     //if this comes from an existing question and is the right answer
-    if (rightAnswer) {
+    if (isCorrectAnswer) {
       checkBox.setAttribute('checked', 'true');
     }
     checkBox.classList.add('rightAnswerCheckBox');
     checkBox.addEventListener('click', this.rightAnswerCheckBoxHandler);
     this.totalAnswers++;
-    checkBox.setAttribute('id', 'checkBox-' + answerNumber);
+    checkBox.setAttribute('id', `checkBox-${answerNumber}`);
 
     //label
     const label = document.createElement('label');
     label.innerHTML = ' Correct Answer';
-    label.setAttribute('for', 'checkBox-' + answerNumber);
+    label.setAttribute('for', `checkBox-${answerNumber}`);
 
     checkBoxDiv.append(checkBox);
     checkBoxDiv.append(label);
@@ -270,17 +251,6 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
 
     const questionAnswerContent = this.shadowRoot.querySelector('.questionCommentContent');
     questionAnswerContent.append(newAnswerOuterDiv);
-
-    //TODO had an issue with this code, ask Omar
-    //focus the question if it's not filled in
-    //or the first question that isn't filled in
-    // const questionDiv = this.shadowRoot.getElementById('commentQuestion');
-    // if (questionDiv.innerText.trim().length === 0) {
-    //   questionDiv.focus();
-    // } else {
-    //   const answerInputs = [...this.shadowRoot.querySelectorAll('.questionCommentInput')]
-    //   answerInputs[answerInputs.findIndex(item => item.value === '')].focus();
-    // }
   }
 
   getMultipleChoiceQuestionData() {
@@ -337,13 +307,3 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
   }
 }
 window.customElements.define('st-create-multiple-choice-question', CreateMultipleChoiceQuestion);
-
-
-/*TODO
--'Correct Answer' and 'Remove Answer' buttons have different text size
--'+' on addAnswerButton looks wrong
--Styling
--Document component
--Test everything more
--Disconnected callback
-*/
