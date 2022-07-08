@@ -64,8 +64,7 @@ class BlogView extends HTMLElement {
 
   connectedCallback() {
     //playback title
-    const blogTitle = this.shadowRoot.querySelector('.blogTitle');
-    blogTitle.innerHTML = this.playbackEngine.playbackData.playbackTitle;
+    this.updateForTitleChange(this.playbackEngine.playbackData.playbackTitle);
 
     //dev authors
     const blogDevelopersDiv = this.shadowRoot.querySelector('.blogDevelopersDiv');
@@ -112,6 +111,11 @@ class BlogView extends HTMLElement {
     if(scrollToElement) {
       scrollToElement.scrollIntoView(true);
     }
+  }
+
+  updateForTitleChange(newTitle) {
+    const blogTitle = this.shadowRoot.querySelector('.blogTitle');
+    blogTitle.innerHTML = newTitle;
   }
 
   updateToDisplaySearchResults(searchResults) {

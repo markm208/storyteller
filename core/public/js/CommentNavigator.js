@@ -112,6 +112,13 @@ class CommentNavigator extends HTMLElement {
     this.addCommentsToView();
   }
 
+  updateForTitleChange(newTitle) {
+    const commentGroups = this.shadowRoot.querySelector('.commentGroups');
+    //the first child is the comment group with the title
+    const firstCommentGroup = commentGroups.children[0];
+    firstCommentGroup.updateForTitleChange(newTitle);
+  }
+
   addCommentsToView() {
     //clear out any old comment views
     const commentGroups = this.shadowRoot.querySelector('.commentGroups');

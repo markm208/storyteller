@@ -345,6 +345,11 @@ class CodeView extends HTMLElement {
     playbackNavigator.updateUIToEditComment(comment);
   }
 
+  updateForTitleChange(newTitle) {
+    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
+    playbackNavigator.updateForTitleChange(newTitle);
+  }
+
   addSelectedTextToComment(comment) {
     //ask the ace editor for the selected text
     const editorView = this.shadowRoot.querySelector('st-editor-view');

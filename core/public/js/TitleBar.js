@@ -39,7 +39,7 @@ class TitleBar extends HTMLElement {
 
       .playbackTitle {
         color:rgb(201, 226, 242);
-        font-size: 1.15rem;
+        font-size: 1.25rem;
       }
 
       .stLogo {
@@ -49,17 +49,41 @@ class TitleBar extends HTMLElement {
 
       .optionsButtonsGroup{
         display: flex;
-      }      
+      }
+
+      #editButton, #doneEditButton {
+        opacity: 80%;
+      }
+      #editButton:hover, #doneEditButton:hover {
+        opacity: 100%;
+      }
+      .hidden {
+        display: none;
+      }
     </style>
 
     <!-- Logo and playback title -->
     <div class="logoTitleCombo">
       <span class="stLogo">Storyteller: </span>
       <span class="playbackTitle"></span>
+      <span id="editButton" title="Edit the title of the playback">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+          <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+          <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+        </svg>
+      </span>
+      <span id="doneEditButton" class="hidden" title="Done editing the title of the playback">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-square" viewBox="0 0 16 16">
+          <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+          <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022z"/>
+        </svg>
+      </span>
     </div>
+
     <!-- search bar, code/blog mode buttons and options button -->
     <div class="optionsButtonsGroup" role="group" aria-label="Options Button Group">
       <st-search-bar></st-search-bar>
+
       <button id="enterCodeModeButton" type="button" class="modeButton" title="Code View">
         <!-- icon url: https://icons.getbootstrap.com/icons/file-code/ -->
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-file-code" viewBox="0 0 16 16">
@@ -88,13 +112,30 @@ class TitleBar extends HTMLElement {
       this.updateToBlogMode();
     }
 
-    this.updatePlaybackTitle(this.playbackTitle);    
+    //set the title
+    this.updatePlaybackTitle(this.playbackTitle);  
+  
+    //prevent normal text editing of the title from firing any keyboard shortcuts
+    const playbackTitle = this.shadowRoot.querySelector('.playbackTitle');
+    playbackTitle.addEventListener('keydown', event => {
+      //if the title is being edited and the user hits the enter key treat that like the end of editing
+      if(event.key === 'Enter') {
+        this.updateTitleComplete();
+      }
+      event.stopPropagation();
+    });
 
     const enterCodeModeButton = this.shadowRoot.querySelector('#enterCodeModeButton');
     enterCodeModeButton.addEventListener('click', this.updateToCodeMode);
 
     const enterBlogModeButton = this.shadowRoot.querySelector('#enterBlogModeButton');
     enterBlogModeButton.addEventListener('click', this.updateToBlogMode);
+
+    const editButton = this.shadowRoot.querySelector('#editButton');
+    editButton.addEventListener('click', this.updateTitleBegin);
+
+    const doneEditButton = this.shadowRoot.querySelector('#doneEditButton');
+    doneEditButton.addEventListener('click', this.updateTitleComplete);
   }
 
   disconnectedCallback() {
@@ -139,9 +180,55 @@ class TitleBar extends HTMLElement {
     titleBar.updateToDisplaySearchResults(searchResults.length, this.playbackEngine.getTotalNumberOfComments());
   }
 
+  updateTitleBegin = event => {
+    //toggle the edit buttons
+    const editButton = this.shadowRoot.querySelector('#editButton');
+    editButton.classList.add('hidden');
+    const doneEditButton = this.shadowRoot.querySelector('#doneEditButton');
+    doneEditButton.classList.remove('hidden');
+
+    //make the title editable
+    const playbackTitle = this.shadowRoot.querySelector('.playbackTitle');
+    playbackTitle.setAttribute('contenteditable', 'true');
+  }
+
+  updateTitleComplete = event => {
+    //toggle the edit buttons
+    const editButton = this.shadowRoot.querySelector('#editButton');
+    editButton.classList.remove('hidden');
+    const doneEditButton = this.shadowRoot.querySelector('#doneEditButton');
+    doneEditButton.classList.add('hidden');
+
+    //prevent future editing
+    const playbackTitle = this.shadowRoot.querySelector('.playbackTitle');
+    playbackTitle.removeAttribute('contenteditable');
+
+    //if there is anything left in the title notify of a change
+    if(playbackTitle.textContent.trim().length > 0) {
+      this.notifyTitleChange();
+    } else { //there's nothing left in the title
+      //go back to the original title
+      playbackTitle.textContent = this.playbackTitle;
+    }
+  }
+
   notifyModeSelected(newMode) {
     const event = new CustomEvent('mode-change', { 
       detail: {mode: newMode}, 
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
+  }
+
+  notifyTitleChange() {
+    //remove any spaces around the new title
+    const playbackTitle = this.shadowRoot.querySelector('.playbackTitle');
+    playbackTitle.innerHTML = playbackTitle.textContent.trim();
+
+    //send an event that the title has changed
+    const event = new CustomEvent('title-change', { 
+      detail: {newTitle: playbackTitle.textContent }, 
       bubbles: true, 
       composed: true 
     });

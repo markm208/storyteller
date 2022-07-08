@@ -187,6 +187,11 @@ class CommentView extends HTMLElement {
     }
   }
 
+  updateForTitleChange(newTitle) {
+    const titleBar = this.shadowRoot.querySelector('.titleBar');
+    titleBar.innerHTML = newTitle;
+  }
+
   makeCommentViewInactive() {
     this.shadowRoot.host.classList.remove('activeComment');
   }

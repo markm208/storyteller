@@ -598,6 +598,10 @@ class PlaybackEngine {
     return searchResults;
   }
 
+  changePlaybackTitle(newTitle) {
+    this.playbackData.playbackTitle = newTitle;
+  }
+
   getMostRecentEvent() {
     let retVal = this.playbackData.events[0];
     if(this.currentEventIndex > 0) {

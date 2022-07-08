@@ -233,6 +233,16 @@ class CommentGroup extends HTMLElement {
     });
   }
 
+  updateForTitleChange(newTitle) {
+    //if this is the first comment group
+    if(this.firstCommentGroup) {
+      const commentViews = this.shadowRoot.querySelector('.commentViews');
+      //the first child comment view holds the title
+      const firstCommentView = commentViews.children[0];
+      firstCommentView.updateForTitleChange(newTitle);
+    }
+  }
+
   sortCommentViews(dropYPosition) {
     //get the comment view that was being dragged
     const draggedCommentView = this.shadowRoot.querySelector('.dragging');

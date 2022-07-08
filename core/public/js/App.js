@@ -128,6 +128,22 @@ class App extends HTMLElement {
       this.decreaseEditorFontSize();
     });
     
+    //request a change in the title
+    this.shadowRoot.addEventListener('title-change', async event => {
+      if(this.activeMode === 'code') {
+        const codeView = this.shadowRoot.querySelector('st-code-view');
+        codeView.updateForTitleChange(event.detail.newTitle);
+      } else { //blog view
+        const blogView = this.shadowRoot.querySelector('st-blog-view');
+        blogView.updateForTitleChange(event.detail.newTitle);
+      }
+      //update the playback title
+      this.playbackEngine.changePlaybackTitle(event.detail.newTitle);
+      //and on the server
+      const serverProxy = new ServerProxy();
+      await serverProxy.updateTitleOnServer(event.detail.newTitle);
+    });
+    
     // document.addEventListener('keydown', event => {
     //   //get the state of the keys
     //   const keyPressed = event.key;
