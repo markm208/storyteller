@@ -39,16 +39,12 @@ class ShowHideComponent extends HTMLElement {
                 }
 
                 #testing {
-                    margin-top: -100%;
-                    transition: all .2s;
+                    height: 0;
+                    overflow: hidden;
+                    transition: height 0.4s ease;
                 }
 
-                #testing:not(.hide){
-                    transition: all .5s;
 
-                    margin-top: 0;
-
-                }
             </style>
             <div id='outerDiv'>
                 <button id='toggleButton' class='hidden' title='Click to expand'></button>
@@ -66,16 +62,15 @@ class ShowHideComponent extends HTMLElement {
     connectedCallback() {
         const toggleButton = this.shadowRoot.querySelector('#toggleButton');
         toggleButton.addEventListener('click', () => {
-            const slot = this.shadowRoot.querySelector('slot[name=child]');
+            const slot = this.shadowRoot.querySelector('#testing');
 
-            // if (toggleButton.classList.contains('hidden')) {
-            //     slot.style.display = 'block';
-            // } else {
-            //     slot.style.display = 'none';
-            // }
+            if (toggleButton.classList.contains('hidden')) {
+                slot.style.height = slot.scrollHeight+'px';
+            } else {
+                slot.style.height = 0;
+            }
             toggleButton.classList.toggle('hidden');
-            const testing = this.shadowRoot.querySelector('#testing');
-            testing.classList.toggle('hide');
+            //target.style.height = target.scrollHeight+"px";
         })
 
         const name = this.getAttribute('name');
