@@ -162,12 +162,6 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
       //build the answer UI
       this.addNewAnswerBox(answer, isCorrectAnswer, index + 1);
     });
-
-    this.sendNonEmptyEvent();
-  }
-
-  sendNonEmptyEvent(){
-    
   }
 
   rightAnswerCheckBoxHandler = (event) => {
