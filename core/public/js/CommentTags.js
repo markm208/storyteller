@@ -192,7 +192,7 @@ class CommentTags extends HTMLElement {
 
         const removeTagButton = document.createElement('button');
         //removeTagButton.setAttribute('type', 'button');
-        removeTagButton.innerHTML = 'x';
+        removeTagButton.innerHTML = 'X';
         removeTagButton.classList.add('removeTag');
         removeTagButton.title = 'Remove tag';
 
@@ -202,13 +202,16 @@ class CommentTags extends HTMLElement {
         })
 
         newTag.appendChild(removeTagButton);
-
-
         return newTag;
     }
 
     getAllTags() {
-
+        const retVal = [];
+        const allTags = this.shadowRoot.querySelectorAll('.tag');
+        allTags.forEach(tag => {
+           retVal.push(tag.firstChild.textContent);
+        })
+        return retVal;
     }
 }
 window.customElements.define('st-comment-tags', CommentTags);
