@@ -64,7 +64,7 @@ class CommentTags extends HTMLElement {
             }
 
             .blink{
-                background-color: red !important;
+                background-color: lightgray !important;
             }
 
             #tagsDiv {
@@ -84,6 +84,7 @@ class CommentTags extends HTMLElement {
                 border: none;
                 color: red;
                 cursor: pointer;
+                font-size: large;
             }
 
         </style>
@@ -192,7 +193,7 @@ class CommentTags extends HTMLElement {
 
         const removeTagButton = document.createElement('button');
         //removeTagButton.setAttribute('type', 'button');
-        removeTagButton.innerHTML = 'X';
+        removeTagButton.innerHTML = 'x';
         removeTagButton.classList.add('removeTag');
         removeTagButton.title = 'Remove tag';
 
