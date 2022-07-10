@@ -203,8 +203,8 @@ class TitleBar extends HTMLElement {
     const playbackTitle = this.shadowRoot.querySelector('.playbackTitle');
     playbackTitle.removeAttribute('contenteditable');
 
-    //if there is anything left in the title notify of a change
-    if(playbackTitle.textContent.trim().length > 0) {
+    //if there is anything left in the title notify of a change AND the title is different than the original
+    if(playbackTitle.textContent.trim().length > 0 && this.playbackTitle !== playbackTitle.textContent.trim()) {
       this.notifyTitleChange();
     } else { //there's nothing left in the title
       //go back to the original title
@@ -224,8 +224,9 @@ class TitleBar extends HTMLElement {
   notifyTitleChange() {
     //remove any spaces around the new title
     const playbackTitle = this.shadowRoot.querySelector('.playbackTitle');
-    playbackTitle.innerHTML = playbackTitle.textContent.trim();
-
+    this.playbackTitle = playbackTitle.textContent.trim();
+    playbackTitle.innerHTML = this.playbackTitle;
+    
     //send an event that the title has changed
     const event = new CustomEvent('title-change', { 
       detail: {newTitle: playbackTitle.textContent }, 

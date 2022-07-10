@@ -16,23 +16,18 @@ class AddEditComment extends HTMLElement {
     const template = document.createElement('template');
     template.innerHTML = `
       <style>
-      .commentTitle, .commentText {
-          min-height: 200px;
+        #commentTextContainer {
+          margin: 2px 5px;
+        }
+
+        #commentTitle {
+          background-color: inherit;
           color: lightgrey;
           outline: 0px solid transparent;
           border: 1px solid grey;
           padding: 5px 10px;
           margin: 5px;
-          overflow: auto;
-          resize: vertical;
-        }
-        .commentTitle {
-          min-height: 1rem;
-          resize: none;
-        }
-        .promptVisible {
-          font-style: italic;
-          color: grey;
+          width: calc(100% - 32px);
         }
         .controlButton {
           color: white;
@@ -49,36 +44,13 @@ class AddEditComment extends HTMLElement {
         #submitButton {
           background-color: black;
         }
-        .editorControls {
-          padding: 0px;
-          margin: 5px;  
-        }
-        .editorControl {
-          font-size: 1.08rem;
-          padding: 5px 5px;
-          margin: 0px;
-          background-color: grey;
-          color: white;
-          border: 1px solid lightgrey;
-        }
-        code {
-          font-size: 1.2rem;
-          font-family: Courier;
-        }
 
         .inactive {
           display: none;
         }
       </style>
-      <div class="commentTitle"
-           contenteditable="true" 
-           data-placeholder="Comment Title (Optional)">
-      </div>
-      <div class="commentText"
-           contenteditable="true" 
-           data-placeholder="Describe the code at this point">
-      </div>
-      <div class="editorControls"></div>
+      <input type="text" id="commentTitle" placeholder="Comment Title (Optional)"></input>
+      <div id="commentTextContainer"></div>
       <div>
         Included lines above selected code
         <input type="number" id="linesAboveSelector" value="0" min="0"/>
@@ -105,9 +77,6 @@ class AddEditComment extends HTMLElement {
   }
 
   connectedCallback() {
-    //add the comment formatting buttons
-    this.buildFormattingButtons();
-
     //add the lines above/below controls
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
     const linesBelowSelector = this.shadowRoot.querySelector('#linesBelowSelector');
@@ -128,40 +97,10 @@ class AddEditComment extends HTMLElement {
     submitButton.addEventListener('click', this.sendEventAddEditComment);
     
     //update the placeholder text on focus and blur
-    const commentText = this.shadowRoot.querySelector('.commentText');
-    const commentTextPlaceholder = commentText.getAttribute('data-placeholder');
-    commentText.addEventListener('focus', event => {
-      const value = commentText.textContent;
-      if(value === commentTextPlaceholder) {
-        commentText.innerHTML = '';
-        commentText.classList.remove('promptVisible');
-      }
-    });
-    commentText.addEventListener('blur', event => {
-      const value = commentText.textContent;
-      if(value === '') {
-        commentText.innerHTML = commentTextPlaceholder;
-        commentText.classList.add('promptVisible');
-      }
-    });
-
-    //set the placeholder text for the comment title
-    const commentTitle = this.shadowRoot.querySelector('.commentTitle');
-    const commentTitlePlaceholder = commentTitle.getAttribute('data-placeholder');
-    commentTitle.addEventListener('focus', event => {
-      const value = commentTitle.textContent;
-      if(value === commentTitlePlaceholder) {
-        commentTitle.innerHTML = '';
-        commentTitle.classList.remove('promptVisible');
-      }
-    });
-    commentTitle.addEventListener('blur', event => {
-      const value = commentTitle.textContent;
-      if(value === '') {
-        commentTitle.innerHTML = commentTitlePlaceholder;
-        commentTitle.classList.add('promptVisible');
-      }
-    });
+    const commentTextContainer = this.shadowRoot.querySelector('#commentTextContainer');
+    const commentText = new MultiLineTextInput('Describe the code at this point', '', 200);
+    commentText.setAttribute('id', 'commentText');
+    commentTextContainer.appendChild(commentText);
 
     //if there is a comment associated with this component then fill the inputs with data from it
     if(this.editedComment) {
@@ -184,72 +123,6 @@ class AddEditComment extends HTMLElement {
   }
 
   disconnectedCallback() {
-  }
-
-  buildFormattingButtons() {
-    //create the formatting buttons
-    const boldButton = document.createElement('button');
-    boldButton.setAttribute('id', 'boldButton');
-    boldButton.classList.add('editorControl');
-    boldButton.innerHTML = '<strong>B</strong>';
-    boldButton.addEventListener('click', event => {
-      this.wrapSelectedText('strong');
-    });
-
-    const italicButton = document.createElement('button');
-    italicButton.setAttribute('id', 'italicButton');
-    italicButton.classList.add('editorControl');
-    italicButton.innerHTML = '<em>I</em>';
-    italicButton.addEventListener('click', event => {
-      this.wrapSelectedText('em');
-    });
-
-    const codeButton = document.createElement('button');
-    codeButton.setAttribute('id', 'codeButton');
-    codeButton.classList.add('editorControl');
-    codeButton.innerHTML = '&lt;code/&gt;';
-    codeButton.addEventListener('click', event => {
-      this.wrapSelectedText('code');
-    });
-
-    const addLink = document.createElement('span');
-    addLink.setAttribute('id', 'addLink');
-    addLink.classList.add('editorControl');
-    addLink.appendChild(new RevealTextInput('link', 'enter a link', 'add', 'add-link'));
-    this.addEventListener('add-link', event => {
-      this.wrapSelectedText('a', [['href', event.detail.textInput], ['target', '_blank']]);
-      event.stopPropagation();
-    });
-
-    //add the buttons to the editorControls div
-    const editorControls = this.shadowRoot.querySelector('.editorControls');
-    editorControls.appendChild(boldButton);
-    editorControls.appendChild(italicButton);
-    editorControls.appendChild(codeButton);
-    editorControls.appendChild(addLink);
-  }
-
-  wrapSelectedText(tagName, attributes = []) {
-    if(window.getSelection) {
-      //to make sure the selection is in the commentText
-      const commentText = this.shadowRoot.querySelector('.commentText');
-      //get the selected elements on the screen
-      const selection = window.getSelection();
-      //only apply styles to the comment text area
-      if(commentText.contains(selection.anchorNode)) {
-        for(let i = 0;i < selection.rangeCount;i++) {
-          const range = selection.getRangeAt(i);
-          //create a new tag to hold the selected elements
-          const newElement = document.createElement(tagName);
-          //add any attributes that are passed in (href, etc.)
-          attributes.forEach(attribute => {
-            newElement.setAttribute(attribute[0], attribute[1]);
-          });
-          //surround the selected text in the new element
-          range.surroundContents(newElement);
-        }
-      }
-    }
   }
 
   sendEventNotifyLinesAboveBelowChange = () => {
@@ -281,18 +154,6 @@ class AddEditComment extends HTMLElement {
   }
 
   updateAddCommentMode() {
-    //set the placeholder text for the main comment text
-    const commentText = this.shadowRoot.querySelector('.commentText');
-    const commentTextPlaceholder = commentText.getAttribute('data-placeholder');
-    commentText.innerHTML = commentTextPlaceholder;
-    commentText.classList.add('promptVisible');
-    
-    //set the placeholder text for the comment title
-    const commentTitle = this.shadowRoot.querySelector('.commentTitle');
-    const commentTitlePlaceholder = commentTitle.getAttribute('data-placeholder');
-    commentTitle.innerHTML = commentTitlePlaceholder;
-    commentTitle.classList.add('promptVisible');
-
     const imagesVMC = this.shadowRoot.querySelector('#imagesVMC');
     const images = new VerticalMediaContainer([], 'image');
     imagesVMC.appendChild(images);
@@ -325,20 +186,11 @@ class AddEditComment extends HTMLElement {
 
   updateEditCommentMode() {
     //set the main comment text
-    const commentText = this.shadowRoot.querySelector('.commentText');
-    commentText.innerHTML = this.editedComment.commentText;
-    commentText.classList.remove('promptVisible');
-    
-    //set the placeholder text for the comment title
-    const commentTitle = this.shadowRoot.querySelector('.commentTitle');
-    if(this.editedComment.commentTitle) {
-      commentTitle.innerHTML = this.editedComment.commentTitle;
-      commentTitle.classList.remove('promptVisible');
-    } else {
-      const commentTitlePlaceholder = commentTitle.getAttribute('data-placeholder');
-      commentTitle.innerHTML = commentTitlePlaceholder;
-      commentTitle.classList.add('promptVisible');
-    }
+    const commentText = this.shadowRoot.querySelector('#commentText');
+    commentText.updateFormattedText(this.editedComment.commentText);
+    //set the comment title
+    const commentTitle = this.shadowRoot.querySelector('#commentTitle');
+    commentTitle.value = this.editedComment.commentTitle;
 
     const imagesVMC = this.shadowRoot.querySelector('#imagesVMC');
     const images = new VerticalMediaContainer(this.editedComment.imageURLs, 'image');
@@ -429,9 +281,10 @@ class AddEditComment extends HTMLElement {
   buildCommentObjectFromUI() {
     //TODO check for minimum data in the comment
     //comment text
-    const commentText = this.shadowRoot.querySelector('.commentText');
+    const commentText = this.shadowRoot.querySelector('#commentText');
+
     //comment title
-    const commentTitle = this.shadowRoot.querySelector('.commentTitle');
+    const commentTitle = this.shadowRoot.querySelector('#commentTitle');
     //comment question
     const createMultipleChoiceQuestion = this.shadowRoot.querySelector('st-create-multiple-choice-question');
     const qAndA = createMultipleChoiceQuestion.getMultipleChoiceQuestionData();
@@ -452,8 +305,8 @@ class AddEditComment extends HTMLElement {
       id: this.editedComment ? this.editedComment.id : null,
       displayCommentEvent: this.editedComment ? this.editedComment.displayCommentEvent : mostRecentEvent,
       timestamp: this.editedComment ? this.editedComment.timestamp : new Date().getTime(),
-      commentText: commentText.innerHTML,
-      commentTitle: commentTitle.classList.contains('promptVisible') ? '' : commentTitle.textContent,
+      commentText: commentText.getFormattedText(),
+      commentTitle: commentTitle.value,
       selectedCodeBlocks: [], //this will be set in CodeView
       viewableBlogText: '', //this will be set in CodeView
       imageURLs: imagesVMC.getURLsInOrder(),

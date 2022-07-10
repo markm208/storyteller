@@ -18,32 +18,10 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
           margin: 2px;
         }
 
-        #commentQuestion {
-          min-height: 100px;
-          overflow: auto;
-          resize: vertical;
-          background-color: rgb(51,51,51);
-          color: white;
-          border: 1px solid #CED4D6;
-          border-radius: 0.25rem;
-        }
-
-        input[type=text], textarea , #commentQuestion{
-          // -webkit-transition: all 0.30s ease-in-out;
-          // -moz-transition: all 0.30s ease-in-out;
-          // -ms-transition: all 0.30s ease-in-out;
-          // -o-transition: all 0.30s ease-in-out;
-          outline: none;
-          padding: 3px 0px 3px 3px;
-          /*margin: 5px 1px 3px 0px;*/
-          border: 1px solid #DDDDDD;
-        }
-
         .questionCommentInput{
-          background-color: rgb(51,51,51);
-          color: white;
-          border: 1px solid #CED4D6;
-          border-radius: 0.25rem;
+          background-color: inherit;
+          color: lightgray;
+          border: 1px solid gray;
           width: 100%;
         }
 
@@ -96,31 +74,31 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
       </style>
 
       <div class='questionComment'>
-          <form class='questionCommentContent'>
-              <div class='form-group'>
-              <label>Question</label>
-              <div id='commentQuestion' contenteditable='true' placeholder='Question'></div>
-                  <button id='addAnswerButton' type='button'>
-                      <svg width='1em' height='1em' viewBox='0 0 16 16' class='bi bi-plus-circle-fill addQuestionButton' fill='white' xmlns='http://www.w3.org/2000/svg'>
-                          <path fill-rule='evenodd' d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z'/>
-                      </svg>
-                      Add Answer
-                  </button>
-              </div>
-              <div id="allAnswersContainer"></div>
-          </form>
+        <label>Question</label>
+        <div id='commentQuestionContainer'></div>
+        
+        <label>Answers</label>
+        <button id='addAnswerButton' type='button'>
+          <svg width='1em' height='1em' viewBox='0 0 16 16' class='bi bi-plus-circle-fill addQuestionButton' fill='white' xmlns='http://www.w3.org/2000/svg'>
+            <path fill-rule='evenodd' d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z'/>
+          </svg>
+          Add Answer
+        </button>
+        <div id="allAnswersContainer"></div>
+        
+        <label>Explanation</label>
+        <div id="explanationTextContainer"></div>
       </div>
       `;
     return template.content.cloneNode(true);
   }
 
   connectedCallback() {
-    //if the comment question is being edited
-    if (this.questionCommentData && this.questionCommentData.question) {
-      this.createExistingQuestion();
-    } else { //brand new question
-      this.createNewQuestion();
-    }
+    //make the question prompt empty
+    const commentQuestionContainer = this.shadowRoot.querySelector('#commentQuestionContainer');
+    const commentQuestion = new MultiLineTextInput('Add the question here', '', 100);
+    commentQuestion.setAttribute('id', 'commentQuestion');
+    commentQuestionContainer.appendChild(commentQuestion);
 
     //link up the new answer button
     const addAnswerButton = this.shadowRoot.querySelector('#addAnswerButton');
@@ -130,17 +108,25 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
       //add a fresh answer box
       this.addNewAnswerBox('', false, allAnswers.length + 1);
     });
+
+    //an optional explanation of the Q&A
+    const explanationTextContainer = this.shadowRoot.querySelector('#explanationTextContainer');
+    const explanationText = new MultiLineTextInput('Explain the answer (optional)', '', 100);
+    explanationText.setAttribute('id', 'explanationText');
+    explanationTextContainer.appendChild(explanationText);
+
+    //if the comment question is being edited
+    if (this.questionCommentData && this.questionCommentData.question) {
+      this.createExistingQuestion();
+    } else { //brand new question
+      this.createNewQuestion();
+    }
   }
 
   disconnectedCallback() {
   }
 
   createNewQuestion() {
-    //make the question prompt empty
-    const commentQuestion = this.shadowRoot.querySelector('#commentQuestion');
-    commentQuestion.innerHTML = '';
-    commentQuestion.addEventListener('keydown', this.stopKeypressesFromPropagating);
-
     //add the first two answer
     this.addNewAnswerBox('', false, 1);
     this.addNewAnswerBox('', false, 2);
@@ -149,8 +135,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
   createExistingQuestion() {
     //fill the question prompt
     const commentQuestion = this.shadowRoot.querySelector('#commentQuestion');
-    commentQuestion.innerHTML = this.questionCommentData.question;
-    commentQuestion.addEventListener('keydown', this.stopKeypressesFromPropagating);
+    commentQuestion.updateFormattedText(this.questionCommentData.question);
 
     //now add the answers
     this.questionCommentData.allAnswers.forEach((answer, index) => {
@@ -162,6 +147,13 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
       //build the answer UI
       this.addNewAnswerBox(answer, isCorrectAnswer, index + 1);
     });
+
+    //add the explanation
+    const explanationText = this.shadowRoot.querySelector('#explanationText');
+    //legacy data format-- if there is an explanation in the question
+    if(this.questionCommentData.explanation) {
+      explanationText.updateFormattedText(this.questionCommentData.explanation);
+    }
   }
 
   rightAnswerCheckBoxHandler = (event) => {
@@ -243,8 +235,8 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     newAnswerOuterDiv.append(answerInput);
     newAnswerOuterDiv.append(checkBoxDiv);
 
-    const questionAnswerContent = this.shadowRoot.querySelector('.questionCommentContent');
-    questionAnswerContent.append(newAnswerOuterDiv);
+    const allAnswersContainer = this.shadowRoot.querySelector('#allAnswersContainer');
+    allAnswersContainer.append(newAnswerOuterDiv);
   }
 
   getMultipleChoiceQuestionData() {
@@ -252,7 +244,8 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
       questionData: {
         allAnswers: [],
         correctAnswer: '',
-        question: ''
+        question: '',
+        explanation: ''
       },
       questionState: 'no question',
       errorMessage: ''
@@ -260,15 +253,22 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
 
     let foundError = false;
 
-    const questionData = this.shadowRoot.querySelector('#commentQuestion');
-    //no question text
-    if (questionData.textContent !== '') {
-      retVal.questionData.question = questionData.textContent;
+    //question text
+    const commentQuestion = this.shadowRoot.querySelector('#commentQuestion');
+    if (commentQuestion.getFormattedText() !== '') {
+      retVal.questionData.question = commentQuestion.getFormattedText();
     } else {
       foundError = true;
       retVal.errorMessage = 'Question field cannot be empty';
     }
 
+    //explanation test
+    const explanationText = this.shadowRoot.querySelector('#explanationText');
+    if(explanationText.getFormattedText()) {
+      retVal.questionData.explanation = explanationText.getFormattedText();
+    }
+
+    //error checking
     if (!foundError) {
       const answers = this.shadowRoot.querySelectorAll('.questionCommentInput');
       //empty answer text

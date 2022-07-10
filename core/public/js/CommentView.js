@@ -49,7 +49,7 @@ class CommentView extends HTMLElement {
           color: lightblue;
         }
         a:hover {
-          color: gray;
+          opacity: 80%;
         }
 
         .commentTopBar {
