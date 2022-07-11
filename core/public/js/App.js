@@ -139,6 +139,9 @@ class App extends HTMLElement {
       }
       //update the playback title
       this.playbackEngine.changePlaybackTitle(event.detail.newTitle);
+      //change the page's title
+      document.title = this.playbackEngine.playbackData.playbackTitle;
+
       //and on the server
       const serverProxy = new ServerProxy();
       await serverProxy.updateTitleOnServer(event.detail.newTitle);
