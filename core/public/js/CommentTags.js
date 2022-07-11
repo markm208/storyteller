@@ -1,9 +1,11 @@
 class CommentTags extends HTMLElement {
-    constructor(tags) {
+    constructor(tags, playbackEngine) {
         super();
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.appendChild(this.getTemplate());
+        //TODO wont need to keep this set if we just get all the tags from the screen
         this.tagsSet = new Set();
+        this.playbackEngine = playbackEngine;
         this.permanentCommentTags = ['all-tests-pass', 'successful-run', 'version-control-commit'];
 
         tags.forEach(tag => {
@@ -16,26 +18,44 @@ class CommentTags extends HTMLElement {
         template.innerHTML = `
         <style>
             .dropdown_button {
-                background-color: #0979ad;
-                color: white;
-            // padding: 16px;
-                font-size: 16px;
-                border: none;
-                cursor: pointer;
-            // width: 200px;
-                font-family: montserrat;
-                border: 1px solid #ffffff;
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16"><path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>');
+
+                background-repeat: no-repeat;
+                height: 2.4em;
+                width: 2em;
+                background-position: center;
+                border-radius: 2px;
             }
-            .courses {
-                display: none;
+
+            .dropdown_button.expanded{
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-up-fill" viewBox="0 0 16 16"><path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/></svg>');
+
+                background-repeat: no-repeat;
+                height: 2.4em;
+                width: 2em;
+                background-position: center;
+                border-radius: 2px;
+            }
+            .tags {
+                display: block;
                 position: absolute;
                 background-color: #f1f1f1;
                 min-width: 200px;
                 box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
                 z-index: 1;
+                min-height: 20px;  
+                overflow: hidden;
+                transition: height 0.4s ease;
             }
-    
-            .courses li {
+
+            .tags.hidden {
+                display: none;
+                height: 0px;
+
+            }
+
+
+            .tags li {
                 color: black;
             //  padding: 12px 16px;
                 text-decoration: none;
@@ -44,23 +64,25 @@ class CommentTags extends HTMLElement {
                 background-color: rgb(47, 47, 47);
                 font-family: montserrat;
                 border: 1px solid white;
+                cursor: pointer;
             }
     
-            .courses li a {
+            .tags li a {
                 text-decoration: none;
                 color: white;
                 display: block;
                 padding: 10px;
             }
     
-            .courses li:hover {
+            .tags li:hover {
                 // background-color: #0979ad;
                 background-color: gray;
                 color: white;
             }
-
             #outerDiv {
-                display: inline-flex;
+                display: flex;
+                padding-top: 10px;
+                position: relative;
             }
 
             .blink{
@@ -68,39 +90,47 @@ class CommentTags extends HTMLElement {
             }
 
             #tagsDiv {
-                display: flex;
+                display: block;
+                padding-bottom: 10px;
+                padding-top: 5px;
             }
 
             .tag{
                 padding: 5px;
-                border-radius: 25px;
+                border-radius: 5px;
                 border: solid thin;
                 margin-right: 10px;
                 margin-top: 10px;
+                display: inline-block;
             }
 
             .removeTag{
                 background: transparent;
                 border: none;
-                color: red;
+                color: lightblue;
                 cursor: pointer;
                 font-size: large;
             }
 
-        </style>
-        <div id='outerDiv'> Enter a tag
-            <input type="text" id='tagInput'>
-            <input type='button' id='addTagButton' value='Add tag'>  
-            <div class="dropdown_list">            <button class="dropdown_button" >            Select tag            </button>
+            #tagInput{
+                width: 300px;
+            }
 
-                <div id="courses_id" class="courses">
+        </style>
+        <div id='outerDiv'> 
+            <div class="dropdown_list">           
+                <button class="dropdown_button" title='Expand tag options'></button>
+
+                <div id="tags-div" class="tags hidden">
                     <li><a href="">Machine learning</a></li>
                     <li><a href="">Data science</a></li>
                     <li><a href="">Data analysis</a></li>
                     <li><a href="">Data mining</a></li>
                     <li><a href="">Data warehousing</a></li>
                 </div>
-            </div>     
+            </div> 
+            <input type="text" id='tagInput' placeholder='Enter a tag...'>
+            <input type='button' id='addTagButton' value='Add tag'>     
         </div>
         <div id='tagsDiv'></div>          
         `;
@@ -118,7 +148,6 @@ class CommentTags extends HTMLElement {
                 this.addTag(tagValue);
             }
             tagInput.value = '';
-
         })
 
         tagInput.addEventListener('keydown', event => {
@@ -129,23 +158,38 @@ class CommentTags extends HTMLElement {
                 addTagButton.click();
             }
         });
+        var tags = this.shadowRoot.getElementById("tags-div");
 
+        tags.style.height = '0px';
         const dropDownButton = this.shadowRoot.querySelector('.dropdown_button');
-        dropDownButton.addEventListener('click', () => {
-            var courses = this.shadowRoot.getElementById("courses_id");
+        dropDownButton.addEventListener('click', (event) => {
+            event.stopImmediatePropagation();
+            dropDownButton.classList.toggle('expanded');
 
-            if (courses.style.display == "block") {
-                courses.style.display = "none";
+            if (dropDownButton.classList.contains('expanded')) {
+                dropDownButton.setAttribute('title', 'Collapse tag options');
             } else {
-                courses.style.display = "block";
+                dropDownButton.setAttribute('title', 'Expand tag options');
+            }
+
+            tags.classList.toggle('hidden');
+
+            if (!tags.classList.contains('hidden')) {
+                //tags.style.display = 'block'
+                tags.style.height = tags.scrollHeight + 'px';
+            } else {
+                // tags.style.display = 'none';
+                tags.style.height = '0px';
             }
         })
 
-        const blah = this.shadowRoot.querySelector('#courses_id').getElementsByTagName('li');
+        const blah = this.shadowRoot.querySelector('#tags-div').getElementsByTagName('li');
 
         for (let i = 0; i < blah.length; i++) {
             const thisBlah = blah[i];
             thisBlah.addEventListener('click', (event) => {
+                event.stopImmediatePropagation();
+
                 event.preventDefault();
                 this.addTag(thisBlah.innerText);
                 thisBlah.classList.toggle('blink');
@@ -157,13 +201,25 @@ class CommentTags extends HTMLElement {
                             thisBlah.classList.toggle('blink');
                             setTimeout(() => {
                                 thisBlah.remove();
-                                dropDownButton.click();
+                                var tags = this.shadowRoot.getElementById("tags-div");
+
+                                tags.style.height = 'fit-content';
+
+                                //dropDownButton.click();
                             }, 150);
                         }, 75);
                     }, 75);
                 }, 75);
+
             });
         }
+
+        this.shadowRoot.addEventListener('click', (event) => {
+            event.stopImmediatePropagation();
+            //if (!event.target.classList.contains('leave_dropdown_open')) {
+                this.closeDropDown();
+           // }
+        })
     }
 
     addTag(tag) {
@@ -192,7 +248,6 @@ class CommentTags extends HTMLElement {
         newTag.appendChild(document.createTextNode(tag));
 
         const removeTagButton = document.createElement('button');
-        //removeTagButton.setAttribute('type', 'button');
         removeTagButton.innerHTML = 'x';
         removeTagButton.classList.add('removeTag');
         removeTagButton.title = 'Remove tag';
@@ -210,9 +265,18 @@ class CommentTags extends HTMLElement {
         const retVal = [];
         const allTags = this.shadowRoot.querySelectorAll('.tag');
         allTags.forEach(tag => {
-           retVal.push(tag.firstChild.textContent);
+            retVal.push(tag.firstChild.textContent);
         })
         return retVal;
+    }
+
+    closeDropDown() {
+        const tags = this.shadowRoot.getElementById("tags-div");
+
+        if (!tags.classList.contains('hidden')) {
+            const dropDownButton = this.shadowRoot.querySelector('.dropdown_button');
+            dropDownButton.click();
+        }
     }
 }
 window.customElements.define('st-comment-tags', CommentTags);
