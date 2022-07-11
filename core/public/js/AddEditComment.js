@@ -190,7 +190,7 @@ class AddEditComment extends HTMLElement {
     commentText.updateFormattedText(this.editedComment.commentText);
     //set the comment title
     const commentTitle = this.shadowRoot.querySelector('#commentTitle');
-    commentTitle.value = this.editedComment.commentTitle;
+    commentTitle.value = this.editedComment.commentTitle ? this.editedComment.commentTitle : '';
 
     const imagesVMC = this.shadowRoot.querySelector('#imagesVMC');
     const images = new VerticalMediaContainer(this.editedComment.imageURLs, 'image');
