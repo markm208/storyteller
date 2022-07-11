@@ -30,6 +30,18 @@ class PlaybackEngine {
       fileEditLineNumber: -1
     };
 
+    //aggregate info about the playback's comments
+    this.commentInfo = {
+      totalNumberOfComments: 0,
+      allTags: [],
+      allCommentsInGroups: [],
+      commentGroupPositions: [],
+      flattenedComments: []  
+    };
+
+    //create aggregate info about comments
+    this.updateCommentInfo();
+
     //count the events at the beginning that shouldn't be played back because
     //they were part of a project's initial state
     this.skipIrrelevantEvents();
@@ -201,7 +213,7 @@ class PlaybackEngine {
       //holds the comment after the current active on (if there is one)
       let nextComment = null;
       //search through the ordered comments for the active one
-      const allComments = this.getFlattenedComments();
+      const allComments = this.commentInfo.flattenedComments;
       //go through all the comments where there is at least one after
       for(let i = 0;i < allComments.length - 1;i++) {
         if(allComments[i].id === this.activeComment.id) {
@@ -237,7 +249,7 @@ class PlaybackEngine {
       //holds the comment bfore the current active on (if there is one)
       let prevComment = null;
       //search through the ordered comments for the active one
-      const allComments = this.getFlattenedComments();
+      const allComments = this.commentInfo.flattenedComments;
       //go through all the comments in reverse where there is at least one after
       for(let i = allComments.length - 1;i > 0;i--) {
         if(allComments[i].id === this.activeComment.id) {
@@ -277,78 +289,60 @@ class PlaybackEngine {
     this.stepToEventNumber(this.playbackData.events.length - 1);
   }
 
-  //counts the total number of comments
-  getTotalNumberOfComments() {
-    let totalNum = 0;
-    //go through each group of comments and sum their lengths 
-    for(let eventId in this.playbackData.comments) {
-      const commentsAtEvent = this.playbackData.comments[eventId];
-      totalNum += commentsAtEvent.length;
-    }
-    return totalNum;
-  }
+  updateCommentInfo() {
+    //clear out any old data
+    this.commentInfo = {
+      totalNumberOfComments: 0,
+      allTags: [],
+      allCommentsInGroups: [],
+      commentGroupPositions: [],
+      flattenedComments: []  
+    };
 
-  //breaks the comments into sorted groups as they will show up in a playback
-  getCommentsInGroups() {
-    //all groups of comments in the order they show up in a playback (2D array of comments)
-    const commentGroups = [];
     //holds the groups for sorting
-    const commentPositions = [];
+    const orderedCommentGroups = [];
     
     //go through all of the comments
-    Object.keys(this.playbackData.comments).forEach(eventId => {
-      //store the comments at each event and where the event is in the sequence of all events
-      commentPositions.push({
+    for(let eventId in this.playbackData.comments) {
+      //create groups of comments and where they land in the sequence of events
+      orderedCommentGroups.push({
         comments: this.playbackData.comments[eventId], 
         eventSequenceNumber: this.playbackData.comments[eventId][0].displayCommentEvent.eventSequenceNumber
       });
-    });
+    }
     
-    //sort the info by event position
-    commentPositions.sort((first, second) => {
-      return first.eventSequenceNumber - second.eventSequenceNumber
+    //sort the groups of events by event sequence position
+    orderedCommentGroups.sort((first, second) => {
+      return first.eventSequenceNumber - second.eventSequenceNumber;
     });
 
-    //add the arrays of comments to the 2D array
-    commentPositions.map(commentPosition => {
-      commentGroups.push(commentPosition.comments);
-    });
+    //used to hold distinct comment tags
+    const distinctCommentTags = new Set();
 
-    return commentGroups;
-  }
-
-  getCommentGroupEventPosisitons() {
-    //holds all the event sequence numbers where a comment occurs
-    const commentEventPosisitons = [];
-
-    //get all of the comment groups in order
-    const orderedCommentGroups = this.getCommentsInGroups();
-    
-    //add each event sequence number to the array
+    //go through each group of comments
     orderedCommentGroups.forEach(commentGroup => {
-      //use the first comment's event to get the seq num
-      commentEventPosisitons.push(commentGroup[0].displayCommentEvent.eventSequenceNumber)
-    });
+      //go through each comment in this group
+      commentGroup.comments.forEach(comment => {
+        //increase the comment count
+        this.commentInfo.totalNumberOfComments++;
+        
+        //add all tags to a set to ignores duplicates
+        comment.commentTags.forEach(tag => {
+          distinctCommentTags.add(tag);
+        });
 
-    return commentEventPosisitons;
-  }
-
-  getFlattenedComments() {
-    //holds all the comments in order that they appear in a playback
-    const flattenedComments = [];
-
-    //get all of the comment groups in order
-    const orderedCommentGroups = this.getCommentsInGroups();
-    
-    //go through each group
-    orderedCommentGroups.forEach(commentGroup => {
-      //go through each comment in each group
-      commentGroup.forEach(comment => {
-        flattenedComments.push(comment);
+        //add the comment to the 1D array of all comments in order
+        this.commentInfo.flattenedComments.push(comment);
       });
+
+      //add the whole group of comments by group
+      this.commentInfo.allCommentsInGroups.push(commentGroup.comments);
+      //add the comment group position
+      this.commentInfo.commentGroupPositions.push(commentGroup.eventSequenceNumber);
     });
 
-    return flattenedComments;
+    //sort the tags alphabetically
+    this.commentInfo.allTags.push(Array.from(distinctCommentTags).sort());
   }
   
   checkForCommentAtCurrentIndex() {
@@ -626,6 +620,9 @@ class PlaybackEngine {
 
     //make the new comment the active one
     this.changeActiveComment(newComment);
+
+    //update the aggregate comment info
+    this.updateCommentInfo();
   }
 
   updateComment(updatedComment) {
@@ -647,6 +644,8 @@ class PlaybackEngine {
         break;
       }
     }
+    //update the aggregate  comment info
+    this.updateCommentInfo();
   }
 
   deleteComment(deletedComment) {
@@ -676,6 +675,8 @@ class PlaybackEngine {
         break;
       }
     }
+    //update the aggregate comment info
+    this.updateCommentInfo();
   }
 
   reorderComments(updatedCommentPosition) {
@@ -689,5 +690,8 @@ class PlaybackEngine {
     allCommentsAtEvent.splice(updatedCommentPosition.newCommentPosition, 0, movedComment);
     //mark the moved comment as active
     this.changeActiveComment(movedComment);
+
+    //update the aggregate comment info
+    this.updateCommentInfo();
   }
 }

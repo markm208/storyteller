@@ -218,7 +218,7 @@ class AddEditComment extends HTMLElement {
     this.updateActiveFile();
 
     //add a delete button to all but the first comment
-    const allComments = this.playbackEngine.getFlattenedComments();
+    const allComments = this.playbackEngine.commentInfo.flattenedComments;
     const firstComment = allComments[0];
     if(this.editedComment.id !== firstComment.id) {
       //show the delete comment button

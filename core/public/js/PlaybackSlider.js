@@ -105,7 +105,7 @@ class PlaybackSlider extends HTMLElement {
     const numberOfRelevantEvents = this.playbackEngine.numRelevantEvents - this.playbackEngine.firstRelevantEventIndex + 1;
     
     //get all of the comment positions from the playback engine
-    const commentGroupEventPosisitons = this.playbackEngine.getCommentGroupEventPosisitons();
+    const commentGroupEventPosisitons = this.playbackEngine.commentInfo.commentGroupPositions;
     commentGroupEventPosisitons.forEach(pos => {
       //calculate the percentage offset for every comment
       const percentageOffset = (pos / numberOfRelevantEvents) * 100.0;

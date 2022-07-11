@@ -177,7 +177,7 @@ class TitleBar extends HTMLElement {
   updateToDisplaySearchResults(searchResults) {
     //send the number of comments shown and total number of comments to the search bar
     const titleBar = this.shadowRoot.querySelector('st-search-bar');
-    titleBar.updateToDisplaySearchResults(searchResults.length, this.playbackEngine.getTotalNumberOfComments());
+    titleBar.updateToDisplaySearchResults(searchResults.length, this.playbackEngine.commentInfo.totalNumberOfComments);
   }
 
   updateTitleBegin = event => {

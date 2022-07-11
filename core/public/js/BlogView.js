@@ -80,7 +80,7 @@ class BlogView extends HTMLElement {
     //the blog component to scroll to if there is an active comment
     let scrollToElement = null;
 
-    const flattenedComments = this.playbackEngine.getFlattenedComments();
+    const flattenedComments = this.playbackEngine.commentInfo.flattenedComments;
     //go through each comment in the playback
     for(let i = 0;i < flattenedComments.length;i++) { 
       const comment = flattenedComments[i];

@@ -126,10 +126,10 @@ class CommentNavigator extends HTMLElement {
     
     //comment count
     let totalNumberOfCommentsSoFar = 0;
-    const totalNumberOfComments = this.playbackEngine.getTotalNumberOfComments();
+    const totalNumberOfComments = this.playbackEngine.commentInfo.totalNumberOfComments;
 
     //get all of the comment groups in order from the playback engine
-    const commentsInGroups = this.playbackEngine.getCommentsInGroups();
+    const commentsInGroups = this.playbackEngine.commentInfo.allCommentsInGroups;
     //go through each of the comments in this group
     for(let i = 0;i < commentsInGroups.length;i++) {
       //a group of comments at an event
