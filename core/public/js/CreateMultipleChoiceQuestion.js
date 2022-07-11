@@ -22,7 +22,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
           background-color: inherit;
           color: lightgray;
           border: 1px solid gray;
-          width: 100%;
+          width: calc(100% - 5px);
         }
 
         .removeAnswerButton{
@@ -111,7 +111,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
 
     //an optional explanation of the Q&A
     const explanationTextContainer = this.shadowRoot.querySelector('#explanationTextContainer');
-    const explanationText = new MultiLineTextInput('Explain the answer (optional)', '', 100);
+    const explanationText = new MultiLineTextInput('Explain the answer (optional)', '', 75);
     explanationText.setAttribute('id', 'explanationText');
     explanationTextContainer.appendChild(explanationText);
 
