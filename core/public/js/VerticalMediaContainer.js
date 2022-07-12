@@ -13,7 +13,7 @@ class VerticalMediaContainer extends HTMLElement {
 
     //verifies the type of media is valid
     if (this.mediaType !== 'audio' && this.mediaType !== 'video' && this.mediaType !== 'image') {
-      this.mediaType = 'image'
+      this.mediaType = 'image';
     }
     
     //store the urls of the media on the server
@@ -43,7 +43,6 @@ class VerticalMediaContainer extends HTMLElement {
 
       .mediaContainer{
         display: grid;
-        /*border-style: groove;*/
         overflow-y: auto;
       }
 
@@ -164,6 +163,7 @@ class VerticalMediaContainer extends HTMLElement {
         const temp = event.dataTransfer.files;
         for (let i = 0; i < temp.length; i++) {
           const file = temp[i];
+          console.log(file.name);
         }
       }
 
@@ -176,7 +176,7 @@ class VerticalMediaContainer extends HTMLElement {
     //TODO remove eventListeners?
   }
 
-  createFileChooser = (event) = event => {
+  createFileChooser = event => {
     let acceptedFiles;
     //make some choices based on the type of media container this is
     if (this.mediaType === 'image') {
@@ -191,6 +191,8 @@ class VerticalMediaContainer extends HTMLElement {
     const fileInput = document.createElement('input');
     fileInput.setAttribute('type', 'file');
     fileInput.setAttribute('accept', acceptedFiles);
+    fileInput.setAttribute('multiple', 'true');
+    
     //add the handler when the selection is complete
     fileInput.addEventListener('change', event => {
       this.sendFilesToServer(fileInput.files);
@@ -224,9 +226,7 @@ class VerticalMediaContainer extends HTMLElement {
     });
   }
 
-  addMedia(mediaURL, fromDragIn = false/*Is this needed anymore?? */) {
-    //TODO get type from src
-    
+  addMedia(mediaURL) {
     //build and add a UI element of the new media file to the container
     const mediaContainer = this.shadowRoot.querySelector('.mediaContainer');
     const newMedia = this.createMedia(mediaURL);
@@ -251,7 +251,6 @@ class VerticalMediaContainer extends HTMLElement {
       media.innerHTML = `<p>Your browswer does not support playback of *${fileExtension}* files</p>`;
 
       media.onplay = () => {
-        this.pauseMedia(); //TODO can be removed once the event below is handled
         this.sendPauseAllEvent();
         media.classList.add('playing');
       };
@@ -267,13 +266,9 @@ class VerticalMediaContainer extends HTMLElement {
     media.classList.add('draggable');
     //handle dragging
     media.addEventListener('dragstart', (event) => {
-      //event.preventDefault();
       //set data to 'internal-drag' so we can later identify that this drag came from storyteller and not the OS
       event.dataTransfer.setData('Text/html', 'internal-drag');
-      //event.dataTransfer.effectAllowed = 'move';
-      this.pauseMedia(); //TODO can be removed once the event below is handled
       this.sendPauseAllEvent();
-
       media.classList.add('dragging');
     });
 
@@ -283,8 +278,9 @@ class VerticalMediaContainer extends HTMLElement {
       media.classList.remove('dragging');
     });
 
-    //media.setAttribute('preload', 'metadata');   
-    //media.classList.add('commentVideo');
+    //TODO does this save us any load time???
+    media.setAttribute('preload', 'metadata');
+    media.classList.add('commentVideo');
 
     //button to remove media from the server and comment
     const removeMediaButton = document.createElement('div');
@@ -294,7 +290,6 @@ class VerticalMediaContainer extends HTMLElement {
     removeMediaButton.addEventListener('click', async () => {
       const serverProxy = new ServerProxy();
       let serverMethod;
-      //let relativePath = mediaURL.substring(mediaURL.indexOf('media/'));
       //make some choices based on the type of media container this is
       if (this.mediaType === 'image') {
         serverMethod = serverProxy.deleteImageOnServer;
@@ -304,7 +299,6 @@ class VerticalMediaContainer extends HTMLElement {
         serverMethod = serverProxy.deleteAudioOnServer;
       }
 
-      //await serverMethod(relativePath);
       await serverMethod(mediaURL);
       mediaContainer.removeChild(mediaDiv);
     });
@@ -322,8 +316,8 @@ class VerticalMediaContainer extends HTMLElement {
     });
 
     mediaDiv.appendChild(media);
-
     mediaDiv.appendChild(removeMediaButton);
+
     return mediaDiv;
   }
 
