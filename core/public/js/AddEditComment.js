@@ -318,14 +318,20 @@ class AddEditComment extends HTMLElement {
     const videosVMC = this.shadowRoot.querySelector('#videosVMC').children[0];
     const audiosVMC = this.shadowRoot.querySelector('#audiosVMC').children[0];
 
-    //if there is a comment title or some comment text then this is a good comment
+    //if there is a comment title or some comment text 
     if(commentTitle.value.trim() !== '' || commentText.getFormattedText() !== '') {
-      retVal.status = 'ok';
-    } else { //there is no comment title or comment text
-      //if there is some media and a valid question or no question
-      if((imagesVMC.getURLsInOrder().length > 0 || videosVMC.getURLsInOrder().length > 0 || audiosVMC.getURLsInOrder().length > 0) && (qAndA.questionState === 'valid question' || qAndA.questionState === 'no question')) {
+      //if the question is ok, then this is a good comment
+      if(qAndA.questionState === 'valid question' || qAndA.questionState === 'no question') {
         retVal.status = 'ok';
-      } else if(qAndA.questionState === 'valid question') { //there is a valid question only
+      }
+    } else { //there is no comment title or comment text
+      //if there is some media
+      if(imagesVMC.getURLsInOrder().length > 0 || videosVMC.getURLsInOrder().length > 0 || audiosVMC.getURLsInOrder().length > 0) {
+        //if the question is ok, then this is a good comment
+        if(qAndA.questionState === 'valid question' || qAndA.questionState === 'no question') {
+          retVal.status = 'ok';
+        }
+      } else if(qAndA.questionState === 'valid question') { //no text, no media, but there is a valid question
         retVal.status = 'ok';
       }
     }

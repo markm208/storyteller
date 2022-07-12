@@ -41,7 +41,7 @@ class CommentView extends HTMLElement {
         #editCommentButton:hover {
           opacity: 100%;
         }
-        :host(.activeComment) #editCommentButton {
+        :host(.activeComment) #editCommentButton :not(inactive) {
           display: block;
         }
 
