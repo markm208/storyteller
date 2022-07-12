@@ -247,56 +247,73 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         question: '',
         explanation: ''
       },
-      questionState: 'no question',
+      questionState: '',
       errorMessage: ''
     };
 
-    let foundError = false;
-
     //question text
     const commentQuestion = this.shadowRoot.querySelector('#commentQuestion');
-    if (commentQuestion.getFormattedText() !== '') {
-      retVal.questionData.question = commentQuestion.getFormattedText();
-    } else {
-      foundError = true;
-      retVal.errorMessage = 'Question field cannot be empty';
+    const questionText = commentQuestion.getFormattedText();
+
+    //count the number of empty and non-empty answers
+    let numEmptyAnswers = 0;
+    let numNonEmptyAnswers = 0;
+    //all the supplied answers for the question
+    const answers = this.shadowRoot.querySelectorAll('.questionCommentInput');
+    for(let i = 0;i < answers.length;i++) {
+      if(answers[i].value.trim() === '') {
+        numEmptyAnswers++;
+      } else {
+        numNonEmptyAnswers++;
+        //add the answer to the results
+        retVal.questionData.allAnswers.push(answers[i].value);
+      }
     }
 
-    //explanation test
-    const explanationText = this.shadowRoot.querySelector('#explanationText');
-    if(explanationText.getFormattedText()) {
-      retVal.questionData.explanation = explanationText.getFormattedText();
-    }
+    //if there is no question text
+    if(questionText === '') {
+      //if there are some answers
+      if(numNonEmptyAnswers > 0) {
+        //no question but some answers
+        retVal.questionState = 'invalid input';
+        retVal.errorMessage += 'Question field cannot be empty. ';
+      } else { //there are no answers
+        //no question and no answers means the user isn't asking a question here
+        retVal.questionState = 'no question';
+      }
+    } else { //there is some question text
+      //if there is at least one empty answer
+      if(numEmptyAnswers > 0) {
+        //there is an empty answer
+        retVal.questionState = 'invalid input';
+        retVal.errorMessage = 'Question field cannot be empty. ';
+      } else { //question with no empty answers
+        //make sure there is an answer selected as correct
+        const rightAnswerInput = this.shadowRoot.querySelector('.rightAnswerCheckBox:checked');
+        //no selected correct answer
+        if (rightAnswerInput !== null) {
+          //this is a valid question with answers and one is selected as correct
+          retVal.questionState = 'valid question';
+          
+          //store the question
+          retVal.questionData.question = questionText;
+          
+          //store the right answer
+          const rightAnswer = rightAnswerInput.closest('.questionOuterDiv').querySelector('.questionCommentInput').value;
+          retVal.questionData.correctAnswer = rightAnswer;
 
-    //error checking
-    if (!foundError) {
-      const answers = this.shadowRoot.querySelectorAll('.questionCommentInput');
-      //empty answer text
-      for (let i = 0; i < answers.length; i++) {
-        const thisAnswer = answers[i].value;
-        if (thisAnswer !== '') {
-          retVal.questionData.allAnswers.push(thisAnswer);
-        } else {
-          foundError = true;
-          retVal.errorMessage = 'An answer field cannot be empty';
-          break;
+          //add any explanation test (if there is some)
+          const explanationText = this.shadowRoot.querySelector('#explanationText');
+          if(explanationText.getFormattedText()) {
+            retVal.questionData.explanation = explanationText.getFormattedText();
+          }
+        } else { //question with answers but one is not selected as correct
+          retVal.questionState = 'invalid input';
+          retVal.errorMessage += 'One correct answer must be selected. ';
         }
       }
     }
 
-    if (!foundError) {
-      const rightAnswerInput = this.shadowRoot.querySelector('.rightAnswerCheckBox:checked');
-      //no selected correct answer
-      if (rightAnswerInput !== null) {
-        const rightAnswer = rightAnswerInput.closest('.questionOuterDiv').querySelector('.questionCommentInput').value;
-        retVal.questionData.correctAnswer = rightAnswer;
-      } else {
-        foundError = true;
-        retVal.errorMessage = 'One correct answer must be selected';
-      }
-    }
-
-    retVal.questionState = foundError ? 'invalid input' : 'valid question';
     return retVal;
   }
 }

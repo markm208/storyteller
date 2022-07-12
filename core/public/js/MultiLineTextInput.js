@@ -38,6 +38,7 @@ class MultiLineTextInput extends HTMLElement {
         content: attr(placeholder);
         color: gray;
         background-color: transparent;
+        font-style: italic;
       }
 
       .editorControls {
@@ -180,7 +181,7 @@ class MultiLineTextInput extends HTMLElement {
 
   getFormattedText() {
     const inputText = this.shadowRoot.querySelector('.inputText');
-    return inputText.innerHTML;
+    return inputText.innerHTML.trim();
   }
 }
 

@@ -29,6 +29,12 @@ class AddEditComment extends HTMLElement {
           margin: 5px;
           width: calc(100% - 32px);
         }
+
+        #commentTitle::placeholder {
+          color: lightgray;
+          background-color: transparent;
+          font-style: italic;
+        }
         .controlButton {
           color: white;
           padding: 8px 10px;
@@ -48,6 +54,10 @@ class AddEditComment extends HTMLElement {
         .inactive {
           display: none;
         }
+
+        #errorMessages {
+          color: red;
+        }
       </style>
       <input type="text" id="commentTitle" placeholder="Comment Title (Optional)"></input>
       <div id="commentTextContainer"></div>
@@ -63,8 +73,8 @@ class AddEditComment extends HTMLElement {
       <div id="imagesVMC" class="mediaContainer"></div>
       <div id="videosVMC" class="mediaContainer"></div>
       <div id="audiosVMC" class="mediaContainer"></div>
-      <div id="questionAnswerContainer">
-      </div>
+      <div id="questionAnswerContainer"></div>
+      <div id="errorMessages"></div>
       <button id="cancelButton" class="controlButton">Cancel</button>
       <button id="submitButton" class="controlButton"></button>
       <div id="deleteButtonDiv" class="inactive">
@@ -248,23 +258,33 @@ class AddEditComment extends HTMLElement {
   }
 
   sendEventAddEditComment = (event) => {
-    let eventType = '';
-    //use the button text to determine what type of event to send
-    if(event.target.innerHTML === 'Add Comment') {
-      eventType = 'add-comment';
-    } else {
-      eventType = 'edit-comment';
-    }
+    //attempt to get comment data
+    const commentData = this.buildCommentObjectFromUI();
 
-    //generate and send an event upward to indicate a new/edit comment has been added
-    const customEvent = new CustomEvent(eventType, { 
-      detail: {
-        comment: this.buildCommentObjectFromUI()
-      },
-      bubbles: true, 
-      composed: true 
-    });
-    this.dispatchEvent(customEvent);
+    //if it is not a valid comment
+    if(commentData.status !==  'ok') {
+      //display some error messages
+      const errorMessages = this.shadowRoot.querySelector('#errorMessages');
+      errorMessages.innerHTML = commentData.errorMessage;
+    } else { //this is a valid comment
+      let eventType = '';
+      //use the button text to determine what type of event to send
+      if(event.target.innerHTML === 'Add Comment') {
+        eventType = 'add-comment';
+      } else {
+        eventType = 'edit-comment';
+      }
+
+      //generate and send an event upward to indicate a new/edit comment has been added
+      const customEvent = new CustomEvent(eventType, { 
+        detail: {
+          comment: commentData.comment
+        },
+        bubbles: true, 
+        composed: true 
+      });
+      this.dispatchEvent(customEvent);
+    }
   }
 
   sendEventDeleteComment = () => {
@@ -279,47 +299,72 @@ class AddEditComment extends HTMLElement {
   }
 
   buildCommentObjectFromUI() {
-    //TODO check for minimum data in the comment
+    //status of the validation
+    const retVal = {
+      status: 'bad comment',
+      comment: null,
+      errorMessage: ''
+    };
+
     //comment text
     const commentText = this.shadowRoot.querySelector('#commentText');
-
     //comment title
     const commentTitle = this.shadowRoot.querySelector('#commentTitle');
     //comment question
     const createMultipleChoiceQuestion = this.shadowRoot.querySelector('st-create-multiple-choice-question');
     const qAndA = createMultipleChoiceQuestion.getMultipleChoiceQuestionData();
-    //TODO if invalid question, do something about it
-
+    //media
     const imagesVMC = this.shadowRoot.querySelector('#imagesVMC').children[0];
     const videosVMC = this.shadowRoot.querySelector('#videosVMC').children[0];
     const audiosVMC = this.shadowRoot.querySelector('#audiosVMC').children[0];
-    
-    
-    const mostRecentEvent = this.playbackEngine.getMostRecentEvent();
-    const activeFilePath = this.playbackEngine.getActiveFilePath();
 
-    //TODO media
-    //TODO question/answer
-    //TODO tags
-    const comment = {
-      id: this.editedComment ? this.editedComment.id : null,
-      displayCommentEvent: this.editedComment ? this.editedComment.displayCommentEvent : mostRecentEvent,
-      timestamp: this.editedComment ? this.editedComment.timestamp : new Date().getTime(),
-      commentText: commentText.getFormattedText(),
-      commentTitle: commentTitle.value,
-      selectedCodeBlocks: [], //this will be set in CodeView
-      viewableBlogText: '', //this will be set in CodeView
-      imageURLs: imagesVMC.getURLsInOrder(),
-      videoURLs: videosVMC.getURLsInOrder(),
-      audioURLs: audiosVMC.getURLsInOrder(),
-      linesAbove: 0, //this will be set in CodeView
-      linesBelow: 0, //this will be set in CodeView
-      currentFilePath: this.editedComment ? this.editedComment.currentFilePath : activeFilePath,
-      commentTags: [],
-      questionCommentData: qAndA.questionState === 'valid question' ? qAndA.questionData : null
-    };
+    //if there is a comment title or some comment text then this is a good comment
+    if(commentTitle.value.trim() !== '' || commentText.getFormattedText() !== '') {
+      retVal.status = 'ok';
+    } else { //there is no comment title or comment text
+      //if there is some media
+      if(imagesVMC.getURLsInOrder().length > 0 || videosVMC.getURLsInOrder().length > 0 || audiosVMC.getURLsInOrder().length > 0) {
+        retVal.status = 'ok';
+      } else if(qAndA.questionState === 'valid question') { //there is a valid question
+        retVal.status = 'ok';
+      }
+    }
+    //if its a valid comment
+    if(retVal.status === 'ok') {
+      const mostRecentEvent = this.playbackEngine.getMostRecentEvent();
+      const activeFilePath = this.playbackEngine.getActiveFilePath();
 
-    return comment;
+      //TODO tags
+      const comment = {
+        id: this.editedComment ? this.editedComment.id : null,
+        displayCommentEvent: this.editedComment ? this.editedComment.displayCommentEvent : mostRecentEvent,
+        timestamp: this.editedComment ? this.editedComment.timestamp : new Date().getTime(),
+        commentText: commentText.getFormattedText(),
+        commentTitle: commentTitle.value,
+        selectedCodeBlocks: [], //this will be set in CodeView
+        viewableBlogText: '', //this will be set in CodeView
+        imageURLs: imagesVMC.getURLsInOrder(),
+        videoURLs: videosVMC.getURLsInOrder(),
+        audioURLs: audiosVMC.getURLsInOrder(),
+        linesAbove: 0, //this will be set in CodeView
+        linesBelow: 0, //this will be set in CodeView
+        currentFilePath: this.editedComment ? this.editedComment.currentFilePath : activeFilePath,
+        commentTags: [],
+        questionCommentData: qAndA.questionState === 'valid question' ? qAndA.questionData : null
+      };
+      //store the comment
+      retVal.comment = comment;
+    } else { //there's something wrong with this comment
+      //add an error message
+      if(commentTitle.value.trim() === '' || commentText.getFormattedText() === '') {
+        retVal.errorMessage = 'A comment must have some text describing it or some media associated with it. ';
+      } 
+      //error with question
+      if(qAndA.questionState !== 'valid question' && qAndA.questionState !== 'no question') {
+        retVal.errorMessage += qAndA.errorMessage;
+      }
+    }
+    return retVal;
   }
 }
 
