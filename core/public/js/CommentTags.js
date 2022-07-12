@@ -3,13 +3,26 @@ class CommentTags extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.appendChild(this.getTemplate());
-        //TODO wont need to keep this set if we just get all the tags from the screen
-        this.tagsSet = new Set();
-        this.playbackEngine = playbackEngine;
-        this.permanentCommentTags = ['all-tests-pass', 'successful-run', 'version-control-commit'];
+        
+        const permanentCommentTags = ['all-tests-pass', 'successful-run', 'version-control-commit'];
+        const placeHolderForAllTagsInComments = ['zebra', 'commit', 'broken', 'WORKING well'];
 
-        tags.forEach(tag => {
+        //create and add tag to tagsDiv
+        this.formatArrayOfTags(tags).forEach(tag => {
             this.addTag(tag);
+        })
+
+        let arrayTesting = permanentCommentTags.concat(placeHolderForAllTagsInComments);
+        arrayTesting = this.formatArrayOfTags(arrayTesting);
+
+        this.masterTagList = new Set(arrayTesting);
+
+        //TODO change ids/classes of divs
+        this.masterTagList.forEach(tagToAvoid => {
+            if (!tags.includes(tagToAvoid)) {
+
+                this.addTagToDropdown(tagToAvoid)
+            }
         })
     }
 
@@ -51,9 +64,7 @@ class CommentTags extends HTMLElement {
             .tags.hidden {
                 display: none;
                 height: 0px;
-
             }
-
 
             .tags li {
                 color: black;
@@ -122,11 +133,7 @@ class CommentTags extends HTMLElement {
                 <button class="dropdown_button" title='Expand tag options'></button>
 
                 <div id="tags-div" class="tags hidden">
-                    <li><a href="">Machine learning</a></li>
-                    <li><a href="">Data science</a></li>
-                    <li><a href="">Data analysis</a></li>
-                    <li><a href="">Data mining</a></li>
-                    <li><a href="">Data warehousing</a></li>
+
                 </div>
             </div> 
             <input type="text" id='tagInput' placeholder='Enter a tag...'>
@@ -186,56 +193,93 @@ class CommentTags extends HTMLElement {
         const blah = this.shadowRoot.querySelector('#tags-div').getElementsByTagName('li');
 
         for (let i = 0; i < blah.length; i++) {
-            const thisBlah = blah[i];
-            thisBlah.addEventListener('click', (event) => {
-                event.stopImmediatePropagation();
+            //const thisBlah = blah[i];
+            this.addEventListenerToDropdownItem(blah[i]);
+        }
 
-                event.preventDefault();
-                this.addTag(thisBlah.innerText);
+        //prevent the click event from bubbling higher to avoid click listeners in other components
+        this.shadowRoot.addEventListener('click', (event) => {
+            event.stopImmediatePropagation();
+            this.closeDropDown();
+        })
+    }
+
+    addEventListenerToDropdownItem (thisBlah){
+        thisBlah.addEventListener('click', (event) => {
+            event.stopImmediatePropagation();
+
+            event.preventDefault();
+            this.addTag(thisBlah.innerText);
+            thisBlah.classList.toggle('blink');
+            setTimeout(() => {
                 thisBlah.classList.toggle('blink');
                 setTimeout(() => {
                     thisBlah.classList.toggle('blink');
                     setTimeout(() => {
                         thisBlah.classList.toggle('blink');
                         setTimeout(() => {
-                            thisBlah.classList.toggle('blink');
-                            setTimeout(() => {
-                                thisBlah.remove();
-                                var tags = this.shadowRoot.getElementById("tags-div");
+                            thisBlah.remove();
+                            var tags = this.shadowRoot.getElementById("tags-div");
 
-                                tags.style.height = 'fit-content';
-
-                                //dropDownButton.click();
-                            }, 150);
-                        }, 75);
+                            tags.style.height = 'fit-content';
+                        }, 150);
                     }, 75);
                 }, 75);
+            }, 75);
+        });
+    }
 
-            });
+    formatArrayOfTags(arrayOfTags) {
+        for (let i = 0; i < arrayOfTags.length; i++) {
+            arrayOfTags[i] = this.formatTag(arrayOfTags[i]);
         }
+        return arrayOfTags.sort();
+    }
 
-        this.shadowRoot.addEventListener('click', (event) => {
-            event.stopImmediatePropagation();
-            //if (!event.target.classList.contains('leave_dropdown_open')) {
-                this.closeDropDown();
-           // }
+    formatTag(tag) {
+        return tag.trim().toLowerCase().replaceAll(' ', '-')
+    }
+
+    //TODO alphabatize
+    addTagToDropdown(tag){
+        const tagsDiv = this.shadowRoot.getElementById('tags-div');
+        const blah = [...tagsDiv.getElementsByTagName('li')];
+        tagsDiv.innerHTML = '';
+
+        const tagsArray = [tag];
+        blah.forEach(fadfaf =>{
+            
+            tagsArray.push(fadfaf.innerText);
+        })
+
+        tagsArray.sort();
+
+        tagsArray.forEach(newTag => {
+            const newDropdownItem = document.createElement('a');
+            newDropdownItem.href = '';
+            newDropdownItem.innerHTML = newTag;
+    
+            const newListItem = document.createElement('li');
+            newListItem.appendChild(newDropdownItem);
+    
+            this.addEventListenerToDropdownItem(newListItem);
+    
+            tagsDiv.appendChild(newListItem);
         })
     }
 
     addTag(tag) {
-        tag = tag.trim().replaceAll(' ', '-').toLowerCase();
+        tag = this.formatTag(tag);
+        let allTags = this.getAllTags();
 
-        if (!this.tagsSet.has(tag)) {
-            this.tagsSet.add(tag);
-
-            //sort the tags alphabetically
-            this.tagsSet = Array.from(this.tagsSet).sort();
-            this.tagsSet = new Set(this.tagsSet);
+        if (!allTags.includes(tag)){
+            allTags.push(tag);
+            allTags.sort();
 
             //TODO come up with an algorithm to drop the new tag in it's right place alphabetically
             const tagDiv = this.shadowRoot.querySelector('#tagsDiv');
             tagDiv.innerHTML = '';
-            this.tagsSet.forEach(tag => {
+            allTags.forEach(tag => {
                 const newTag = this.createTag(tag);
                 tagDiv.appendChild(newTag);
             })
@@ -254,7 +298,9 @@ class CommentTags extends HTMLElement {
 
         removeTagButton.addEventListener('click', () => {
             newTag.remove();
-            this.tagsSet.delete(tag);
+            if (this.masterTagList.has(tag)){
+                this.addTagToDropdown(tag);
+            }
         })
 
         newTag.appendChild(removeTagButton);
