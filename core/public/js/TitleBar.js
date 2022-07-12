@@ -174,10 +174,10 @@ class TitleBar extends HTMLElement {
     this.notifyModeSelected('blog');
   }
 
-  updateToDisplaySearchResults(searchResults) {
+  updateToDisplaySearchResults(searchText, searchResults) {
     //send the number of comments shown and total number of comments to the search bar
     const titleBar = this.shadowRoot.querySelector('st-search-bar');
-    titleBar.updateToDisplaySearchResults(searchResults.length, this.playbackEngine.commentInfo.totalNumberOfComments);
+    titleBar.updateToDisplaySearchResults(searchResults.length, this.playbackEngine.commentInfo.totalNumberOfComments, searchText);
   }
 
   updateTitleBegin = event => {

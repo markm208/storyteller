@@ -67,13 +67,20 @@ class SearchBar extends HTMLElement {
     disconnectedCallback() {
     }    
 
-    updateToDisplaySearchResults(numSearchComments, numTotalComments) {
+    updateToDisplaySearchResults(numSearchComments, numTotalComments, searchText) {
       //get the contents of the search bar
-      const searchText = this.shadowRoot.querySelector("#searchBar").value;
+      const searchBar = this.shadowRoot.querySelector("#searchBar");
       //get the element that holds the search results message
       const clearSearchResults = this.shadowRoot.querySelector('#clearSearchResults');
+
+      //if the search bar does not have the same text as the query (due to clicking on a tag or something like that)
+      if(searchBar.value !== searchText) {
+        //display the search text to the user
+        searchBar.value = searchText;
+      }
+
       //if the search bar is empty
-      if(searchText === '') {
+      if(searchBar.value === '') {
         //display nothing about how many search results there are
         clearSearchResults.innerHTML = '';
       } else { //search bar has something in it

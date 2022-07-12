@@ -106,6 +106,7 @@ class CommentView extends HTMLElement {
           <div class="commentText"></div>
           <div class="media"></div>
           <div class="questions"></div>
+          <div class="tagContainer"></div>
         </div>
         <button id="editCommentButton" class="inactive" title="Edit this comment"></button>
       </div>`;
@@ -162,10 +163,17 @@ class CommentView extends HTMLElement {
     if(this.comment.imageURLs.length > 0) {
       media.appendChild(new ImageGallery(this.comment.imageURLs,true));
     }
-    //TODO
-    //comment tags
-    //q&a
     
+    //if there are any comment tags
+    if(this.comment.commentTags.length > 0) {
+      //create a tag view to display the tags
+      const tagContainer = this.shadowRoot.querySelector('.tagContainer');
+      const tagView = new TagView(this.comment);
+      tagContainer.appendChild(tagView);
+    }
+
+    //TODO
+    //q&a
   }
 
   disconnectedCallback() {

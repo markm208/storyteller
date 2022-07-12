@@ -46,7 +46,8 @@ class BlogComponent extends HTMLElement {
       <div class="commentVideos"></div>
       <div class="commentAudios"></div>
       <div class="codeEditor"></div>
-      <div class="commentImages"></div>`;
+      <div class="commentImages"></div>
+      <div class="tagContainer"></div>`;
 
     return template.content.cloneNode(true);
   }
@@ -107,6 +108,14 @@ class BlogComponent extends HTMLElement {
     if (this.comment.imageURLs.length > 0) {
       const imageGallery = new ImageGallery(this.comment.imageURLs, false);
       commentImages.appendChild(imageGallery);
+    }
+
+    //if there are any comment tags
+    if(this.comment.commentTags.length > 0) {
+      //create a label
+      const tagContainer = this.shadowRoot.querySelector('.tagContainer');
+      const tagView = new TagView(this.comment);
+      tagContainer.appendChild(tagView);
     }
 
     //add an event handler so users can click comments

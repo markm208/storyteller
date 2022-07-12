@@ -213,7 +213,7 @@ class App extends HTMLElement {
 
     //display search results in the title bar
     const titleBar = this.shadowRoot.querySelector('st-title-bar');
-    titleBar.updateToDisplaySearchResults(searchResults);
+    titleBar.updateToDisplaySearchResults(searchText, searchResults);
   }
 
   increaseEditorFontSize() {
