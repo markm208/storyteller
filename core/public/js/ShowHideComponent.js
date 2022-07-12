@@ -65,7 +65,8 @@ class ShowHideComponent extends HTMLElement {
             const slot = this.shadowRoot.querySelector('#testing');
 
             if (toggleButton.classList.contains('hidden')) {
-                slot.style.height = slot.scrollHeight+'px';
+                //slot.style.height = slot.scrollHeight+'px';
+                slot.style.height = 'fit-content';
             } else {
                 slot.style.height = 0;
             }

@@ -78,14 +78,20 @@ class AddEditComment extends HTMLElement {
       <st-show-hide-component name='Multiple Choice Question'>            
         <div id="questionAnswerContainer" slot='child'></div>
       </st-show-hide-component>
+      <st-show-hide-component id="tagsShowHide" name='Tags'>
+        <div id="tagContainer" slot="child"></div>
+      </st-show-hide-component>
+      <st-show-hide-component name='Delete this Comment'>
+        <div id="deleteButtonDiv" slot='child' class="inactive">
+          <hr/>
+          <span>Delete this comment (this can't be undone)</span>
+          <button id="deleteButton">Delete</button>
+        </div>
+      </st-show-hide-component>
       <div id="errorMessages"></div>
       <button id="cancelButton" class="controlButton">Cancel</button>
       <button id="submitButton" class="controlButton"></button>
-      <div id="deleteButtonDiv" class="inactive">
-        <hr/>
-        <span>Delete this comment (this can't be undone)</span>
-        <button id="deleteButton">Delete</button>
-      </div>`;
+      `;
 
     return template.content.cloneNode(true);
   }
@@ -185,6 +191,10 @@ class AddEditComment extends HTMLElement {
     const qAndA = new CreateMultipleChoiceQuestion(null);
     questionAnswerContainer.appendChild(qAndA);
 
+    const tagContainer = this.shadowRoot.querySelector('#tagContainer');
+    const tags = new CommentTags([], this.playbackEngine);
+    tagContainer.appendChild(tags);
+
     //set the lines above/below to 0
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
     linesAboveSelector.setAttribute('value', 0);
@@ -227,6 +237,18 @@ class AddEditComment extends HTMLElement {
     
     questionAnswerContainer.appendChild(qAndA);
     
+    //if there are any tags in this comment
+    if(this.editedComment.commentTags.length > 0) {
+      //expand the show/hide
+      const tagsShowHide = this.shadowRoot.querySelector('[name="Tags"]');
+      tagsShowHide.setAttribute('show', 'true');
+    }
+    const tagContainer = this.shadowRoot.querySelector('#tagContainer');
+    const tags = new CommentTags(this.editedComment.commentTags, this.playbackEngine);
+    tagContainer.innerHTML = '';
+    tagContainer.appendChild(tags);
+    
+
     //set the lines above/below to what they are in the comment
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
     linesAboveSelector.setAttribute('value', this.editedComment.linesAbove);
@@ -325,6 +347,8 @@ class AddEditComment extends HTMLElement {
     const imagesVMC = this.shadowRoot.querySelector('#imagesVMC').children[0];
     const videosVMC = this.shadowRoot.querySelector('#videosVMC').children[0];
     const audiosVMC = this.shadowRoot.querySelector('#audiosVMC').children[0];
+    //tags
+    const commentTags = this.shadowRoot.querySelector('st-comment-tags');
 
     //if there is a comment title or some comment text 
     if(commentTitle.value.trim() !== '' || commentText.getFormattedText() !== '') {
@@ -348,7 +372,6 @@ class AddEditComment extends HTMLElement {
       const mostRecentEvent = this.playbackEngine.getMostRecentEvent();
       const activeFilePath = this.playbackEngine.getActiveFilePath();
 
-      //TODO tags
       const comment = {
         id: this.editedComment ? this.editedComment.id : null,
         displayCommentEvent: this.editedComment ? this.editedComment.displayCommentEvent : mostRecentEvent,
@@ -363,7 +386,7 @@ class AddEditComment extends HTMLElement {
         linesAbove: 0, //this will be set in CodeView
         linesBelow: 0, //this will be set in CodeView
         currentFilePath: this.editedComment ? this.editedComment.currentFilePath : activeFilePath,
-        commentTags: [],
+        commentTags: commentTags.getAllTags(),
         questionCommentData: qAndA.questionState === 'valid question' ? qAndA.questionData : null
       };
       //store the comment

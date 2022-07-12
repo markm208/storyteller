@@ -1,18 +1,20 @@
 class CommentTags extends HTMLElement {
     constructor(tags, playbackEngine) {
         super();
+        this.playbackEngine = playbackEngine;
+
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.appendChild(this.getTemplate());
-        
+
         const permanentCommentTags = ['all-tests-pass', 'successful-run', 'version-control-commit'];
-        const placeHolderForAllTagsInComments = ['zebra', 'commit', 'broken', 'WORKING well'];
 
         //create and add tag to tagsDiv
-        this.formatArrayOfTags(tags).forEach(tag => {
+        const allTagsInComment = this.formatArrayOfTags(tags);
+        allTagsInComment.forEach(tag => {
             this.addTag(tag);
         })
 
-        let arrayTesting = permanentCommentTags.concat(placeHolderForAllTagsInComments);
+        let arrayTesting = permanentCommentTags.concat(this.playbackEngine.commentInfo.allTags);
         arrayTesting = this.formatArrayOfTags(arrayTesting);
 
         this.masterTagList = new Set(arrayTesting);

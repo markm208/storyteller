@@ -342,7 +342,7 @@ class PlaybackEngine {
     });
 
     //sort the tags alphabetically
-    this.commentInfo.allTags.push(Array.from(distinctCommentTags).sort());
+    this.commentInfo.allTags.push(...Array.from(distinctCommentTags).sort());
   }
   
   checkForCommentAtCurrentIndex() {
