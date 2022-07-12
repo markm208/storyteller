@@ -322,10 +322,10 @@ class AddEditComment extends HTMLElement {
     if(commentTitle.value.trim() !== '' || commentText.getFormattedText() !== '') {
       retVal.status = 'ok';
     } else { //there is no comment title or comment text
-      //if there is some media
-      if(imagesVMC.getURLsInOrder().length > 0 || videosVMC.getURLsInOrder().length > 0 || audiosVMC.getURLsInOrder().length > 0) {
+      //if there is some media and a valid question or no question
+      if((imagesVMC.getURLsInOrder().length > 0 || videosVMC.getURLsInOrder().length > 0 || audiosVMC.getURLsInOrder().length > 0) && (qAndA.questionState === 'valid question' || qAndA.questionState === 'no question')) {
         retVal.status = 'ok';
-      } else if(qAndA.questionState === 'valid question') { //there is a valid question
+      } else if(qAndA.questionState === 'valid question') { //there is a valid question only
         retVal.status = 'ok';
       }
     }
