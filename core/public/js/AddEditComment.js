@@ -88,11 +88,14 @@ class AddEditComment extends HTMLElement {
         <input type="number" id="linesBelowSelector" value="0" min="0"/>
       </div>
       <hr/>
-      <div id="imagesVMC" class="mediaContainer"></div>
-      <div id="videosVMC" class="mediaContainer"></div>
-      <div id="audiosVMC" class="mediaContainer"></div>
-      <div id="questionAnswerContainer">
-      </div>
+        <st-show-hide-component name='Media' show='true'>
+          <div id="imagesVMC" class="mediaContainer" slot='child'></div>
+          <div id="videosVMC" class="mediaContainer" slot='child'></div>
+          <div id="audiosVMC" class="mediaContainer" slot='child'></div>
+        </st-show-hide-component>
+      <st-show-hide-component name='Multiple Choice Question'>            
+        <div id="questionAnswerContainer" slot='child'></div>
+      </st-show-hide-component>
       <button id="cancelButton" class="controlButton">Cancel</button>
       <button id="submitButton" class="controlButton"></button>
       <div id="deleteButtonDiv" class="inactive">
@@ -355,6 +358,10 @@ class AddEditComment extends HTMLElement {
     //add a Q&A component for an existing question
     const questionAnswerContainer = this.shadowRoot.querySelector('#questionAnswerContainer');
     const qAndA = new CreateMultipleChoiceQuestion(this.editedComment.questionCommentData);
+    
+    const showHideComponent = questionAnswerContainer.closest('st-show-hide-component');
+    showHideComponent.setAttribute('show', 'true');
+    
     questionAnswerContainer.appendChild(qAndA);
     
     //set the lines above/below to what they are in the comment
