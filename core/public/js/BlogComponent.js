@@ -26,6 +26,16 @@ class BlogComponent extends HTMLElement {
           font-size: 1.2em;
         }
 
+        a {
+          color: lightblue;
+        }
+        a:visited {
+          color: lightblue;
+        }
+        a:hover {
+          opacity: 80%;
+        }
+        
         .blogModeVideo, .blogModeAudio, .blogModePicture {
           width: 75%;
         }
@@ -47,7 +57,8 @@ class BlogComponent extends HTMLElement {
       <div class="commentAudios"></div>
       <div class="codeEditor"></div>
       <div class="commentImages"></div>
-      <div class="tagContainer"></div>`;
+      <div class="tagContainer"></div>
+      <div class="questionAndAnswerContainer"></div>`;
 
     return template.content.cloneNode(true);
   }
@@ -116,6 +127,14 @@ class BlogComponent extends HTMLElement {
       const tagContainer = this.shadowRoot.querySelector('.tagContainer');
       const tagView = new TagView(this.comment);
       tagContainer.appendChild(tagView);
+    }
+
+    //if there is a q&a
+    if(this.comment.questionCommentData) {
+      //create a tag view to display the tags
+      const questionAndAnswerContainer = this.shadowRoot.querySelector('.questionAndAnswerContainer');
+      const qaView = new QuestionAnswerView(this.comment);
+      questionAndAnswerContainer.appendChild(qaView);
     }
 
     //add an event handler so users can click comments

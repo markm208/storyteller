@@ -48,10 +48,12 @@ class CommentView extends HTMLElement {
         a {
           color: lightblue;
         }
+        a:visited {
+          color: lightblue;
+        }
         a:hover {
           opacity: 80%;
         }
-
         .commentTopBar {
           border-bottom: 1px solid rgb(83, 84, 86);
           margin-bottom: 8px;
@@ -106,6 +108,7 @@ class CommentView extends HTMLElement {
           <div class="commentText"></div>
           <div class="media"></div>
           <div class="questions"></div>
+          <div class="questionAndAnswerContainer"></div>
           <div class="tagContainer"></div>
         </div>
         <button id="editCommentButton" class="inactive" title="Edit this comment"></button>
@@ -172,8 +175,13 @@ class CommentView extends HTMLElement {
       tagContainer.appendChild(tagView);
     }
 
-    //TODO
-    //q&a
+    //if there is a q&a
+    if(this.comment.questionCommentData) {
+      //create a tag view to display the tags
+      const questionAndAnswerContainer = this.shadowRoot.querySelector('.questionAndAnswerContainer');
+      const qaView = new QuestionAnswerView(this.comment);
+      questionAndAnswerContainer.appendChild(qaView);
+    }
   }
 
   disconnectedCallback() {
@@ -220,7 +228,6 @@ class CommentView extends HTMLElement {
   }
 
   commentClicked = event => {
-    event.preventDefault();
     this.sendActiveCommentEvent();
   }
 
