@@ -58,6 +58,12 @@ class AddEditComment extends HTMLElement {
         #errorMessages {
           color: red;
         }
+
+        input[type=number] {
+          background-color: inherit;
+          color: white;
+          border: 1px solid gray;
+        }
       </style>
       <input type="text" id="commentTitle" placeholder="Comment Title (Optional)"></input>
       <div id="commentTextContainer"></div>
@@ -81,7 +87,7 @@ class AddEditComment extends HTMLElement {
       <st-show-hide-component id="tagsShowHide" name='Tags'>
         <div id="tagContainer" slot="child"></div>
       </st-show-hide-component>
-      <st-show-hide-component name='Delete this Comment'>
+      <st-show-hide-component id="deleteHideShow" name='Delete this Comment'>
         <div id="deleteButtonDiv" slot='child' class="inactive">
           <hr/>
           <span>Delete this comment (this can't be undone)</span>
@@ -191,6 +197,7 @@ class AddEditComment extends HTMLElement {
     const qAndA = new CreateMultipleChoiceQuestion(null);
     questionAnswerContainer.appendChild(qAndA);
 
+    //empty tags
     const tagContainer = this.shadowRoot.querySelector('#tagContainer');
     const tags = new CommentTags([], this.playbackEngine);
     tagContainer.appendChild(tags);
@@ -203,6 +210,9 @@ class AddEditComment extends HTMLElement {
     //update the max lines above/below from an active file
     this.updateActiveFile();
 
+    const deleteHideShow = this.shadowRoot.querySelector('#deleteHideShow');
+    deleteHideShow.classList.add('inactive');
+    
     //set the text and event handler for the submit button
     const submitButton = this.shadowRoot.querySelector('#submitButton');
     submitButton.innerHTML = 'Add Comment';

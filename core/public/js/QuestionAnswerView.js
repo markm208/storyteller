@@ -13,18 +13,20 @@ class QuestionAnswerView extends HTMLElement {
     template.innerHTML = `
       <style>
         .questionAndAnswerContainer {
-          padding-bottom: 15px;
-          padding-left: 0px;
+          padding: 5px 10px;
+          border: 1px solid gray;
+          margin: 0px 25px;
+          box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
         }
         #questionText {
           padding-bottom: 5px;
         }
         #allAnswers {
-          padding-left: 10px;
+          padding-left: 5px;
         }
         .answerDiv {
-          padding: 3px 0px;
-          margin: 3px 0px;
+          padding: 2px 5px;
+          margin: 2px 0px;
         }
         #explanationDiv {
           margin: 10px 0px 5px 0px;
@@ -77,11 +79,13 @@ class QuestionAnswerView extends HTMLElement {
         }
 
         hr {
-          color:gray;
+          height: 1px;
+          background-color: rgb(83, 84, 86);
+          border: none;
         }
       </style>
+      <hr/>
       <div class="questionAndAnswerContainer">
-        <hr/>
         <div id="questionText"></div>
         <div id="allAnswers"></div>
         <div id="explanationDiv" class="hidden">
