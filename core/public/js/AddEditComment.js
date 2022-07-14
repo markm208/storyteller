@@ -78,7 +78,7 @@ class AddEditComment extends HTMLElement {
       <st-show-hide-component name='Multiple Choice Question'>            
         <div id="questionAnswerContainer" slot='child'></div>
       </st-show-hide-component>
-      <st-show-hide-component id="tagsShowHide" name='Tags'>
+      <st-show-hide-component name='Tags'>
         <div id="tagContainer" slot="child"></div>
       </st-show-hide-component>
       <st-show-hide-component name='Delete this Comment'>
@@ -107,7 +107,7 @@ class AddEditComment extends HTMLElement {
     //delete comment button
     const deleteButton = this.shadowRoot.querySelector('#deleteButton');
     deleteButton.addEventListener('click', this.sendEventDeleteComment);
-    
+
     //main comment buttons
     const cancelButton = this.shadowRoot.querySelector('#cancelButton');
     cancelButton.addEventListener('click', this.sendEventCancelAddEditComment);
@@ -115,7 +115,7 @@ class AddEditComment extends HTMLElement {
     const submitButton = this.shadowRoot.querySelector('#submitButton');
     submitButton.innerHTML = 'Add Comment';
     submitButton.addEventListener('click', this.sendEventAddEditComment);
-    
+
     //update the placeholder text on focus and blur
     const commentTextContainer = this.shadowRoot.querySelector('#commentTextContainer');
     const commentText = new MultiLineTextInput('Describe the code at this point', '', 200);
@@ -123,13 +123,13 @@ class AddEditComment extends HTMLElement {
     commentTextContainer.appendChild(commentText);
 
     //if there is a comment associated with this component then fill the inputs with data from it
-    if(this.editedComment) {
+    if (this.editedComment) {
       this.updateEditCommentMode();
     } else { //no comment, fill with empty default values
       //init this component to be a new comment
       this.updateAddCommentMode();
     }
-    
+
     this.addEventListener('pause-all-vertical-media-containers', event => {
       //get all of the vertical media constainers and pause them
       const mediaContainers = this.shadowRoot.querySelectorAll('st-vertical-media-container');
@@ -140,6 +140,12 @@ class AddEditComment extends HTMLElement {
     this.addEventListener('keydown', event => {
       event.stopPropagation();
     });
+
+    this.shadowRoot.addEventListener('click', () => {
+      //close the tag drop down menu when a click happens 
+      const commentTags = this.shadowRoot.querySelector('st-comment-tags');
+      commentTags.closeDropDown();
+    })
   }
 
   disconnectedCallback() {
@@ -151,13 +157,13 @@ class AddEditComment extends HTMLElement {
     const linesBelowSelector = this.shadowRoot.querySelector('#linesBelowSelector');
 
     //generate and send an event with the above/below values
-    const customEvent = new CustomEvent('lines-above-below-change', { 
+    const customEvent = new CustomEvent('lines-above-below-change', {
       detail: {
         linesAbove: Number(linesAboveSelector.value),
         linesBelow: Number(linesBelowSelector.value)
       },
-      bubbles: true, 
-      composed: true 
+      bubbles: true,
+      composed: true
     });
     this.dispatchEvent(customEvent);
   }
@@ -231,14 +237,14 @@ class AddEditComment extends HTMLElement {
     //add a Q&A component for an existing question
     const questionAnswerContainer = this.shadowRoot.querySelector('#questionAnswerContainer');
     const qAndA = new CreateMultipleChoiceQuestion(this.editedComment.questionCommentData);
-    
+
     const showHideComponent = questionAnswerContainer.closest('st-show-hide-component');
     showHideComponent.setAttribute('show', 'true');
-    
+
     questionAnswerContainer.appendChild(qAndA);
-    
+
     //if there are any tags in this comment
-    if(this.editedComment.commentTags.length > 0) {
+    if (this.editedComment.commentTags.length > 0) {
       //expand the show/hide
       const tagsShowHide = this.shadowRoot.querySelector('[name="Tags"]');
       tagsShowHide.setAttribute('show', 'true');
@@ -247,7 +253,7 @@ class AddEditComment extends HTMLElement {
     const tags = new CommentTags(this.editedComment.commentTags, this.playbackEngine);
     tagContainer.innerHTML = '';
     tagContainer.appendChild(tags);
-    
+
 
     //set the lines above/below to what they are in the comment
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
@@ -260,12 +266,12 @@ class AddEditComment extends HTMLElement {
     //add a delete button to all but the first comment
     const allComments = this.playbackEngine.commentInfo.flattenedComments;
     const firstComment = allComments[0];
-    if(this.editedComment.id !== firstComment.id) {
+    if (this.editedComment.id !== firstComment.id) {
       //show the delete comment button
       const deleteButtonDiv = this.shadowRoot.querySelector('#deleteButtonDiv');
       deleteButtonDiv.classList.remove('inactive');
     }
-    
+
     //set the text and event handler for the submit button
     const submitButton = this.shadowRoot.querySelector('#submitButton');
     submitButton.innerHTML = 'Edit Comment';
@@ -278,11 +284,11 @@ class AddEditComment extends HTMLElement {
     //hide the delete comment button
     const deleteButtonDiv = this.shadowRoot.querySelector('#deleteButtonDiv');
     deleteButtonDiv.classList.add('inactive');
-    
+
     //generate and send an event upward to indicate adding/editing is complete
-    const customEvent = new CustomEvent('cancel-add-edit-comment', { 
-      bubbles: true, 
-      composed: true 
+    const customEvent = new CustomEvent('cancel-add-edit-comment', {
+      bubbles: true,
+      composed: true
     });
     this.dispatchEvent(customEvent);
   }
@@ -292,38 +298,38 @@ class AddEditComment extends HTMLElement {
     const commentData = this.buildCommentObjectFromUI();
 
     //if it is not a valid comment
-    if(commentData.status !==  'ok') {
+    if (commentData.status !== 'ok') {
       //display some error messages
       const errorMessages = this.shadowRoot.querySelector('#errorMessages');
       errorMessages.innerHTML = commentData.errorMessage;
     } else { //this is a valid comment
       let eventType = '';
       //use the button text to determine what type of event to send
-      if(event.target.innerHTML === 'Add Comment') {
+      if (event.target.innerHTML === 'Add Comment') {
         eventType = 'add-comment';
       } else {
         eventType = 'edit-comment';
       }
 
       //generate and send an event upward to indicate a new/edit comment has been added
-      const customEvent = new CustomEvent(eventType, { 
+      const customEvent = new CustomEvent(eventType, {
         detail: {
           comment: commentData.comment
         },
-        bubbles: true, 
-        composed: true 
+        bubbles: true,
+        composed: true
       });
       this.dispatchEvent(customEvent);
     }
   }
 
   sendEventDeleteComment = () => {
-    const event = new CustomEvent('delete-comment', { 
+    const event = new CustomEvent('delete-comment', {
       detail: {
         comment: this.editedComment
       },
-      bubbles: true, 
-      composed: true 
+      bubbles: true,
+      composed: true
     });
     this.dispatchEvent(event);
   }
@@ -351,24 +357,24 @@ class AddEditComment extends HTMLElement {
     const commentTags = this.shadowRoot.querySelector('st-comment-tags');
 
     //if there is a comment title or some comment text 
-    if(commentTitle.value.trim() !== '' || commentText.getFormattedText() !== '') {
+    if (commentTitle.value.trim() !== '' || commentText.getFormattedText() !== '') {
       //if the question is ok, then this is a good comment
-      if(qAndA.questionState === 'valid question' || qAndA.questionState === 'no question') {
+      if (qAndA.questionState === 'valid question' || qAndA.questionState === 'no question') {
         retVal.status = 'ok';
       }
     } else { //there is no comment title or comment text
       //if there is some media
-      if(imagesVMC.getURLsInOrder().length > 0 || videosVMC.getURLsInOrder().length > 0 || audiosVMC.getURLsInOrder().length > 0) {
+      if (imagesVMC.getURLsInOrder().length > 0 || videosVMC.getURLsInOrder().length > 0 || audiosVMC.getURLsInOrder().length > 0) {
         //if the question is ok, then this is a good comment
-        if(qAndA.questionState === 'valid question' || qAndA.questionState === 'no question') {
+        if (qAndA.questionState === 'valid question' || qAndA.questionState === 'no question') {
           retVal.status = 'ok';
         }
-      } else if(qAndA.questionState === 'valid question') { //no text, no media, but there is a valid question
+      } else if (qAndA.questionState === 'valid question') { //no text, no media, but there is a valid question
         retVal.status = 'ok';
       }
     }
     //if its a valid comment
-    if(retVal.status === 'ok') {
+    if (retVal.status === 'ok') {
       const mostRecentEvent = this.playbackEngine.getMostRecentEvent();
       const activeFilePath = this.playbackEngine.getActiveFilePath();
 
@@ -393,11 +399,11 @@ class AddEditComment extends HTMLElement {
       retVal.comment = comment;
     } else { //there's something wrong with this comment
       //add an error message
-      if(commentTitle.value.trim() === '' || commentText.getFormattedText() === '') {
+      if (commentTitle.value.trim() === '' || commentText.getFormattedText() === '') {
         retVal.errorMessage = 'A comment must have some text describing it or some media associated with it. ';
-      } 
+      }
       //error with question
-      if(qAndA.questionState !== 'valid question' && qAndA.questionState !== 'no question') {
+      if (qAndA.questionState !== 'valid question' && qAndA.questionState !== 'no question') {
         retVal.errorMessage += qAndA.errorMessage;
       }
     }
