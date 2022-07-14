@@ -71,7 +71,6 @@ class CommentView extends HTMLElement {
         }
 
         .commentTitle {
-          padding: 2px 5px 12px 5px;
           font-size: 1.2em;
         }
 

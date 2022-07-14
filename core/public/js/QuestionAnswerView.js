@@ -13,9 +13,9 @@ class QuestionAnswerView extends HTMLElement {
     template.innerHTML = `
       <style>
         .questionAndAnswerContainer {
-          padding: 5px 10px;
+          padding: 5px 7px;
           border: 1px solid gray;
-          margin: 0px 25px;
+          margin: 0px 10px 8px 10px;
           box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
         }
         #questionText {
@@ -78,13 +78,7 @@ class QuestionAnswerView extends HTMLElement {
           border: 1px solid red;
         }
 
-        hr {
-          height: 1px;
-          background-color: rgb(83, 84, 86);
-          border: none;
-        }
       </style>
-      <hr/>
       <div class="questionAndAnswerContainer">
         <div id="questionText"></div>
         <div id="allAnswers"></div>
