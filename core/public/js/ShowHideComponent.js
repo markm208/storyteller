@@ -46,18 +46,30 @@ class ShowHideComponent extends HTMLElement {
                     display: none;
                 }
 
+                .testing{
+                  padding: 5px;
+                }
+
+                .testing.open{
+                  border: solid thin aliceblue;
+                  margin: 10px;
+                  paddingg: 10px !important;
+                }
+
 
 
             </style>
-            <div id='outerDiv'>
-                <button id='toggleButton' class='hidden'></button>
-                <div id='title'></div>
+          <div class='testing'>
+            <div id='outerDiv' title='Click to expand'>
+                  <button id='toggleButton' class='hidden'></button>
+                  <div id='title'></div>
+              </div>
+              <div id='expanded-container'>
+                  <div id='testing' class='hide'>
+                      <slot id='slot' name="child"></slot>
+                  </div>
             </div>
-            <div id='expanded-container'>
-                <div id='testing' class='hide'>
-                    <slot id='slot' name="child"></slot>
-                </div>
-            </div>
+          </div>
         `;
     return template.content.cloneNode(true);
   }
@@ -84,13 +96,15 @@ class ShowHideComponent extends HTMLElement {
 
       // }
       toggleButton.classList.toggle('hidden');
-      if (toggleButton.classList.contains('hidden')){
+      if (toggleButton.classList.contains('hidden')) {
         outerDiv.setAttribute('title', 'Click to expand');
-      }else{
+      } else {
         outerDiv.setAttribute('title', 'Click to collapse');
       }
 
-      
+      const testingDiv = this.shadowRoot.querySelector('.testing');
+      testingDiv.classList.toggle('open');
+
 
       slot.classList.toggle('hide');
       //target.style.height = target.scrollHeight+"px";
@@ -107,8 +121,6 @@ class ShowHideComponent extends HTMLElement {
     const showInitially = this.getAttribute('show');
     if (showInitially) {
       outerDiv.click();
-    }else{
-      outerDiv.setAttribute('title', 'Click to expand');
     }
   }
 }
