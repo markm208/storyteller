@@ -238,8 +238,10 @@ class AddEditComment extends HTMLElement {
     const questionAnswerContainer = this.shadowRoot.querySelector('#questionAnswerContainer');
     const qAndA = new CreateMultipleChoiceQuestion(this.editedComment.questionCommentData);
 
-    const showHideComponent = questionAnswerContainer.closest('st-show-hide-component');
-    showHideComponent.setAttribute('show', 'true');
+    if (this.editedComment.questionCommentData && this.editedComment.questionCommentData.question.length > 0){
+      const showHideComponent = this.shadowRoot.querySelector('[name="Multiple Choice Question"]');
+      showHideComponent.setAttribute('show', 'true');
+    }
 
     questionAnswerContainer.appendChild(qAndA);
 
