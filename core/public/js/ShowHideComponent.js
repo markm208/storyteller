@@ -56,6 +56,10 @@ class ShowHideComponent extends HTMLElement {
                   paddingg: 10px !important;
                 }
 
+              #title.open{
+                color: tan;
+              }
+
 
 
             </style>
@@ -77,6 +81,7 @@ class ShowHideComponent extends HTMLElement {
   connectedCallback() {
     const toggleButton = this.shadowRoot.querySelector('#toggleButton');
     const outerDiv = this.shadowRoot.querySelector('#outerDiv');
+    const slotTitle = this.shadowRoot.querySelector('#title');
 
     outerDiv.addEventListener('click', () => {
       const slot = this.shadowRoot.querySelector('#testing');
@@ -107,6 +112,7 @@ class ShowHideComponent extends HTMLElement {
 
 
       slot.classList.toggle('hide');
+      slotTitle.classList.toggle('open');
       //target.style.height = target.scrollHeight+"px";
     });
 
@@ -114,7 +120,6 @@ class ShowHideComponent extends HTMLElement {
 
     const name = this.getAttribute('name');
     if (name) {
-      const slotTitle = this.shadowRoot.querySelector('#title');
       slotTitle.innerHTML = name;
     }
 
