@@ -59,22 +59,16 @@ class AddEditComment extends HTMLElement {
           color: red;
         }
 
-        input[type=number] {
-          background-color: inherit;
-          color: white;
-          border: 1px solid gray;
+        #surroundingText {
+          display: flex;
+          justify-content: space-around;
+          flex-direction: column;
+          padding: 5px 0px;
         }
       </style>
       <input type="text" id="commentTitle" placeholder="Comment Title (Optional)"></input>
       <div id="commentTextContainer"></div>
-      <div>
-        Included lines above selected code
-        <input type="number" id="linesAboveSelector" value="0" min="0"/>
-      </div>
-      <div>
-        Included lines below selected code
-        <input type="number" id="linesBelowSelector" value="0" min="0"/>
-      </div>
+      <div id="surroundingText"></div>
       <hr/>
       <st-show-hide-component name='Media' show='true'>
         <div id="imagesVMC" class="mediaContainer" slot='child'></div>
@@ -104,11 +98,20 @@ class AddEditComment extends HTMLElement {
 
   connectedCallback() {
     //add the lines above/below controls
-    const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
-    const linesBelowSelector = this.shadowRoot.querySelector('#linesBelowSelector');
-    //event handler to notify the code view of the change
-    linesAboveSelector.addEventListener('change', this.sendEventNotifyLinesAboveBelowChange);
-    linesBelowSelector.addEventListener('change', this.sendEventNotifyLinesAboveBelowChange);
+    const surroundingText = this.shadowRoot.querySelector('#surroundingText');
+    const linesAbove = new SurroundingLinesSelector(-90, 'Above', this.numLinesInFile);
+    linesAbove.setAttribute('id', 'linesAboveSelector');
+
+    const linesBelow = new SurroundingLinesSelector(90, 'Below', this.numLinesInFile);
+    linesBelow.setAttribute('id', 'linesBelowSelector');
+    surroundingText.appendChild(linesAbove);
+    surroundingText.appendChild(linesBelow);
+
+    //listen for changes in the lines above/below
+    this.shadowRoot.addEventListener('surrounding-lines-change', event => {
+      this.sendEventNotifyLinesAboveBelowChange();
+      event.stopPropagation();
+    });
 
     //delete comment button
     const deleteButton = this.shadowRoot.querySelector('#deleteButton');
@@ -159,8 +162,8 @@ class AddEditComment extends HTMLElement {
     //generate and send an event with the above/below values
     const customEvent = new CustomEvent('lines-above-below-change', { 
       detail: {
-        linesAbove: Number(linesAboveSelector.value),
-        linesBelow: Number(linesBelowSelector.value)
+        linesAbove: linesAboveSelector.getValue(),
+        linesBelow: linesBelowSelector.getValue()
       },
       bubbles: true, 
       composed: true 
@@ -174,9 +177,9 @@ class AddEditComment extends HTMLElement {
 
     //update the max values for the inputs
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
+    linesAboveSelector.setMax(this.numLinesInFile);
     const linesBelowSelector = this.shadowRoot.querySelector('#linesBelowSelector');
-    linesAboveSelector.setAttribute('max', this.numLinesInFile);
-    linesBelowSelector.setAttribute('max', this.numLinesInFile);
+    linesBelowSelector.setMax(this.numLinesInFile);
   }
 
   updateAddCommentMode() {
@@ -204,9 +207,10 @@ class AddEditComment extends HTMLElement {
 
     //set the lines above/below to 0
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
-    linesAboveSelector.setAttribute('value', 0);
+    linesAboveSelector.setValue(0);
     const linesBelowSelector = this.shadowRoot.querySelector('#linesBelowSelector');
-    linesBelowSelector.setAttribute('value', 0);
+    linesBelowSelector.setValue(0);
+
     //update the max lines above/below from an active file
     this.updateActiveFile();
 
@@ -261,9 +265,9 @@ class AddEditComment extends HTMLElement {
 
     //set the lines above/below to what they are in the comment
     const linesAboveSelector = this.shadowRoot.querySelector('#linesAboveSelector');
-    linesAboveSelector.setAttribute('value', this.editedComment.linesAbove);
+    linesAboveSelector.setValue(this.editedComment.linesAbove);
     const linesBelowSelector = this.shadowRoot.querySelector('#linesBelowSelector');
-    linesBelowSelector.setAttribute('value', this.editedComment.linesBelow);
+    linesBelowSelector.setValue(this.editedComment.linesBelow);
     //update the max lines above/below from an active file
     this.updateActiveFile();
 
