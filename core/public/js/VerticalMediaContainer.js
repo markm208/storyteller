@@ -15,7 +15,7 @@ class VerticalMediaContainer extends HTMLElement {
     if (this.mediaType !== 'audio' && this.mediaType !== 'video' && this.mediaType !== 'image') {
       this.mediaType = 'image';
     }
-    
+
     //store the urls of the media on the server
     this.mediaURLs = mediaURLs;
 
@@ -97,7 +97,7 @@ class VerticalMediaContainer extends HTMLElement {
     //the + button to add new media
     const addNewMediaButton = this.shadowRoot.querySelector('#addNewMediaButton');
     addNewMediaButton.addEventListener('click', this.createFileChooser);
-    
+
     //the paste file event handler
     window.addEventListener("paste", pasteEvent => {
       //check for clipboard data
@@ -192,7 +192,7 @@ class VerticalMediaContainer extends HTMLElement {
     fileInput.setAttribute('type', 'file');
     fileInput.setAttribute('accept', acceptedFiles);
     fileInput.setAttribute('multiple', 'true');
-    
+
     //add the handler when the selection is complete
     fileInput.addEventListener('change', event => {
       this.sendFilesToServer(fileInput.files);
@@ -259,7 +259,7 @@ class VerticalMediaContainer extends HTMLElement {
         media.classList.remove('playing');
       }
     }
-    
+
     //make the media draggable
     media.setAttribute('src', mediaURL);
     media.setAttribute('draggable', 'true');
