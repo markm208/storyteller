@@ -61,7 +61,7 @@ class ProjectManager extends FileBackedCollection {
 
             //add the description comment
             this.commentManager.addComment({
-                commentText: 'Enter a playback description',
+                commentText: 'Enter a playback description.',
                 timestamp: new Date().getTime(),
                 displayCommentEvent: this.eventManager.read()[0], /* grab the one and only event created so far */
                 developerGroupId: this.developerManager.anonymousDeveloperGroup.id, 
@@ -74,11 +74,7 @@ class ProjectManager extends FileBackedCollection {
                 currentFilePath: "",
                 viewableBlogText: "",
                 commentTags: [],
-                questionCommentData: {
-                    allAnswers: [], 
-                    correctAnswer: "", 
-                    question: ""
-                }
+                questionCommentData: null
             });
 
         }

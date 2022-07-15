@@ -100,9 +100,7 @@ class CodeView extends HTMLElement {
 
     //cancel the creating/editing of a comment
     this.shadowRoot.addEventListener('cancel-add-edit-comment', event => {
-      //rebuild all comment views
-      this.updateForAddEditDeleteComment();
-      this.updateForCommentSelected();
+      this.updateUIToCancelAddEditComment();
     });
 
     //new comment successfully created
@@ -343,6 +341,15 @@ class CodeView extends HTMLElement {
 
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
     playbackNavigator.updateUIToEditComment(comment);
+  }
+
+  updateUIToCancelAddEditComment() {
+    const editorView = this.shadowRoot.querySelector('st-editor-view');
+    editorView.updateHandleTextSelection(false);
+
+    //rebuild all comment views
+    this.updateForAddEditDeleteComment();
+    this.updateForCommentSelected();
   }
 
   updateForTitleChange(newTitle) {

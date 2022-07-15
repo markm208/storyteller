@@ -24,7 +24,7 @@ class BlogCodeSnippet extends HTMLElement {
 
         .blogSelectedCodeHighlight {
           background-color: rgb(199, 224, 241); 
-          opacity: 0.27;
+          opacity: 0.17;
           position: absolute;
         }
       </style>
@@ -86,7 +86,7 @@ class BlogCodeSnippet extends HTMLElement {
     //go through the markers and highlight them
     allMarkers.forEach(marker => {
       //create a marker in the right range
-      const aceRange = new AceRange(marker.startRow, marker.startColumn, marker.endRow, marker.endColumn);
+      const aceRange = new AceRange(marker.startRow - snippetStartLineNumber, marker.startColumn, marker.endRow - snippetStartLineNumber, marker.endColumn);
       aceEditor.getSession().addMarker(aceRange, marker.className, marker.type, true);
     });
 
