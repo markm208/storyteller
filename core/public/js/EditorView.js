@@ -72,9 +72,9 @@ class EditorView extends HTMLElement {
     aceEditor.updateEditorFontSize(newFontSize);
   }
 
-  updateHandleTextSelection(makeCodeSelectable) {
+  updateHandleTextSelection(makeCodeSelectable, isEditedComment) {
     const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
-    aceEditor.updateHandleTextSelection(makeCodeSelectable);
+    aceEditor.updateHandleTextSelection(makeCodeSelectable, isEditedComment);
   }
   
   updateLinesAboveBelow(linesAbove, linesBelow) {

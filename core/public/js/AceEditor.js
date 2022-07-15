@@ -147,7 +147,7 @@ class AceEditor extends HTMLElement {
     this.aceEditor.setFontSize(newFontSize);
   }
 
-  updateHandleTextSelection(makeCodeSelectable) {
+  updateHandleTextSelection(makeCodeSelectable, isEditedComment) {
     //if the code is being made selectable to highlight above/below lines
     if(makeCodeSelectable) {
       //add a listener to get changes in the selected text
@@ -158,7 +158,7 @@ class AceEditor extends HTMLElement {
       this.clearSurroundingTextMarker();
 
       //if there is a comment with selected code
-      if(this.playbackEngine.activeComment && this.playbackEngine.activeComment.selectedCodeBlocks.length > 0) {
+      if(isEditedComment && this.playbackEngine.activeComment && this.playbackEngine.activeComment.selectedCodeBlocks.length > 0) {
         //replace a comment's selected code blocks with actual ace selections
         this.playbackEngine.activeComment.selectedCodeBlocks.forEach(selectedCodeBlock => {
           const aceRange = new AceRange(selectedCodeBlock.startRow, selectedCodeBlock.startColumn, selectedCodeBlock.endRow, selectedCodeBlock.endColumn);

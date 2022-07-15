@@ -329,7 +329,7 @@ class CodeView extends HTMLElement {
 
   updateUIToAddNewComment() {
     const editorView = this.shadowRoot.querySelector('st-editor-view');
-    editorView.updateHandleTextSelection(true);
+    editorView.updateHandleTextSelection(true, false);
 
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
     playbackNavigator.updateUIToAddNewComment();
@@ -337,7 +337,7 @@ class CodeView extends HTMLElement {
 
   updateUIToEditComment(comment) {
     const editorView = this.shadowRoot.querySelector('st-editor-view');
-    editorView.updateHandleTextSelection(true);
+    editorView.updateHandleTextSelection(true, true);
 
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
     playbackNavigator.updateUIToEditComment(comment);
@@ -345,7 +345,7 @@ class CodeView extends HTMLElement {
 
   updateUIToCancelAddEditComment() {
     const editorView = this.shadowRoot.querySelector('st-editor-view');
-    editorView.updateHandleTextSelection(false);
+    editorView.updateHandleTextSelection(false, false);
 
     //rebuild all comment views
     this.updateForAddEditDeleteComment();
