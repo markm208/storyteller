@@ -54,9 +54,7 @@ class PlaybackNavigator extends HTMLElement {
 
         .subNavigatorsTab {
           height: calc(100% - 40px);
-          overflow-y: scroll;
           word-wrap: break-word;
-          scrollbar-width: thin;
         }
 
         .inactive {
@@ -136,19 +134,11 @@ class PlaybackNavigator extends HTMLElement {
   }
 
   updateForPlaybackMovement() {
-    //forward the message on to the right tab
-    if(this.activeTab === 'comments') {
-      const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-      commentNavigator.updateForPlaybackMovement();
-    } else if(this.activeTab === 'fileSystem') {
+    //forward the message on to the fs tab if it is active
+    if(this.activeTab === 'fileSystem') {
       const fileSystemNavigator = this.shadowRoot.querySelector('st-file-system-navigator');
       fileSystemNavigator.updateForPlaybackMovement();
     }
-  }
-
-  updateForAddEditDeleteComment() {
-    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-    commentNavigator.updateForAddEditDeleteComment();
   }
 
   updateForFileSelected() {
@@ -156,37 +146,12 @@ class PlaybackNavigator extends HTMLElement {
     if(this.activeTab === 'fileSystem') {
       const fileSystemNavigator = this.shadowRoot.querySelector('st-file-system-navigator');
       fileSystemNavigator.updateForFileSelected();
-    } else if(this.activeTab === 'comments') {
-      const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-      commentNavigator.updateForFileSelected();
-    }
+    } 
   }
 
   updateToDisplaySearchResults(searchResults){
     const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
     commentNavigator.updateToDisplaySearchResults(searchResults);
-  }
-
-  updateUIToAddNewComment() {
-    //if the comments are not displayed then make the comment tab the active one
-    if(this.activeTab !== 'comments') {
-      const commentsTab = this.shadowRoot.querySelector('.comments');
-      commentsTab.click();
-    }
-    //pass the message on
-    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-    commentNavigator.updateUIToAddNewComment();
-  }
-
-  updateUIToEditComment(comment) {
-    //if the comments are not displayed then make the comment tab the active one
-    if(this.activeTab !== 'comments') {
-      const commentsTab = this.shadowRoot.querySelector('.comments');
-      commentsTab.click();
-    }
-    //pass the message on
-    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
-    commentNavigator.updateUIToEditComment(comment);
   }
 
   updateForTitleChange(newTitle) {

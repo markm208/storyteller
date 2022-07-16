@@ -105,6 +105,7 @@ class MultiLineTextInput extends HTMLElement {
       //make the selected text bold
       document.execCommand('styleWithCSS', null, 'true');
       document.execCommand('bold', false, null);
+      boldButton.blur();
     });
 
     const italicButton = document.createElement('button');
@@ -116,6 +117,7 @@ class MultiLineTextInput extends HTMLElement {
       //make the selected text italic
       document.execCommand('styleWithCSS', null, 'true');
       document.execCommand('italic', false, null);
+      italicButton.blur();
     });
 
     const codeButton = document.createElement('button');
@@ -128,6 +130,7 @@ class MultiLineTextInput extends HTMLElement {
       document.execCommand('styleWithCSS', null, 'true');
       document.execCommand('fontName', false, 'Courier');
       document.execCommand('foreColor', false, 'white');
+      codeButton.blur();
     });
 
     //used to hold a url to make a link
@@ -161,8 +164,10 @@ class MultiLineTextInput extends HTMLElement {
           document.execCommand('styleWithCSS', null, 'true');
           document.execCommand('createLink', false, urlInput.value);
           urlInput.value = '';
+          urlInput.blur();
         }
       }
+      addLink.blur();
     });
 
     //add the controls to the editorControls div
@@ -182,6 +187,11 @@ class MultiLineTextInput extends HTMLElement {
   getFormattedText() {
     const inputText = this.shadowRoot.querySelector('.inputText');
     return inputText.innerHTML.trim();
+  }
+
+  setFocus() {
+    const inputText = this.shadowRoot.querySelector('.inputText');
+    inputText.focus();
   }
 }
 

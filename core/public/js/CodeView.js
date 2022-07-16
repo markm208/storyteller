@@ -24,8 +24,10 @@ class CodeView extends HTMLElement {
           height: 100%;
         }
 
-        .playbackNavigatorSlot {
+        .commentsSlot {
           flex: 0 0 auto;
+          overflow-y: scroll;
+          scrollbar-width: thin;
         }
 
         .editorViewSlot {
@@ -41,7 +43,7 @@ class CodeView extends HTMLElement {
         }
       </style>
 
-      <div class="playbackNavigatorSlot"></div>
+      <div class="commentsSlot"></div>
       <div class="dragBar">
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="32" fill="gray" className="bi bi-grip-vertical" viewBox="4 2 8 8">
           <path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
@@ -57,9 +59,7 @@ class CodeView extends HTMLElement {
     this.setWidthInPixels(this.width);
 
     //add the playback navigator
-    const playbackNavigatorSlot = this.shadowRoot.querySelector('.playbackNavigatorSlot');
-    const playbackNavigator = new PlaybackNavigator(this.playbackEngine);
-    playbackNavigatorSlot.appendChild(playbackNavigator);
+    this.addPlaybackNavigator();
 
     //add the editor view
     const editorViewSlot = this.shadowRoot.querySelector('.editorViewSlot');
@@ -167,7 +167,7 @@ class CodeView extends HTMLElement {
       await serverProxy.updateCommentPositionOnServer(event.detail.updatedCommentPosition);
 
       //update
-      this.updateForAddEditDeleteComment();
+      this.updateForCommentReordering();
       this.updateForCommentSelected();
     });
 
@@ -273,7 +273,18 @@ class CodeView extends HTMLElement {
     dragBar.removeEventListener('touchstart', this.addTouchEventListeners);
   }
 
+  addPlaybackNavigator() {
+    //update nav rebuild all comment views with a new playback nav
+    const commentsSlot = this.shadowRoot.querySelector('.commentsSlot');
+    commentsSlot.innerHTML = '';
+    const playbackNavigator = new PlaybackNavigator(this.playbackEngine);
+    commentsSlot.appendChild(playbackNavigator);
+  }
+
   updateForCommentSelected() {
+    //if the add/edit comment UI is visible then close it
+    this.updateUIToCancelAddEditComment();
+
     //update nav
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
     playbackNavigator.updateForCommentSelected();
@@ -283,18 +294,22 @@ class CodeView extends HTMLElement {
   }
 
   updateForPlaybackMovement() {
-    //update nav
-    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.updateForPlaybackMovement();
+    //if the add/edit comment UI is visible then close it
+    this.updateUIToCancelAddEditComment();
+
     //update the editor
     const editorView = this.shadowRoot.querySelector('st-editor-view');
     editorView.updateForPlaybackMovement();
   }
 
+  updateForCommentReordering() {
+    //update playback nav
+    this.addPlaybackNavigator();
+  }
+
   updateForAddEditDeleteComment() {
-    //update nav
-    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.updateForAddEditDeleteComment();
+    //if the add/edit comment UI is visible then close it
+    this.updateUIToCancelAddEditComment();
 
     //if there are a different number of comment groups
     if(this.playbackEngine.mostRecentChanges.numberOfCommentGroupsChanged) {
@@ -315,8 +330,15 @@ class CodeView extends HTMLElement {
     if(this.playbackEngine.mostRecentChanges.hasNewActiveFile) {
       //update the UI
       const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-      playbackNavigator.updateForFileSelected();
-
+      //if there is a playback navigator update it
+      if(playbackNavigator) {
+        playbackNavigator.updateForFileSelected();
+      } else { //there is a comment being created or edited
+        //update the add/edit comment
+        const addEditComment = this.shadowRoot.querySelector('st-add-edit-comment');
+        addEditComment.updateForFileSelected();
+      }
+      //update the editor
       const editorView = this.shadowRoot.querySelector('st-editor-view');
       editorView.updateForFileSelected();
     }
@@ -328,28 +350,41 @@ class CodeView extends HTMLElement {
   }
 
   updateUIToAddNewComment() {
+    //make the code in the editor selectable
     const editorView = this.shadowRoot.querySelector('st-editor-view');
     editorView.updateHandleTextSelection(true, false);
 
-    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.updateUIToAddNewComment();
+    //build a new add/edit comment component
+    const addEditComment = new AddEditComment(this.playbackEngine, null);
+    const commentsSlot = this.shadowRoot.querySelector('.commentsSlot');
+    commentsSlot.innerHTML = '';
+    commentsSlot.appendChild(addEditComment);
   }
 
   updateUIToEditComment(comment) {
+    //make the code in the editor selectable
     const editorView = this.shadowRoot.querySelector('st-editor-view');
     editorView.updateHandleTextSelection(true, true);
 
-    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
-    playbackNavigator.updateUIToEditComment(comment);
+    //build a new add/edit comment component
+    const addEditComment = new AddEditComment(this.playbackEngine, comment);
+    const commentsSlot = this.shadowRoot.querySelector('.commentsSlot');
+    commentsSlot.innerHTML = '';
+    commentsSlot.appendChild(addEditComment);
   }
 
   updateUIToCancelAddEditComment() {
-    const editorView = this.shadowRoot.querySelector('st-editor-view');
-    editorView.updateHandleTextSelection(false, false);
+    //attempt to retrieve the add/edit comment component (it may not be in the UI)
+    const addEditComment = this.shadowRoot.querySelector('st-add-edit-comment');
+    //if it is present in the UI, then replace it with a playback nav
+    if(addEditComment) {
+      //disable selection in the editor
+      const editorView = this.shadowRoot.querySelector('st-editor-view');
+      editorView.updateHandleTextSelection(false, false);
 
-    //rebuild all comment views
-    this.updateForAddEditDeleteComment();
-    this.updateForCommentSelected();
+      //rebuild all comment views with a new playback nav
+      this.addPlaybackNavigator();
+    }
   }
 
   updateForTitleChange(newTitle) {
@@ -421,10 +456,10 @@ class CodeView extends HTMLElement {
     const dragBar = this.shadowRoot.querySelector('.dragBar');
     const dragBarWidth = dragBar.getBoundingClientRect().width;
 
-    const playbackNavigatorSlot = this.shadowRoot.querySelector('.playbackNavigatorSlot');
+    const commentsSlot = this.shadowRoot.querySelector('.commentsSlot');
     const editorViewSlot = this.shadowRoot.querySelector('.editorViewSlot');
 
-    playbackNavigatorSlot.style.width = newWidth + 'px';
+    commentsSlot.style.width = newWidth + 'px';
     editorViewSlot.style.width = (codeViewWidth - dragBarWidth - newWidth) + 'px';
   }
 

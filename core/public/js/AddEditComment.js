@@ -154,7 +154,7 @@ class AddEditComment extends HTMLElement {
       //close the tag drop down menu when a click happens 
       const commentTags = this.shadowRoot.querySelector('st-comment-tags');
       commentTags.closeDropDown();
-    })
+    });
   }
 
   disconnectedCallback() {
@@ -177,7 +177,7 @@ class AddEditComment extends HTMLElement {
     this.dispatchEvent(customEvent);
   }
 
-  updateActiveFile() {
+  updateForFileSelected() {
     //get the number of lines in the file (may be 0 if there is not an active file)
     this.numLinesInFile = this.playbackEngine.editorState.getNumLinesInFile(this.playbackEngine.activeFileId);
 
@@ -218,7 +218,7 @@ class AddEditComment extends HTMLElement {
     linesBelowSelector.setValue(0);
 
     //update the max lines above/below from an active file
-    this.updateActiveFile();
+    this.updateForFileSelected();
 
     const deleteHideShow = this.shadowRoot.querySelector('#deleteHideShow');
     deleteHideShow.classList.add('inactive');
@@ -234,7 +234,7 @@ class AddEditComment extends HTMLElement {
     commentText.updateFormattedText(this.editedComment.commentText);
     //set the comment title
     const commentTitle = this.shadowRoot.querySelector('#commentTitle');
-    commentTitle.value = this.editedComment.commentTitle ? this.editedComment.commentTitle : '';
+    commentTitle.setAttribute('value', this.editedComment.commentTitle ? this.editedComment.commentTitle : '');
 
     const imagesVMC = this.shadowRoot.querySelector('#imagesVMC');
     const images = new VerticalMediaContainer(this.editedComment.imageURLs, 'image');
@@ -277,7 +277,7 @@ class AddEditComment extends HTMLElement {
     const linesBelowSelector = this.shadowRoot.querySelector('#linesBelowSelector');
     linesBelowSelector.setValue(this.editedComment.linesBelow);
     //update the max lines above/below from an active file
-    this.updateActiveFile();
+    this.updateForFileSelected();
 
     //add a delete button to all but the first comment
     const allComments = this.playbackEngine.commentInfo.flattenedComments;

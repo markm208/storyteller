@@ -16,7 +16,7 @@ class CommentNavigator extends HTMLElement {
           height: 100%;
           overflow-y: auto;
           word-wrap: break-word;
-          scrollbar-width: thin;
+          scrollbar-width: none;
         }
 
         #newCommentButton {
@@ -50,8 +50,7 @@ class CommentNavigator extends HTMLElement {
           <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
         </svg>
         Add a Comment
-      </button>
-      <div id="addEditCommentComponent" class="inactive"></div>`
+      </button>`;
       
     return template.content.cloneNode(true);
   }
@@ -65,7 +64,7 @@ class CommentNavigator extends HTMLElement {
       //make the add new comment button visible
       const newCommentButton = this.shadowRoot.querySelector('#newCommentButton');
       newCommentButton.classList.remove('inactive');
-      newCommentButton.addEventListener('click', this.beginAddComment);
+      newCommentButton.addEventListener('click', this.sendBeginAddComment);
     }
 
     //update to the active comment (usually the first comment)
@@ -75,7 +74,7 @@ class CommentNavigator extends HTMLElement {
   disconnectedCallback() {
   }
 
-  beginAddComment = () => {
+  sendBeginAddComment = () => {
     //send an event to add a new comment
     const event = new CustomEvent('begin-add-comment', { 
       bubbles: true, 
@@ -97,19 +96,6 @@ class CommentNavigator extends HTMLElement {
       const newActiveCommentGroup = this.shadowRoot.querySelector(`st-comment-group.${this.playbackEngine.activeComment.id}`);
       newActiveCommentGroup.makeCommentGroupActive();
     } //else- no active comment, nothing to do in this case
-  }
-  
-  updateForPlaybackMovement() {
-    //make sure that the add/edit UI is closed
-    this.updateUIToCancelAddEditComment();
-  }
-
-  updateForAddEditDeleteComment() {
-    //make sure that the add/edit UI is closed
-    this.updateUIToCancelAddEditComment();
-
-    //rebuild all of the comment groups 
-    this.addCommentsToView();
   }
 
   updateForTitleChange(newTitle) {
@@ -157,15 +143,6 @@ class CommentNavigator extends HTMLElement {
     }
   }
 
-  updateForFileSelected() {
-    const addEditCommentComponent = this.shadowRoot.querySelector('st-add-edit-comment');
-    //if the add/edit ui is visible
-    if(addEditCommentComponent && addEditCommentComponent.classList.contains('inactive') === false) {
-      //send the message on to update the above/below max val for the active file
-      addEditCommentComponent.updateActiveFile();
-    }
-  }
-
   updateToDisplaySearchResults(searchResults){
     //clear out old search results
     const commentGroups = this.shadowRoot.querySelectorAll('st-comment-group');
@@ -183,62 +160,6 @@ class CommentNavigator extends HTMLElement {
     commentGroups.forEach(commentGroup => {
       commentGroup.hideIrrelevantSearchResults(relevantCommentIDs);
     });
-  }
-
-  updateUIToAddNewComment() {
-    if(this.playbackEngine.playbackData.isEditable) {
-      //make the comment groups and the new comment button invisible
-      const commentGroups = this.shadowRoot.querySelector('.commentGroups');
-      commentGroups.classList.add('inactive');
-      const newCommentButton = this.shadowRoot.querySelector('#newCommentButton');
-      newCommentButton.classList.add('inactive');
-  
-      //create a new/edit comment UI
-      const addEditComment = new AddEditComment(this.playbackEngine, null);
-      
-      //add the new component to the UI and make it visible
-      const addEditCommentComponent = this.shadowRoot.querySelector('#addEditCommentComponent');
-      addEditCommentComponent.innerHTML = '';
-      addEditCommentComponent.appendChild(addEditComment);
-      addEditCommentComponent.classList.remove('inactive');
-    }
-  }
-
-  updateUIToEditComment(comment) {
-    if(this.playbackEngine.playbackData.isEditable) {
-      //make the comment groups and the new comment button invisible
-      const commentGroups = this.shadowRoot.querySelector('.commentGroups');
-      commentGroups.classList.add('inactive');
-      const newCommentButton = this.shadowRoot.querySelector('#newCommentButton');
-      newCommentButton.classList.add('inactive');
-  
-      //create a new/edit comment UI using the comment that is being edited
-      const addEditComment = new AddEditComment(this.playbackEngine, comment);
-
-      //add the new component to the UI and make it visible
-      const addEditCommentComponent = this.shadowRoot.querySelector('#addEditCommentComponent');
-      addEditCommentComponent.innerHTML = '';
-      addEditCommentComponent.classList.remove('inactive');
-      addEditCommentComponent.appendChild(addEditComment);
-    }
-  }
-
-  updateUIToCancelAddEditComment() {
-    //make the AddEditComment invisible and the comments visible
-    const addEditCommentComponent = this.shadowRoot.querySelector('#addEditCommentComponent');
-    //if the add/edit component is visible
-    if(addEditCommentComponent.classList.contains('inactive') === false) {
-      //get rid of the add edit component
-      addEditCommentComponent.innerHTML = '';
-      //make it invisible
-      addEditCommentComponent.classList.add('inactive');
-
-      //make the comment groups and the add new comment button visible
-      const commentGroups = this.shadowRoot.querySelector('.commentGroups');
-      commentGroups.classList.remove('inactive');
-      const newCommentButton = this.shadowRoot.querySelector('#newCommentButton');
-      newCommentButton.classList.remove('inactive');
-    }
   }
 }
 

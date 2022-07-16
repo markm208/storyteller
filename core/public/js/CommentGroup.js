@@ -285,12 +285,12 @@ class CommentGroup extends HTMLElement {
           newCommentPosition:dropPos
         };
         //send the event to handle reordering
-        this.reorderComments(updatedCommentPosition);
+        this.sendReorderComments(updatedCommentPosition);
       }
     }
   }
 
-  reorderComments = (updatedCommentPosition) => {
+  sendReorderComments = (updatedCommentPosition) => {
     const event = new CustomEvent('reorder-comments', { 
       detail: {
         updatedCommentPosition: updatedCommentPosition
