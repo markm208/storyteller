@@ -18,7 +18,10 @@ class CommentNavigator extends HTMLElement {
           word-wrap: break-word;
           scrollbar-width: none;
         }
-
+        .commentGroups::-webkit-scrollbar {
+          display: none;
+        }
+        
         #newCommentButton {
           position: sticky;
           bottom: 0;
