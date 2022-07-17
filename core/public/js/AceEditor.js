@@ -28,6 +28,17 @@ class AceEditor extends HTMLElement {
           height: 100%;
         }
 
+        .ace_scrollbar {
+          scrollbar-width: thin;
+        }
+        .ace_scrollbar::-webkit-scrollbar {
+          width: .65em;
+          background-color: inherit;
+        }
+        .ace_scrollbar::-webkit-scrollbar-thumb {
+          background: dimgray;
+        }
+
         .editor {
           display: flex;
           flex-direction: column;
