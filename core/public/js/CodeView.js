@@ -27,14 +27,7 @@ class CodeView extends HTMLElement {
         .commentsSlot {
           flex: 0 0 auto;
           overflow-y: scroll;
-          scrollbar-width: thin;
-        }
-        .commentsSlot::-webkit-scrollbar {
-          width: .65em;
-          background-color: inherit;
-        }
-        .commentsSlot::-webkit-scrollbar-thumb {
-          background: dimgray;
+          scrollbar-width: none;
         }
 
         .editorViewSlot {

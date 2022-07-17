@@ -65,33 +65,49 @@ class AddEditComment extends HTMLElement {
           flex-direction: column;
           padding: 5px 0px;
         }
+
+        #addEditContainer {
+          height: 100%;
+          overflow-y: auto;
+          word-wrap: break-word;
+          scrollbar-width: thin;
+        }
+        #addEditContainer::-webkit-scrollbar {
+          width: .65em;
+          background-color: inherit;
+        }
+        #addEditContainer::-webkit-scrollbar-thumb {
+          background: dimgray;
+        }
+
       </style>
-      <input type="text" id="commentTitle" placeholder="Comment Title (Optional)"></input>
-      <div id="commentTextContainer"></div>
-      <div id="surroundingText"></div>
-      <hr/>
-      <st-show-hide-component name='Media' show='true'>
-        <div id="imagesVMC" class="mediaContainer" slot='child'></div>
-        <div id="videosVMC" class="mediaContainer" slot='child'></div>
-        <div id="audiosVMC" class="mediaContainer" slot='child'></div>
-      </st-show-hide-component>
-      <st-show-hide-component name='Multiple Choice Question'>            
-        <div id="questionAnswerContainer" slot='child'></div>
-      </st-show-hide-component>
-      <st-show-hide-component name='Tags'>
-        <div id="tagContainer" slot="child"></div>
-      </st-show-hide-component>
-      <st-show-hide-component id="deleteHideShow" name='Delete this Comment'>
-        <div id="deleteButtonDiv" slot='child' class="inactive">
-          <hr/>
-          <span>Delete this comment (this can't be undone)</span>
-          <button id="deleteButton">Delete</button>
-        </div>
-      </st-show-hide-component>
-      <div id="errorMessages"></div>
-      <button id="cancelButton" class="controlButton">Cancel</button>
-      <button id="submitButton" class="controlButton"></button>
-      `;
+      <div id="addEditContainer">
+        <input type="text" id="commentTitle" placeholder="Comment Title (Optional)"></input>
+        <div id="commentTextContainer"></div>
+        <div id="surroundingText"></div>
+        <hr/>
+        <st-show-hide-component name='Media' show='true'>
+          <div id="imagesVMC" class="mediaContainer" slot='child'></div>
+          <div id="videosVMC" class="mediaContainer" slot='child'></div>
+          <div id="audiosVMC" class="mediaContainer" slot='child'></div>
+        </st-show-hide-component>
+        <st-show-hide-component name='Multiple Choice Question'>            
+          <div id="questionAnswerContainer" slot='child'></div>
+        </st-show-hide-component>
+        <st-show-hide-component name='Tags'>
+          <div id="tagContainer" slot="child"></div>
+        </st-show-hide-component>
+        <st-show-hide-component id="deleteHideShow" name='Delete this Comment'>
+          <div id="deleteButtonDiv" slot='child' class="inactive">
+            <hr/>
+            <span>Delete this comment (this can't be undone)</span>
+            <button id="deleteButton">Delete</button>
+          </div>
+        </st-show-hide-component>
+        <div id="errorMessages"></div>
+        <button id="cancelButton" class="controlButton">Cancel</button>
+        <button id="submitButton" class="controlButton"></button>
+      </div>`;
 
     return template.content.cloneNode(true);
   }

@@ -16,12 +16,16 @@ class CommentNavigator extends HTMLElement {
           height: 100%;
           overflow-y: auto;
           word-wrap: break-word;
-          scrollbar-width: none;
+          scrollbar-width: thin;
         }
         .commentGroups::-webkit-scrollbar {
-          display: none;
+          width: .65em;
+          background-color: inherit;
         }
-        
+        .commentGroups::-webkit-scrollbar-thumb {
+          background: dimgray;
+        }
+
         #newCommentButton {
           position: sticky;
           bottom: 0;
