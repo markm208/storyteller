@@ -71,7 +71,10 @@ class CommentView extends HTMLElement {
         }
 
         .commentTitle {
+          padding: 5px;
+          margin-left: -8px;
           font-size: 1.2em;
+          font-style: italic;
         }
 
         .commentAvatar {
@@ -198,7 +201,7 @@ class CommentView extends HTMLElement {
     //if the comment's top/bottom edge is  off of the screen (+/- 100px)
     if (commentRectangle.bottom - 100 < 0 || commentRectangle.top > window.innerHeight - 100) {
       //scroll to the active comment
-      this.shadowRoot.host.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'center'})
+      this.shadowRoot.host.scrollIntoView({behavior: 'auto', block: 'center', inline: 'start'})
     }
   }
 

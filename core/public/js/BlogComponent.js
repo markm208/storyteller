@@ -49,9 +49,16 @@ class BlogComponent extends HTMLElement {
           justify-content: center;
           padding: 10px 0px 5px 0px;
         }
+
+        .commentTitle {
+          padding: 5px;
+          margin-left: -8px;
+          font-size: 1.2em;
+          font-style: italic;
+        }
       </style>
 
-      <h3 class="commentTitle"></h3>
+      <div class="commentTitle"></div>
       <div class="blogCommentText"></div>
       <div class="commentVideos"></div>
       <div class="commentAudios"></div>

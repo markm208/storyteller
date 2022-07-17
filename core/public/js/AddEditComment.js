@@ -413,6 +413,7 @@ class AddEditComment extends HTMLElement {
       const comment = {
         id: this.editedComment ? this.editedComment.id : null,
         displayCommentEvent: this.editedComment ? this.editedComment.displayCommentEvent : mostRecentEvent,
+        developerGroupId: this.editedComment ? this.editedComment.developerGroupId : null,
         timestamp: this.editedComment ? this.editedComment.timestamp : new Date().getTime(),
         commentText: commentText.getFormattedText(),
         commentTitle: commentTitle.value,

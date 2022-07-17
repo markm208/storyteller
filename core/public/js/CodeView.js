@@ -32,7 +32,7 @@ class CodeView extends HTMLElement {
         .commentsSlot::-webkit-scrollbar {
           display: none;
         }
-        
+
         .editorViewSlot {
           flex: 0 0 auto;
           padding: 1px 5px 0px 0px;
@@ -300,6 +300,10 @@ class CodeView extends HTMLElement {
     //if the add/edit comment UI is visible then close it
     this.updateUIToCancelAddEditComment();
 
+    //update nav
+    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
+    playbackNavigator.updateForPlaybackMovement();
+    
     //update the editor
     const editorView = this.shadowRoot.querySelector('st-editor-view');
     editorView.updateForPlaybackMovement();

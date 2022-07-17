@@ -144,7 +144,6 @@ class MultiLineTextInput extends HTMLElement {
       //make the selected text look like code
       document.execCommand('styleWithCSS', null, 'true');
       document.execCommand('fontName', false, 'Courier');
-      document.execCommand('foreColor', false, 'white');
       codeButton.blur();
     });
 
