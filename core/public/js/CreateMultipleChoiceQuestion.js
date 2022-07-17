@@ -17,7 +17,9 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
           padding: 2px 4px;
           margin: 2px;
         }
-
+        #commentQuestionContainer, #allAnswersContainer {
+          margin-bottom: 15px;
+        }
         .questionCommentInput{
           background-color: inherit;
           color: lightgray;
@@ -57,8 +59,9 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
           background-color: grey;
         }
 
-        .checkBoxContent{
+        .spaceBetweenContent{
           display: flex;
+          justify-content: space-between
         }
         
         #addAnswerButton{
@@ -66,7 +69,6 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
           color: white;
           border: none;
           cursor: pointer;
-          margin-bottom: 20px;
         }
         #addAnswerButton:hover {
           background-color: gray;
@@ -77,15 +79,17 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         <label>Question</label>
         <div id='commentQuestionContainer'></div>
         
-        <label>Answers</label>
-        <button id='addAnswerButton' type='button'>
-          <svg width='1em' height='1em' viewBox='0 0 16 16' class='bi bi-plus-circle-fill addQuestionButton' fill='white' xmlns='http://www.w3.org/2000/svg'>
-            <path fill-rule='evenodd' d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z'/>
-          </svg>
-          Add Answer
-        </button>
+        <div class="spaceBetweenContent">
+          <label>Answers</label>
+          <button id='addAnswerButton' type='button'>
+            <svg width='1em' height='1em' viewBox='0 0 16 16' class='bi bi-plus-circle-fill addQuestionButton' fill='white' xmlns='http://www.w3.org/2000/svg'>
+              <path fill-rule='evenodd' d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z'/>
+            </svg>
+            Add Answer
+          </button>
+        </div>
         <div id="allAnswersContainer"></div>
-        
+
         <label>Explanation</label>
         <div id="explanationTextContainer"></div>
       </div>
@@ -185,7 +189,9 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
 
     //checkbox to select as the correct answer
     const checkBoxDiv = document.createElement('div');
-    checkBoxDiv.classList.add('checkBoxContent');
+    checkBoxDiv.classList.add('spaceBetweenContent');
+    
+    const checkBoxAndLabelDiv = document.createElement('div');
     const checkBox = document.createElement('input');
     checkBox.type = 'checkbox';
     //if this comes from an existing question and is the right answer
@@ -202,9 +208,9 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     label.innerHTML = ' Correct Answer';
     label.setAttribute('for', `checkBox-${answerNumber}`);
 
-    checkBoxDiv.append(checkBox);
-    checkBoxDiv.append(label);
-
+    checkBoxAndLabelDiv.append(checkBox);
+    checkBoxAndLabelDiv.append(label);
+    checkBoxDiv.appendChild(checkBoxAndLabelDiv);
     //if this is an extra answer
     if (answerNumber > 2) {
       //mark it with a class

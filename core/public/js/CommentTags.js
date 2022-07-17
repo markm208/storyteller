@@ -258,7 +258,7 @@ class CommentTags extends HTMLElement {
 
     if (isCommentTag) {
       const removeTagButton = document.createElement('button');
-      removeTagButton.innerHTML = 'x';
+      removeTagButton.innerHTML = '✕';
       removeTagButton.classList.add('removeTag');
       removeTagButton.title = 'Remove tag';
 

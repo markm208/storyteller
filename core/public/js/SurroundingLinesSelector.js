@@ -78,7 +78,7 @@ class SurroundingLinesSelector extends HTMLElement {
       .linesAroundDiv {
         display: flex;
         align-items: center;
-        margin: -8px 0px;
+        margin: -8px -5px;
         padding: 0px;
       }
     </style>

@@ -184,12 +184,14 @@ class TitleBar extends HTMLElement {
     //toggle the edit buttons
     const editButton = this.shadowRoot.querySelector('#editButton');
     editButton.classList.add('hidden');
+
     const doneEditButton = this.shadowRoot.querySelector('#doneEditButton');
     doneEditButton.classList.remove('hidden');
 
     //make the title editable
     const playbackTitle = this.shadowRoot.querySelector('.playbackTitle');
     playbackTitle.setAttribute('contenteditable', 'true');
+    playbackTitle.focus();
   }
 
   updateTitleComplete = event => {
@@ -202,6 +204,7 @@ class TitleBar extends HTMLElement {
     //prevent future editing
     const playbackTitle = this.shadowRoot.querySelector('.playbackTitle');
     playbackTitle.removeAttribute('contenteditable');
+    playbackTitle.blur();
 
     //if there is anything left in the title notify of a change AND the title is different than the original
     if(playbackTitle.textContent.trim().length > 0 && this.playbackTitle !== playbackTitle.textContent.trim()) {

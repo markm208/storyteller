@@ -7,146 +7,98 @@ class ShowHideComponent extends HTMLElement {
 
   getTemplate() {
     const template = document.createElement('template');
-    template.innerHTML = `        
-            <style>
-    
+    template.innerHTML = `
+      <style>
+        .outerDiv{
+          padding: 5px;
+          margin: 8px;
+        }
+        .outerDiv.open{
+          border: solid thin gray;
+        }
 
-                .hidden {
-                    background-image: url("data:image/svg+xml,<svg viewBox='0 0 16 16' fill='lightgray' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z'/></svg>") !important;
+        #titleBar {
+          display: flex;
+          cursor: pointer;
+          width: 100%;
+          padding-bottom: 5px;
+        }
+        #title {
+          font-size: 1.1em;
+        }
+        #title.open {
+          color: aliceblue;
+          font-style: italic;
+        }
 
-                }
+        #showHideToggleButton {
+          background-image: url("data:image/svg+xml,<svg viewBox='0 0 16 16' fill='lightgray' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>") ;
+          cursor: pointer;
+          height: 1.1em;
+          width: 1.1em;
+          border: none;
+          background-color: transparent;
+          margin: 3px 5px;
+          padding-top: 5px;
+        }
+        .closedButton {
+          background-image: url("data:image/svg+xml,<svg viewBox='0 0 16 16' fill='lightgray' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z'/></svg>") !important;
+        }
 
-                #toggleButton{
-                   background-image: url("data:image/svg+xml,<svg viewBox='0 0 16 16' fill='lightgray' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>") ;
-                    cursor: pointer;
-                    height: 1.9em;
-                    width: 1.9em;
-                    border: none;
-                    background-color: transparent;
-                    margin: 0px 5px;
-                }
+        #expandedContainer {
+          padding: 0px 10px;
+        }
 
-                #outerDiv {
-                    display: flex;
-                    cursor: pointer;
-                    width: fit-content;
-                }
-
-                #expanded-container{
-                  //  overflow: hidden;
-                }
-
-                #testing {
-                   // height: 0;
-                   // overflow: hidden;
-                   // transition: height 0.4s ease;
-                }
-
-                .hide{
-                    display: none;
-                }
-
-                .testing{
-                  padding: 5px;
-                }
-
-                .testing.open{
-                  border: solid thin aliceblue;
-                  margin: 10px;
-                  paddingg: 10px !important;
-                }
-
-              #title.open{
-                color: tan;
-              }
-
-
-
-            </style>
-          <div class='testing'>
-            <div id='outerDiv' title='Click to expand'>
-                  <button id='toggleButton' class='hidden'></button>
-                  <div id='title'></div>
-              </div>
-              <div id='expanded-container'>
-                  <div id='testing' class='hide'>
-                      <slot id='slot' name="child"></slot>
-                  </div>
-            </div>
+        .hide {
+          display: none;
+        }
+      </style>
+      <div class='outerDiv'>
+        <div id='titleBar' title='Click to expand'>
+          <button id='showHideToggleButton' class='closedButton'></button>
+          <div id='title'></div>
+        </div>
+        <div id='expandedContainer'>
+          <div id='slotContainer' class='hide'>
+            <slot id='slot' name='child'></slot>
           </div>
-        `;
+        </div>
+      </div> `;
+
     return template.content.cloneNode(true);
   }
 
   connectedCallback() {
-    const toggleButton = this.shadowRoot.querySelector('#toggleButton');
-    const outerDiv = this.shadowRoot.querySelector('#outerDiv');
-    const slotTitle = this.shadowRoot.querySelector('#title');
+    const showHideToggleButton = this.shadowRoot.querySelector('#showHideToggleButton');
+    const titleBar = this.shadowRoot.querySelector('#titleBar');
+    const title = this.shadowRoot.querySelector('#title');
 
-    outerDiv.addEventListener('click', () => {
-      const slot = this.shadowRoot.querySelector('#testing');
-      // const expandedContainer = this.shadowRoot.querySelector('#expanded-container');
+    titleBar.addEventListener('click', () => {
+      const slotContainer = this.shadowRoot.querySelector('#slotContainer');
 
-      // if (toggleButton.classList.contains('hidden')) {
-      //     //slot.style.height = slot.scrollHeight+'px';
-      //     //slot.style.height = 'fit-content';
-
-      //     expandedContainer.style.overflow = 'visible';
-      //    slot.style.overflow = 'visible';
-
-      // } else {
-      //    // slot.style.height = 0;
-      //     slot.style.overflow = 'hidden';
-      //     expandedContainer.style.overflow = 'hidden';
-
-      // }
-      toggleButton.classList.toggle('hidden');
-      if (toggleButton.classList.contains('hidden')) {
-        outerDiv.setAttribute('title', 'Click to expand');
+      showHideToggleButton.classList.toggle('closedButton');
+      if (showHideToggleButton.classList.contains('closedButton')) {
+        titleBar.setAttribute('title', 'Click to expand');
       } else {
-        outerDiv.setAttribute('title', 'Click to collapse');
+        titleBar.setAttribute('title', 'Click to collapse');
       }
 
-      const testingDiv = this.shadowRoot.querySelector('.testing');
-      testingDiv.classList.toggle('open');
+      const outerDiv = this.shadowRoot.querySelector('.outerDiv');
+      outerDiv.classList.toggle('open');
 
-
-      slot.classList.toggle('hide');
-      slotTitle.classList.toggle('open');
-      //target.style.height = target.scrollHeight+"px";
+      slotContainer.classList.toggle('hide');
+      title.classList.toggle('open');
     });
-
-    //outerDiv.addEventListener('click' , () => toggleButton.click());
 
     const name = this.getAttribute('name');
     if (name) {
-      slotTitle.innerHTML = name;
+      title.innerHTML = name;
     }
 
     const showInitially = this.getAttribute('show');
     if (showInitially) {
-      outerDiv.click();
+      titleBar.click();
     }
   }
 }
 window.customElements.define('st-show-hide-component', ShowHideComponent);
-/*
-    connectedCallback() {
-        const toggleButton = this.shadowRoot.querySelector('#toggleButton');
-        toggleButton.addEventListener('click', () => {
-            const slot = this.shadowRoot.querySelector('#testing');
-            const expandedContainer = this.shadowRoot.querySelector('#expanded-container');
-
-            if (toggleButton.classList.contains('hidden')) {
-                slot.classList.remove('hide');
-                expandedContainer.style.overflow = 'visible';
-               // slot.style.height = 'fit-content';
-            } else {
-                slot.classList.add('hide');
-                expandedContainer.style.overflow = 'hidden';
-
-            }
-            toggleButton.classList.toggle('hidden');
-            //target.style.height = target.scrollHeight+"px";
-        })
-*/

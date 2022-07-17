@@ -86,19 +86,19 @@ class AddEditComment extends HTMLElement {
         <div id="commentTextContainer"></div>
         <div id="surroundingText"></div>
         <hr/>
-        <st-show-hide-component name='Media' show='true'>
-          <div id="imagesVMC" class="mediaContainer" slot='child'></div>
-          <div id="videosVMC" class="mediaContainer" slot='child'></div>
-          <div id="audiosVMC" class="mediaContainer" slot='child'></div>
+        <st-show-hide-component name="Media" show="true">
+          <div id="imagesVMC" class="mediaContainer" slot="child"></div>
+          <div id="videosVMC" class="mediaContainer" slot="child"></div>
+          <div id="audiosVMC" class="mediaContainer" slot="child"></div>
         </st-show-hide-component>
-        <st-show-hide-component name='Multiple Choice Question'>            
-          <div id="questionAnswerContainer" slot='child'></div>
+        <st-show-hide-component name="Multiple Choice Question">            
+          <div id="questionAnswerContainer" slot="child"></div>
         </st-show-hide-component>
-        <st-show-hide-component name='Tags'>
+        <st-show-hide-component name="Tags">
           <div id="tagContainer" slot="child"></div>
         </st-show-hide-component>
-        <st-show-hide-component id="deleteHideShow" name='Delete this Comment'>
-          <div id="deleteButtonDiv" slot='child' class="inactive">
+        <st-show-hide-component id="deleteHideShow" name="Delete this Comment" class="inactive">
+          <div id="deleteButtonDiv" slot="child" class="inactive">
             <hr/>
             <span>Delete this comment (this can't be undone)</span>
             <button id="deleteButton">Delete</button>
@@ -236,9 +236,6 @@ class AddEditComment extends HTMLElement {
     //update the max lines above/below from an active file
     this.updateForFileSelected();
 
-    const deleteHideShow = this.shadowRoot.querySelector('#deleteHideShow');
-    deleteHideShow.classList.add('inactive');
-    
     //set the text and event handler for the submit button
     const submitButton = this.shadowRoot.querySelector('#submitButton');
     submitButton.innerHTML = 'Add Comment';
@@ -302,6 +299,9 @@ class AddEditComment extends HTMLElement {
       //show the delete comment button
       const deleteButtonDiv = this.shadowRoot.querySelector('#deleteButtonDiv');
       deleteButtonDiv.classList.remove('inactive');
+
+      const deleteHideShow = this.shadowRoot.querySelector('#deleteHideShow');
+      deleteHideShow.classList.remove('inactive');
     }
 
     //set the text and event handler for the submit button
