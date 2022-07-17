@@ -25,13 +25,28 @@ class MultiLineTextInput extends HTMLElement {
       }
 
       .inputText {
+        height: ${this.minHeight}px;
         min-height: ${this.minHeight}px;
         color: lightgrey;
         outline: none;
         border: 1px solid grey;
         padding: 5px 10px;
-        overflow: auto;
+        overflow-y: scroll;
+        word-wrap: break-word;
+        scrollbar-width: thin;
         resize: vertical;
+      }
+
+      .inputText::-webkit-scrollbar {
+        width: .45em;
+        background-color: inherit;
+        word-wrap: break-word;
+      }
+      .inputText::-webkit-scrollbar-thumb {
+        background: dimgray;
+      }
+      .inputText::-webkit-scrollbar-corner {
+        background-color: dimgray;
       }
 
       [contenteditable][placeholder]:empty:before {
