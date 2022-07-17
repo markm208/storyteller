@@ -29,7 +29,10 @@ class CodeView extends HTMLElement {
           overflow-y: scroll;
           scrollbar-width: none;
         }
-
+        .commentsSlot::-webkit-scrollbar {
+          display: none;
+        }
+        
         .editorViewSlot {
           flex: 0 0 auto;
           padding: 1px 5px 0px 0px;
