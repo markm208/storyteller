@@ -101,10 +101,19 @@ class BlogCodeSnippet extends HTMLElement {
   }
 
   getEditorModeForFilePath(filePath) {
-    //get the ace mode based on the file path
-    const modelist = ace.require("ace/ext/modelist");
-    const fileMode = modelist.getModeForPath(filePath);
-    return fileMode.mode;
+    let retVal = null;
+    //if there is a file path
+    if(filePath && filePath.trim()) {
+      //if there is NOT an existing file mode for this type of file
+      if(!this.editorProperties.fileModes[filePath]) {
+        //get the file mode for this file type
+        this.editorProperties.fileModes[filePath] = this.editorProperties.modelist.getModeForPath(filePath);
+      }
+      //set the file mode type
+      const fileMode = this.editorProperties.fileModes[filePath];
+      retVal = fileMode.mode;
+    }
+    return retVal;
   }
 }
 

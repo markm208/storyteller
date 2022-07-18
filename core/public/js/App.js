@@ -13,6 +13,8 @@ class App extends HTMLElement {
       fontSize: 20,
       //potential ace editor themes: monokai, gruvbox, idle_fingers, pastel_on_dark, tomorrow_night, tomorrow_night_eighties, twilight
       aceTheme: 'ace/theme/tomorrow_night_eighties',
+      modelist: ace.require("ace/ext/modelist"),
+      fileModes: {}
     };
 
     this.attachShadow({ mode: 'open' });
@@ -214,30 +216,6 @@ class App extends HTMLElement {
     //display search results in the title bar
     const titleBar = this.shadowRoot.querySelector('st-title-bar');
     titleBar.updateToDisplaySearchResults(searchText, searchResults);
-  }
-
-  increaseEditorFontSize() {
-    if (this.activeMode === 'blog'){
-      return;
-    }
-    
-    //make the font bigger
-    this.editorProperties.fontSize = this.editorProperties.fontSize + 4;
-    const codeView = this.shadowRoot.querySelector('st-code-view');
-    //update the editor
-    codeView.updateEditorFontSize(this.editorProperties.fontSize);
-  }
-
-  decreaseEditorFontSize() {
-    if (this.activeMode === 'blog'){
-      return;
-    }
-
-    //make the font smaller
-    this.editorProperties.fontSize = this.editorProperties.fontSize - 2;
-    const codeView = this.shadowRoot.querySelector('st-code-view');
-    //update the editor
-    codeView.updateEditorFontSize(this.editorProperties.fontSize);
   }
 }
 

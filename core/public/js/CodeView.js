@@ -223,57 +223,83 @@ class CodeView extends HTMLElement {
       event.preventDefault();
     });
 
-    document.addEventListener('keydown', event => {
-      //get the state of the keys
-      const keyPressed = event.key;
-      const shiftPressed = event.shiftKey;
-      const ctrlPressed = event.ctrlKey;
-
-      //keyboard controls
-      if (ctrlPressed && shiftPressed && keyPressed === 'ArrowRight') { //ctrl + shift + right arrow press
-        this.moveToEndOfPlayback();
-        event.preventDefault();
-      } else if(shiftPressed && keyPressed === 'ArrowRight') { //shift + right arrow press
-        this.moveToNextComment();
-        event.preventDefault();
-      } else if(keyPressed === 'ArrowRight') { //right arrow press
-        //move to the next event
-        this.pausePlayback(true);
-        this.playNextEvent();
-        event.preventDefault();
-      } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowLeft') { //ctrl + shift + left arrow press
-        this.moveToBeginningOfPlayback();
-        event.preventDefault();
-      } else if (shiftPressed && keyPressed === 'ArrowLeft') { //shift + left arrow press
-        this.moveToPreviousComment();
-        event.preventDefault();
-      } else if (keyPressed === 'ArrowLeft') {//left arrow press
-          //move to the previous event
-          this.pausePlayback(true);
-          this.playPreviousEvent();
-          event.preventDefault();
-      } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowUp') { //ctrl + shift + up arrow press
-        //make the font bigger
-        this.increaseEditorFontSize();
-        event.preventDefault();
-      } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowDown') { //ctrl + shift + down arrow press
-        //make the font smaller
-        this.decreaseEditorFontSize();
-        event.preventDefault();
-      } else if (event.code === "Space") {
-        //toggle play/pause 
-        this.pausePlayback(!this.autoPlayback.isPaused);
-        event.preventDefault();
-      } else if (ctrlPressed && shiftPressed && keyPressed === 'Enter') {
-        this.updateUIToAddNewComment();
-      }
-    });
+    document.addEventListener('keydown', this.addKeyListeners);
   }
 
   disconnectedCallback() {
     const dragBar = this.shadowRoot.querySelector('.dragBar');
     dragBar.removeEventListener('mousedown', this.addMouseEventListeners);
     dragBar.removeEventListener('touchstart', this.addTouchEventListeners);
+    
+    document.removeEventListener('mouseup', this.stopDrag, false);
+    document.removeEventListener('mousemove', this.doDrag, false);  
+    document.removeEventListener('touchend', this.stopDrag, false);
+    document.removeEventListener('touchmove', this.doDrag, false);  
+
+    document.removeEventListener('keydown', this.addKeyListeners);
+  }
+
+  addKeyListeners = event => {
+    //get the state of the keys
+    const keyPressed = event.key;
+    const shiftPressed = event.shiftKey;
+    const ctrlPressed = event.ctrlKey;
+
+    //keyboard controls
+    if (ctrlPressed && shiftPressed && keyPressed === 'ArrowRight') { //ctrl + shift + right arrow press
+      this.moveToEndOfPlayback();
+      event.preventDefault();
+      event.stopPropagation();
+    } else if(shiftPressed && keyPressed === 'ArrowRight') { //shift + right arrow press
+      this.moveToNextComment();
+      event.preventDefault();
+      event.stopPropagation();
+    } else if(keyPressed === 'ArrowRight') { //right arrow press
+      //move to the next event
+      this.pausePlayback(true);
+      this.playNextEvent();
+      event.preventDefault();
+      event.stopPropagation();
+    } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowLeft') { //ctrl + shift + left arrow press
+      this.moveToBeginningOfPlayback();
+      event.preventDefault();
+      event.stopPropagation();
+    } else if (shiftPressed && keyPressed === 'ArrowLeft') { //shift + left arrow press
+      this.moveToPreviousComment();
+      event.preventDefault();
+      event.stopPropagation();
+    } else if (keyPressed === 'ArrowLeft') {//left arrow press
+      //move to the previous event
+      this.pausePlayback(true);
+      this.playPreviousEvent();
+      event.preventDefault();
+      event.stopPropagation();
+    } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowUp') { //ctrl + shift + up arrow press
+      //make the font bigger
+      this.editorProperties.fontSize = this.editorProperties.fontSize + 4;
+      //update the editor
+      this.updateEditorFontSize(this.editorProperties.fontSize);
+
+      event.preventDefault();
+      event.stopPropagation();
+    } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowDown') { //ctrl + shift + down arrow press
+      //make the font smaller
+      this.editorProperties.fontSize = this.editorProperties.fontSize - 2;
+      //update the editor
+      this.updateEditorFontSize(this.editorProperties.fontSize);
+      
+      event.preventDefault();
+      event.stopPropagation();
+    } else if (event.code === "Space") {
+      //toggle play/pause 
+      this.pausePlayback(!this.autoPlayback.isPaused);
+      event.preventDefault();
+      event.stopPropagation();
+    } else if (ctrlPressed && shiftPressed && keyPressed === 'Enter') {
+      this.updateUIToAddNewComment();
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
 
   addPlaybackNavigator() {
@@ -303,7 +329,7 @@ class CodeView extends HTMLElement {
     //update nav
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
     playbackNavigator.updateForPlaybackMovement();
-    
+
     //update the editor
     const editorView = this.shadowRoot.querySelector('st-editor-view');
     editorView.updateForPlaybackMovement();

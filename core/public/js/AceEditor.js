@@ -139,9 +139,18 @@ class AceEditor extends HTMLElement {
       
       //use the file extension for syntax highlighting
       const filePath = this.playbackEngine.editorState.getFilePath(this.playbackEngine.activeFileId);
-      const modelist = ace.require("ace/ext/modelist");
-      const fileMode = modelist.getModeForPath(filePath);
-      this.aceEditor.getSession().setMode(fileMode.mode);
+      
+      //if there is a file path
+      if(filePath && filePath.trim()) { 
+        //if there is NOT an existing file mode for this type of file
+        if(!this.editorProperties.fileModes[filePath]) {
+          //get the file mode for this file type
+          this.editorProperties.fileModes[filePath] = this.editorProperties.modelist.getModeForPath(filePath);
+        }
+        //set the file mode type
+        const fileMode = this.editorProperties.fileModes[filePath];
+        this.aceEditor.getSession().setMode(fileMode.mode);
+      }
 
       //scroll to the most recent line number to show the latest code
       if(this.playbackEngine.mostRecentChanges.fileEditLineNumber > 0) {
