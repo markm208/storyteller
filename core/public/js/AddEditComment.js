@@ -79,6 +79,19 @@ class AddEditComment extends HTMLElement {
         #addEditContainer::-webkit-scrollbar-thumb {
           background: dimgray;
         }
+        #deleteCommentButton {
+          background-color: red;
+          color: white;
+          padding: 4px 6px;
+          border: none;
+          cursor: pointer;
+          border-radius: .25rem;
+          font-size: .8rem;
+          opacity: 80%;
+        }
+        #deleteCommentButton:hover {
+          opacity: 100%;
+        }
 
       </style>
       <div id="addEditContainer">
@@ -98,10 +111,10 @@ class AddEditComment extends HTMLElement {
           <div id="tagContainer" slot="child"></div>
         </st-show-hide-component>
         <st-show-hide-component id="deleteHideShow" name="Delete this Comment" class="inactive">
-          <div id="deleteButtonDiv" slot="child" class="inactive">
+          <div id="deleteCommentButtonDiv" slot="child" class="inactive">
             <hr/>
             <span>Delete this comment (this can't be undone)</span>
-            <button id="deleteButton">Delete</button>
+            <button id="deleteCommentButton">Delete</button>
           </div>
         </st-show-hide-component>
         <div id="errorMessages"></div>
@@ -130,8 +143,8 @@ class AddEditComment extends HTMLElement {
     });
 
     //delete comment button
-    const deleteButton = this.shadowRoot.querySelector('#deleteButton');
-    deleteButton.addEventListener('click', this.sendEventDeleteComment);
+    const deleteCommentButton = this.shadowRoot.querySelector('#deleteCommentButton');
+    deleteCommentButton.addEventListener('click', this.sendEventDeleteComment);
 
     //main comment buttons
     const cancelButton = this.shadowRoot.querySelector('#cancelButton');
@@ -297,8 +310,8 @@ class AddEditComment extends HTMLElement {
     const firstComment = allComments[0];
     if (this.editedComment.id !== firstComment.id) {
       //show the delete comment button
-      const deleteButtonDiv = this.shadowRoot.querySelector('#deleteButtonDiv');
-      deleteButtonDiv.classList.remove('inactive');
+      const deleteCommentButtonDiv = this.shadowRoot.querySelector('#deleteCommentButtonDiv');
+      deleteCommentButtonDiv.classList.remove('inactive');
 
       const deleteHideShow = this.shadowRoot.querySelector('#deleteHideShow');
       deleteHideShow.classList.remove('inactive');
@@ -314,8 +327,8 @@ class AddEditComment extends HTMLElement {
     this.editedComment = null;
 
     //hide the delete comment button
-    const deleteButtonDiv = this.shadowRoot.querySelector('#deleteButtonDiv');
-    deleteButtonDiv.classList.add('inactive');
+    const deleteCommentButtonDiv = this.shadowRoot.querySelector('#deleteCommentButtonDiv');
+    deleteCommentButtonDiv.classList.add('inactive');
 
     //generate and send an event upward to indicate adding/editing is complete
     const customEvent = new CustomEvent('cancel-add-edit-comment', {
@@ -335,6 +348,12 @@ class AddEditComment extends HTMLElement {
       const errorMessages = this.shadowRoot.querySelector('#errorMessages');
       errorMessages.innerHTML = commentData.errorMessage;
     } else { //this is a valid comment
+      //go through all of the media containers and commit any changes made to the media associated with the comment
+      const allVMCs = this.shadowRoot.querySelectorAll('st-vertical-media-container');
+      allVMCs.forEach(aVMC => {
+        aVMC.commitChanges();
+      });
+
       let eventType = '';
       //use the button text to determine what type of event to send
       if (event.target.innerHTML === 'Add Comment') {
@@ -356,6 +375,12 @@ class AddEditComment extends HTMLElement {
   }
 
   sendEventDeleteComment = () => {
+    //go through all of the media containers and delete the media associated with the comment
+    const allVMCs = this.shadowRoot.querySelectorAll('st-vertical-media-container');
+    allVMCs.forEach(aVMC => {
+      aVMC.deleteAll();
+    });
+
     const event = new CustomEvent('delete-comment', {
       detail: {
         comment: this.editedComment

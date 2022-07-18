@@ -16,8 +16,12 @@ class VerticalMediaContainer extends HTMLElement {
       this.mediaType = 'image';
     }
 
-    //store the urls of the media on the server
-    this.mediaURLs = mediaURLs;
+    //the urls of newly added/deleted media in case the user decides abandon a comment
+    this.newMediaURLsToDelete = [];
+    this.newMediaURLsToAdd = [];
+
+    //store a copy of the urls of the media on the server
+    this.mediaURLs = Array.from(mediaURLs);
 
     //initial list of acceptable media files (copied from HTTPServer.js)
     this.acceptableImageMimeTypes = ['image/apng', 'image/bmp', 'image/gif', 'image/ico', 'image/jpeg', 'image/png', 'image/svg+xml'];
@@ -65,12 +69,16 @@ class VerticalMediaContainer extends HTMLElement {
       .header {
         display: flex;
         justify-content: space-between;
-        padding: 5px 15px;
       }
 
       #typeLabel {
       }
       #addNewMediaButton {
+        opacity: 80%;
+        padding: 5px 20px;
+      }
+      #addNewMediaButton:hover {
+        opacity: 100%;
       }
       </style>
       <div class="header">
@@ -173,7 +181,10 @@ class VerticalMediaContainer extends HTMLElement {
   }
 
   disconnectedCallback() {
-    //TODO remove eventListeners?
+    if(this.newMediaURLsToAdd.length > 0) {
+      //delete any media explicitly added by the user but not committed
+      this.deleteMedia(this.newMediaURLsToAdd);
+    }
   }
 
   createFileChooser = event => {
@@ -218,11 +229,15 @@ class VerticalMediaContainer extends HTMLElement {
     const newFilePaths = await serverMethod(files);
 
     //add each file path and to the urls and add the media
-    newFilePaths.forEach(newFile => {
-      //add the new url 
-      this.mediaURLs.push(newFile);
+    newFilePaths.forEach(newFilePath => {
+      //add the new url to all of the url for this component
+      this.mediaURLs.push(newFilePath);
+      
+      //add it to a list so that it can be deleted if the comment is abandoned
+      this.newMediaURLsToAdd.push(newFilePath);
+
       //build the media UI element
-      this.addMedia(newFile);
+      this.addMedia(newFilePath);
     });
   }
 
@@ -287,20 +302,12 @@ class VerticalMediaContainer extends HTMLElement {
     removeMediaButton.classList.add('removeMedia');
     removeMediaButton.title = `Remove ${this.mediaType}`;
 
-    removeMediaButton.addEventListener('click', async () => {
-      const serverProxy = new ServerProxy();
-      let serverMethod;
-      //make some choices based on the type of media container this is
-      if (this.mediaType === 'image') {
-        serverMethod = serverProxy.deleteImageOnServer;
-      } else if (this.mediaType === 'video') {
-        serverMethod = serverProxy.deleteVideoOnServer;
-      } else if (this.mediaType === 'audio') {
-        serverMethod = serverProxy.deleteAudioOnServer;
-      }
-
-      await serverMethod(mediaURL);
+    removeMediaButton.addEventListener('click', () => {
+      //remove the media from the UI
       mediaContainer.removeChild(mediaDiv);
+
+      //don't delete yet, add the url to be deleted later
+      this.newMediaURLsToDelete.push(mediaURL);
     });
 
     //if an error exists with the media, show an error message and allow user to remove media
@@ -331,6 +338,35 @@ class VerticalMediaContainer extends HTMLElement {
       retVal.push(mediaURL);
     })
     return retVal;
+  }
+
+  commitChanges() {
+    //delete the requested media on the server
+    this.deleteMedia(this.newMediaURLsToDelete);
+    //in order to not delete these in disco method, clear all of the new media urls
+    this.newMediaURLsToAdd = [];
+  }
+
+  deleteAll() {
+    //used when a comment is deleted to delete all of the existing media associated with a comment
+    this.deleteMedia(this.mediaURLs);
+  }
+
+  deleteMedia(mediaURLs) {
+    //create a reference that can talk to the server
+    const serverProxy = new ServerProxy();
+    let serverMethod;
+    //make some choices based on the type of media container this is
+    if (this.mediaType === 'image') {
+      serverMethod = serverProxy.deleteImageOnServer;
+    } else if (this.mediaType === 'video') {
+      serverMethod = serverProxy.deleteVideoOnServer;
+    } else if (this.mediaType === 'audio') {
+      serverMethod = serverProxy.deleteAudioOnServer;
+    }
+    mediaURLs.forEach(async mediaURL => {
+      await serverMethod(mediaURL);
+    });
   }
 
   sendPauseAllEvent() {
