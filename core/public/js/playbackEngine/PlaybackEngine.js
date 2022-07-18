@@ -57,9 +57,8 @@ class PlaybackEngine {
       if (this.playbackData.events[i].permanentRelevance === "never relevant") {
         //increase until a relevant event is encountered
         this.firstRelevantEventIndex++;
-        //decrease the number of relevant events and move the current index
+        //decrease the number of relevant events
         this.numRelevantEvents--;
-        this.currentEventIndex++;
       } else {
         break;
       }
@@ -500,22 +499,37 @@ class PlaybackEngine {
     } else if (currentEvent.type === "MOVE  DIRECTORY") {
       this.editorState.moveDirectory(currentEvent.directoryId, currentEvent.newDirectoryPath, currentEvent.newParentDirectoryId, currentEvent.oldParentDirectoryId);
     } else if (currentEvent.type === "CREATE FILE") {
-      this.newCodeMarkerGenerator.touchFile(currentEvent);
       this.editorState.createFile(currentEvent.fileId, currentEvent.filePath, currentEvent.parentDirectoryId);
+      
+      if(this.newCodeMarkerGenerator) {
+        this.newCodeMarkerGenerator.touchFile(currentEvent);
+      }
     } else if (currentEvent.type === "DELETE FILE") {
       this.editorState.deleteFile(currentEvent.fileId, currentEvent.parentDirectoryId);
-      this.newCodeMarkerGenerator.touchFile(currentEvent);
+      
+      if(this.newCodeMarkerGenerator) {
+        this.newCodeMarkerGenerator.touchFile(currentEvent);
+      }
     } else if (currentEvent.type === "RENAME FILE") {
       this.editorState.renameFile(currentEvent.fileId, currentEvent.newFilePath);
-      this.newCodeMarkerGenerator.touchFile(currentEvent);
+      
+      if(this.newCodeMarkerGenerator) {
+        this.newCodeMarkerGenerator.touchFile(currentEvent);
+      }
     } else if (currentEvent.type === "MOVE FILE") {
       this.editorState.moveFile(currentEvent.fileId, currentEvent.newFilePath, currentEvent.newParentDirectoryId, currentEvent.oldParentDirectoryId);
     } else if (currentEvent.type === "INSERT") {
-      this.newCodeMarkerGenerator.insert(currentEvent);
       this.editorState.insert(currentEvent.fileId, currentEvent.character, currentEvent.id, currentEvent.lineNumber - 1, currentEvent.column - 1);
+      
+      if(this.newCodeMarkerGenerator) {
+        this.newCodeMarkerGenerator.insert(currentEvent);
+      }
     } else if (currentEvent.type === "DELETE") {
-      this.newCodeMarkerGenerator.delete(currentEvent);
       this.editorState.delete(currentEvent.fileId, currentEvent.lineNumber - 1, currentEvent.column - 1);
+
+      if(this.newCodeMarkerGenerator) {
+        this.newCodeMarkerGenerator.delete(currentEvent);
+      }
     } else {
       throw Error(`Invalid event type: ${currentEvent.type}`);
     }

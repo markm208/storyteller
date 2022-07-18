@@ -213,6 +213,9 @@ async function startTrackingInFolder() {
             //add them to the project
             projectManager.reconciler.addExistingFilesDirs(discrepancies);
         }
+        //add the description comment to the end of the events
+        projectManager.addDescriptionComment();
+        
         //turn on file watching
         turnOnFSWatcherAndTextHandler();
 

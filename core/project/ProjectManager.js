@@ -58,25 +58,6 @@ class ProjectManager extends FileBackedCollection {
 
             //create the root dir, /
             this.createDirectory(this.storytellerDirPath, false);
-
-            //add the description comment
-            this.commentManager.addComment({
-                commentText: 'Enter a playback description.',
-                timestamp: new Date().getTime(),
-                displayCommentEvent: this.eventManager.read()[0], /* grab the one and only event created so far */
-                developerGroupId: this.developerManager.anonymousDeveloperGroup.id, 
-                selectedCodeBlocks: [],
-                imageURLs: [],
-                videoURLs: [],
-                audioURLs: [],
-                linesAbove: 0,
-                linesBelow: 0,
-                currentFilePath: "",
-                viewableBlogText: "",
-                commentTags: [],
-                questionCommentData: null
-            });
-
         }
 
         //the playback data should be altered for the next playback
@@ -109,6 +90,31 @@ class ProjectManager extends FileBackedCollection {
         this.project = anObject;
     }
 
+    addDescriptionComment() {
+        //get all the events (new projects only have 1)
+        const allEvents = this.eventManager.read();
+        
+        //get the last event
+        const lastEvent = allEvents[allEvents.length - 1];
+        
+        //add the description comment
+        this.commentManager.addComment({
+            commentText: 'Enter a playback description.',
+            timestamp: new Date().getTime(),
+            displayCommentEvent: lastEvent,
+            developerGroupId: this.developerManager.anonymousDeveloperGroup.id, 
+            selectedCodeBlocks: [],
+            imageURLs: [],
+            videoURLs: [],
+            audioURLs: [],
+            linesAbove: 0,
+            linesBelow: 0,
+            currentFilePath: "",
+            viewableBlogText: "",
+            commentTags: [],
+            questionCommentData: null
+        });
+    }
     /*
      * Writes all data to the file system.
      */

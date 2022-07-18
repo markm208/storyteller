@@ -440,8 +440,8 @@ class CodeView extends HTMLElement {
   doDrag = event => {
     const codeView = this.shadowRoot.host;
     const codeViewWidth = codeView.getBoundingClientRect().width;
-    const minWidth = .05 * codeViewWidth;
-    const maxWidth = .95 * codeViewWidth;
+    const minWidth = .1 * codeViewWidth;
+    const maxWidth = .9 * codeViewWidth;
 
     let newX = 0;
     //if this is a touch event
@@ -492,8 +492,8 @@ class CodeView extends HTMLElement {
     const commentsSlot = this.shadowRoot.querySelector('.commentsSlot');
     const editorViewSlot = this.shadowRoot.querySelector('.editorViewSlot');
 
-    commentsSlot.style.width = newWidth + 'px';
-    editorViewSlot.style.width = (codeViewWidth - dragBarWidth - newWidth) + 'px';
+    commentsSlot.style.width = (newWidth - (dragBarWidth / 2)) + 'px';
+    editorViewSlot.style.width = (codeViewWidth - newWidth - dragBarWidth) + 'px';
   }
 
   //used to switch from play->pause and pause->play

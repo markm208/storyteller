@@ -96,20 +96,18 @@ class PlaybackSlider extends HTMLElement {
   buildSliderAndPips() {
     const slider = this.shadowRoot.querySelector('.slider');
     slider.setAttribute('min', this.playbackEngine.firstRelevantEventIndex - 1);
-    slider.setAttribute('max', this.playbackEngine.numRelevantEvents);
+    slider.setAttribute('max', this.playbackEngine.playbackData.events.length - 1);
     slider.value = this.playbackEngine.currentEventIndex;
     slider.addEventListener('input', this.sliderMoved);
 
     const pips = this.shadowRoot.querySelector('.pips');
     pips.innerHTML = "";
-    const numberOfRelevantEvents = this.playbackEngine.numRelevantEvents - this.playbackEngine.firstRelevantEventIndex + 1;
     
     //get all of the comment positions from the playback engine
     const commentGroupEventPosisitons = this.playbackEngine.commentInfo.commentGroupPositions;
     commentGroupEventPosisitons.forEach(pos => {
       //calculate the percentage offset for every comment
-      const percentageOffset = (pos / numberOfRelevantEvents) * 100.0;
-      
+      const percentageOffset = ((pos - this.playbackEngine.firstRelevantEventIndex + 1) / (this.playbackEngine.numRelevantEvents)) * 100.0;
       const commentMarker = document.createElement('div');
       commentMarker.innerHTML = '&nbsp;'
       commentMarker.setAttribute('data-pos', pos);
@@ -124,8 +122,11 @@ class PlaybackSlider extends HTMLElement {
 
   addPipEventHandler = event => {
     const slider = this.shadowRoot.querySelector('.slider');
-    slider.value = event.target.getAttribute('data-pos');
-    this.sendEventSliderClick(slider.value);
+    const commentPosition = event.target.getAttribute('data-pos');
+    slider.value = commentPosition;
+    this.sendEventSliderClick(commentPosition);
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   sliderMoved = event => {
