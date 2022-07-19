@@ -125,6 +125,15 @@ class TitleBar extends HTMLElement {
       event.stopPropagation();
     });
 
+    //if the title is being edited and the user moves away from the input
+    playbackTitle.addEventListener('blur', event => {
+      //see if the title is in an editable state
+      const isEditable = playbackTitle.getAttribute('contenteditable');
+      if(isEditable) {
+        this.updateTitleComplete();
+      }
+    });
+
     const enterCodeModeButton = this.shadowRoot.querySelector('#enterCodeModeButton');
     enterCodeModeButton.addEventListener('click', this.updateToCodeMode);
 

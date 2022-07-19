@@ -21,9 +21,17 @@ class PlaybackEngine {
     this.firstRelevantEventIndex = 1;
     this.numRelevantEvents = this.playbackData.events.length - 1;
 
+    //used to track the play/pause state of the playback
+    this.autoPlayback = {
+      isPaused: true,
+      playTimer: null,
+      playbackSpeedMs: 75,
+    };
+
     //holds the changes from a playback engine interaction
     this.mostRecentChanges = {
       endedOnAComment: false,
+      endingLocation: null,
       hasNewActiveFile: false,
       hasNewActiveDevGroup: false,
       numberOfCommentGroupsChanged: false,
@@ -71,6 +79,7 @@ class PlaybackEngine {
   clearMostRecentChanges() {
     this.mostRecentChanges = {
       endedOnAComment: false,
+      endingLocation: null,
       hasNewActiveFile: false,
       hasNewActiveDevGroup: false,
       numberOfCommentGroupsChanged: false,
@@ -134,6 +143,15 @@ class PlaybackEngine {
       if(currentEvent.type === 'INSERT' || currentEvent.type === 'DELETE') {
         this.mostRecentChanges.fileEditLineNumber = currentEvent.lineNumber;
       }
+      
+      //set the position of where the playback landed
+      if(this.currentEventIndex === this.firstRelevantEventIndex) {
+        this.mostRecentChanges.endingLocation = 'begin';
+      } else if(this.currentEventIndex === this.playbackData.events.length - 1) {
+        this.mostRecentChanges.endingLocation = 'end';
+      } else {
+        this.mostRecentChanges.endingLocation = 'middle';
+      }
 
       //check where the action stopped to see if there is a comment to highlight
       this.checkForCommentAtCurrentIndex();
@@ -170,6 +188,15 @@ class PlaybackEngine {
         this.mostRecentChanges.fileEditLineNumber = currentEvent.lineNumber;
       }
 
+      //set the position of where the playback landed
+      if(this.currentEventIndex === this.firstRelevantEventIndex) {
+        this.mostRecentChanges.endingLocation = 'begin';
+      } else if(this.currentEventIndex === this.playbackData.events.length - 1) {
+        this.mostRecentChanges.endingLocation = 'end';
+      } else {
+        this.mostRecentChanges.endingLocation = 'middle';
+      }
+      
       //check where the action stopped to see if there is a comment to highlight
       this.checkForCommentAtCurrentIndex();
     }
