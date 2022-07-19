@@ -25,6 +25,13 @@ class SearchBar extends HTMLElement {
             background-position: 7px 7px; 
             padding: 7px 15px 7px 30px;
             flex: 1;
+            border-radius: 30px;
+            width: 103px;
+            transition: width 1s;
+        }
+
+        .searchInput.expanded {
+          width: 300px;
         }
         .searchInput:focus {
             outline: none;
@@ -40,7 +47,7 @@ class SearchBar extends HTMLElement {
         
         <div class="searchControls">
           <div id="clearSearchResults"></div>
-          <input type="search" id='searchBar' class="searchInput" placeholder="Search playback...">
+          <input type="search" id='searchBar' class="searchInput" placeHolder="Search">
           </input>
         </div>
         `;
@@ -62,6 +69,18 @@ class SearchBar extends HTMLElement {
       searchBar.addEventListener('keydown', event => {
         event.stopImmediatePropagation();
       });
+
+      searchBar.addEventListener('focus', event => {
+        searchBar.classList.add('expanded');
+        searchBar.setAttribute('placeHolder', "Search Playback...");
+      })
+
+      searchBar.addEventListener('blur', () => {
+        searchBar.classList.remove('expanded');
+        setTimeout( () => { searchBar.setAttribute('placeHolder', "Search");
+      }, 1000);
+
+      })
     }
   
     disconnectedCallback() {
