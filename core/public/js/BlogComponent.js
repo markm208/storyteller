@@ -137,7 +137,7 @@ class BlogComponent extends HTMLElement {
     }
 
     //if there is a q&a
-    if(this.comment.questionCommentData) {
+    if(this.comment.questionCommentData && this.comment.questionCommentData.question) {
       //create a tag view to display the tags
       const questionAndAnswerContainer = this.shadowRoot.querySelector('.questionAndAnswerContainer');
       const qaView = new QuestionAnswerView(this.comment);

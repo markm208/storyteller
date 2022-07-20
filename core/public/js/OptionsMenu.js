@@ -13,10 +13,15 @@ class OptionsMenu extends HTMLElement {
             {
                 background: transparent;
                 border: none;
-                color: gray;
+                color: lightgray;
                 cursor: pointer;
                 padding: 7px 1px 1px 1px;
             }
+
+            .disabled {
+                opacity: .2;
+            }
+
             .btn
             {
                 border: double;
@@ -263,9 +268,24 @@ class OptionsMenu extends HTMLElement {
         textBiggerButton.removeEventListener('click', this.increaseFontSize);
     }
 
+    updateForModeChange(newMode) {
+        const modalOpener = this.shadowRoot.querySelector('#modal-Opener');
+        //if changing to code mode
+        if(newMode === 'code') {
+            modalOpener.classList.remove('disabled');
+        } else { //changing to blog mode
+            modalOpener.classList.add('disabled');
+        }
+    }
+
     showModal = () => {
-        const modal = this.shadowRoot.querySelector('.modal');
-        modal.style.display = 'inline-block';
+        const modalOpener = this.shadowRoot.querySelector('#modal-Opener');
+        
+        //if the button is not disabled
+        if(modalOpener.classList.contains('disabled') === false) {
+            const modal = this.shadowRoot.querySelector('.modal');
+            modal.style.display = 'inline-block';
+        }
     }
 
     hideModal = () => {

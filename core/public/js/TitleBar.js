@@ -189,6 +189,11 @@ class TitleBar extends HTMLElement {
     titleBar.updateToDisplaySearchResults(searchResults.length, this.playbackEngine.commentInfo.totalNumberOfComments, searchText);
   }
 
+  updateForModeChange(newMode) {
+    const optionsMenu = this.shadowRoot.querySelector('st-options-menu');
+    optionsMenu.updateForModeChange(newMode);
+  }
+
   updateTitleBegin = event => {
     //toggle the edit buttons
     const editButton = this.shadowRoot.querySelector('#editButton');
