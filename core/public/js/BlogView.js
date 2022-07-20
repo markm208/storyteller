@@ -18,7 +18,15 @@ class BlogView extends HTMLElement {
           overflow-x: hidden;
           height: 100%;
           display: block;
+          word-wrap: break-word;
           scrollbar-width: thin;
+        }
+        :host::-webkit-scrollbar {
+          width: .65em;
+          background-color: inherit;
+        }
+        :host::-webkit-scrollbar-thumb {
+          background: dimgray;
         }
 
         .blogViewWrapper {

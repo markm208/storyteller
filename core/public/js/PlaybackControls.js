@@ -49,6 +49,10 @@ class PlaybackControls extends HTMLElement {
         .devAvatars {
           padding: 0px;
         }
+
+        button {
+          outline: none;
+        }
       </style>
 
       <button id="goToNextCommentButton" type="button" class="playbackButton" title="Go to the next comment">
