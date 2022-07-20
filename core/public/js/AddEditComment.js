@@ -175,7 +175,7 @@ class AddEditComment extends HTMLElement {
     });
 
     //prevent normal text editing from firing any keyboard shortcuts
-    this.addEventListener('keydown', event => {
+    this.shadowRoot.addEventListener('keydown', event => {
       event.stopPropagation();
     });
 
