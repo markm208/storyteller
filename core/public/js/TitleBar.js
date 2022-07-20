@@ -147,7 +147,7 @@ class TitleBar extends HTMLElement {
     doneEditButton.addEventListener('click', this.updateTitleComplete);
 
     //if this is an editable playback
-    if(this.playbackEngine.isEditable) {
+    if(this.playbackEngine.playbackData.isEditable) {
       //make the edit button visible
       editButton.classList.remove('hidden');
     }
