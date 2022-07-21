@@ -31,6 +31,7 @@ class PlaybackControls extends HTMLElement {
           border: none;
           padding: 10px 0px;
           opacity: .8;
+          cursor: pointer;
         }
         
         .playbackButton:hover {

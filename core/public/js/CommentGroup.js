@@ -48,6 +48,7 @@ class CommentGroup extends HTMLElement {
           background-color: transparent;
           opacity: 70%;
           float: right;
+          cursor: pointer;
         }
         #editCommentGroupButton:hover {
           opacity: 100%;
@@ -63,6 +64,7 @@ class CommentGroup extends HTMLElement {
           background-color: transparent;
           opacity: 70%;
           float: right;
+          cursor: pointer;
         }
         #doneEditingCommentGroupButton:hover {
           opacity: 100%;
@@ -120,6 +122,13 @@ class CommentGroup extends HTMLElement {
     //make this comment group active
     this.shadowRoot.host.classList.add('activeCommentGroup');
 
+    //get all of the comment views in this group
+    const allCommentViewsInGroup = this.shadowRoot.querySelectorAll('st-comment-view');
+    allCommentViewsInGroup.forEach(commentView => {
+      //make the group active
+      commentView.makePartOfActiveGroup();
+    });
+
     //get the new active comment view and make it active
     const newActiveCommentView = this.shadowRoot.querySelector(`st-comment-view#${this.playbackEngine.activeComment.id}`);
     newActiveCommentView.makeCommentViewActive();
@@ -136,6 +145,13 @@ class CommentGroup extends HTMLElement {
     //make this comment group inactive
     this.shadowRoot.host.classList.remove('activeCommentGroup');
 
+    //get all of the comment views in this group
+    const allCommentViewsInGroup = this.shadowRoot.querySelectorAll('st-comment-view');
+    allCommentViewsInGroup.forEach(commentView => {
+      //make the group inactive
+      commentView.makePartOfInactiveGroup();
+    });
+    
     //get the active comment view (if there is one) and make it inactive
     const activeCommentView = this.shadowRoot.querySelector('.activeComment');
     if(activeCommentView) {

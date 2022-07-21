@@ -53,6 +53,7 @@ class TitleBar extends HTMLElement {
 
       #editButton, #doneEditButton {
         opacity: 80%;
+        cursor: pointer;
       }
       #editButton:hover, #doneEditButton:hover {
         opacity: 100%;

@@ -27,6 +27,7 @@ class TagView extends HTMLElement {
           border-radius: 5px;
           display: inline-block;
           font-size: .7em;
+          cursor: pointer;
         }
 
         .tag:hover {

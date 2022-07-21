@@ -35,6 +35,7 @@ class SurroundingLinesSelector extends HTMLElement {
         opacity: 0.7; 
         -webkit-transition: .2s; 
         transition: opacity .2s;
+        cursor: pointer;
       }
       input[type=range]:hover {
         opacity: 1;

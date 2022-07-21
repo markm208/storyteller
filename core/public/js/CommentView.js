@@ -20,6 +20,10 @@ class CommentView extends HTMLElement {
           display: block;
           border: 1px gray solid;
           padding: 3px 12px;
+          background-color: rgb(51, 51, 51);
+        }
+        :host(.activeGroup) {
+          background-color: rgb(60, 60, 60);
         }
         :host(.activeComment) {
           background-color: rgb(59,76,98);
@@ -27,6 +31,7 @@ class CommentView extends HTMLElement {
         :host(.nonRelevantSearchResult) {
           display: none;
         }
+
         #editCommentButton {
           opacity: 80%;
           visibility: hidden;
@@ -37,6 +42,7 @@ class CommentView extends HTMLElement {
           height: 1.6em;
           width: 1.6em;
           border: none;
+          cursor: pointer;
         }
         #editCommentButton:hover {
           opacity: 100%;
@@ -104,15 +110,13 @@ class CommentView extends HTMLElement {
         }
       </style>
       <div>
-        <div>
-          <div class="commentTopBar"></div>
-          <div class="commentTitle"></div>
-          <div class="commentText"></div>
-          <div class="media"></div>
-          <div class="questions"></div>
-          <div class="questionAndAnswerContainer"></div>
-          <div class="tagContainer"></div>
-        </div>
+        <div class="commentTopBar"></div>
+        <div class="commentTitle"></div>
+        <div class="commentText"></div>
+        <div class="media"></div>
+        <div class="questions"></div>
+        <div class="questionAndAnswerContainer"></div>
+        <div class="tagContainer"></div>
         <button id="editCommentButton" class="inactive" title="Edit this comment"></button>
       </div>`;
 
@@ -198,20 +202,26 @@ class CommentView extends HTMLElement {
     //get the rectangle around the active comment that is displayed
     const commentRectangle = this.shadowRoot.host.getBoundingClientRect();
 
-    //if the comment's top/bottom edge is  off of the screen (+/- 100px)
-    if (commentRectangle.bottom - 100 < 0 || commentRectangle.top > window.innerHeight - 100) {
+    //if the comment's top/bottom edge is  off of the screen (+/- 150px)
+    if ((commentRectangle.bottom - 150 < 0) || (commentRectangle.top > window.innerHeight - 150) ) {
       //scroll to the active comment
       this.shadowRoot.host.scrollIntoView({behavior: 'auto', block: 'center', inline: 'start'})
     }
+  }
+  makeCommentViewInactive() {
+    this.shadowRoot.host.classList.remove('activeComment');
+  }
+
+  makePartOfActiveGroup() {
+    this.shadowRoot.host.classList.add('activeGroup');
+  }
+  makePartOfInactiveGroup() {
+    this.shadowRoot.host.classList.remove('activeGroup');
   }
 
   updateForTitleChange(newTitle) {
     const titleBar = this.shadowRoot.querySelector('.titleBar');
     titleBar.innerHTML = newTitle;
-  }
-
-  makeCommentViewInactive() {
-    this.shadowRoot.host.classList.remove('activeComment');
   }
 
   beginEditComment = (clickEvent) => {

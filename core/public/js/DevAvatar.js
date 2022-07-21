@@ -24,6 +24,7 @@ class DevAvatar extends HTMLElement {
           margin: 5px;
           border-radius: 50%;
           padding: .25rem;
+          cursor: pointer;
         }
 
         .devContainer {

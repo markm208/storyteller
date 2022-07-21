@@ -46,14 +46,14 @@ class AceEditor extends HTMLElement {
         }
 
         .selectedCodeHighlight {
-          background-color: rgb(199, 224, 241); 
-          opacity: 0.17;
+          background-color: rgb(199, 224, 241);
+          opacity: 0.14;
           position: absolute;
         }
 
         .surroundingCodeHighlight {
           background-color: rgb(158, 172, 182);
-          opacity: 0.05;
+          opacity: 0.04;
           position: absolute;
         }
 
