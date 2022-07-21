@@ -107,6 +107,16 @@ class App extends HTMLElement {
       this.handleSearch(eventText);
     });
 
+    this.shadowRoot.addEventListener('enable-search', event => {
+      const titleBar = this.shadowRoot.querySelector('st-title-bar');
+      titleBar.updateToEnableSearch();
+    });
+
+    this.shadowRoot.addEventListener('disable-search', event => {
+      const titleBar = this.shadowRoot.querySelector('st-title-bar');
+      titleBar.updateToDisableSearch();
+    });
+
     //playback speed increased
     this.shadowRoot.addEventListener('increase-playback-speed', () => {
       //if there is a code view make it go faster

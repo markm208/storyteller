@@ -1,10 +1,10 @@
 class SearchBar extends HTMLElement {
     constructor() {
       super();
-      
+
       this.attachShadow({ mode: 'open' });
       this.shadowRoot.appendChild(this.getTemplate());
-      this.previousSearchText = '';
+      this.searchEnabled = true;
     }
   
     getTemplate() {
@@ -53,10 +53,13 @@ class SearchBar extends HTMLElement {
 
       //add an input listener to get changes to the search bar
       searchBar.addEventListener('input', event => {
-        //grab the current text from the input
-        const searchText = this.shadowRoot.querySelector("#searchBar").value;
-        //generate the search event
-        this.sendSearchRequest(searchText);
+        //if search is enabled
+        if(this.searchEnabled) {
+          //grab the current text from the input
+          const searchText = this.shadowRoot.querySelector("#searchBar").value;
+          //generate the search event
+          this.sendSearchRequest(searchText);
+        }
       });
       //add a key down listener to stop arrow keys from affecting the playback
       searchBar.addEventListener('keydown', event => {
@@ -89,6 +92,14 @@ class SearchBar extends HTMLElement {
       }
     }
   
+    updateToEnableSearch() {
+      this.searchEnabled = true;
+    }
+
+    updateToDisableSearch() {
+      this.searchEnabled  = false;
+    }
+
     sendSearchRequest(searchText) {
         const event = new CustomEvent('search', { 
           detail: {searchText: searchText}, 

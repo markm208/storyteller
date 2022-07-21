@@ -190,12 +190,22 @@ class TitleBar extends HTMLElement {
 
   updateToDisplaySearchResults(searchText, searchResults) {
     //send the number of comments shown and total number of comments to the search bar
-    const titleBar = this.shadowRoot.querySelector('st-search-bar');
-    titleBar.updateToDisplaySearchResults(searchResults.length, this.playbackEngine.commentInfo.totalNumberOfComments, searchText);
+    const searchBar = this.shadowRoot.querySelector('st-search-bar');
+    searchBar.updateToDisplaySearchResults(searchResults.length, this.playbackEngine.commentInfo.totalNumberOfComments, searchText);
   }
 
   updateForModeChange(newMode) {
     //
+  }
+
+  updateToEnableSearch() {
+    const searchBar = this.shadowRoot.querySelector('st-search-bar');
+    searchBar.updateToEnableSearch();
+  }
+
+  updateToDisableSearch() {
+    const searchBar = this.shadowRoot.querySelector('st-search-bar');
+    searchBar.updateToDisableSearch();
   }
 
   updateTitleBegin = event => {

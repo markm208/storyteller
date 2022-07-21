@@ -387,6 +387,9 @@ class CodeView extends HTMLElement {
     const commentsSlot = this.shadowRoot.querySelector('.commentsSlot');
     commentsSlot.innerHTML = '';
     commentsSlot.appendChild(addEditComment);
+
+    //disable search
+    this.notifyDisableSearch();
   }
 
   updateUIToEditComment(comment) {
@@ -399,6 +402,9 @@ class CodeView extends HTMLElement {
     const commentsSlot = this.shadowRoot.querySelector('.commentsSlot');
     commentsSlot.innerHTML = '';
     commentsSlot.appendChild(addEditComment);
+
+    //disable search
+    this.notifyDisableSearch();
   }
 
   updateUIToCancelAddEditComment() {
@@ -413,6 +419,9 @@ class CodeView extends HTMLElement {
       //rebuild all comment views with a new playback nav
       this.addPlaybackNavigator();
     }
+
+    //enable search
+    this.notifyEnableSearch();
   }
 
   updateForTitleChange(newTitle) {
@@ -626,6 +635,24 @@ class CodeView extends HTMLElement {
     if(this.playbackEngine.autoPlayback.playbackSpeedMs < 0) {
       this.playbackEngine.autoPlayback.playbackSpeedMs = 0;
     }
+  }
+
+  notifyDisableSearch() {
+    //send an event that the search functionality should be disabled
+    const event = new CustomEvent('disable-search', { 
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
+  }
+
+  notifyEnableSearch() {
+    //send an event that the search functionality should be enabled
+    const event = new CustomEvent('enable-search', { 
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
   }
 }
 

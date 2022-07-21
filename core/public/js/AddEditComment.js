@@ -168,7 +168,7 @@ class AddEditComment extends HTMLElement {
       this.updateAddCommentMode();
     }
 
-    this.addEventListener('pause-all-vertical-media-containers', event => {
+    this.shadowRoot.addEventListener('pause-all-vertical-media-containers', event => {
       //get all of the vertical media constainers and pause them
       const mediaContainers = this.shadowRoot.querySelectorAll('st-vertical-media-container');
       mediaContainers.forEach(mediaContainer => mediaContainer.pauseMedia());
