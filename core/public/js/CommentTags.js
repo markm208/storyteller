@@ -127,7 +127,7 @@ class CommentTags extends HTMLElement {
 
         #addTagButton {
             background-color: inherit;
-            border: none;
+            border: 1px solid gray;
             color: white;
             cursor: pointer;
         }
@@ -156,6 +156,7 @@ class CommentTags extends HTMLElement {
           color: red;
           border: none;
           background-color: inherit;
+          cursor: pointer;
         }
 
       </style>
@@ -168,7 +169,7 @@ class CommentTags extends HTMLElement {
             <div id="tagsDiv"></div>
             <div id='dropdownControls' class='hidden'>
               <div id="tags-div" class="tags hidden"></div>
-              <button id="closeDropDown" title='Collapse tag options'>X</button>
+              <button id="closeDropDown" title='Collapse tag options'>✕</button>
             </div>
       </div>
   
@@ -234,6 +235,11 @@ class CommentTags extends HTMLElement {
 
       }
     });
+
+    const dropdownCloseX = this.shadowRoot.querySelector('#closeDropDown');
+    dropdownCloseX.addEventListener('click', () =>{
+      dropDownButton.click();
+    })
 
     //prevent the click event from bubbling higher to avoid click listeners in other components
     this.shadowRoot.addEventListener('click', (event) => {
@@ -311,7 +317,6 @@ class CommentTags extends HTMLElement {
             return;
           }
         });
-        //console.log('teting');
       }
 
 
