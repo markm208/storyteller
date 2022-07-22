@@ -68,6 +68,9 @@ class App extends HTMLElement {
       //make sure playback is paused TODO
       //this.pausePlayback(true);
 
+      //get the title bar
+      const titleBar = this.shadowRoot.querySelector('st-title-bar');
+
       //clear out the old view
       const playbackContent = this.shadowRoot.querySelector('.playbackContent');
       playbackContent.innerHTML = '';
@@ -76,8 +79,10 @@ class App extends HTMLElement {
       //create the requested view
       if(newMode === 'code') {
         newView = new CodeView(this.playbackEngine, this.editorProperties);
+        titleBar.updateForModeChange('code');
       } else { //blog view
         newView = new BlogView(this.playbackEngine, this.editorProperties);
+        titleBar.updateForModeChange('blog');
       }
 
       //add the new view
@@ -100,6 +105,16 @@ class App extends HTMLElement {
     this.shadowRoot.addEventListener('search', event => {
       const eventText = event.detail.searchText;
       this.handleSearch(eventText);
+    });
+
+    this.shadowRoot.addEventListener('enable-search', event => {
+      const titleBar = this.shadowRoot.querySelector('st-title-bar');
+      titleBar.updateToEnableSearch();
+    });
+
+    this.shadowRoot.addEventListener('disable-search', event => {
+      const titleBar = this.shadowRoot.querySelector('st-title-bar');
+      titleBar.updateToDisableSearch();
     });
 
     //playback speed increased

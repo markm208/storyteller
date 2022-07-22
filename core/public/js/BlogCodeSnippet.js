@@ -80,7 +80,8 @@ class BlogCodeSnippet extends HTMLElement {
       firstLineNumber: snippetStartLineNumber + 1,
       maxLines: numLines,
       highlightActiveLine: false,
-      highlightGutterLine: false
+      highlightGutterLine: false,
+      useWorker: false,
     });
 
     //go through the markers and highlight them

@@ -31,6 +31,7 @@ class PlaybackControls extends HTMLElement {
           border: none;
           padding: 10px 0px;
           opacity: .8;
+          cursor: pointer;
         }
         
         .playbackButton:hover {
@@ -48,6 +49,10 @@ class PlaybackControls extends HTMLElement {
 
         .devAvatars {
           padding: 0px;
+        }
+
+        button {
+          outline: none;
         }
       </style>
 
@@ -116,15 +121,21 @@ class PlaybackControls extends HTMLElement {
   }
 
   playClicked = () => {
-    this.isPaused = false;
-    this.updatePlayPauseButton(false);
-    this.sendEventPlayClick();
+    //if they are not trying to play at a completed playback
+    if(this.playbackEngine.mostRecentChanges.endingLocation !== 'end') {
+      this.isPaused = false;
+      this.updatePlayPauseButton(false);
+      this.sendEventPlayClick();
+    }
   }
 
   pauseClicked = () => {
-    this.isPaused = true;
-    this.updatePlayPauseButton(true);
-    this.sendEventPauseClick();
+    //if they are not trying to pause at a completed playback
+    if(this.playbackEngine.mostRecentChanges.endingLocation !== 'end') {
+      this.isPaused = true;
+      this.updatePlayPauseButton(true);
+      this.sendEventPauseClick();
+    }
   }
   
   updateForPlaybackMovement() {
@@ -133,9 +144,16 @@ class PlaybackControls extends HTMLElement {
       this.updateActiveDevGroup();
     }
 
-    //if there is a reason to pause (reached comment or end of playback)
-    const shouldPause = this.playbackEngine.mostRecentChanges.endedOnAComment || this.playbackEngine.currentEventIndex === this.playbackEngine.playbackData.events.length - 1;
-    if(shouldPause !== this.isPaused) {
+    //if the playback is paused but the button is play
+    if(this.playbackEngine.autoPlayback.isPaused === true && this.isPaused === false) {
+      //change play/pause button to pause
+      this.isPaused = true;
+      this.updatePlayPauseButton(true);
+    } else if(this.playbackEngine.autoPlayback.isPaused === false && this.isPaused === true) { //if the playback is playing but the button is pause
+      //change play/pause button to play
+      this.isPaused = false;
+      this.updatePlayPauseButton(false);
+    } else if(this.playbackEngine.mostRecentChanges.endedOnAComment || this.playbackEngine.mostRecentChanges.endingLocation === 'end') { //ended on a comment or at the end of a playback
       //pause and change the button
       this.isPaused = true;
       this.updatePlayPauseButton(true);

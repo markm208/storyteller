@@ -49,6 +49,7 @@ class QuestionAnswerView extends HTMLElement {
           background-color: inherit;
           border: 1px solid lightgray;
           color: lightgray;
+          cursor: pointer;
         }
         button:hover {
           background-color: lightgray;
@@ -56,6 +57,10 @@ class QuestionAnswerView extends HTMLElement {
           color: black;
         }
 
+        input[type='radio'] {
+          cursor: pointer;
+        }
+        
         .hidden {
           display: none;
         }

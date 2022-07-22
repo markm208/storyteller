@@ -20,6 +20,7 @@ class PlaybackNavigator extends HTMLElement {
 
         .tab {
           display: flex;
+          justify-content: space-between;
           overflow-y: hidden;
           overflow-x: scroll;
           scrollbar-width: none;
@@ -63,8 +64,11 @@ class PlaybackNavigator extends HTMLElement {
       </style>
       
       <div class="tab">
-        <button class="tabLink comments activeTab">Comments</button>
-        <button class="tabLink fileSystem">File&nbsp;System</button>
+        <span>
+          <button class="tabLink comments activeTab">Comments</button>
+          <button class="tabLink fileSystem">File&nbsp;System</button>
+        </span>
+        <st-options-menu></st-options-menu>
       </div>
       <div class="subNavigatorsTab"></div>`;
 

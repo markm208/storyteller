@@ -73,6 +73,10 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         #addAnswerButton:hover {
           background-color: gray;
         }
+
+        input[type='checkbox'] {
+          cursor: pointer;
+        }
       </style>
 
       <div class='questionComment'>

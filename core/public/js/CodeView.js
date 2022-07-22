@@ -4,11 +4,6 @@ class CodeView extends HTMLElement {
 
     this.editorProperties = editorProperties;
     this.width = window.innerWidth * .27;
-    this.autoPlayback = {
-      isPaused: true,
-      playTimer: null,
-      playbackSpeedMs: 75,
-    };
     this.playbackEngine = playbackEngine;
 
     this.attachShadow({ mode: 'open' });
@@ -290,9 +285,9 @@ class CodeView extends HTMLElement {
       
       event.preventDefault();
       event.stopPropagation();
-    } else if (event.code === "Space") {
+    } else if (event.code === 'Space') {
       //toggle play/pause 
-      this.pausePlayback(!this.autoPlayback.isPaused);
+      this.pausePlayback(!this.playbackEngine.autoPlayback.isPaused);
       event.preventDefault();
       event.stopPropagation();
     } else if (ctrlPressed && shiftPressed && keyPressed === 'Enter') {
@@ -392,6 +387,9 @@ class CodeView extends HTMLElement {
     const commentsSlot = this.shadowRoot.querySelector('.commentsSlot');
     commentsSlot.innerHTML = '';
     commentsSlot.appendChild(addEditComment);
+
+    //disable search
+    this.notifyDisableSearch();
   }
 
   updateUIToEditComment(comment) {
@@ -404,6 +402,9 @@ class CodeView extends HTMLElement {
     const commentsSlot = this.shadowRoot.querySelector('.commentsSlot');
     commentsSlot.innerHTML = '';
     commentsSlot.appendChild(addEditComment);
+
+    //disable search
+    this.notifyDisableSearch();
   }
 
   updateUIToCancelAddEditComment() {
@@ -418,6 +419,9 @@ class CodeView extends HTMLElement {
       //rebuild all comment views with a new playback nav
       this.addPlaybackNavigator();
     }
+
+    //enable search
+    this.notifyEnableSearch();
   }
 
   updateForTitleChange(newTitle) {
@@ -500,16 +504,16 @@ class CodeView extends HTMLElement {
   pausePlayback = (newIsPaused) => {
     if (newIsPaused === true) { //starting pause
       //cancel timer
-      clearInterval(this.autoPlayback.playTimer);
-      this.autoPlayback.playTimer = null;
+      clearInterval(this.playbackEngine.autoPlayback.playTimer);
+      this.playbackEngine.autoPlayback.playTimer = null;
     } else { //starting play
       //start timer
-      if (this.autoPlayback.playTimer === null) {
+      if (this.playbackEngine.autoPlayback.playTimer === null && this.playbackEngine.mostRecentChanges.endingLocation !== 'end') {
         //increment one event per interval
-        this.autoPlayback.playTimer = setInterval(this.playNextEvent, this.autoPlayback.playbackSpeedMs);
+        this.playbackEngine.autoPlayback.playTimer = setInterval(this.playNextEvent, this.playbackEngine.autoPlayback.playbackSpeedMs);
       }
     }
-    this.autoPlayback.isPaused = newIsPaused;
+    this.playbackEngine.autoPlayback.isPaused = newIsPaused;
   }
 
   //interval function used to animate the events during a playback when the play button is pressed
@@ -627,10 +631,28 @@ class CodeView extends HTMLElement {
   //adjusts playback speed
   adjustPlaybackSpeed(delta) {
     //adjust the playback speed
-    this.autoPlayback.playbackSpeedMs += delta;
-    if(this.autoPlayback.playbackSpeedMs < 0) {
-      this.autoPlayback.playbackSpeedMs = 0;
+    this.playbackEngine.autoPlayback.playbackSpeedMs += delta;
+    if(this.playbackEngine.autoPlayback.playbackSpeedMs < 0) {
+      this.playbackEngine.autoPlayback.playbackSpeedMs = 0;
     }
+  }
+
+  notifyDisableSearch() {
+    //send an event that the search functionality should be disabled
+    const event = new CustomEvent('disable-search', { 
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
+  }
+
+  notifyEnableSearch() {
+    //send an event that the search functionality should be enabled
+    const event = new CustomEvent('enable-search', { 
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
   }
 }
 

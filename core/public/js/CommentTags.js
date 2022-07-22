@@ -43,6 +43,11 @@ class CommentTags extends HTMLElement {
           border-radius: 2px;
           border: none;
           background-color: transparent;
+          cursor: pointer;
+        }
+
+        #addTagButton {
+          cursor: pointer;
         }
 
         .dropdown_button.expanded{

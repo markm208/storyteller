@@ -21,9 +21,17 @@ class PlaybackEngine {
     this.firstRelevantEventIndex = 1;
     this.numRelevantEvents = this.playbackData.events.length - 1;
 
+    //used to track the play/pause state of the playback
+    this.autoPlayback = {
+      isPaused: true,
+      playTimer: null,
+      playbackSpeedMs: 75,
+    };
+
     //holds the changes from a playback engine interaction
     this.mostRecentChanges = {
       endedOnAComment: false,
+      endingLocation: null,
       hasNewActiveFile: false,
       hasNewActiveDevGroup: false,
       numberOfCommentGroupsChanged: false,
@@ -71,6 +79,7 @@ class PlaybackEngine {
   clearMostRecentChanges() {
     this.mostRecentChanges = {
       endedOnAComment: false,
+      endingLocation: null,
       hasNewActiveFile: false,
       hasNewActiveDevGroup: false,
       numberOfCommentGroupsChanged: false,
@@ -134,6 +143,15 @@ class PlaybackEngine {
       if(currentEvent.type === 'INSERT' || currentEvent.type === 'DELETE') {
         this.mostRecentChanges.fileEditLineNumber = currentEvent.lineNumber;
       }
+      
+      //set the position of where the playback landed
+      if(this.currentEventIndex === this.firstRelevantEventIndex) {
+        this.mostRecentChanges.endingLocation = 'begin';
+      } else if(this.currentEventIndex === this.playbackData.events.length - 1) {
+        this.mostRecentChanges.endingLocation = 'end';
+      } else {
+        this.mostRecentChanges.endingLocation = 'middle';
+      }
 
       //check where the action stopped to see if there is a comment to highlight
       this.checkForCommentAtCurrentIndex();
@@ -170,6 +188,15 @@ class PlaybackEngine {
         this.mostRecentChanges.fileEditLineNumber = currentEvent.lineNumber;
       }
 
+      //set the position of where the playback landed
+      if(this.currentEventIndex === this.firstRelevantEventIndex) {
+        this.mostRecentChanges.endingLocation = 'begin';
+      } else if(this.currentEventIndex === this.playbackData.events.length - 1) {
+        this.mostRecentChanges.endingLocation = 'end';
+      } else {
+        this.mostRecentChanges.endingLocation = 'middle';
+      }
+      
       //check where the action stopped to see if there is a comment to highlight
       this.checkForCommentAtCurrentIndex();
     }
@@ -562,7 +589,28 @@ class PlaybackEngine {
     }
   }
 
-  performSearch(searchText){
+  performSearch(searchText) {
+    //check for a specialized search: 'comment:searchText', 'code:searchText', 'tag:searchText', 'question:searchText'
+    let searchType = 'all';
+    const separatorPosition = searchText.indexOf(':');
+    if(separatorPosition !== -1) {
+      const firstPart = searchText.substring(0, separatorPosition);
+      const secondPart = searchText.substring(separatorPosition + 1);
+      if(firstPart === 'comment') {
+        searchType = firstPart;
+        searchText = secondPart;
+      } else if(firstPart === 'code') {
+        searchType = firstPart;
+        searchText = secondPart;
+      } else if(firstPart === 'tag') {
+        searchType = firstPart;
+        searchText = secondPart;
+      } else if(firstPart === 'question') {
+        searchType = firstPart;
+        searchText = secondPart;
+      }
+    }
+
     const searchResults = [];
     //search all the comments text, code and tags for the matching search text
     for(let eventId in this.playbackData.comments) {
@@ -576,24 +624,51 @@ class PlaybackEngine {
           inSelectedText: false,
           inCommentText: false,
           inTags: false,
+          inQuestion: false,
           searchText: searchText
         };
 
-        comment.selectedCodeBlocks.some(block => {
-          if(block.selectedText.toLowerCase().includes(searchText.toLowerCase())) {
-            isRelevantComment = true;
-            searchResult.inSelectedText = true;
-          }
-        });
+        //if it is a general search of a specific specialized search
+        if(searchType === 'all' || searchType === 'code') {
+          comment.selectedCodeBlocks.some(block => {
+            if(block.selectedText.toLowerCase().includes(searchText.toLowerCase())) {
+              isRelevantComment = true;
+              searchResult.inSelectedText = true;
+            }
+          });
+        }
 
-        if(comment.commentText.toLowerCase().includes(searchText.toLowerCase())) {
-          isRelevantComment = true;
-          searchResult.inCommentText = true;
-        }    
-      
-        if(comment.commentTags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()))) {
-          isRelevantComment = true;
-          searchResult.inTags = true;
+        if(searchType === 'all' || searchType === 'comment') {
+          if(comment.commentText.toLowerCase().includes(searchText.toLowerCase())) {
+            isRelevantComment = true;
+            searchResult.inCommentText = true;
+          }
+        }
+
+        if(searchType === 'all' || searchType === 'tag') {
+          if(comment.commentTags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()))) {
+            isRelevantComment = true;
+            searchResult.inTags = true;
+          }
+        }
+
+        if(searchType === 'all' || searchType === 'question') {
+          if(comment.questionCommentData) {
+            if(comment.questionCommentData.question.toLowerCase().includes(searchText.toLowerCase())) {
+              isRelevantComment = true;
+              searchResult.inQuestion = true;
+            }
+
+            if(comment.questionCommentData.allAnswers.some(answer => answer.toLowerCase().includes(searchText.toLowerCase()))) {
+              isRelevantComment = true;
+              searchResult.inQuestion = true;
+            }
+
+            if(comment.questionCommentData.explanation.toLowerCase().includes(searchText.toLowerCase())) {
+              isRelevantComment = true;
+              searchResult.inQuestion = true;
+            }
+          }
         }
 
         //collect the comments that have the search text
