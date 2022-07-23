@@ -72,6 +72,7 @@ class MultiLineTextInput extends HTMLElement {
       }
       .editorControl:hover {
         background-color: lightgray;
+        border: 1px solid lightgray;
         color: black
       }
       .editorControlTextInput {

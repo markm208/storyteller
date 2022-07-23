@@ -136,6 +136,11 @@ class CommentTags extends HTMLElement {
             color: white;
             cursor: pointer;
         }
+        #addTagButton:hover {
+          background-color: lightgray;
+          border: 1px solid lightgray;
+          color: black;
+        }
 
         #dropdownControls {
           border: 1px solid gray;

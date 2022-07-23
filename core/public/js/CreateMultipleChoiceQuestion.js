@@ -56,7 +56,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         }
         
         .removeAnswerButton:hover {
-          background-color: grey;
+          border: 1px solid lightgray;
         }
 
         .spaceBetweenContent{
@@ -66,16 +66,34 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         
         #addAnswerButton{
           background-color: transparent;
-          color: white;
-          border: none;
+          color: lightgray;
+          border: 1px solid transparent;
           cursor: pointer;
+          padding: 3px;
         }
-        #addAnswerButton:hover {
-          background-color: gray;
+        #addAnswerButton:hover{
+          border: 1px solid lightgray;
+        }
+
+        #clearQuestionButton{
+          display: block;
+          background-color: transparent;
+          color: lightgray;
+          border: 1px solid transparent;
+          cursor: pointer;
+          padding: 3px;
+        }
+        #clearQuestionButton:hover {
+          border: 1px solid lightgray;
         }
 
         input[type='checkbox'] {
           cursor: pointer;
+        }
+
+        #clearAllDiv {
+          display: flex;
+          justify-content: flex-end;
         }
       </style>
 
@@ -86,7 +104,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         <div class="spaceBetweenContent">
           <label>Answers</label>
           <button id='addAnswerButton' type='button'>
-            <svg width='1em' height='1em' viewBox='0 0 16 16' class='bi bi-plus-circle-fill addQuestionButton' fill='white' xmlns='http://www.w3.org/2000/svg'>
+            <svg width='1em' height='1em' viewBox='0 0 16 16' class='bi bi-plus-circle-fill addQuestionButton' fill='lightgray' xmlns='http://www.w3.org/2000/svg'>
               <path fill-rule='evenodd' d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z'/>
             </svg>
             Add Answer
@@ -96,6 +114,14 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
 
         <label>Explanation</label>
         <div id="explanationTextContainer"></div>
+        <div id="clearAllDiv">
+          <button id='clearQuestionButton' type='button'>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+            </svg>
+            Clear All
+          </button>
+        </div>
       </div>
       `;
     return template.content.cloneNode(true);
@@ -122,6 +148,22 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     const explanationText = new MultiLineTextInput('Explain the answer (optional)', '', 75);
     explanationText.setAttribute('id', 'explanationText');
     explanationTextContainer.appendChild(explanationText);
+
+    const clearQuestionButton = this.shadowRoot.querySelector('#clearQuestionButton');
+    clearQuestionButton.addEventListener('click', event => {
+      //clear the question
+      commentQuestion.updateFormattedText('');
+      
+      //clear out all of the answers
+      const allAnswersContainer = this.shadowRoot.querySelector('#allAnswersContainer');
+      allAnswersContainer.innerHTML = '';
+      //add the first two answers back
+      this.addNewAnswerBox('', false, 1);
+      this.addNewAnswerBox('', false, 2);
+      
+      //clear the explanation
+      explanationText.updateFormattedText('');
+    });
 
     //if the comment question is being edited
     if (this.questionCommentData && this.questionCommentData.question) {
@@ -204,7 +246,6 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     }
     checkBox.classList.add('rightAnswerCheckBox');
     checkBox.addEventListener('click', this.rightAnswerCheckBoxHandler);
-    this.totalAnswers++;
     checkBox.setAttribute('id', `checkBox-${answerNumber}`);
 
     //label

@@ -35,6 +35,11 @@ class AddEditComment extends HTMLElement {
           background-color: transparent;
           font-style: italic;
         }
+        #controlButtons {
+          display: flex;
+          justify-content: space-between;
+          padding: 0px 10px 25px 10px;
+        }
         .controlButton {
           color: white;
           padding: 8px 10px;
@@ -42,13 +47,18 @@ class AddEditComment extends HTMLElement {
           cursor: pointer;
           border-radius: .25rem;
           font-size: 1.20rem;
+          opacity: .8;
+        }
+        .controlButton:hover {
+          opacity: 1;
         }
         #cancelButton {
           background-color: red;
           margin-left: 5px;
         }
         #submitButton {
-          background-color: black;
+          background-color: #3B4C62;
+          width: 100%;
         }
 
         .inactive {
@@ -118,8 +128,10 @@ class AddEditComment extends HTMLElement {
           </div>
         </st-show-hide-component>
         <div id="errorMessages"></div>
-        <button id="cancelButton" class="controlButton">Cancel</button>
-        <button id="submitButton" class="controlButton"></button>
+        <div id="controlButtons">
+          <button id="submitButton" class="controlButton"></button>
+          <button id="cancelButton" class="controlButton">Cancel</button>
+        </div>
       </div>`;
 
     return template.content.cloneNode(true);
