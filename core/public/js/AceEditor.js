@@ -182,7 +182,7 @@ class AceEditor extends HTMLElement {
         //replace a comment's selected code blocks with actual ace selections
         this.playbackEngine.activeComment.selectedCodeBlocks.forEach(selectedCodeBlock => {
           const aceRange = new AceRange(selectedCodeBlock.startRow, selectedCodeBlock.startColumn, selectedCodeBlock.endRow, selectedCodeBlock.endColumn);
-          this.aceEditor.getSelection().addRange(aceRange);
+          this.aceEditor.getSelection().setSelectionRange(aceRange, false);
         });
         //update the lines above/below
         this.linesAboveSelection = this.playbackEngine.activeComment.linesAbove;
@@ -200,6 +200,7 @@ class AceEditor extends HTMLElement {
       this.aceEditor.off('changeSelection', this.handleSelectionLinesAboveBelow);
       //get rid of any selected context
       this.clearSurroundingTextMarker();
+      this.clearSelectedCode();
     }
   }
 
@@ -386,6 +387,10 @@ class AceEditor extends HTMLElement {
       this.aceEditor.getSession().removeGutterDecoration(lineNumber, "deleteOnLine");
     });
     this.deleteLineNumbers = [];
+  }
+
+  clearSelectedCode() {
+    this.aceEditor.getSelection().clearSelection();
   }
 
   getSelectedCodeInfo() {

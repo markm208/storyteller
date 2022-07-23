@@ -98,7 +98,7 @@ class CodeView extends HTMLElement {
 
     //cancel the creating/editing of a comment
     this.shadowRoot.addEventListener('cancel-add-edit-comment', event => {
-      this.updateUIToCancelAddEditComment();
+      this.updateForCommentSelected();
     });
 
     //new comment successfully created
