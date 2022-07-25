@@ -190,12 +190,6 @@ class AddEditComment extends HTMLElement {
     this.shadowRoot.addEventListener('keydown', event => {
       event.stopPropagation();
     });
-
-    this.shadowRoot.addEventListener('click', () => {
-      //close the tag drop down menu when a click happens 
-      const commentTags = this.shadowRoot.querySelector('st-comment-tags');
-      commentTags.closeDropDown();
-    });
   }
 
   disconnectedCallback() {
