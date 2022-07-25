@@ -221,20 +221,25 @@ class CommentTags extends HTMLElement {
         dropDownButton.setAttribute('title', 'Expand tag options');
       }
 
-      const test = this.shadowRoot.querySelector('#dropdownControls');
-      test.classList.toggle('hidden');
+      const dropDownControls = this.shadowRoot.querySelector('#dropdownControls');
+      dropDownControls.classList.toggle('hidden');
       tags.classList.toggle('hidden');
 
 
       if (!tags.classList.contains('hidden')) {
         //tags.style.display = 'block'
-        tags.style.height = tags.scrollHeight - 15 + 'px';
-        test.style.height = test.scrollHeight + tags.scrollHeight - 15 + 'px';
+        tags.style.height = tags.scrollHeight - 20 + 'px';
+        dropDownControls.style.height = dropDownControls.scrollHeight + tags.scrollHeight - 20 + 'px';
+
+        setTimeout(() =>{
+          tags.style.height = 'fit-content';
+          dropDownControls.style.height = 'fit-content';
+        }, 1000);
 
       } else {
         // tags.style.display = 'none';
         tags.style.height = '0px';
-        test.style.height = '0px';
+        dropDownControls.style.height = '0px';
       }
     });
 
