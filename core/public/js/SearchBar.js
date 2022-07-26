@@ -91,10 +91,13 @@ class SearchBar extends HTMLElement {
     searchBar.addEventListener('input', () => {
       const searchText = searchBar.value;
 
+      //if the search bar is empty
       if (searchText === '') {
+        //hide it
         searchResetButton.classList.add('hidden');
       }
-      else {
+      else { //not empty, 
+        //expand it
         searchResetButton.classList.remove('hidden');
       }
 
@@ -123,16 +126,11 @@ class SearchBar extends HTMLElement {
 
       if (searchBar.value === ''){
         searchBar.classList.remove('expanded');
-
       }
     })
 
     searchResetButton.addEventListener('click', () => {
-      // if (searchBar.classList.contains('expanded')){
-      //   searchBar.focus();
-      // }
       searchBar.focus();
-
       const clearSearchResults = this.shadowRoot.querySelector('#clearSearchResults');
       clearSearchResults.innerHTML = '';
       this.sendSearchRequest('');
@@ -146,6 +144,11 @@ class SearchBar extends HTMLElement {
   updateToDisplaySearchResults(numSearchComments, numTotalComments, searchText) {
     //get the contents of the search bar
     const searchBar = this.shadowRoot.querySelector("#searchBar");
+    searchBar.focus();
+    
+    const searchResetButton = this.shadowRoot.querySelector('.resetSearchButton');
+    searchResetButton.classList.remove('hidden');
+    
     //get the element that holds the search results message
     const clearSearchResults = this.shadowRoot.querySelector('#clearSearchResults');
 

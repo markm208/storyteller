@@ -17,27 +17,36 @@ class TagView extends HTMLElement {
           align-items: baseline;
         }
 
-        .tag {
+        button {
           background-color: transparent;
           color: lightgray;
-          border: 1px solid lightgray;
-          padding: 5px;
-          margin-right: 5px;
-          margin-top: 10px;
-          border-radius: 5px;
-          display: inline-block;
-          font-size: .7em;
+          border: none;
+          font-size: .8em;
           cursor: pointer;
+          padding-right: 2px;
         }
 
-        .tag:hover {
-          background-color: lightgray;
-          color: black;
+        .tagDiv {
+          background-color: transparent;
+          border: 1px solid lightgray;
+          padding: 1px 5px 5px 5px;
+          border-radius: 5px;
+          display: inline-block;
+          opacity: .8;
+          margin: 0px 2px;
         }
+        .tagDiv:hover {
+          opacity: 1;
+        }
+
         .tagLabel {
           color: lightgray;
           font-size: .8em;
           margin-right: 2px;
+        }
+
+        .hidden {
+          display: none;
         }
       </style>
       <div class="tagContainer"></div>`;
@@ -62,23 +71,59 @@ class TagView extends HTMLElement {
   disconnectedCallback() {
   }
 
-  createTag(tag) {
+  createTag(tagText) {
+    const tagDiv = document.createElement('div');
+    //add the tag name to the class for easy searching later
+    tagDiv.classList.add(tagText);
+    tagDiv.classList.add('tagDiv');
+
     //make a button for each tag
     const newTag = document.createElement('button');
-    newTag.classList.add('tag');
-    newTag.appendChild(document.createTextNode(tag));
+    newTag.appendChild(document.createTextNode(tagText));
     //when the button is clicked perform a search for comments with this tag
-    newTag.addEventListener('click', () => {
+    newTag.addEventListener('click', event => {
       //send event to search for this tag
-      this.sendSearchRequest(tag);
+      this.sendSearchRequest(tagText);
+    });
+    
+    const clearButton = document.createElement('button');
+    clearButton.classList.add('hidden');
+    clearButton.appendChild(document.createTextNode('✕'));
+    clearButton.addEventListener('click', event => {
+      //send an empty string to search for
+      this.sendSearchRequest('');
+      event.stopPropagation();
     });
 
-    return newTag;
+    tagDiv.appendChild(newTag);
+    tagDiv.appendChild(clearButton);
+
+    return tagDiv;
+  }
+
+  highlightTag(searchText) {
+    //get the tag by searching for it (if it is present)
+    const tagDiv = this.shadowRoot.querySelector(`.${searchText}`);
+    if(tagDiv) {
+      //make the clear button visible
+      const clearButton = tagDiv.children[1];
+      clearButton.classList.remove('hidden');
+    }
+  }
+  
+  dehighlightTags() {
+    //get all of the tags
+    const tagDivs = this.shadowRoot.querySelectorAll('.tagDiv');
+    tagDivs.forEach(tagDiv => {
+      //hide each clear button
+      const clearButton = tagDiv.children[1];
+      clearButton.classList.add('hidden');
+    });
   }
 
   sendSearchRequest(searchText) {
     const event = new CustomEvent('search', { 
-      detail: {searchText: searchText}, 
+      detail: {searchText: searchText.length > 0 ? `tag:${searchText}` : ''},
       bubbles: true, 
       composed: true 
     });

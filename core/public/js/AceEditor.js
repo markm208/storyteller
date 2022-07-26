@@ -5,6 +5,7 @@ class AceEditor extends HTMLElement {
     this.editorProperties = editorProperties;
     this.playbackEngine = playbackEngine;
     this.aceEditor = null;
+    this.searchText = '';
 
     //old line numbers need to be removed before adding new ones from a comment
     this.insertLineNumbers = [];
@@ -124,6 +125,8 @@ class AceEditor extends HTMLElement {
   updateForCommentSelected() {
     //highlight any selected code from the selected comment
     this.addSelectedCodeAndSurroundingTextMarkers();
+    //if there is an active search highlight the code
+    this.highlightSearch();
   }
 
   updateForPlaybackMovement() {
@@ -160,6 +163,8 @@ class AceEditor extends HTMLElement {
       //go through the markers and highlight them
       this.addChangedCodeMarkers();
     }
+    //if there is an active search highlight the code
+    this.highlightSearch();
   }
 
   updateEditorFontSize(newFontSize) {
@@ -453,6 +458,35 @@ class AceEditor extends HTMLElement {
       });
     }
     return selectedCode;
+  }
+
+  highlightSearch() {
+    //if there is any search text to highlight
+    if(this.searchText.trim() !== '') {
+      //highlight the text in the editor
+      this.aceEditor.findAll(this.searchText, {
+        wrap: true,
+        caseSensitive: false, 
+        preventScroll: true,
+        wholeWord: false,
+        regExp: false,
+      });
+    }
+  }
+
+  updateToDisplaySearchResults(searchResults) {
+    //store the search text
+    this.searchText = searchResults.searchText;
+    
+    //if the user is searching for something
+    if(this.searchText !== '') {
+      //highlight whatever they entered in the search box
+      this.highlightSearch();
+    } else { //the search is newly empty
+      //rerender the editor to get rid of all previous search results
+      this.updateForPlaybackMovement();
+      this.updateForCommentSelected();
+    }
   }
 }
 

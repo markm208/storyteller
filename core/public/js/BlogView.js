@@ -127,24 +127,24 @@ class BlogView extends HTMLElement {
   }
 
   updateToDisplaySearchResults(searchResults) {
-    //clear out old search results
-    const nonRelComments = this.shadowRoot.querySelectorAll('.nonRelevantSearchResult');
-    nonRelComments.forEach(comment => {
-      comment.classList.remove('nonRelevantSearchResult');
-    });
-
-    //holds the IDs of the relevant comments
-    const relevantCommentIDs = new Set();
-    searchResults.forEach(searchResult => {
-      relevantCommentIDs.add(searchResult.commentId);
-    });
-
-    //find all the blog components that are not relevant to the search
+    //get all of the blog components
     const blogComponents = this.shadowRoot.querySelectorAll('st-blog-component');
     blogComponents.forEach(blogComponent => {
       const commentID = blogComponent.comment.id;
-      //if a blog component is not in the search results, then add a non relevant class
-      if (!relevantCommentIDs.has(commentID)) {
+      
+      //clear any previous search results
+      blogComponent.revealCommentsBeforeSearch();
+      //highlight any code in a search
+      blogComponent.highlightSearch(searchResults.searchText);
+      
+      //if there is a search result for this blog component's comment
+      if(searchResults.details[commentID]) {
+        //make sure it is visible
+        blogComponent.classList.remove('nonRelevantSearchResult');
+        //highlight the results
+        blogComponent.updateToDisplaySearchResults(searchResults.details[commentID]);
+      } else { //this one is not part of the search results
+        //hide the blog component
         blogComponent.classList.add('nonRelevantSearchResult');
       }
     });

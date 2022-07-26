@@ -157,15 +157,8 @@ class CommentNavigator extends HTMLElement {
       commentGroup.revealCommentsBeforeSearch();
     });
 
-    //holds the IDs of the comments that were in the results
-    const relevantCommentIDs = new Set();
-    searchResults.forEach(searchResult => {
-      relevantCommentIDs.add(searchResult.commentId);
-    });
-
-    //hide the comments that are not in the results
     commentGroups.forEach(commentGroup => {
-      commentGroup.hideIrrelevantSearchResults(relevantCommentIDs);
+      commentGroup.updateToDisplaySearchResults(searchResults);
     });
   }
 }

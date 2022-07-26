@@ -611,7 +611,16 @@ class PlaybackEngine {
       }
     }
 
-    const searchResults = [];
+    //holds all of the search results keyed by comment id
+    const searchResults = {
+      searchText: searchText,
+      numberOfResults: 0,
+      details: {}
+    };
+
+    //reg ex to remove tags
+    const removeHTMLTagsRegEx = /(<([^>]+)>)/ig;
+    
     //search all the comments text, code and tags for the matching search text
     for(let eventId in this.playbackData.comments) {
       const commentsAtEvent = this.playbackData.comments[eventId];
@@ -639,7 +648,11 @@ class PlaybackEngine {
         }
 
         if(searchType === 'all' || searchType === 'comment') {
-          if(comment.commentText.toLowerCase().includes(searchText.toLowerCase())) {
+          //strip all html and make lowercase
+          const cleansedCommentText = comment.commentText.replace(removeHTMLTagsRegEx, '').toLowerCase();
+          const cleansedCommentTitle = comment.commentTitle.replace(removeHTMLTagsRegEx, '').toLowerCase();
+          //check the comment text and the comment title
+          if(cleansedCommentText.includes(searchText.toLowerCase()) || cleansedCommentTitle.includes(searchText.toLowerCase())) {
             isRelevantComment = true;
             searchResult.inCommentText = true;
           }
@@ -654,7 +667,9 @@ class PlaybackEngine {
 
         if(searchType === 'all' || searchType === 'question') {
           if(comment.questionCommentData) {
-            if(comment.questionCommentData.question.toLowerCase().includes(searchText.toLowerCase())) {
+            //strip all html and make lowercase
+            const cleansedQuestion = comment.questionCommentData.question.replace(removeHTMLTagsRegEx, '').toLowerCase();
+            if(cleansedQuestion.includes(searchText.toLowerCase())) {
               isRelevantComment = true;
               searchResult.inQuestion = true;
             }
@@ -663,8 +678,9 @@ class PlaybackEngine {
               isRelevantComment = true;
               searchResult.inQuestion = true;
             }
-
-            if(comment.questionCommentData.explanation.toLowerCase().includes(searchText.toLowerCase())) {
+            //strip all html and make lowercase
+            const cleansedExplanation = comment.questionCommentData.explanation.replace(removeHTMLTagsRegEx, '').toLowerCase();
+            if(comment.questionCommentData.explanation && cleansedExplanation.includes(searchText.toLowerCase())) {
               isRelevantComment = true;
               searchResult.inQuestion = true;
             }
@@ -673,12 +689,100 @@ class PlaybackEngine {
 
         //collect the comments that have the search text
         if (isRelevantComment){
+          //store the comment id
           searchResult.commentId = comment.id;
-          searchResults.push(searchResult);
+          //add the search result  
+          searchResults.details[comment.id] = searchResult;
+          searchResults.numberOfResults++;
         }
       }
     }
     return searchResults;
+  }
+
+  replaceAllHTMLWithACharacter(htmlText, character=' ') {
+    //reg ex to remove tags
+    const removeHTMLTagsRegEx = /(<([^>]+)>)/ig;
+
+    const cleansedString = htmlText.replace(removeHTMLTagsRegEx, (match) => {
+      //replace the matched html with the passed in character
+      let retVal = '';
+      for(let i = 0;i < match.length;i++) {
+        retVal += character;
+      }
+      return retVal;
+    });
+    return cleansedString;
+  }
+
+  surroundHTMLTextWithTag(htmlString, searchText, openingTag, closingTag) {
+    //a character that will not show up in a the search text
+    const ignoreCharacter = '\0';
+
+    //replace all the html tags with the ignore character
+    const cleansedHTML = this.replaceAllHTMLWithACharacter(htmlString.toLowerCase(), ignoreCharacter);
+    const cleansedSearchText = searchText.toLowerCase();
+    
+    //positions where a match of the search text happened
+    const matchPositions = [];
+    //go through the entire string of html and look for an exact match
+    for(let i = 0;i < cleansedHTML.length;i++) {
+      //ignore the replaced html tags
+      const matchData = this.findMatch(i, cleansedHTML, cleansedSearchText, ignoreCharacter);
+      if(matchData.match) {
+        matchPositions.push(matchData);
+        //skip all of the found text to the next possible match
+        i = matchData.endPos;
+      }
+    }
+
+    //if there were any matches move through in reverse so as not to invalidate the match positions
+    for(let i = matchPositions.length - 1;i >= 0;i--) {
+      const matchData = matchPositions[i];
+      
+      //build up the new string with the search text wrapped in a new tag
+      const firstPart = htmlString.substring(0, matchData.startPos);
+      const middlePart = `${openingTag}${htmlString.substring(matchData.startPos, matchData.endPos + 1)}${closingTag}`;
+      const endPart = htmlString.substring(matchData.endPos + 1);
+      htmlString = firstPart + middlePart + endPart;
+    }
+
+    return htmlString;
+  }
+
+  findMatch(startPos, htmlText, searchText, ignoreCharacter) {
+    const retVal = {
+      match: false, //assume there was no match
+      startPos: startPos,
+      endPos: Number.MAX_SAFE_INTEGER
+    };
+
+    //position to compare in the passed in search text
+    let searchTextPos = 0;
+
+    //go through all of the characters in the html
+    for(let i = startPos;i < htmlText.length;i++) {
+      //if it is a character that should be evaluated
+      if(htmlText.charAt(i) !== ignoreCharacter) {
+        //if it does not match the search 
+        if(htmlText.charAt(i) !== searchText[searchTextPos]) {
+          break;
+        } //else- there is a match in the search text and the html
+        //update the end of the match
+        retVal.endPos = i;
+        //move to the next character of the search text
+        searchTextPos++;
+
+        //if all of the characters have been found
+        if(searchTextPos === searchText.length) {
+          //indicate success and stop looking
+          retVal.match = true;
+          break;
+        }
+      }
+    }
+
+    return retVal;
   }
 
   changePlaybackTitle(newTitle) {

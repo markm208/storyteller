@@ -56,6 +56,9 @@ class BlogComponent extends HTMLElement {
           font-size: 1.2em;
           font-style: italic;
         }
+        .searchHighlight {
+          background-color: #517EB0;
+        }
       </style>
 
       <div class="commentTitle"></div>
@@ -152,6 +155,79 @@ class BlogComponent extends HTMLElement {
   }
 
   disconnectedCallback() {
+  }
+
+  updateToDisplaySearchResults(searchResult) {
+    //if there is some search text
+    if(searchResult.searchText.length > 0) {
+      //if there is a result in the tags
+      if(searchResult.inTags) {
+        const tagView = this.shadowRoot.querySelector('st-tag-view');
+        tagView.highlightTag(searchResult.searchText);
+      }
+
+      //if there is a result in the comment text
+      if(searchResult.inCommentText) {
+        const blogCommentText = this.shadowRoot.querySelector('.blogCommentText');
+    
+        //surround each instance of the search text with a tag
+        let replacedString = this.playbackEngine.surroundHTMLTextWithTag(blogCommentText.innerHTML, searchResult.searchText, '<span class="searchHighlight">', '</span>');
+        blogCommentText.innerHTML = replacedString;
+
+        const commentTitle = this.shadowRoot.querySelector('.commentTitle');
+        //surround each instance of the search text with a tag
+        replacedString = this.playbackEngine.surroundHTMLTextWithTag(commentTitle.innerHTML, searchResult.searchText, '<span class="searchHighlight">', '</span>');
+        commentTitle.innerHTML = replacedString;
+      }
+
+      //if there is a result in the question
+      if(searchResult.inQuestion) {
+        const questionAnswerView = this.shadowRoot.querySelector('st-question-answer-view');
+        questionAnswerView.classList.add('questionSearchHighlight');
+      }
+    }
+  }
+
+  revealCommentsBeforeSearch() {
+    const tagView = this.shadowRoot.querySelector('st-tag-view');
+    if(tagView) {
+      //clear out the tags
+      tagView.dehighlightTags();
+    }
+
+    //set the text back to the original
+    const blogCommentText = this.shadowRoot.querySelector('.blogCommentText');
+    blogCommentText.innerHTML = this.comment.commentText;
+
+    const commentTitle = this.shadowRoot.querySelector('.commentTitle');
+    commentTitle.innerHTML = this.comment.commentTitle;
+
+    const questionAnswerView = this.shadowRoot.querySelector('st-question-answer-view');
+    if(questionAnswerView) {
+      questionAnswerView.classList.remove('questionSearchHighlight');
+    }
+  }
+  
+  highlightSearch(searchText) {
+    const blogCodeSnippet = this.shadowRoot.querySelector('st-blog-code-snippet');
+    //if there is some code in this comment
+    if(blogCodeSnippet) {
+      //if there is something to search
+      if(searchText.length > 0) {
+        //highlight it in the editor
+        blogCodeSnippet.highlightSearch(searchText);
+      } else { //nothing to search for (empty search box)
+        //if there is some code to display, rerender the blog snippet to remove any previous search results
+        if(this.comment.selectedCodeBlocks[0]) {
+          const codeEditor = this.shadowRoot.querySelector('.codeEditor');
+          codeEditor.innerHTML = '';
+
+          //create a code snippet
+          const blogCodeSnippet = new BlogCodeSnippet(this.comment, this.editorProperties);
+          codeEditor.appendChild(blogCodeSnippet);
+        }
+      }
+    }
   }
 }
 

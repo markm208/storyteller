@@ -82,6 +82,11 @@ class EditorView extends HTMLElement {
     aceEditor.updateLinesAboveBelow(linesAbove, linesBelow);
   }
 
+  updateToDisplaySearchResults(searchResults) {
+    const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
+    aceEditor.updateToDisplaySearchResults(searchResults);
+  }
+
   getSelectedCodeInfo() {
     const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
     return aceEditor.getSelectedCodeInfo();

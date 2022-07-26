@@ -108,13 +108,16 @@ class CommentView extends HTMLElement {
         .inactive {
           display: none;
         }
+
+        .searchHighlight {
+          background-color: #517EB0;
+        }
       </style>
       <div>
         <div class="commentTopBar"></div>
         <div class="commentTitle"></div>
         <div class="commentText"></div>
         <div class="media"></div>
-        <div class="questions"></div>
         <div class="questionAndAnswerContainer"></div>
         <div class="tagContainer"></div>
         <button id="editCommentButton" class="inactive" title="Edit this comment"></button>
@@ -269,6 +272,57 @@ class CommentView extends HTMLElement {
       commentBar.appendChild(devGroup);
       commentBar.appendChild(commentCount);
       commentTopBar.appendChild(commentBar);
+    }
+  }
+
+  updateToDisplaySearchResults(searchResult) {
+    //if there is some search text
+    if(searchResult.searchText.length > 0) {
+      //if there is a result in the tags
+      if(searchResult.inTags) {
+        const tagView = this.shadowRoot.querySelector('st-tag-view');
+        tagView.highlightTag(searchResult.searchText);
+      }
+
+      //if there is a result in the comment text
+      if(searchResult.inCommentText) {
+        const commentText = this.shadowRoot.querySelector('.commentText');
+        //surround each instance of the search text with a tag
+        let replacedString = this.playbackEngine.surroundHTMLTextWithTag(commentText.innerHTML, searchResult.searchText, '<span class="searchHighlight">', '</span>');
+        commentText.innerHTML = replacedString;
+
+        const commentTitle = this.shadowRoot.querySelector('.commentTitle');
+        //surround each instance of the search text with a tag
+        replacedString = this.playbackEngine.surroundHTMLTextWithTag(commentTitle.innerHTML, searchResult.searchText, '<span class="searchHighlight">', '</span>');
+        commentTitle.innerHTML = replacedString;
+      }
+
+      //if there is a result in the question
+      if(searchResult.inQuestion) {
+        const questionAnswerView = this.shadowRoot.querySelector('st-question-answer-view');
+        questionAnswerView.classList.add('questionSearchHighlight');
+      }
+    }
+  }
+
+  revealCommentsBeforeSearch() {
+    const tagView = this.shadowRoot.querySelector('st-tag-view');
+    if(tagView) {
+      //clear out the tags
+      tagView.dehighlightTags();
+    }
+
+    //set the text back to the original
+    const commentText = this.shadowRoot.querySelector('.commentText');
+    commentText.innerHTML = this.comment.commentText;
+
+    const commentTitle = this.shadowRoot.querySelector('.commentTitle');
+    commentTitle.innerHTML = this.comment.commentTitle;
+
+    //remove the search highlight
+    const questionAnswerView = this.shadowRoot.querySelector('st-question-answer-view');
+    if(questionAnswerView) {
+      questionAnswerView.classList.remove('questionSearchHighlight');
     }
   }
 

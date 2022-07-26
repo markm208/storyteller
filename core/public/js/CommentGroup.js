@@ -163,14 +163,18 @@ class CommentGroup extends HTMLElement {
     editCommentGroupButton.classList.add('inactive');
   }
 
-  hideIrrelevantSearchResults(hideAllButThese) {
+  updateToDisplaySearchResults(searchResults) {
     //number of comments in the group that are not in the search results
     let hiddenCommentCount = 0;
+
     //get all of the comment views in this group
     const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
     allCommentViews.forEach(commentView => {
-      //if a comment view is not among the relevant search comments
-      if(hideAllButThese.has(commentView.comment.id) === false) {
+      //if a comment view is among the relevant search comments
+      if(searchResults.details[commentView.comment.id]) {
+        //update the comment view with the results
+        commentView.updateToDisplaySearchResults(searchResults.details[commentView.comment.id]);
+      } else { //this comment view should be hidden
         //hide the comment
         commentView.classList.add('nonRelevantSearchResult');
         //count how many comments in the group are hidden
@@ -187,10 +191,13 @@ class CommentGroup extends HTMLElement {
 
   revealCommentsBeforeSearch() {
     //get all of the hidden comment views
-    const allCommentViews = this.shadowRoot.querySelectorAll('.nonRelevantSearchResult');
+    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
     allCommentViews.forEach(commentView => {
-      //reveal them by removing the hidden class
-      commentView.classList.remove('nonRelevantSearchResult');
+      if(commentView.classList.contains('nonRelevantSearchResult')) {
+        //reveal them by removing the hidden class
+        commentView.classList.remove('nonRelevantSearchResult');
+      }
+      commentView.revealCommentsBeforeSearch();
     });
 
     //if this comment group was previously hidden, make it visible again

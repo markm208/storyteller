@@ -372,9 +372,12 @@ class CodeView extends HTMLElement {
     }
   }
 
-  updateToDisplaySearchResults(searchResults){
+  updateToDisplaySearchResults(searchResults) {
     const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
     playbackNavigator.updateToDisplaySearchResults(searchResults);
+
+    const editorView = this.shadowRoot.querySelector('st-editor-view');
+    editorView.updateToDisplaySearchResults(searchResults);
   }
 
   updateUIToAddNewComment() {
