@@ -664,7 +664,7 @@ class PlaybackEngine {
               searchResult.inQuestion = true;
             }
 
-            if(comment.questionCommentData.explanation.toLowerCase().includes(searchText.toLowerCase())) {
+            if(comment.questionCommentData.explanation && comment.questionCommentData.explanation.toLowerCase().includes(searchText.toLowerCase())) {
               isRelevantComment = true;
               searchResult.inQuestion = true;
             }
