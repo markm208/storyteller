@@ -139,6 +139,8 @@ class CommentTags extends HTMLElement {
           border: 1px solid gray;
           position: relative;
           height: fit-content;
+          background-color: rgb(51,51,51);
+          max-width: 500px;
         }
 
         #dropdownControls.hidden {
@@ -166,7 +168,6 @@ class CommentTags extends HTMLElement {
           <input type="text" id="tagInput" placeholder="Enter a tag..." />
           <input type="button" id="addTagButton" value="Add tag" />
         </div>
-        <div id="tagsDiv"></div>
         <div id='dropdownControls' class='hidden'>
           <div id="tagsDiv" class="tags hidden"></div>
           <button id="closeDropDown" title='Collapse tag options'>✕</button>
@@ -217,12 +218,18 @@ class CommentTags extends HTMLElement {
         dropDownButton.setAttribute('title', 'Expand tag options');
       }
 
-      dropdownControls.classList.toggle('hidden');
+      const dropDownControls = this.shadowRoot.querySelector('#dropdownControls');
+      dropDownControls.classList.toggle('hidden');
       tagsDiv.classList.toggle('hidden');
 
       if (!tagsDiv.classList.contains('hidden')) {
         tagsDiv.style.height = tagsDiv.scrollHeight - 15 + 'px';
         dropdownControls.style.height = dropdownControls.scrollHeight  + tagsDiv.scrollHeight - 15+ 'px';
+
+        setTimeout(() =>{
+          tagsDiv.style.height = 'fit-content';
+          dropDownControls.style.height = 'fit-content';
+        }, 1000);
       } else {
         tagsDiv.style.height = '0px';
         dropdownControls.style.height = '0px';
@@ -230,7 +237,7 @@ class CommentTags extends HTMLElement {
     });
 
     const dropdownCloseX = this.shadowRoot.querySelector('#closeDropDown');
-    dropdownCloseX.addEventListener('click', () =>{
+    dropdownCloseX.addEventListener('click', () => {
       dropDownButton.click();
     });
 
@@ -248,12 +255,12 @@ class CommentTags extends HTMLElement {
       this.addTag(tag.innerText);
       tag.remove();
 
-      const tags = this.shadowRoot.getElementById("tagsDiv");
+      const tagsDiv = this.shadowRoot.getElementById("tagsDiv");
 
       const dropdownControls = this.shadowRoot.querySelector('#dropdownControls');
       if (!dropdownControls.classList.contains('hidden')){
         dropdownControls.style.height = 'fit-content';
-        tags.style.height = 'fit-content';
+        tagsDiv.style.height = 'fit-content';
       }
     });
   }
@@ -288,7 +295,7 @@ class CommentTags extends HTMLElement {
 
       if (!tagsDiv.classList.contains('hidden'))
         tagsDiv.style.height = 'fit-content';
-        testing.style.height = 'fit-content';
+      testing.style.height = 'fit-content';
     });
   }
 
@@ -298,10 +305,10 @@ class CommentTags extends HTMLElement {
 
     if (!allTags.includes(tag)) {
       //if the tag is not in the comment but it is in the masterTagList
-      if (this.masterTagList.has(tag)){
+      if (this.masterTagList.has(tag)) {
         const dropdownItems = [...this.shadowRoot.querySelectorAll('.dropDownTag')];
         dropdownItems.forEach(dropdownItem => {
-          if (dropdownItem.innerText === tag){
+          if (dropdownItem.innerText === tag) {
             dropdownItem.click();
             return;
           }
