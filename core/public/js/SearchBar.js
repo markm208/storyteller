@@ -74,7 +74,7 @@ class SearchBar extends HTMLElement {
       <div class="searchControls">
         <div id="clearSearchResults"></div>
         <div class='searchForm'>
-          <input type="search" id='searchBar' class="searchInput" placeHolder="Search" autocomplete="off"></input>
+          <input type="search" id='searchBar' class="searchInput" placeHolder="Search" autocomplete="off" spellcheck="false"></input>
           <button class="resetSearchButton hidden" type="reset" title='Clear search results'>✕</button>
         </div>
       </div>
