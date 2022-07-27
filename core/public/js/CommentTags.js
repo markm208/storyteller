@@ -227,13 +227,15 @@ class CommentTags extends HTMLElement {
 
 
       if (!tags.classList.contains('hidden')) {
-        //tags.style.display = 'block'
+        //without setting the height to an actual number, the animation wont work 
         tags.style.height = tags.scrollHeight - 20 + 'px';
         dropDownControls.style.height = dropDownControls.scrollHeight + tags.scrollHeight - 20 + 'px';
 
+        dropDownButton.disabled = true;
         setTimeout(() =>{
           tags.style.height = 'fit-content';
           dropDownControls.style.height = 'fit-content';
+          dropDownButton.disabled = false;
         }, 400);
 
       } else {

@@ -100,6 +100,7 @@ class ProjectManager extends FileBackedCollection {
         //add the description comment
         this.commentManager.addComment({
             commentText: 'Enter a playback description.',
+            commentTitle: '',
             timestamp: new Date().getTime(),
             displayCommentEvent: lastEvent,
             developerGroupId: this.developerManager.anonymousDeveloperGroup.id, 
