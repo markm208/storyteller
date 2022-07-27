@@ -6,38 +6,36 @@ class CommentTags extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
 
-    //all the default tags
     const permanentCommentTags = ['all-tests-pass', 'successful-run', 'version-control-commit'];
 
-    //all tags from the comment
-    let allTags = permanentCommentTags.concat(tags);
-    
-    //format and alphabetize all of the tags
-    allTags = this.formatArrayOfTags(allTags);
-    
-    //store the tags without dups
-    this.masterTagList = new Set(allTags);
+    let allNonCommentTags = permanentCommentTags.concat(this.playbackEngine.commentInfo.allTags);
+    allNonCommentTags = this.formatArrayOfTags(allNonCommentTags);
 
-    //add the tags that are not already part of the comment's tags to the dropdown of selectable tags
-    this.masterTagList.forEach(tagToAvoid => {
-      if (!tags.includes(tagToAvoid)) {
-        this.addTagToDropdown(tagToAvoid)
-      }
-    });
+    this.masterTagList = new Set(allNonCommentTags);
 
     //create and add tag to tagsDiv
     const allTagsInComment = this.formatArrayOfTags(tags);
     allTagsInComment.forEach(tag => {
       this.addTag(tag);
-    });
+    })
+
+    //TODO change ids/classes of divs
+
+
+    this.masterTagList.forEach(tagToAvoid => {
+      if (!tags.includes(tagToAvoid)) {
+        this.addTagToDropdown(tagToAvoid)
+      }
+    })
   }
 
   getTemplate() {
     const template = document.createElement('template');
     template.innerHTML = `
       <style>
-        .dropDownButton {
+        .dropdown_button {
           background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lightgray" class="bi bi-caret-right-fill" viewBox="0 0 16 16"><path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/></svg>');
+
           background-repeat: no-repeat;
           height: 2.4em;
           width: 2em;
@@ -52,18 +50,20 @@ class CommentTags extends HTMLElement {
           cursor: pointer;
         }
 
-        .dropDownButton.expanded {
+        .dropdown_button.expanded{
           background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lightgray" class="bi bi-caret-down-fill" viewBox="0 0 16 16"><path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>');
         }
         
         .tags {
           display: block;
-          background-color: rgb(51,51,51);
+         // position: absolute;
           min-width: 20px;
+         // box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
           z-index: 1;
+         // min-height: 20px;  
           overflow: hidden;
           transition: height 0.4s ease;
-          max-width: 410px;
+          //border: solid gray;
           height: fit-content;
           word-wrap: break-word;
           padding: 10px;
@@ -72,6 +72,8 @@ class CommentTags extends HTMLElement {
         .tags.hidden {
           transition: all 0.4s ease;
           height: 0px;
+
+          //display: none;
           overflow: hidden;
           border: none;
           padding: 0px;
@@ -146,6 +148,8 @@ class CommentTags extends HTMLElement {
         #dropdownControls.hidden {
           transition: all 0.4s ease;
           height: 0px;
+
+          //display: none;
           overflow: hidden;
           border: none;
           padding: 0px;
@@ -160,18 +164,19 @@ class CommentTags extends HTMLElement {
           background-color: inherit;
           cursor: pointer;
         }
-      </style>
 
+      </style>
       <div id="outerDiv">
         <div id="controls">
-          <button class="dropDownButton" title="Expand tag options"></button>
+          <button class="dropdown_button" title="Expand tag options"></button>
           <input type="text" id="tagInput" placeholder="Enter a tag..." />
           <input type="button" id="addTagButton" value="Add tag" />
         </div>
-        <div id='dropdownControls' class='hidden'>
-          <div id="tagsDiv" class="tags hidden"></div>
-          <button id="closeDropDown" title='Collapse tag options'>✕</button>
-        </div>
+            <div id="tagsDiv"></div>
+            <div id='dropdownControls' class='hidden'>
+              <div id="tags-div" class="tags hidden"></div>
+              <button id="closeDropDown" title='Collapse tag options'>✕</button>
+            </div>
       </div>
     `;
     return template.content.cloneNode(true);
@@ -184,13 +189,11 @@ class CommentTags extends HTMLElement {
     addTagButton.addEventListener('click', () => {
       const tagValue = tagInput.value;
 
-      //if there is some text in the tag name input
       if (tagValue.length) {
-        //add the tag
         this.addTag(tagValue);
       }
       tagInput.value = '';
-    });
+    })
 
     tagInput.addEventListener('keydown', event => {
       //add a key down listener to stop keys from affecting the playback
@@ -200,14 +203,14 @@ class CommentTags extends HTMLElement {
         addTagButton.click();
       }
     });
+    var tags = this.shadowRoot.getElementById("tags-div");
 
-    const tagsDiv = this.shadowRoot.getElementById("tagsDiv");
-    tagsDiv.style.height = '0px';
+    tags.style.height = '0px';
 
-    const dropdownControls = this.shadowRoot.querySelector('#dropdownControls');
-    dropdownControls.style.height = '0px';
+    const test = this.shadowRoot.querySelector('#dropdownControls');
+    test.style.height = '0px';
 
-    const dropDownButton = this.shadowRoot.querySelector('.dropDownButton');
+    const dropDownButton = this.shadowRoot.querySelector('.dropdown_button');
     dropDownButton.addEventListener('click', (event) => {
       event.stopImmediatePropagation();
       dropDownButton.classList.toggle('expanded');
@@ -220,47 +223,53 @@ class CommentTags extends HTMLElement {
 
       const dropDownControls = this.shadowRoot.querySelector('#dropdownControls');
       dropDownControls.classList.toggle('hidden');
-      tagsDiv.classList.toggle('hidden');
+      tags.classList.toggle('hidden');
 
-      if (!tagsDiv.classList.contains('hidden')) {
-        tagsDiv.style.height = tagsDiv.scrollHeight - 15 + 'px';
-        dropdownControls.style.height = dropdownControls.scrollHeight  + tagsDiv.scrollHeight - 15+ 'px';
 
+      if (!tags.classList.contains('hidden')) {
+        //without setting the height to an actual number, the animation wont work 
+        tags.style.height = tags.scrollHeight - 20 + 'px';
+        dropDownControls.style.height = dropDownControls.scrollHeight + tags.scrollHeight - 20 + 'px';
+
+        dropDownButton.disabled = true;
         setTimeout(() =>{
-          tagsDiv.style.height = 'fit-content';
+          tags.style.height = 'fit-content';
           dropDownControls.style.height = 'fit-content';
-        }, 1000);
+          dropDownButton.disabled = false;
+        }, 400);
+
       } else {
-        tagsDiv.style.height = '0px';
-        dropdownControls.style.height = '0px';
+        // tags.style.display = 'none';
+        tags.style.height = '0px';
+        dropDownControls.style.height = '0px';
       }
     });
 
     const dropdownCloseX = this.shadowRoot.querySelector('#closeDropDown');
     dropdownCloseX.addEventListener('click', () => {
       dropDownButton.click();
-    });
+    })
 
     //prevent the click event from bubbling higher to avoid click listeners in other components
     this.shadowRoot.addEventListener('click', (event) => {
       event.stopImmediatePropagation();
-    });
+    })
   }
 
   addEventListenerToDropdownItem(tag) {
     tag.addEventListener('click', (event) => {
       event.stopImmediatePropagation();
-      event.preventDefault();
 
+      event.preventDefault();
       this.addTag(tag.innerText);
       tag.remove();
+      var tags = this.shadowRoot.getElementById("tags-div");
 
-      const tagsDiv = this.shadowRoot.getElementById("tagsDiv");
 
-      const dropdownControls = this.shadowRoot.querySelector('#dropdownControls');
-      if (!dropdownControls.classList.contains('hidden')){
-        dropdownControls.style.height = 'fit-content';
-        tagsDiv.style.height = 'fit-content';
+      const testing = this.shadowRoot.querySelector('#dropdownControls');
+      if (!testing.classList.contains('hidden')) {
+        testing.style.height = 'fit-content';
+        tags.style.height = 'fit-content ';
       }
     });
   }
@@ -277,7 +286,7 @@ class CommentTags extends HTMLElement {
   }
 
   addTagToDropdown(tag) {
-    const tagsDiv = this.shadowRoot.querySelector('#tagsDiv');
+    const tagsDiv = this.shadowRoot.querySelector('#tags-div');
     const dropDownTagsDiv = this.shadowRoot.querySelectorAll('.dropDownTag');
     const tagsArray = [tag];
 
@@ -304,6 +313,7 @@ class CommentTags extends HTMLElement {
     let allTags = this.getAllTags();
 
     if (!allTags.includes(tag)) {
+
       //if the tag is not in the comment but it is in the masterTagList
       if (this.masterTagList.has(tag)) {
         const dropdownItems = [...this.shadowRoot.querySelectorAll('.dropDownTag')];
@@ -318,6 +328,7 @@ class CommentTags extends HTMLElement {
       allTags.push(tag);
       allTags.sort();
 
+      //TODO come up with an algorithm to drop the new tag in it's right place alphabetically
       const tagDiv = this.shadowRoot.querySelector('#tagsDiv');
       tagDiv.innerHTML = '';
       allTags.forEach(tag => {
@@ -360,15 +371,6 @@ class CommentTags extends HTMLElement {
       retVal.push(tag.firstChild.textContent);
     });
     return retVal;
-  }
-
-  closeDropDown() {
-    const tags = this.shadowRoot.getElementById("tagsDiv");
-
-    if (!tags.classList.contains('hidden')) {
-      const dropDownButton = this.shadowRoot.querySelector('.dropDownButton');
-      dropDownButton.click();
-    }
   }
 }
 window.customElements.define('st-comment-tags', CommentTags);
