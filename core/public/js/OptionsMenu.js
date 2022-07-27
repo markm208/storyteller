@@ -24,15 +24,19 @@ class OptionsMenu extends HTMLElement {
 
             .btn
             {
-                border: double;
+                border: 1px solid lightgray;
+                color: lightgray;
+                background-color: inherit;
                 cursor: pointer;
                 font-weight: bold;
                 height: 35px;
                 width: 45%;
+                opacity: .8;
+                border-radius: 5px;
             }
-            .btn:active
+            .btn:hover
             {
-                opacity: .5;
+                opacity: 1;
             }
             .buttonCommand
             {
@@ -76,6 +80,10 @@ class OptionsMenu extends HTMLElement {
                 width: 30%;
                 z-index: 100;
             }
+            .modal.visible {
+                display: inline-block;
+            }
+
             .modal-body
             {
                 background-color: rgb(31,31,31);
@@ -98,13 +106,13 @@ class OptionsMenu extends HTMLElement {
             {
                 background-color: rgb(51,51,51);
                 border-bottom: 1px solid #dee2e6;
-                color: grey;
+                color: lightgrey;
                 font-size: 1.25rem;
                 padding: 1rem 1rem;
             }
             .modal-title
             {
-                font-size: xx-large;
+                font-size: 1.1em;
                 margin: 0;
                 padding: 1px 0px;
             }
@@ -153,7 +161,7 @@ class OptionsMenu extends HTMLElement {
             }
             .tabLink:hover:not(.activeTab)
             {
-                opacity: .3;
+                opacity: .7;
             }
         </style>
     
@@ -220,7 +228,7 @@ class OptionsMenu extends HTMLElement {
 
     connectedCallback() {    
        const modal = this.shadowRoot.querySelector('#modal-Opener');
-       modal.addEventListener('click', this.showModal);
+       modal.addEventListener('click', this.toggleModal);
 
        const closeButton = this.shadowRoot.querySelector('.close');
        closeButton.addEventListener('click', this.hideModal);
@@ -268,29 +276,22 @@ class OptionsMenu extends HTMLElement {
         textBiggerButton.removeEventListener('click', this.increaseFontSize);
     }
 
-    updateForModeChange(newMode) {
-        const modalOpener = this.shadowRoot.querySelector('#modal-Opener');
-        //if changing to code mode
-        if(newMode === 'code') {
-            modalOpener.classList.remove('disabled');
-        } else { //changing to blog mode
-            modalOpener.classList.add('disabled');
+    toggleModal = () => {
+        const modal = this.shadowRoot.querySelector('.modal');
+        if(modal.classList.contains('visible')) {
+            this.hideModal();
+        } else {
+            this.showModal();
         }
     }
-
     showModal = () => {
-        const modalOpener = this.shadowRoot.querySelector('#modal-Opener');
-        
-        //if the button is not disabled
-        if(modalOpener.classList.contains('disabled') === false) {
-            const modal = this.shadowRoot.querySelector('.modal');
-            modal.style.display = 'inline-block';
-        }
+        const modal = this.shadowRoot.querySelector('.modal');
+        modal.classList.add('visible');
     }
 
     hideModal = () => {
         const modal = this.shadowRoot.querySelector('.modal');
-        modal.style.display = 'none';        
+        modal.classList.remove('visible');
 
         //make the options tab active again for the next time the modal is brought up
         const optionsModal = this.shadowRoot.querySelector('.options');

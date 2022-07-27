@@ -218,6 +218,27 @@ class CodeView extends HTMLElement {
       event.preventDefault();
     });
 
+    //playback speed increased
+    this.shadowRoot.addEventListener('increase-playback-speed', () => {
+      //if there is a code view make it go faster
+      this.adjustPlaybackSpeed(-25);
+    });
+
+    //playback speed decreased
+    this.shadowRoot.addEventListener('decrease-playback-speed', () => {
+      this.adjustPlaybackSpeed(50);
+    });
+
+    //request an increase in the editor font size
+    this.shadowRoot.addEventListener('increase-font', event => {
+      this.increaseEditorFontSize();
+    });
+
+    //request a decrease in the editor font size
+    this.shadowRoot.addEventListener('decrease-font', event => {
+      this.decreaseEditorFontSize();
+    });
+
     document.addEventListener('keydown', this.addKeyListeners);
   }
 
@@ -270,19 +291,11 @@ class CodeView extends HTMLElement {
       event.preventDefault();
       event.stopPropagation();
     } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowUp') { //ctrl + shift + up arrow press
-      //make the font bigger
-      this.editorProperties.fontSize = this.editorProperties.fontSize + 4;
-      //update the editor
-      this.updateEditorFontSize(this.editorProperties.fontSize);
-
+      this.increaseEditorFontSize();
       event.preventDefault();
       event.stopPropagation();
     } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowDown') { //ctrl + shift + down arrow press
-      //make the font smaller
-      this.editorProperties.fontSize = this.editorProperties.fontSize - 2;
-      //update the editor
-      this.updateEditorFontSize(this.editorProperties.fontSize);
-      
+      this.decreaseEditorFontSize();
       event.preventDefault();
       event.stopPropagation();
     } else if (event.code === 'Space') {
@@ -630,7 +643,19 @@ class CodeView extends HTMLElement {
     const editorView = this.shadowRoot.querySelector('st-editor-view');
     editorView.updateEditorFontSize(newFontSize);
   }
-  
+  increaseEditorFontSize() {
+    //make the font bigger
+    this.editorProperties.fontSize = this.editorProperties.fontSize + 4;
+    //update the editor
+    this.updateEditorFontSize(this.editorProperties.fontSize);
+  }
+  decreaseEditorFontSize() {
+    //make the font smaller
+    this.editorProperties.fontSize = this.editorProperties.fontSize - 2;
+    //update the editor
+    this.updateEditorFontSize(this.editorProperties.fontSize);
+  }
+
   //adjusts playback speed
   adjustPlaybackSpeed(delta) {
     //adjust the playback speed

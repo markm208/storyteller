@@ -195,10 +195,6 @@ class TitleBar extends HTMLElement {
     searchBar.updateToDisplaySearchResults(searchResults.numberOfResults, this.playbackEngine.commentInfo.totalNumberOfComments, searchText);
   }
 
-  updateForModeChange(newMode) {
-    //
-  }
-
   updateToEnableSearch() {
     const searchBar = this.shadowRoot.querySelector('st-search-bar');
     searchBar.updateToEnableSearch();

@@ -79,10 +79,8 @@ class App extends HTMLElement {
       //create the requested view
       if(newMode === 'code') {
         newView = new CodeView(this.playbackEngine, this.editorProperties);
-        titleBar.updateForModeChange('code');
       } else { //blog view
         newView = new BlogView(this.playbackEngine, this.editorProperties);
-        titleBar.updateForModeChange('blog');
       }
 
       //add the new view
@@ -117,34 +115,6 @@ class App extends HTMLElement {
       titleBar.updateToDisableSearch();
     });
 
-    //playback speed increased
-    this.shadowRoot.addEventListener('increase-playback-speed', () => {
-      //if there is a code view make it go faster
-      if (this.activeMode === 'code') {
-        const codeView = this.shadowRoot.querySelector('st-code-view');
-        codeView.adjustPlaybackSpeed(-25);
-      }
-    });
-
-    //playback speed decreased
-    this.shadowRoot.addEventListener('decrease-playback-speed', () => {
-      //if there is a code view make it go slower
-      if (this.activeMode === 'code') {
-        const codeView = this.shadowRoot.querySelector('st-code-view');
-        codeView.adjustPlaybackSpeed(50);
-      }
-    });
-
-    //request an increase in the editor font size
-    this.shadowRoot.addEventListener('increase-font', event => {
-      this.increaseEditorFontSize();
-    });
-
-    //request a decrease in the editor font size
-    this.shadowRoot.addEventListener('decrease-font', event => {
-      this.decreaseEditorFontSize();
-    });
-    
     //request a change in the title
     this.shadowRoot.addEventListener('title-change', async event => {
       if(this.activeMode === 'code') {
