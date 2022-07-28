@@ -15,6 +15,7 @@ class TagView extends HTMLElement {
           display: flex;
           justify-content: right;
           align-items: baseline;
+          padding-bottom: 5px;
         }
 
         button {
