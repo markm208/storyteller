@@ -133,55 +133,6 @@ class App extends HTMLElement {
       const serverProxy = new ServerProxy();
       await serverProxy.updateTitleOnServer(event.detail.newTitle);
     });
-    
-    // document.addEventListener('keydown', event => {
-    //   //get the state of the keys
-    //   const keyPressed = event.key;
-    //   const shiftPressed = event.shiftKey;
-    //   const ctrlPressed = event.ctrlKey;
-
-    //   //keyboard controls
-    //   if (ctrlPressed && shiftPressed && keyPressed === 'ArrowRight') { //ctrl + shift + right arrow press
-    //     this.moveToEndOfPlayback();
-    //     event.preventDefault();
-    //   } else if(shiftPressed && keyPressed === 'ArrowRight') { //shift + right arrow press
-    //     this.moveToNextComment();
-    //     event.preventDefault();
-    //   } else if(keyPressed === 'ArrowRight') { //right arrow press
-    //     //move to the next event
-    //     this.pausePlayback(true);
-    //     this.playNextEvent();
-    //     event.preventDefault();
-    //   } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowLeft') { //ctrl + shift + left arrow press
-    //     this.moveToBeginningOfPlayback();
-    //     event.preventDefault();
-    //   } else if (shiftPressed && keyPressed === 'ArrowLeft') { //shift + left arrow press
-    //     this.moveToPreviousComment();
-    //     event.preventDefault();
-    //   } else if (keyPressed === 'ArrowLeft') {//left arrow press
-    //       //move to the previous event
-    //       this.pausePlayback(true);
-    //       this.playPreviousEvent();
-    //       event.preventDefault();
-    //   } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowUp') { //ctrl + shift + up arrow press
-    //     //make the font bigger
-    //     this.increaseEditorFontSize();
-    //     event.preventDefault();
-    //   } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowDown') { //ctrl + shift + down arrow press
-    //     //make the font smaller
-    //     this.decreaseEditorFontSize();
-    //     event.preventDefault();
-    //   } else if (event.code === "Space") {
-    //     //toggle play/pause 
-    //     this.pausePlayback(!this.autoPlayback.isPaused);
-    //     event.preventDefault();
-    //   } else if (ctrlPressed && shiftPressed && keyPressed === 'Enter') {
-    //     if (this.activeMode === 'code') {
-    //       const codeView = this.shadowRoot.querySelector('st-code-view');
-    //       codeView.addNewComment();
-    //     }
-    //   }
-    // });
   }
 
   //handles the search from the search bar

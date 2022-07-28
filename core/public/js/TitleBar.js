@@ -17,7 +17,7 @@ class TitleBar extends HTMLElement {
       :host {
         background-color: rgb(59,76,98);
         color: rgb(223, 242, 244);
-        padding: 5px 10px 10px 10px;
+        padding: 2px 10px;
         display: flex;
         align-items: center;
         justify-content: space-between;

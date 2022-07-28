@@ -21,13 +21,6 @@ class PlaybackEngine {
     this.firstRelevantEventIndex = 1;
     this.numRelevantEvents = this.playbackData.events.length - 1;
 
-    //used to track the play/pause state of the playback
-    this.autoPlayback = {
-      isPaused: true,
-      playTimer: null,
-      playbackSpeedMs: 75,
-    };
-
     //holds the changes from a playback engine interaction
     this.mostRecentChanges = {
       endedOnAComment: false,

@@ -67,6 +67,16 @@ class EditorView extends HTMLElement {
     aceEditor.updateForCommentSelected();
   }
 
+  updateForPlaybackPause() {
+    const playbackControls = this.shadowRoot.querySelector('st-playback-controls');
+    playbackControls.updateForPlaybackPause();
+  }
+  
+  updateForPlaybackPlay() {
+    const playbackControls = this.shadowRoot.querySelector('st-playback-controls');
+    playbackControls.updateForPlaybackPlay();
+  }
+
   updateEditorFontSize(newFontSize) {
     const aceEditor = this.shadowRoot.querySelector('st-ace-editor');
     aceEditor.updateEditorFontSize(newFontSize);

@@ -6,6 +6,13 @@ class CodeView extends HTMLElement {
     this.width = window.innerWidth * .27;
     this.playbackEngine = playbackEngine;
 
+    //used to track the play/pause state of the playback
+    this.autoPlayback = {
+      isPaused: true,
+      playTimer: null,
+      playbackSpeedMs: 75,
+    };
+
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
   }
@@ -300,7 +307,7 @@ class CodeView extends HTMLElement {
       event.stopPropagation();
     } else if (event.code === 'Space') {
       //toggle play/pause 
-      this.pausePlayback(!this.playbackEngine.autoPlayback.isPaused);
+      this.pausePlayback(!this.autoPlayback.isPaused);
       event.preventDefault();
       event.stopPropagation();
     } else if (ctrlPressed && shiftPressed && keyPressed === 'Enter') {
@@ -518,18 +525,35 @@ class CodeView extends HTMLElement {
 
   //used to switch from play->pause and pause->play
   pausePlayback = (newIsPaused) => {
-    if (newIsPaused === true) { //starting pause
-      //cancel timer
-      clearInterval(this.playbackEngine.autoPlayback.playTimer);
-      this.playbackEngine.autoPlayback.playTimer = null;
-    } else { //starting play
-      //start timer
-      if (this.playbackEngine.autoPlayback.playTimer === null && this.playbackEngine.mostRecentChanges.endingLocation !== 'end') {
-        //increment one event per interval
-        this.playbackEngine.autoPlayback.playTimer = setInterval(this.playNextEvent, this.playbackEngine.autoPlayback.playbackSpeedMs);
+    //if requesting to change to a different state
+    if(this.autoPlayback.isPaused !== newIsPaused) {
+      //starting pause
+      if (newIsPaused === true) { 
+        //cancel timer
+        clearInterval(this.autoPlayback.playTimer);
+        this.autoPlayback.playTimer = null;
+
+        //update the UI
+        const editorView = this.shadowRoot.querySelector('st-editor-view');
+        editorView.updateForPlaybackPause();
+
+        //store pause state
+        this.autoPlayback.isPaused = true;
+      } else { //starting play
+        //start timer if not at end 
+        if (this.autoPlayback.playTimer === null && this.playbackEngine.mostRecentChanges.endingLocation !== 'end') {
+          //increment one event per interval
+          this.autoPlayback.playTimer = setInterval(this.playNextEvent, this.autoPlayback.playbackSpeedMs);
+
+          //update the UI
+          const editorView = this.shadowRoot.querySelector('st-editor-view');
+          editorView.updateForPlaybackPlay();
+          
+          //store play state
+          this.autoPlayback.isPaused = false;
+        } //else- at end or timer already running, no change
       }
     }
-    this.playbackEngine.autoPlayback.isPaused = newIsPaused;
   }
 
   //interval function used to animate the events during a playback when the play button is pressed
@@ -659,9 +683,9 @@ class CodeView extends HTMLElement {
   //adjusts playback speed
   adjustPlaybackSpeed(delta) {
     //adjust the playback speed
-    this.playbackEngine.autoPlayback.playbackSpeedMs += delta;
-    if(this.playbackEngine.autoPlayback.playbackSpeedMs < 0) {
-      this.playbackEngine.autoPlayback.playbackSpeedMs = 0;
+    this.autoPlayback.playbackSpeedMs += delta;
+    if(this.autoPlayback.playbackSpeedMs < 0) {
+      this.autoPlayback.playbackSpeedMs = 0;
     }
   }
 
