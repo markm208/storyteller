@@ -50,7 +50,13 @@ class ShowHideComponent extends HTMLElement {
         }
 
         .hide {
-          display: none;
+          height: 0;
+          overflow: hidden;
+          transition: height 0.4s ease;
+        }
+
+        #slotContainer: {
+          height: fit-content;
         }
       </style>
       <div class='outerDiv'>
@@ -79,14 +85,30 @@ class ShowHideComponent extends HTMLElement {
       showHideToggleButton.classList.toggle('closedButton');
       if (showHideToggleButton.classList.contains('closedButton')) {
         titleBar.setAttribute('title', 'Click to expand');
+
+        slotContainer.style.height = slotContainer.scrollHeight + 'px';
+        titleBar.style.pointerEvents = 'none';
+
+        setTimeout(() =>{
+          slotContainer.style.height = '0px';
+          titleBar.style.pointerEvents = 'auto';
+        }, 1);
+
       } else {
         titleBar.setAttribute('title', 'Click to collapse');
+        slotContainer.style.height = slotContainer.scrollHeight + 'px';
+
+        titleBar.style.pointerEvents = 'none';
+        setTimeout(() =>{
+          slotContainer.style.height = 'fit-content';
+          titleBar.style.pointerEvents = 'auto';
+        }, 400);
       }
 
       const outerDiv = this.shadowRoot.querySelector('.outerDiv');
       outerDiv.classList.toggle('open');
 
-      slotContainer.classList.toggle('hide');
+      //slotContainer.classList.toggle('hide');
       title.classList.toggle('open');
     });
 
