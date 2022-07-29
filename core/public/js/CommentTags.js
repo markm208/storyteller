@@ -239,9 +239,17 @@ class CommentTags extends HTMLElement {
         }, 400);
 
       } else {
-        // tags.style.display = 'none';
-        tags.style.height = '0px';
-        dropDownControls.style.height = '0px';
+        tags.style.height = tags.scrollHeight + 'px';
+        dropDownControls.style.height = dropDownControls.scrollHeight + 'px';
+        dropDownButton.disabled = true;
+
+        setTimeout(() =>{
+          tags.style.height = '0px';
+          dropDownControls.style.height = '0px';
+          dropDownButton.disabled = false;
+        }, 1);
+
+
       }
     });
 
