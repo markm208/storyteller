@@ -124,10 +124,7 @@ class BlogCodeSnippet extends HTMLElement {
       //highlight the text in the editor
       this.aceEditor.findAll(searchText, {
         wrap: true,
-        caseSensitive: false, 
         preventScroll: true,
-        wholeWord: false,
-        regExp: false,
       });
     }
   }

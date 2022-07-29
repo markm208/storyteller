@@ -3,8 +3,6 @@ class PlaybackControls extends HTMLElement {
     super();
 
     this.playbackEngine = playbackEngine;
-    this.isPaused = true;
-    this.previousDevGroupId = playbackEngine.activeDevGroupId;
 
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
@@ -121,42 +119,17 @@ class PlaybackControls extends HTMLElement {
   }
 
   playClicked = () => {
-    //if they are not trying to play at a completed playback
-    if(this.playbackEngine.mostRecentChanges.endingLocation !== 'end') {
-      this.isPaused = false;
-      this.updatePlayPauseButton(false);
-      this.sendEventPlayClick();
-    }
+    this.sendEventPlayClick();
   }
 
   pauseClicked = () => {
-    //if they are not trying to pause at a completed playback
-    if(this.playbackEngine.mostRecentChanges.endingLocation !== 'end') {
-      this.isPaused = true;
-      this.updatePlayPauseButton(true);
-      this.sendEventPauseClick();
-    }
+    this.sendEventPauseClick();
   }
   
   updateForPlaybackMovement() {
     //if there has been a change in the dev group, update the dev avatars
     if(this.playbackEngine.mostRecentChanges.hasNewActiveDevGroup) {
       this.updateActiveDevGroup();
-    }
-
-    //if the playback is paused but the button is play
-    if(this.playbackEngine.autoPlayback.isPaused === true && this.isPaused === false) {
-      //change play/pause button to pause
-      this.isPaused = true;
-      this.updatePlayPauseButton(true);
-    } else if(this.playbackEngine.autoPlayback.isPaused === false && this.isPaused === true) { //if the playback is playing but the button is pause
-      //change play/pause button to play
-      this.isPaused = false;
-      this.updatePlayPauseButton(false);
-    } else if(this.playbackEngine.mostRecentChanges.endedOnAComment || this.playbackEngine.mostRecentChanges.endingLocation === 'end') { //ended on a comment or at the end of a playback
-      //pause and change the button
-      this.isPaused = true;
-      this.updatePlayPauseButton(true);
     }
 
     //update the slider to hold the new position
@@ -185,8 +158,14 @@ class PlaybackControls extends HTMLElement {
       developerGroups: this.playbackEngine.playbackData.developerGroups
     });
     devAvatars.appendChild(devGroupAvatar);
+  }
 
-    this.previousDevGroupId = this.playbackEngine.activeDevGroupId;
+  updateForPlaybackPause() {
+    this.updatePlayPauseButton(true);
+  }
+  
+  updateForPlaybackPlay() {
+    this.updatePlayPauseButton(false);
   }
 
   updatePlayPauseButton(isPaused) {

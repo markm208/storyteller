@@ -110,43 +110,7 @@ class VerticalMediaContainer extends HTMLElement {
     addNewMediaButton.addEventListener('click', this.createFileChooser);
 
     //the paste file event handler
-    window.addEventListener("paste", pasteEvent => {
-      //check for clipboard data
-      if (pasteEvent.clipboardData) {
-        //whether the paste data has media files or not
-        let pasteHasFiles = false;
-        let acceptableMimeTypes;
-
-        //acceptable image mime types
-        if (this.mediaType === 'image') {
-          acceptableMimeTypes = this.acceptableImageMimeTypes;
-        } else if (this.mediaType === 'video') {
-          acceptableMimeTypes = this.acceptableVideoMimeTypes;
-        } else if (this.mediaType === 'audio') {
-          acceptableMimeTypes = this.acceptableAudioMimeTypes;
-        }
-
-        //get all of the files on the clipboard
-        const files = pasteEvent.clipboardData.files;
-        //go through the clipboard files if there are any
-        for (let i = 0; i < files.length; i++) {
-          //if the clipboard data has any files and they are acceptable images
-          if (acceptableMimeTypes.includes(files[i].type)) {
-            //indicate that media files will be added to the comment
-            pasteHasFiles = true;
-            break;
-          }
-        }
-        //if new images will be added to the media pop up
-        if (pasteHasFiles) {
-          //prevent a paste in the comment text box if it has the focus
-          pasteEvent.preventDefault();
-
-          //add the files from the clipboard to the comment
-          this.sendFilesToServer(pasteEvent.clipboardData.files);
-        }
-      }
-    });
+    document.addEventListener('paste', this.handlePaste);
 
     //dragging and dropping existing media
     mediaContainer.addEventListener('dragover', event => {
@@ -163,7 +127,7 @@ class VerticalMediaContainer extends HTMLElement {
           mediaContainer.insertBefore(draggable.parentElement, afterElement.parentElement);
         }
       }
-    })
+    });
 
     //TODO add ability to drop media files in from operating system
     mediaContainer.addEventListener('drop', event => {
@@ -180,7 +144,7 @@ class VerticalMediaContainer extends HTMLElement {
 
       event.preventDefault();
       event.stopPropagation();
-    })
+    });
   }
 
   disconnectedCallback() {
@@ -188,6 +152,8 @@ class VerticalMediaContainer extends HTMLElement {
       //delete any media explicitly added by the user but not committed
       this.deleteMedia(this.newMediaURLsToAdd);
     }
+
+    document.removeEventListener('paste', this.handlePaste);
   }
 
   createFileChooser = event => {
@@ -213,6 +179,44 @@ class VerticalMediaContainer extends HTMLElement {
     });
     //simulate a click on the file chooser
     fileInput.click();
+  }
+
+  handlePaste = pasteEvent => {
+    //check for clipboard data
+    if (pasteEvent.clipboardData) {
+      //whether the paste data has media files or not
+      let pasteHasFiles = false;
+      let acceptableMimeTypes;
+
+      //acceptable image mime types
+      if (this.mediaType === 'image') {
+        acceptableMimeTypes = this.acceptableImageMimeTypes;
+      } else if (this.mediaType === 'video') {
+        acceptableMimeTypes = this.acceptableVideoMimeTypes;
+      } else if (this.mediaType === 'audio') {
+        acceptableMimeTypes = this.acceptableAudioMimeTypes;
+      }
+
+      //get all of the files on the clipboard
+      const files = pasteEvent.clipboardData.files;
+      //go through the clipboard files if there are any
+      for (let i = 0; i < files.length; i++) {
+        //if the clipboard data has any files and they are acceptable images
+        if (acceptableMimeTypes.includes(files[i].type)) {
+          //indicate that media files will be added to the comment
+          pasteHasFiles = true;
+          break;
+        }
+      }
+      //if new images will be added to the media pop up
+      if (pasteHasFiles) {
+        //prevent a paste in the comment text box if it has the focus
+        pasteEvent.preventDefault();
+
+        //add the files from the clipboard to the comment
+        this.sendFilesToServer(pasteEvent.clipboardData.files);
+      }
+    }
   }
 
   async sendFilesToServer(files) {

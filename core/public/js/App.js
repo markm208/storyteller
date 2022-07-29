@@ -79,10 +79,8 @@ class App extends HTMLElement {
       //create the requested view
       if(newMode === 'code') {
         newView = new CodeView(this.playbackEngine, this.editorProperties);
-        titleBar.updateForModeChange('code');
       } else { //blog view
         newView = new BlogView(this.playbackEngine, this.editorProperties);
-        titleBar.updateForModeChange('blog');
       }
 
       //add the new view
@@ -117,34 +115,6 @@ class App extends HTMLElement {
       titleBar.updateToDisableSearch();
     });
 
-    //playback speed increased
-    this.shadowRoot.addEventListener('increase-playback-speed', () => {
-      //if there is a code view make it go faster
-      if (this.activeMode === 'code') {
-        const codeView = this.shadowRoot.querySelector('st-code-view');
-        codeView.adjustPlaybackSpeed(-25);
-      }
-    });
-
-    //playback speed decreased
-    this.shadowRoot.addEventListener('decrease-playback-speed', () => {
-      //if there is a code view make it go slower
-      if (this.activeMode === 'code') {
-        const codeView = this.shadowRoot.querySelector('st-code-view');
-        codeView.adjustPlaybackSpeed(50);
-      }
-    });
-
-    //request an increase in the editor font size
-    this.shadowRoot.addEventListener('increase-font', event => {
-      this.increaseEditorFontSize();
-    });
-
-    //request a decrease in the editor font size
-    this.shadowRoot.addEventListener('decrease-font', event => {
-      this.decreaseEditorFontSize();
-    });
-    
     //request a change in the title
     this.shadowRoot.addEventListener('title-change', async event => {
       if(this.activeMode === 'code') {
@@ -163,55 +133,6 @@ class App extends HTMLElement {
       const serverProxy = new ServerProxy();
       await serverProxy.updateTitleOnServer(event.detail.newTitle);
     });
-    
-    // document.addEventListener('keydown', event => {
-    //   //get the state of the keys
-    //   const keyPressed = event.key;
-    //   const shiftPressed = event.shiftKey;
-    //   const ctrlPressed = event.ctrlKey;
-
-    //   //keyboard controls
-    //   if (ctrlPressed && shiftPressed && keyPressed === 'ArrowRight') { //ctrl + shift + right arrow press
-    //     this.moveToEndOfPlayback();
-    //     event.preventDefault();
-    //   } else if(shiftPressed && keyPressed === 'ArrowRight') { //shift + right arrow press
-    //     this.moveToNextComment();
-    //     event.preventDefault();
-    //   } else if(keyPressed === 'ArrowRight') { //right arrow press
-    //     //move to the next event
-    //     this.pausePlayback(true);
-    //     this.playNextEvent();
-    //     event.preventDefault();
-    //   } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowLeft') { //ctrl + shift + left arrow press
-    //     this.moveToBeginningOfPlayback();
-    //     event.preventDefault();
-    //   } else if (shiftPressed && keyPressed === 'ArrowLeft') { //shift + left arrow press
-    //     this.moveToPreviousComment();
-    //     event.preventDefault();
-    //   } else if (keyPressed === 'ArrowLeft') {//left arrow press
-    //       //move to the previous event
-    //       this.pausePlayback(true);
-    //       this.playPreviousEvent();
-    //       event.preventDefault();
-    //   } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowUp') { //ctrl + shift + up arrow press
-    //     //make the font bigger
-    //     this.increaseEditorFontSize();
-    //     event.preventDefault();
-    //   } else if (ctrlPressed && shiftPressed && keyPressed === 'ArrowDown') { //ctrl + shift + down arrow press
-    //     //make the font smaller
-    //     this.decreaseEditorFontSize();
-    //     event.preventDefault();
-    //   } else if (event.code === "Space") {
-    //     //toggle play/pause 
-    //     this.pausePlayback(!this.autoPlayback.isPaused);
-    //     event.preventDefault();
-    //   } else if (ctrlPressed && shiftPressed && keyPressed === 'Enter') {
-    //     if (this.activeMode === 'code') {
-    //       const codeView = this.shadowRoot.querySelector('st-code-view');
-    //       codeView.addNewComment();
-    //     }
-    //   }
-    // });
   }
 
   //handles the search from the search bar

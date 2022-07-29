@@ -466,10 +466,7 @@ class AceEditor extends HTMLElement {
       //highlight the text in the editor
       this.aceEditor.findAll(this.searchText, {
         wrap: true,
-        caseSensitive: false, 
         preventScroll: true,
-        wholeWord: false,
-        regExp: false,
       });
     }
   }
