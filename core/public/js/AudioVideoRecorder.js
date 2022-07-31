@@ -308,14 +308,15 @@ class AudioVideoRecorder extends HTMLElement {
   * Clean up the media controls for capturing audio/video
   */
   tearDownMediaRecordingOfComments() {
-    //get all the 'tracks' from the media stream
-    const allMediaStreamTracks = this.mediaStream.getTracks();
+    if(this.mediaStream) {
+      //get all the 'tracks' from the media stream
+      const allMediaStreamTracks = this.mediaStream.getTracks();
 
-    //go through each track and stop it
-    for(let i = 0;i < allMediaStreamTracks.length;i++) {
-      allMediaStreamTracks[i].stop();
+      //go through each track and stop it
+      for(let i = 0;i < allMediaStreamTracks.length;i++) {
+        allMediaStreamTracks[i].stop();
+      }
     }
-
     //reset the media stream
     this.mediaStream = null;
 
