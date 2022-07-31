@@ -251,8 +251,6 @@ class CommentTags extends HTMLElement {
       event.preventDefault();
       this.addTag(tag.innerText);
       tag.remove();
-      var tags = this.shadowRoot.getElementById("tags-div");
-
 
       const dropdownControls = this.shadowRoot.querySelector('#dropdownControls');
       if (!dropdownControls.classList.contains('hidden')) {
@@ -289,7 +287,7 @@ class CommentTags extends HTMLElement {
 
       const dropdownControls = this.shadowRoot.querySelector('#dropdownControls');
 
-      if (!tagsDiv.classList.contains('hidden'))
+      if (!dropdownControls.classList.contains('hidden'))
       dropdownControls.style.height = 'fit-content';
     });
   }
