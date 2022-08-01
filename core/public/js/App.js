@@ -133,6 +133,12 @@ class App extends HTMLElement {
       const serverProxy = new ServerProxy();
       await serverProxy.updateTitleOnServer(event.detail.newTitle);
     });
+
+    this.shadowRoot.addEventListener('add-edit-delete-comment', event => {
+      //update the title bar when the comments change (read time estimate)
+      const titleBar = this.shadowRoot.querySelector('st-title-bar');
+      titleBar.updateForAddEditDeleteComment();
+    });
   }
 
   //handles the search from the search bar

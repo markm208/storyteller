@@ -359,6 +359,9 @@ class CodeView extends HTMLElement {
     //if the add/edit comment UI is visible then close it
     this.updateUIToCancelAddEditComment();
 
+    //notify with an event that the comments have changed
+    this.notifyAddEditDeleteComment();
+
     //if there are a different number of comment groups
     if(this.playbackEngine.mostRecentChanges.numberOfCommentGroupsChanged) {
       //update the editor's slider
@@ -701,6 +704,15 @@ class CodeView extends HTMLElement {
   notifyEnableSearch() {
     //send an event that the search functionality should be enabled
     const event = new CustomEvent('enable-search', { 
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
+  }
+
+  notifyAddEditDeleteComment() {
+    //send an event that a comment has been changed
+    const event = new CustomEvent('add-edit-delete-comment', { 
       bubbles: true, 
       composed: true 
     });
