@@ -30,11 +30,11 @@ class TagView extends HTMLElement {
         .tagDiv {
           background-color: transparent;
           border: 1px solid lightgray;
-          padding: 1px 5px 5px 5px;
+          padding:5px;
           border-radius: 5px;
           display: inline-block;
           opacity: .8;
-          margin: 2px 2px;
+          margin: 2px;
         }
         .tagDiv:hover {
           opacity: 1;
