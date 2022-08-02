@@ -13,9 +13,9 @@ class TagView extends HTMLElement {
       <style>
         .tagContainer {
           display: flex;
+          flex-wrap: wrap;
           justify-content: right;
           align-items: baseline;
-          padding-bottom: 5px;
         }
 
         button {
@@ -34,7 +34,7 @@ class TagView extends HTMLElement {
           border-radius: 5px;
           display: inline-block;
           opacity: .8;
-          margin: 0px 2px;
+          margin: 2px 2px;
         }
         .tagDiv:hover {
           opacity: 1;
