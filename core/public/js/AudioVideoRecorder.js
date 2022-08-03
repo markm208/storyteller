@@ -12,7 +12,7 @@ class AudioVideoRecorder extends HTMLElement {
     //for webcam/mic and recording the stream of data it produces
     this.mediaStream = null;
     this.mediaRecorder = null;
-    this.mediaType = ''; //mpeg or mp4
+    this.mediaType = ''; //mpeg or webm
 
     //holds raw media data
     this.chunksOfMediaData = [];
@@ -138,8 +138,8 @@ class AudioVideoRecorder extends HTMLElement {
 
       //create the element to hold the new media and set the type of file
       mostRecentRecording = document.createElement('video');
-      this.mediaType = 'video/mp4';
-      this.savedFileName = 'browserVideo.mp4';
+      this.mediaType = 'video/webm';
+      this.savedFileName = 'browserVideo.webm';
   
     } else { //audio
       //no preview is needed for audio
