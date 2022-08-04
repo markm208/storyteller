@@ -87,33 +87,37 @@ class VerticalMediaContainer extends HTMLElement {
         display: none;
       }
       </style>
-      <div class="header">
-        <span id="typeLabel">${typeLabel}</span>
-        <span>
-          <span id="addAudioButton" class="newMediaButton hidden" title="Click to add a new audio file from your mic.">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-mic" viewBox="0 0 16 16">
-              <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z"/>
-              <path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0v5zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3z"/>
-            </svg>
+      <div id='dropTesting'>
+        <div class="header">
+          <span id="typeLabel">${typeLabel}</span>
+          <span>
+            <span id="addAudioButton" class="newMediaButton hidden" title="Click to add a new audio file from your mic.">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-mic" viewBox="0 0 16 16">
+                <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z"/>
+                <path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0v5zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3z"/>
+              </svg>
+            </span>
+            <span id="addVideoButton" class="newMediaButton hidden" title="Click to add a new video from your web cam.">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-webcam" viewBox="0 0 16 16">
+                <path d="M0 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H9.269c.144.162.33.324.531.475a6.785 6.785 0 0 0 .907.57l.014.006.003.002A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.224-.947l.003-.002.014-.007a4.473 4.473 0 0 0 .268-.148 6.75 6.75 0 0 0 .639-.421c.2-.15.387-.313.531-.475H2a2 2 0 0 1-2-2V6Zm2-1a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H2Z"/>
+                <path d="M8 6.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0Zm7 0a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/>
+              </svg>
+            </span>
+            <span id="addNewMediaButton" class="newMediaButton" title="Click to add a new ${this.mediaType} here from your file system (or paste a file).">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
+            </span>
           </span>
-          <span id="addVideoButton" class="newMediaButton hidden" title="Click to add a new video from your web cam.">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-webcam" viewBox="0 0 16 16">
-              <path d="M0 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H9.269c.144.162.33.324.531.475a6.785 6.785 0 0 0 .907.57l.014.006.003.002A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.224-.947l.003-.002.014-.007a4.473 4.473 0 0 0 .268-.148 6.75 6.75 0 0 0 .639-.421c.2-.15.387-.313.531-.475H2a2 2 0 0 1-2-2V6Zm2-1a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H2Z"/>
-              <path d="M8 6.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0Zm7 0a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/>
-            </svg>
-          </span>
-          <span id="addNewMediaButton" class="newMediaButton" title="Click to add a new ${this.mediaType} here from your file system (or paste a file).">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
-              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-            </svg>
-          </span>
-        </span>
-      </div>
-      <div id="createNewMediaContainer" class="hidden"></div>
-      <div class="mediaContainer">
-      </div>
-      <hr/>`;
+        </div>
+        <div id="createNewMediaContainer" class="hidden"></div>
+        <div class="mediaContainer">
+        </div>
+        <hr/>
+      </div>`
+      
+      ;
 
     return template.content.cloneNode(true);
   }
@@ -164,20 +168,41 @@ class VerticalMediaContainer extends HTMLElement {
     });
 
     //TODO add ability to drop media files in from operating system
-    mediaContainer.addEventListener('drop', event => {
-      var data = event.dataTransfer.getData('text/html');
-      if (data === 'internal-drag') {
-        //TODO is this being used??
-      } else if (event.dataTransfer.files) {
+    const testing = this.shadowRoot.querySelector('#dropTesting');
+    testing.addEventListener("dragover", function(e){e.preventDefault()}, false);
+
+    testing.addEventListener('drop', event => {
+      event.preventDefault();
+      // var data = event.dataTransfer.getData('text/html');
+      // if (data === 'internal-drag') {
+      //   //TODO is this being used??
+      // } else 
+      if (event.dataTransfer.files) {
         const temp = event.dataTransfer.files;
+
+
+        let acceptableMimeTypes;
+
+        //acceptable image mime types
+        if (this.mediaType === 'image') {
+          acceptableMimeTypes = this.acceptableImageMimeTypes;
+        } else if (this.mediaType === 'video') {
+          acceptableMimeTypes = this.acceptableVideoMimeTypes;
+        } else if (this.mediaType === 'audio') {
+          acceptableMimeTypes = this.acceptableAudioMimeTypes;
+        }
+        let filesTest = [];
+  
         for (let i = 0; i < temp.length; i++) {
-          const file = temp[i];
-          console.log(file.name);
+          const test = temp[i];
+          if (acceptableMimeTypes.includes(test.type)){
+            filesTest.push(temp[i]);
+          }          
+        }
+        if (filesTest.length) {
+          this.sendFilesToServer(filesTest);
         }
       }
-
-      event.preventDefault();
-      event.stopPropagation();
     });
 
     this.shadowRoot.addEventListener('video-upload', event => {
