@@ -173,13 +173,11 @@ class VerticalMediaContainer extends HTMLElement {
 
     testing.addEventListener('drop', event => {
       event.preventDefault();
-      // var data = event.dataTransfer.getData('text/html');
-      // if (data === 'internal-drag') {
-      //   //TODO is this being used??
-      // } else 
-      if (event.dataTransfer.files) {
-        const temp = event.dataTransfer.files;
+      var data = event.dataTransfer.getData('text/html');
 
+      //checking for 'internal-drag' prevents the server from being called when files are dropped to reorder existing files
+      if (data !== 'internal-drag' && event.dataTransfer.files) {
+        const temp = event.dataTransfer.files;
 
         let acceptableMimeTypes;
 
