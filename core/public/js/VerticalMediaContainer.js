@@ -168,10 +168,10 @@ class VerticalMediaContainer extends HTMLElement {
     });
 
     //TODO add ability to drop media files in from operating system
-    const testing = this.shadowRoot.querySelector('#dropTesting');
-    testing.addEventListener("dragover", function(e){e.preventDefault()}, false);
+    //const testing = this.shadowRoot.querySelector('#dropTesting');
+    document.addEventListener("dragover", function(e){e.preventDefault()}, false);
 
-    testing.addEventListener('drop', event => {
+    document.addEventListener('drop', event => {
       event.preventDefault();
       var data = event.dataTransfer.getData('text/html');
 
