@@ -51,10 +51,9 @@ class BlogComponent extends HTMLElement {
         }
 
         .commentTitle {
-          padding: 5px;
+          padding: 8px;
           margin-left: -8px;
-          font-size: 1.2em;
-          font-style: italic;
+          font-size: 1.3em;
         }
         .searchHighlight {
           background-color: #517EB0;
