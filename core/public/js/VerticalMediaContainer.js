@@ -3,7 +3,7 @@
  * Allows user to change the order of media as well as removal. 
  * 
  * 
- * mediaType should be 'audio', 'video', or 'image' 
+ * mediaType must be 'audio', 'video', or 'image' 
  */
 class VerticalMediaContainer extends HTMLElement {
   constructor(mediaURLs, mediaType) {
@@ -167,41 +167,9 @@ class VerticalMediaContainer extends HTMLElement {
       }
     });
 
-    //TODO add ability to drop media files in from operating system
-    //const testing = this.shadowRoot.querySelector('#dropTesting');
     document.addEventListener("dragover", function(e){e.preventDefault()}, false);
 
-    document.addEventListener('drop', event => {
-      event.preventDefault();
-      var data = event.dataTransfer.getData('text/html');
-
-      //checking for 'internal-drag' prevents the server from being called when files are dropped to reorder existing files
-      if (data !== 'internal-drag' && event.dataTransfer.files) {
-        const temp = event.dataTransfer.files;
-
-        let acceptableMimeTypes;
-
-        //acceptable image mime types
-        if (this.mediaType === 'image') {
-          acceptableMimeTypes = this.acceptableImageMimeTypes;
-        } else if (this.mediaType === 'video') {
-          acceptableMimeTypes = this.acceptableVideoMimeTypes;
-        } else if (this.mediaType === 'audio') {
-          acceptableMimeTypes = this.acceptableAudioMimeTypes;
-        }
-        let filesTest = [];
-  
-        for (let i = 0; i < temp.length; i++) {
-          const test = temp[i];
-          if (acceptableMimeTypes.includes(test.type)){
-            filesTest.push(temp[i]);
-          }          
-        }
-        if (filesTest.length) {
-          this.sendFilesToServer(filesTest);
-        }
-      }
-    });
+    document.addEventListener('drop', this.handleExternalDrop);
 
     this.shadowRoot.addEventListener('video-upload', event => {
       const files = [event.detail.fileData];
@@ -221,6 +189,44 @@ class VerticalMediaContainer extends HTMLElement {
     }
 
     document.removeEventListener('paste', this.handlePaste);
+
+    document.removeEventListener("dragover", function(e){e.preventDefault()}, false);
+    document.removeEventListener('drop', this.handleExternalDrop);
+  }
+
+  handleExternalDrop = () => {
+    event.preventDefault();
+    var data = event.dataTransfer.getData('text/html');
+
+    //checking for 'internal-drag' prevents the server from being called when files are dropped to reorder existing files
+    if (data !== 'internal-drag' && event.dataTransfer.files) {
+      const allDroppedFiles = event.dataTransfer.files;
+      const acceptableMimeTypes = this.getAcceptableMimeTypes();
+      let validMediaFiles = [];
+
+      for (let i = 0; i < allDroppedFiles.length; i++) {
+        const thisFile = allDroppedFiles[i];
+        if (acceptableMimeTypes.includes(thisFile.type)){
+          validMediaFiles.push(allDroppedFiles[i]);
+        }          
+      }
+
+      if (validMediaFiles.length) {
+        this.sendFilesToServer(validMediaFiles);
+      }
+    }
+  }
+
+  getAcceptableMimeTypes() {
+    let acceptableMimeTypes;
+    if (this.mediaType === 'image') {
+      acceptableMimeTypes = this.acceptableImageMimeTypes;
+    } else if (this.mediaType === 'video') {
+      acceptableMimeTypes = this.acceptableVideoMimeTypes;
+    } else if (this.mediaType === 'audio') {
+      acceptableMimeTypes = this.acceptableAudioMimeTypes;
+    }
+    return acceptableMimeTypes;
   }
 
   createFileChooser = event => {
@@ -253,16 +259,7 @@ class VerticalMediaContainer extends HTMLElement {
     if (pasteEvent.clipboardData) {
       //whether the paste data has media files or not
       let pasteHasFiles = false;
-      let acceptableMimeTypes;
-
-      //acceptable image mime types
-      if (this.mediaType === 'image') {
-        acceptableMimeTypes = this.acceptableImageMimeTypes;
-      } else if (this.mediaType === 'video') {
-        acceptableMimeTypes = this.acceptableVideoMimeTypes;
-      } else if (this.mediaType === 'audio') {
-        acceptableMimeTypes = this.acceptableAudioMimeTypes;
-      }
+      const acceptableMimeTypes = this.getAcceptableMimeTypes();
 
       //get all of the files on the clipboard
       const files = pasteEvent.clipboardData.files;
