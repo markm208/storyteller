@@ -298,20 +298,22 @@ class HttpServer {
                 
                 //create a promise for all files
                 const addedPaths = await Promise.all(newFiles.map(async newFile => {
-                    //create a new file path that includes a timestamp (to show files in order of upload)
-                    const newFileInfo = path.parse(newFile.name);
-                    const newFileName = `${timestamp}-${newFileInfo.base}`; 
-                    
-                    //system dependent full path to where the file will be stored
-                    //like C:/users/mark/documents/project1/.storyteller/comments/media/images/123-pic.png
-                    const pathToNewFile = path.join(this.projectManager.commentManager.pathToImagesDir, newFileName);
-                    
-                    //move the file into the directory (using express-fileupload to move the file)
-                    await newFile.mv(pathToNewFile);
+                    return new Promise(async (resolve, reject) => {
+                        //create a new file path that includes a timestamp (to show files in order of upload)
+                        const newFileInfo = path.parse(newFile.name);
+                        const newFileName = `${timestamp}-${newFileInfo.base}`; 
+                        
+                        //system dependent full path to where the file will be stored
+                        //like C:/users/mark/documents/project1/.storyteller/comments/media/images/123-pic.png
+                        const pathToNewFile = path.join(this.projectManager.commentManager.pathToImagesDir, newFileName);
+                        
+                        //move the file into the directory (using express-fileupload to move the file)
+                        await newFile.mv(pathToNewFile);
 
-                    //relative web path from the public directory
-                    //like /media/images/123-pic.png
-                    return path.posix.join(this.projectManager.commentManager.webPathToImagesDir, newFileName);
+                        //relative web path from the public directory
+                        //like /media/images/123-pic.png
+                        resolve(path.posix.join(this.projectManager.commentManager.webPathToImagesDir, newFileName));
+                    });
                 }));
 
                 //return the web paths of the files
@@ -374,20 +376,22 @@ class HttpServer {
                 
                 //save the files in the comment's media directory
                 const addedPaths = await Promise.all(newFiles.map(async newFile => {
-                    //create a new file path that includes a timestamp (to show files in order of upload)
-                    const newFileInfo = path.parse(newFile.name);
-                    const newFileName = `${timestamp}-${newFileInfo.base}`; 
-                    
-                    //system dependent full path to where the file will be stored
-                    //like C:/users/mark/documents/project1/.storyteller/comments/media/videos/123-mov.mp4
-                    const pathToNewFile = path.join(this.projectManager.commentManager.pathToVideosDir, newFileName);
-                    
-                    //move the file into the directory (using express-fileupload to move the file)
-                    await newFile.mv(pathToNewFile);
-        
-                    //relative web path from the public directory
-                    //like /media/videos/123-mov.mp4
-                    return path.posix.join(this.projectManager.commentManager.webPathToVideosDir, newFileName);
+                    return new Promise(async (resolve, reject) => {
+                        //create a new file path that includes a timestamp (to show files in order of upload)
+                        const newFileInfo = path.parse(newFile.name);
+                        const newFileName = `${timestamp}-${newFileInfo.base}`; 
+                        
+                        //system dependent full path to where the file will be stored
+                        //like C:/users/mark/documents/project1/.storyteller/comments/media/videos/123-mov.mp4
+                        const pathToNewFile = path.join(this.projectManager.commentManager.pathToVideosDir, newFileName);
+                        
+                        //move the file into the directory (using express-fileupload to move the file)
+                        await newFile.mv(pathToNewFile);
+            
+                        //relative web path from the public directory
+                        //like /media/videos/123-mov.mp4
+                        resolve(path.posix.join(this.projectManager.commentManager.webPathToVideosDir, newFileName));
+                    });
                 }));
 
                 //return the web paths of the files
@@ -450,20 +454,22 @@ class HttpServer {
 
                 //save the files in the comment's media directory
                 const addedPaths = await Promise.all(newFiles.map(async newFile => {
-                    //create a new file path that includes a timestamp (to show files in order of upload)
-                    const newFileInfo = path.parse(newFile.name);
-                    const newFileName = `${timestamp}-${newFileInfo.base}`; 
-                    
-                    //system dependent full path to where the file will be stored
-                    //like C:/users/mark/documents/project1/.storyteller/comments/media/audios/123-audio.mp3
-                    const pathToNewFile = path.join(this.projectManager.commentManager.pathToAudiosDir, newFileName);
-                    
-                    //move the file into the directory (using express-fileupload to move the file)
-                    await newFile.mv(pathToNewFile);
+                    return new Promise(async (resolve, reject) => {
+                        //create a new file path that includes a timestamp (to show files in order of upload)
+                        const newFileInfo = path.parse(newFile.name);
+                        const newFileName = `${timestamp}-${newFileInfo.base}`; 
+                        
+                        //system dependent full path to where the file will be stored
+                        //like C:/users/mark/documents/project1/.storyteller/comments/media/audios/123-audio.mp3
+                        const pathToNewFile = path.join(this.projectManager.commentManager.pathToAudiosDir, newFileName);
+                        
+                        //move the file into the directory (using express-fileupload to move the file)
+                        await newFile.mv(pathToNewFile);
 
-                    //relative web path from the public directory
-                    //like /media/audios/123-audio.mp3
-                    return path.posix.join(this.projectManager.commentManager.webPathToAudiosDir, newFileName);
+                        //relative web path from the public directory
+                        //like /media/audios/123-audio.mp3
+                        resolve(path.posix.join(this.projectManager.commentManager.webPathToAudiosDir, newFileName));
+                    });
                 }));
                 //return the web paths of the files
                 res.json({filePaths: addedPaths});
