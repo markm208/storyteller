@@ -251,9 +251,8 @@ class VerticalMediaContainer extends HTMLElement {
   handlePaste = pasteEvent => {
     //check for clipboard data
     if (pasteEvent.clipboardData) {
-      //whether the paste data has media files or not
-      let pasteHasFiles = false;
       const acceptableMimeTypes = this.getAcceptableMimeTypes();
+      let validPasteFiles = [];
 
       //get all of the files on the clipboard
       const files = pasteEvent.clipboardData.files;
@@ -261,18 +260,16 @@ class VerticalMediaContainer extends HTMLElement {
       for (let i = 0; i < files.length; i++) {
         //if the clipboard data has any files and they are acceptable images
         if (acceptableMimeTypes.includes(files[i].type)) {
-          //indicate that media files will be added to the comment
-          pasteHasFiles = true;
-          break;
+          validPasteFiles.push(files[i]);
         }
       }
-      //if new images will be added to the media pop up
-      if (pasteHasFiles) {
+
+      if (validPasteFiles.length) {
         //prevent a paste in the comment text box if it has the focus
         pasteEvent.preventDefault();
 
         //add the files from the clipboard to the comment
-        this.sendFilesToServer(pasteEvent.clipboardData.files);
+        this.sendFilesToServer(validPasteFiles);
       }
     }
   }
