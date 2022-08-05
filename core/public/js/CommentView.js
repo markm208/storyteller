@@ -80,7 +80,6 @@ class CommentView extends HTMLElement {
           padding: 5px;
           margin-left: -8px;
           font-size: 1.2em;
-          font-style: italic;
         }
 
         .commentAvatar {
