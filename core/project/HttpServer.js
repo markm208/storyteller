@@ -297,7 +297,7 @@ class HttpServer {
                 const timestamp = new Date().getTime();
                 
                 //create a promise for all files
-                const addedPaths = await Promise.all(newFiles.map(newFile => {
+                const addedPaths = await Promise.all(newFiles.map(async newFile => {
                     //create a new file path that includes a timestamp (to show files in order of upload)
                     const newFileInfo = path.parse(newFile.name);
                     const newFileName = `${timestamp}-${newFileInfo.base}`; 
@@ -307,7 +307,7 @@ class HttpServer {
                     const pathToNewFile = path.join(this.projectManager.commentManager.pathToImagesDir, newFileName);
                     
                     //move the file into the directory (using express-fileupload to move the file)
-                    newFile.mv(pathToNewFile);
+                    await newFile.mv(pathToNewFile);
 
                     //relative web path from the public directory
                     //like /media/images/123-pic.png
@@ -373,7 +373,7 @@ class HttpServer {
                 const timestamp = new Date().getTime();
                 
                 //save the files in the comment's media directory
-                const addedPaths = await Promise.all(newFiles.map(newFile => {
+                const addedPaths = await Promise.all(newFiles.map(async newFile => {
                     //create a new file path that includes a timestamp (to show files in order of upload)
                     const newFileInfo = path.parse(newFile.name);
                     const newFileName = `${timestamp}-${newFileInfo.base}`; 
@@ -383,7 +383,7 @@ class HttpServer {
                     const pathToNewFile = path.join(this.projectManager.commentManager.pathToVideosDir, newFileName);
                     
                     //move the file into the directory (using express-fileupload to move the file)
-                    newFile.mv(pathToNewFile);
+                    await newFile.mv(pathToNewFile);
         
                     //relative web path from the public directory
                     //like /media/videos/123-mov.mp4
@@ -449,7 +449,7 @@ class HttpServer {
                 const timestamp = new Date().getTime();
 
                 //save the files in the comment's media directory
-                const addedPaths = await Promise.all(newFiles.map(newFile => {
+                const addedPaths = await Promise.all(newFiles.map(async newFile => {
                     //create a new file path that includes a timestamp (to show files in order of upload)
                     const newFileInfo = path.parse(newFile.name);
                     const newFileName = `${timestamp}-${newFileInfo.base}`; 
@@ -459,7 +459,7 @@ class HttpServer {
                     const pathToNewFile = path.join(this.projectManager.commentManager.pathToAudiosDir, newFileName);
                     
                     //move the file into the directory (using express-fileupload to move the file)
-                    newFile.mv(pathToNewFile);
+                    await newFile.mv(pathToNewFile);
 
                     //relative web path from the public directory
                     //like /media/audios/123-audio.mp3
