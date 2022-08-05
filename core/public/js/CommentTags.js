@@ -35,7 +35,6 @@ class CommentTags extends HTMLElement {
       <style>
         .dropdown_button {
           background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lightgray" class="bi bi-caret-right-fill" viewBox="0 0 16 16"><path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/></svg>');
-
           background-repeat: no-repeat;
           height: 2.4em;
           width: 2em;
@@ -56,27 +55,9 @@ class CommentTags extends HTMLElement {
         
         .tags {
           display: block;
-         // position: absolute;
           min-width: 20px;
-         // box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-          z-index: 1;
-         // min-height: 20px;  
-          overflow: hidden;
-          transition: height 0.4s ease;
-          //border: solid gray;
-          height: fit-content;
           word-wrap: break-word;
           padding: 10px;
-        }
-
-        .tags.hidden {
-          transition: all 0.4s ease;
-          height: 0px;
-
-          //display: none;
-          overflow: hidden;
-          border: none;
-          padding: 0px;
         }
         
         #outerDiv {
@@ -131,6 +112,7 @@ class CommentTags extends HTMLElement {
           color: white;
           cursor: pointer;
         }
+
         #addTagButton:hover {
           background-color: lightgray;
           border: 1px solid lightgray;
@@ -140,19 +122,21 @@ class CommentTags extends HTMLElement {
         #dropdownControls {
           border: 1px solid gray;
           position: relative;
-          height: fit-content;
+          //height: fit-content;
           background-color: rgb(51,51,51);
           max-width: 500px;
+          transition: height 0.4s ease;
         }
 
         #dropdownControls.hidden {
-          transition: all 0.4s ease;
+          transition: height 0.4s ease;
           height: 0px;
-
-          //display: none;
           overflow: hidden;
-          border: none;
           padding: 0px;
+        }
+
+        .noBorder {
+          border: none !important;
         }
 
         #closeDropDown {
@@ -173,8 +157,8 @@ class CommentTags extends HTMLElement {
           <input type="button" id="addTagButton" value="Add tag" />
         </div>
             <div id="tagsDiv"></div>
-            <div id='dropdownControls' class='hidden'>
-              <div id="tags-div" class="tags hidden"></div>
+            <div id='dropdownControls' class='hidden noBorder'>
+              <div id="tags-div" class="tags"></div>
               <button id="closeDropDown" title='Collapse tag options'>✕</button>
             </div>
       </div>
@@ -203,12 +187,9 @@ class CommentTags extends HTMLElement {
         addTagButton.click();
       }
     });
-    var tags = this.shadowRoot.getElementById("tags-div");
 
-    tags.style.height = '0px';
-
-    const test = this.shadowRoot.querySelector('#dropdownControls');
-    test.style.height = '0px';
+    const dropdownControls = this.shadowRoot.querySelector('#dropdownControls');
+    dropdownControls.style.height = '0px';
 
     const dropDownButton = this.shadowRoot.querySelector('.dropdown_button');
     dropDownButton.addEventListener('click', (event) => {
@@ -222,35 +203,34 @@ class CommentTags extends HTMLElement {
       }
 
       const dropDownControls = this.shadowRoot.querySelector('#dropdownControls');
-      dropDownControls.classList.toggle('hidden');
-      tags.classList.toggle('hidden');
-
-
-      if (!tags.classList.contains('hidden')) {
+    
+      if (dropDownControls.classList.contains('hidden')) {
         //without setting the height to an actual number, the animation wont work 
-        tags.style.height = tags.scrollHeight - 20 + 'px';
-        dropDownControls.style.height = dropDownControls.scrollHeight + tags.scrollHeight - 20 + 'px';
+        dropDownControls.style.height = dropDownControls.scrollHeight + 'px';
+        dropDownControls.classList.remove('noBorder');
 
         dropDownButton.disabled = true;
-        setTimeout(() =>{
-          tags.style.height = 'fit-content';
+        setTimeout(() => {
           dropDownControls.style.height = 'fit-content';
           dropDownButton.disabled = false;
         }, 400);
 
       } else {
-        tags.style.height = tags.scrollHeight + 'px';
-        dropDownControls.style.height = dropDownControls.scrollHeight + 'px';
+        dropDownControls.style.height = dropDownControls.offsetHeight + 'px';
         dropDownButton.disabled = true;
 
-        setTimeout(() =>{
-          tags.style.height = '0px';
+        setTimeout(() => {
           dropDownControls.style.height = '0px';
-          dropDownButton.disabled = false;
         }, 1);
 
+        setTimeout(() => {
+          dropDownControls.classList.add('noBorder');
+          dropDownButton.disabled = false;
 
+        },300);
       }
+      dropDownControls.classList.toggle('hidden');
+
     });
 
     const dropdownCloseX = this.shadowRoot.querySelector('#closeDropDown');
@@ -271,13 +251,10 @@ class CommentTags extends HTMLElement {
       event.preventDefault();
       this.addTag(tag.innerText);
       tag.remove();
-      var tags = this.shadowRoot.getElementById("tags-div");
 
-
-      const testing = this.shadowRoot.querySelector('#dropdownControls');
-      if (!testing.classList.contains('hidden')) {
-        testing.style.height = 'fit-content';
-        tags.style.height = 'fit-content ';
+      const dropdownControls = this.shadowRoot.querySelector('#dropdownControls');
+      if (!dropdownControls.classList.contains('hidden')) {
+        dropdownControls.style.height = 'fit-content';
       }
     });
   }
@@ -308,11 +285,10 @@ class CommentTags extends HTMLElement {
       const newTag = this.createTag(dropDownTag, false);
       tagsDiv.appendChild(newTag);
 
-      const testing = this.shadowRoot.querySelector('#dropdownControls');
+      const dropdownControls = this.shadowRoot.querySelector('#dropdownControls');
 
-      if (!tagsDiv.classList.contains('hidden'))
-        tagsDiv.style.height = 'fit-content';
-      testing.style.height = 'fit-content';
+      if (!dropdownControls.classList.contains('hidden'))
+      dropdownControls.style.height = 'fit-content';
     });
   }
 
