@@ -3,7 +3,7 @@
  * Allows user to change the order of media as well as removal. 
  * 
  * 
- * mediaType should be 'audio', 'video', or 'image' 
+ * mediaType must be 'audio', 'video', or 'image' 
  */
 class VerticalMediaContainer extends HTMLElement {
   constructor(mediaURLs, mediaType) {
@@ -37,12 +37,12 @@ class VerticalMediaContainer extends HTMLElement {
     const typeLabel = this.mediaType.charAt(0).toUpperCase() + this.mediaType.slice(1) + 's';
     template.innerHTML = `<style> 
       .draggable{
-          width: 100%;
+        width: 100%;
       }
 
       error{
-          color: red;
-          padding: 10px;
+        color: red;
+        padding: 10px;
       }
 
       .mediaContainer{
@@ -58,12 +58,12 @@ class VerticalMediaContainer extends HTMLElement {
       }
 
       .removeMedia{
-          cursor: pointer;
-          background-image: url("data:image/svg+xml,<svg viewBox='0 0 16 16' height='16' width='16' class='bi bi-x-lg' fill='red' xmlns='http://www.w3.org/2000/svg'><path d='M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z'/></svg>");
-          background-repeat: no-repeat;
-          background-color: transparent;
-          height: 1em;
-          width: 1em;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,<svg viewBox='0 0 16 16' height='16' width='16' class='bi bi-x-lg' fill='red' xmlns='http://www.w3.org/2000/svg'><path d='M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z'/></svg>");
+        background-repeat: no-repeat;
+        background-color: transparent;
+        height: 1em;
+        width: 1em;
       }
 
       .header {
@@ -111,8 +111,7 @@ class VerticalMediaContainer extends HTMLElement {
         </span>
       </div>
       <div id="createNewMediaContainer" class="hidden"></div>
-      <div class="mediaContainer">
-      </div>
+      <div class="mediaContainer"></div>
       <hr/>`;
 
     return template.content.cloneNode(true);
@@ -163,22 +162,9 @@ class VerticalMediaContainer extends HTMLElement {
       }
     });
 
-    //TODO add ability to drop media files in from operating system
-    mediaContainer.addEventListener('drop', event => {
-      var data = event.dataTransfer.getData('text/html');
-      if (data === 'internal-drag') {
-        //TODO is this being used??
-      } else if (event.dataTransfer.files) {
-        const temp = event.dataTransfer.files;
-        for (let i = 0; i < temp.length; i++) {
-          const file = temp[i];
-          console.log(file.name);
-        }
-      }
+    document.addEventListener("dragover", function (e) { e.preventDefault() }, false);
 
-      event.preventDefault();
-      event.stopPropagation();
-    });
+    document.addEventListener('drop', this.handleExternalDrop);
 
     this.shadowRoot.addEventListener('video-upload', event => {
       const files = [event.detail.fileData];
@@ -198,6 +184,43 @@ class VerticalMediaContainer extends HTMLElement {
     }
 
     document.removeEventListener('paste', this.handlePaste);
+    document.removeEventListener("dragover", function (e) { e.preventDefault() }, false);
+    document.removeEventListener('drop', this.handleExternalDrop);
+  }
+
+  handleExternalDrop = () => {
+    event.preventDefault();
+    var data = event.dataTransfer.getData('text/html');
+
+    //checking for 'internal-drag' prevents the server from being called when files are dropped to reorder existing files
+    if (data !== 'internal-drag' && event.dataTransfer.files) {
+      const allDroppedFiles = event.dataTransfer.files;
+      const acceptableMimeTypes = this.getAcceptableMimeTypes();
+      let validMediaFiles = [];
+
+      for (let i = 0; i < allDroppedFiles.length; i++) {
+        const thisFile = allDroppedFiles[i];
+        if (acceptableMimeTypes.includes(thisFile.type)) {
+          validMediaFiles.push(allDroppedFiles[i]);
+        }
+      }
+
+      if (validMediaFiles.length) {
+        this.sendFilesToServer(validMediaFiles);
+      }
+    }
+  }
+
+  getAcceptableMimeTypes() {
+    let acceptableMimeTypes;
+    if (this.mediaType === 'image') {
+      acceptableMimeTypes = this.acceptableImageMimeTypes;
+    } else if (this.mediaType === 'video') {
+      acceptableMimeTypes = this.acceptableVideoMimeTypes;
+    } else if (this.mediaType === 'audio') {
+      acceptableMimeTypes = this.acceptableAudioMimeTypes;
+    }
+    return acceptableMimeTypes;
   }
 
   createFileChooser = event => {
@@ -230,16 +253,7 @@ class VerticalMediaContainer extends HTMLElement {
     if (pasteEvent.clipboardData) {
       //whether the paste data has media files or not
       let pasteHasFiles = false;
-      let acceptableMimeTypes;
-
-      //acceptable image mime types
-      if (this.mediaType === 'image') {
-        acceptableMimeTypes = this.acceptableImageMimeTypes;
-      } else if (this.mediaType === 'video') {
-        acceptableMimeTypes = this.acceptableVideoMimeTypes;
-      } else if (this.mediaType === 'audio') {
-        acceptableMimeTypes = this.acceptableAudioMimeTypes;
-      }
+      const acceptableMimeTypes = this.getAcceptableMimeTypes();
 
       //get all of the files on the clipboard
       const files = pasteEvent.clipboardData.files;
