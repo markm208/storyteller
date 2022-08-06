@@ -371,7 +371,10 @@ class VerticalMediaContainer extends HTMLElement {
       mediaContainer.removeChild(mediaDiv);
 
       //don't delete yet, add the url to be deleted later
-      this.newMediaURLsToDelete.push(mediaURL);
+      //the URL may have been added with the error eventListener
+      if (!this.newMediaURLsToDelete.includes(mediaURL)){
+        this.newMediaURLsToDelete.push(mediaURL);
+      }
     });
 
     //if an error exists with the media, show an error message, delete the media from the server,
@@ -386,7 +389,7 @@ class VerticalMediaContainer extends HTMLElement {
       mediaContainer.removeChild(mediaDiv);
       mediaContainer.prepend(mediaDiv);
 
-      this.deleteMedia([media.src]);        
+      this.newMediaURLsToDelete.push(mediaURL);
     });
 
     mediaDiv.appendChild(media);
