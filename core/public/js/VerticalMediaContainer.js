@@ -35,14 +35,16 @@ class VerticalMediaContainer extends HTMLElement {
   getTemplate() {
     const template = document.createElement('template');
     const typeLabel = this.mediaType.charAt(0).toUpperCase() + this.mediaType.slice(1) + 's';
-    template.innerHTML = `<style> 
+    template.innerHTML = `
+    <style> 
       .draggable{
         width: 100%;
       }
 
       error{
         color: red;
-        padding: 10px;
+        font-weight: bold;
+        word-break: break-word;
       }
 
       .mediaContainer{
@@ -369,19 +371,26 @@ class VerticalMediaContainer extends HTMLElement {
       mediaContainer.removeChild(mediaDiv);
 
       //don't delete yet, add the url to be deleted later
-      this.newMediaURLsToDelete.push(mediaURL);
+      //the URL may have been added with the error eventListener
+      if (!this.newMediaURLsToDelete.includes(mediaURL)){
+        this.newMediaURLsToDelete.push(mediaURL);
+      }
     });
 
-    //if an error exists with the media, show an error message and allow user to remove media
+    //if an error exists with the media, show an error message, delete the media from the server,
+    //and allow user to remove it
     media.addEventListener('error', () => {
+      const fileName = mediaURL.substring(mediaURL.indexOf('-') + 1);
       const error = document.createElement('span');
-      error.innerHTML = `Error with file: <b><error>${media.src}</error></b>`;
+      error.innerHTML = `Error with file: <error>${fileName}</error>`;
       removeMediaButton.title = 'Remove file';
 
       //replace the file with an error message and move it to the top of the media container
       media.replaceWith(error);
       mediaContainer.removeChild(mediaDiv);
-      mediaContainer.firstChild.after(mediaDiv);
+      mediaContainer.prepend(mediaDiv);
+
+      this.newMediaURLsToDelete.push(mediaURL);
     });
 
     mediaDiv.appendChild(media);
