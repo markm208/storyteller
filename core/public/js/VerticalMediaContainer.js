@@ -380,8 +380,9 @@ class VerticalMediaContainer extends HTMLElement {
     //if an error exists with the media, show an error message, delete the media from the server,
     //and allow user to remove it
     media.addEventListener('error', () => {
+      const fileName = mediaURL.substring(mediaURL.indexOf('-') + 1);
       const error = document.createElement('span');
-      error.innerHTML = `Error with file: <error>${media.src}</error>`;
+      error.innerHTML = `Error with file: <error>${fileName}</error>`;
       removeMediaButton.title = 'Remove file';
 
       //replace the file with an error message and move it to the top of the media container
