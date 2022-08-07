@@ -301,7 +301,7 @@ class HttpServer {
                     return new Promise(async (resolve, reject) => {
                         //create a new file path that includes a timestamp (to show files in order of upload)
                         const newFileInfo = path.parse(newFile.name);
-                        const newFileName = `${timestamp}-${newFileInfo.base}`; 
+                        const newFileName = `${timestamp}-${decodeURI(newFileInfo.base)}`; 
                         
                         //system dependent full path to where the file will be stored
                         //like C:/users/mark/documents/project1/.storyteller/comments/media/images/123-pic.png
@@ -379,7 +379,7 @@ class HttpServer {
                     return new Promise(async (resolve, reject) => {
                         //create a new file path that includes a timestamp (to show files in order of upload)
                         const newFileInfo = path.parse(newFile.name);
-                        const newFileName = `${timestamp}-${newFileInfo.base}`; 
+                        const newFileName = `${timestamp}-${decodeURI(newFileInfo.base)}`; 
                         
                         //system dependent full path to where the file will be stored
                         //like C:/users/mark/documents/project1/.storyteller/comments/media/videos/123-mov.mp4
@@ -457,7 +457,7 @@ class HttpServer {
                     return new Promise(async (resolve, reject) => {
                         //create a new file path that includes a timestamp (to show files in order of upload)
                         const newFileInfo = path.parse(newFile.name);
-                        const newFileName = `${timestamp}-${newFileInfo.base}`; 
+                        const newFileName = `${timestamp}-${decodeURI(newFileInfo.base)}`; 
                         
                         //system dependent full path to where the file will be stored
                         //like C:/users/mark/documents/project1/.storyteller/comments/media/audios/123-audio.mp3
