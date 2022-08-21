@@ -187,7 +187,7 @@ class AceEditor extends HTMLElement {
         //replace a comment's selected code blocks with actual ace selections
         this.playbackEngine.activeComment.selectedCodeBlocks.forEach(selectedCodeBlock => {
           const aceRange = new AceRange(selectedCodeBlock.startRow, selectedCodeBlock.startColumn, selectedCodeBlock.endRow, selectedCodeBlock.endColumn);
-          this.aceEditor.getSelection().setSelectionRange(aceRange, false);
+          this.aceEditor.getSelection().addRange(aceRange);
         });
         //update the lines above/below
         this.linesAboveSelection = this.playbackEngine.activeComment.linesAbove;
