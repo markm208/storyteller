@@ -171,6 +171,7 @@ class AddEditComment extends HTMLElement {
     const commentTextContainer = this.shadowRoot.querySelector('#commentTextContainer');
     const commentText = new MultiLineTextInput('Describe the code at this point', '', 200);
     commentText.setAttribute('id', 'commentText');
+    commentText.setFocus();
     commentTextContainer.appendChild(commentText);
 
     //if there is a comment associated with this component then fill the inputs with data from it
@@ -188,12 +189,15 @@ class AddEditComment extends HTMLElement {
     });
 
     //prevent normal text editing from firing any keyboard shortcuts
-    this.shadowRoot.addEventListener('keydown', event => {
-      event.stopPropagation();
-    });
+    this.shadowRoot.addEventListener('keydown', this.stopProp);
   }
 
   disconnectedCallback() {
+    this.shadowRoot.removeEventListener('keydown', this.stopProp);
+  }
+
+  stopProp(event) {
+    event.stopPropagation();
   }
 
   sendEventNotifyLinesAboveBelowChange = () => {

@@ -620,6 +620,7 @@ function loadPlaybackData() {
     playbackData.developerGroups = ${JSON.stringify(this.developerManager.allDeveloperGroups)};
     playbackData.playbackTitle = '${this.project.title.replace(/'/g, "&#39;")}';
     playbackData.branchId = '${this.project.branchId}';
+    playbackData.estimatedReadTime = ${this.commentManager.getReadTimeEstimate()};
 }`;
 //TODO add an exports at the end
         return func;

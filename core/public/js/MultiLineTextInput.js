@@ -207,7 +207,9 @@ class MultiLineTextInput extends HTMLElement {
 
   setFocus() {
     const inputText = this.shadowRoot.querySelector('.inputText');
-    inputText.focus();
+    setTimeout(() => {
+      inputText.focus();
+    }, 0);
   }
 }
 

@@ -190,6 +190,61 @@ class CommentManager extends FileBackedCollection {
             }
         }
     }
+
+    getReadTimeEstimate() {
+        //some constants (that may need to change with some more experience)
+        const secondsPerCommentWord = .2525;
+        const secondsPerCodeWord = 1.0;
+        const secondsPerSurroundingCodeLine = 2.0;
+        const secondsPerImage = 12.0;
+        const secondsPerAudioVideo = 20.0;
+        const qAndAThinkTime = 15.0;
+        
+        //total estimated read time in seconds
+        let totalSeconds = 0.0;
+    
+        //go through all of the comments
+        for(let eventId in this.comments) {
+            const commentsAtEvent = this.comments[eventId];
+            for(let i = 0;i < commentsAtEvent.length;i++) {
+                const comment = commentsAtEvent[i];
+        
+                //comment text
+                const numWordsInCommentText = comment.commentText.split(/\s+/g).length;
+                totalSeconds += numWordsInCommentText * secondsPerCommentWord;
+        
+                //selected code
+                let selectedTextWordCount = 0;
+                comment.selectedCodeBlocks.forEach(selectedCodeBlock => {
+                    selectedTextWordCount += selectedCodeBlock.selectedText.split(/\s+/g).length;
+                });
+                totalSeconds += selectedTextWordCount * secondsPerCodeWord;
+        
+                //surrounding code
+                totalSeconds += comment.linesAbove * secondsPerSurroundingCodeLine;
+                totalSeconds += comment.linesBelow * secondsPerSurroundingCodeLine;
+        
+                //for media in the comment
+                totalSeconds += comment.imageURLs.length * secondsPerImage;
+                totalSeconds += comment.videoURLs.length * secondsPerAudioVideo;
+                totalSeconds += comment.audioURLs.length * secondsPerAudioVideo;
+        
+                //for questions
+                if(comment.questionCommentData && comment.questionCommentData.question) {
+                    let qAndAWordCount = comment.questionCommentData.question.split(/\s+/g).length; 
+                    qAndAWordCount += comment.questionCommentData.explanation.split(/\s+/g).length;
+                    qAndAWordCount += comment.questionCommentData.allAnswers.reduce((totalWordCount, answer) => {
+                        return totalWordCount + answer.split(/\s+/g).length
+                    }, 0);
+            
+                    //time to read and think about the question and time to read the explanation
+                    totalSeconds += (qAndAWordCount * secondsPerCommentWord) + qAndAThinkTime;
+                }
+            }
+        }
+        //return an estimate in minutes
+        return Math.ceil(totalSeconds / 60.0);
+    }
 }
 
 module.exports = CommentManager;
