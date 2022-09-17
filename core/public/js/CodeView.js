@@ -10,7 +10,7 @@ class CodeView extends HTMLElement {
     this.autoPlayback = {
       isPaused: true,
       playTimer: null,
-      playbackSpeedMs: 75,
+      playbackSpeedMs: 35,
     };
 
     this.attachShadow({ mode: 'open' });
