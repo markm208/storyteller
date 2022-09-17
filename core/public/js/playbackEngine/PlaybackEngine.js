@@ -28,7 +28,8 @@ class PlaybackEngine {
       hasNewActiveFile: false,
       hasNewActiveDevGroup: false,
       numberOfCommentGroupsChanged: false,
-      fileEditLineNumber: -1
+      fileEditLineNumber: -1,
+      fileEditColumn: -1,
     };
 
     //aggregate info about the playback's comments
@@ -76,7 +77,8 @@ class PlaybackEngine {
       hasNewActiveFile: false,
       hasNewActiveDevGroup: false,
       numberOfCommentGroupsChanged: false,
-      fileEditLineNumber: -1
+      fileEditLineNumber: -1,
+      fileEditColumn: -1
     };
   }
   
@@ -135,6 +137,7 @@ class PlaybackEngine {
       //store the line number of the latest edit to scroll to in the playback
       if(currentEvent.type === 'INSERT' || currentEvent.type === 'DELETE') {
         this.mostRecentChanges.fileEditLineNumber = currentEvent.lineNumber;
+        this.mostRecentChanges.fileEditColumn = currentEvent.column;
       }
       
       //set the position of where the playback landed
@@ -179,6 +182,7 @@ class PlaybackEngine {
       //store the line number of the latest edit to scroll to in the playback
       if(currentEvent.type === 'INSERT' || currentEvent.type === 'DELETE') {
         this.mostRecentChanges.fileEditLineNumber = currentEvent.lineNumber;
+        this.mostRecentChanges.fileEditColumn = currentEvent.column;
       }
 
       //set the position of where the playback landed
