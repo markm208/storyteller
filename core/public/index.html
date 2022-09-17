@@ -71,9 +71,13 @@
       const playbackData = {};
       loadPlaybackData(playbackData);
 
-      //check if this is a small screen
+      //look to see if there is a mode in the querystring
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      const mode = urlSearchParams.get('mode');
+
+      //check if this is a small screen or an explicit request for blog mode
       let initialMode = 'code';
-      if(window.innerWidth < 800) {
+      if(window.innerWidth < 800 || (mode && mode === 'blog')) {
         initialMode = 'blog';
       } 
       const app = new App(playbackData, initialMode);
