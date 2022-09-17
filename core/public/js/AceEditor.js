@@ -72,12 +72,14 @@ class AceEditor extends HTMLElement {
         .insertOnLine {
           color: rgb(33, 130, 36);
           font-weight: bold;
+          background-color: rgb(52, 52, 52);
         }
 
         .deleteOnLine {
           text-decoration-line: underline;
           text-decoration-color: red;
           text-decoration-style: solid;
+          background-color: rgb(52, 52, 52);
         }
       </style>
 
