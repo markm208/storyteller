@@ -185,8 +185,7 @@ class AceEditor extends HTMLElement {
   }
 
   scrollTo(scrollToLine, scrollToColumn) {
-    
-    if(!this.aceEditor.isRowVisible(scrollToLine + 2)) {  
+    if(!this.aceEditor.isRowVisible(scrollToLine + 2) || !this.aceEditor.isRowVisible(scrollToLine - 2)) {  
       this.aceEditor.renderer.scrollCursorIntoView({row: scrollToLine, column: scrollToColumn}, 0.5);
     }
   }
