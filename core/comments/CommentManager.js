@@ -230,7 +230,7 @@ class CommentManager extends FileBackedCollection {
                 totalSeconds += comment.audioURLs.length * secondsPerAudioVideo;
         
                 //for questions
-                if(comment.questionCommentData && comment.questionCommentData.question) {
+                if(comment.questionCommentData && comment.questionCommentData.question && comment.questionCommentData.explanation) {
                     let qAndAWordCount = comment.questionCommentData.question.split(/\s+/g).length; 
                     qAndAWordCount += comment.questionCommentData.explanation.split(/\s+/g).length;
                     qAndAWordCount += comment.questionCommentData.allAnswers.reduce((totalWordCount, answer) => {
