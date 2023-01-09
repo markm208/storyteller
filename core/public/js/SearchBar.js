@@ -71,7 +71,7 @@ class SearchBar extends HTMLElement {
       }        
       </style>
         
-      <div class="searchControls">
+      <div class="searchControls" title="Search through comments, code, tags, or questions only like this code:main">
         <div id="clearSearchResults"></div>
         <div class='searchForm'>
           <input type="search" id='searchBar' class="searchInput" placeHolder="Search" autocomplete="off" spellcheck="false"></input>
