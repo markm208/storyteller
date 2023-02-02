@@ -108,7 +108,7 @@
         "diff": "^4.0.2",
         "express": "^4.17.1",
         "express-fileupload": "^1.1.7-alpha.3",
-        "jszip": "^3.5.0",
+        "jszip": "^3.8.0",
         "md5": "^2.3.0"
     }
 }
