@@ -12,7 +12,7 @@ const PathHelper = require('./PathHelper');
 const IgnorePath = require('./IgnorePath.js');
 
 const FileBackedCollection = require('../FileBackedCollection.js');
-
+const DBAbstraction = require('./DBAbstraction.js');
 /*
  * This class manages most aspects of the open storyteller project.
  * This includes responding to editor activity and generating events
@@ -50,6 +50,9 @@ class ProjectManager extends FileBackedCollection {
             //read all of the project data from the file system
             this.read();
         } else { //no json file exists, this is a new project
+            
+            this.db = new DBAbstraction(projDirPath, true);
+            
             //create a Project (title, description, and initial 6 digit branch id)
             this.project = new Project();
 

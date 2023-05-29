@@ -40,8 +40,8 @@ let storytellerStatusBarItem = null;
 //the vscode extension's context 
 let extensionContext;
 
-/*
- * Called when activating the extension.
+/**
+ * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
     //store the context
@@ -62,6 +62,9 @@ function activate(context) {
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.previewPerfectProgrammer', previewPerfectProgrammer));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.replaceWithPerfectProgrammer', replaceWithPerfectProgrammer));
 
+    //use this for storing state of files:
+    //https://code.visualstudio.com/api/references/vscode-api#ExtensionContext.workspaceState
+    
     //if there is an open workspace then attempt to open storyteller without requiring user interaction
     if(vscode.workspace.workspaceFolders) {
         //path to the hidden .storyteller dir in every storyteller project 
