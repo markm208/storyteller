@@ -45,12 +45,12 @@ class Reconciler {
 
         //add the root dir
         dirs.push({
-            fullPath: this.projectManager.storytellerDirPath,
+            fullPath: this.projectManager.projectDirPath,
             dirId: this.projectManager.fileSystemManager.getDirIdFromDirPath(utilities.storytellerPathSeparator)
         });
         
         //get all of the other files and dirs currently in the project on the file system
-        this.getFilesAndDirsPresentOnFileSystem(this.projectManager.storytellerDirPath, files, dirs);
+        this.getFilesAndDirsPresentOnFileSystem(this.projectManager.projectDirPath, files, dirs);
 
         //holds the ids of the dirs and files that are present in storyteller
         const storytellerTrackedDirIds = {};
@@ -87,7 +87,7 @@ class Reconciler {
                 //to be updated in storyteller
                 if(files[i].lastModifiedDate !== this.projectManager.fileSystemManager.allFiles[presentFileId].lastModifiedDate) {
                     //get the text from the file on the file system
-                    const fsFileText = fs.readFileSync(path.join(this.projectManager.storytellerDirPath, this.projectManager.fileSystemManager.allFiles[presentFileId].currentPath), 'utf8');
+                    const fsFileText = fs.readFileSync(path.join(this.projectManager.projectDirPath, this.projectManager.fileSystemManager.allFiles[presentFileId].currentPath), 'utf8');
                     //get the text being stored by storyteller
                     const storytellerFileText = this.projectManager.fileSystemManager.allFiles[presentFileId].getText();
                     
@@ -197,15 +197,15 @@ class Reconciler {
     resolveNewFile(newFilePath, action, isRelevant) {
         if(action === 'create') {
             //attribute any reconciliation changes to the system developer
-            const originalDevGroup = this.projectManager.developerManager.getCurrentDeveloperGroup();
+            const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
             const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
-            this.projectManager.developerManager.setCurrentDeveloperGroup(systemDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //record the creating of a new file
             this.projectManager.createFile(newFilePath, isRelevant);
 
             //set the original dev group back
-            this.projectManager.developerManager.setCurrentDeveloperGroup(originalDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
         } else if(action === 'delete') { //resolve the new file
             //delete the file
             fs.unlinkSync(newFilePath);
@@ -220,15 +220,15 @@ class Reconciler {
     resolveNewDirectory(newDirectoryPath, action, isRelevant) {
         if(action === 'create') {
             //attribute any reconciliation changes to the system developer
-            const originalDevGroup = this.projectManager.developerManager.getCurrentDeveloperGroup();
+            const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
             const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
-            this.projectManager.developerManager.setCurrentDeveloperGroup(systemDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //record the creating of a new file
             this.projectManager.createDirectory(newDirectoryPath, isRelevant);
 
             //set the original dev group back
-            this.projectManager.developerManager.setCurrentDeveloperGroup(originalDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
         } else if(action === 'delete') { //delete the new directory
             //delete the file
             fs.rmdirSync(newDirectoryPath);
@@ -246,7 +246,7 @@ class Reconciler {
         //if the user wishes to recreate this file (undo the delete)
         if(action === 'recreate') {
             //create the full path
-            const fullPath = path.join(this.projectManager.storytellerDirPath, deletedFilePath);
+            const fullPath = path.join(this.projectManager.projectDirPath, deletedFilePath);
             
             if(fs.existsSync(fullPath) === false) {
                 //get the last recorded version of the text
@@ -257,15 +257,15 @@ class Reconciler {
             }
         } else if(action === 'accept-delete') { //accept the delete
             //attribute any reconciliation changes to the system developer
-            const originalDevGroup = this.projectManager.developerManager.getCurrentDeveloperGroup();
+            const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
             const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
-            this.projectManager.developerManager.setCurrentDeveloperGroup(systemDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //record the deletion of this file
             this.projectManager.deleteFile(deletedFilePath);
 
             //set the original dev group back
-            this.projectManager.developerManager.setCurrentDeveloperGroup(originalDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
         }
     }
     /*
@@ -280,7 +280,7 @@ class Reconciler {
         //if the user wishes to recreate this dir (undo the delete)
         if(action === 'recreate') {
             //create the full path
-            const fullPath = path.join(this.projectManager.storytellerDirPath, deletedDirPath);
+            const fullPath = path.join(this.projectManager.projectDirPath, deletedDirPath);
 
             //if the directory does not exist
             if(fs.existsSync(fullPath) === false) {
@@ -289,15 +289,15 @@ class Reconciler {
             }
         } else if(action === 'accept-delete') { //accept the delete
             //attribute any reconciliation changes to the system developer
-            const originalDevGroup = this.projectManager.developerManager.getCurrentDeveloperGroup();
+            const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
             const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
-            this.projectManager.developerManager.setCurrentDeveloperGroup(systemDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //record the deletion of this dir
             this.projectManager.deleteDirectory(deletedDirPath);
 
             //set the original dev group back
-            this.projectManager.developerManager.setCurrentDeveloperGroup(originalDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
         }
     }
     /*
@@ -329,7 +329,7 @@ class Reconciler {
         //get the normalized file path
         const modifiedFilePath = this.projectManager.fileSystemManager.getFileInfo(modifiedFileId).currentPath;
         //create the full path
-        const fullPath = path.join(this.projectManager.storytellerDirPath, modifiedFilePath);
+        const fullPath = path.join(this.projectManager.projectDirPath, modifiedFilePath);
         //get the last recorded version of the text
         const fileText = this.projectManager.fileSystemManager.allFiles[modifiedFileId].getText();
 
@@ -341,15 +341,15 @@ class Reconciler {
             const newFileText = fs.readFileSync(fullPath, 'utf8');
 
             //attribute any reconciliation changes to the system developer
-            const originalDevGroup = this.projectManager.developerManager.getCurrentDeveloperGroup();
+            const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
             const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
-            this.projectManager.developerManager.setCurrentDeveloperGroup(systemDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //update storyteller to hold the new state of the file
             this.diffAndUpdateFile(fullPath, fileText, newFileText);
 
             //set the original dev group back
-            this.projectManager.developerManager.setCurrentDeveloperGroup(originalDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
         }
     }
     /* 

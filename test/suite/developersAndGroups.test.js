@@ -84,11 +84,11 @@ suite('Developer and Developer Group Tests', function () {
         const devManager = new DeveloperManager(pathToTestDir);
         
         //default dev group should have the anonymous developer
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length,  1);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(devManager.anonymousDeveloper.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length,  1);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(devManager.anonymousDeveloper.id));
 
         //get the developer in the current dev group
-        const currentDev = devManager.getDeveloperById(devManager.getCurrentDeveloperGroup().memberIds[0]);
+        const currentDev = devManager.getDeveloperById(devManager.getActiveDeveloperGroup().memberIds[0]);
         
         //should be anon dev
         assert.equal(currentDev.userName, 'Anonymous Developer');
@@ -99,24 +99,24 @@ suite('Developer and Developer Group Tests', function () {
         const devManager = new DeveloperManager(pathToTestDir);
 
         //default dev group should have the anonymous developer
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length,  1);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(devManager.anonymousDeveloper.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length,  1);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(devManager.anonymousDeveloper.id));
 
         //get the system developer group
         const systemDevGroup = devManager.systemDeveloperGroup;
         //set it as the current developer group
-        devManager.setCurrentDeveloperGroup(systemDevGroup);
+        devManager.setActiveDeveloperGroup(systemDevGroup);
 
         //verify that the current dev group has changed
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length,  1);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(devManager.systemDeveloper.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length,  1);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(devManager.systemDeveloper.id));
 
         //attempt to set to an invalid group id, should throw an exception
-        assert.throws(() => {devManager.setCurrentDeveloperGroupById('nonsense')});;
+        assert.throws(() => {devManager.setActiveDeveloperGroupById('nonsense')});;
 
         //verify that the current dev group has NOT changed
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length,  1);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(devManager.systemDeveloper.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length,  1);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(devManager.systemDeveloper.id));
     });
 
     test('Adding developers and group with the dev manager', function() {
@@ -138,40 +138,40 @@ suite('Developer and Developer Group Tests', function () {
 
         //create a new dev group with mark and laura
         const devGroup1 = devManager.createNewDeveloperGroup([dev1, dev2]);
-        devManager.setCurrentDeveloperGroup(devGroup1);
+        devManager.setActiveDeveloperGroup(devGroup1);
         //affirm the correct current dev group
-        assert.equal(devManager.getCurrentDeveloperGroup(), devGroup1);
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 2);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev2.id));
+        assert.equal(devManager.getActiveDeveloperGroup(), devGroup1);
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 2);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev2.id));
 
         //create a new dev group with buddy and patrick
         const devGroup2 = devManager.createNewDeveloperGroupByDevUserName(['Buddy', 'Patrick']);
-        devManager.setCurrentDeveloperGroup(devGroup2);
+        devManager.setActiveDeveloperGroup(devGroup2);
         //affirm the correct current dev group
-        assert.equal(devManager.getCurrentDeveloperGroup(), devGroup2);
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 2);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev3.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev4.id));
+        assert.equal(devManager.getActiveDeveloperGroup(), devGroup2);
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 2);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev3.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev4.id));
         
         //create a new dev group with mark, laura, buddy, and patrick by id
         const devGroup3 = devManager.createNewDeveloperGroupByDevIds([dev1.id, dev2.id, dev3.id, dev4.id]);
-        devManager.setCurrentDeveloperGroup(devGroup3);
+        devManager.setActiveDeveloperGroup(devGroup3);
         //affirm the correct current dev group
-        assert.equal(devManager.getCurrentDeveloperGroup(), devGroup3);
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 4);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev2.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev3.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev4.id));
+        assert.equal(devManager.getActiveDeveloperGroup(), devGroup3);
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 4);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev2.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev3.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev4.id));
 
         //create a new dev group based on the ids of mark, laura, and buddy
         devManager.setCurrentDevGroupWithDevIds([dev1.id, dev2.id, dev3.id]);
         //affirm the correct current dev group
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 3);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev2.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev3.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 3);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev2.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev3.id));
     });
 
     test('Activate and deactivate devs with the dev manager', function() {
@@ -186,42 +186,42 @@ suite('Developer and Developer Group Tests', function () {
 
         //create a new dev group with mark and laura
         const devGroup1 = devManager.createNewDeveloperGroup([dev1, dev2]);
-        devManager.setCurrentDeveloperGroup(devGroup1);
+        devManager.setActiveDeveloperGroup(devGroup1);
         
         //add two new devs buddy and patricl
         devManager.addDevelopersToActiveGroup([dev3.id, dev4.id]);
         //there should be four active devs
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 4);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev2.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev3.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev4.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 4);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev2.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev3.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev4.id));
 
         //attempt to add two devs already in the group
         devManager.addDevelopersToActiveGroup([dev3.id, dev4.id]);
         //there should still be four active devs
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 4);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev2.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev3.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev4.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 4);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev2.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev3.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev4.id));
         
         //remove all but dev1
         devManager.removeDevelopersFromActiveGroup([dev2.id, dev3.id, dev4.id]);
         //there should be one active dev
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 1);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 1);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
 
         //attempt to remove the last active dev (should not happen)
         devManager.removeDevelopersFromActiveGroup([dev1.id]);
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 1);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 1);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
 
         //attempt to remove devs not in the group
         devManager.removeDevelopersFromActiveGroup([dev2.id, dev3.id, dev4.id]);
         //there should be one active dev
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 1);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 1);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
     });
 
     test('Reading and writing to the file', function() {
@@ -235,7 +235,7 @@ suite('Developer and Developer Group Tests', function () {
 
         //create a new dev group with mark and laura and make the current group
         const devGroup1 = devManager.createNewDeveloperGroup([dev1, dev2]);
-        devManager.setCurrentDeveloperGroup(devGroup1);
+        devManager.setActiveDeveloperGroup(devGroup1);
         
         //write the data to the file system
         devManager.write();
@@ -243,10 +243,10 @@ suite('Developer and Developer Group Tests', function () {
         devManager.read();
 
         //verify that the dev group is correct
-        assert.equal(devManager.currentDeveloperGroupId, devGroup1.id);
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, devGroup1.memberIds.length);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev2.id));
+        assert.equal(devManager.activeDeveloperGroupId, devGroup1.id);
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, devGroup1.memberIds.length);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev2.id));
 
         //create a new dev group based on the ids
         devManager.setCurrentDevGroupWithDevIds([dev1.id, dev2.id, dev3.id]);
@@ -257,17 +257,17 @@ suite('Developer and Developer Group Tests', function () {
         devManager.read();
 
         //make sure the current dev group has the right makeup
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 3);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev2.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev3.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 3);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev2.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev3.id));
         
         //now create a new instance of a dev manager 
         devManager = new DeveloperManager(pathToTestDir);
         //make sure the current dev group has the right makeup
-        assert.equal(devManager.getCurrentDeveloperGroup().memberIds.length, 3);
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev1.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev2.id));
-        assert(devManager.getCurrentDeveloperGroup().memberIds.includes(dev3.id));
+        assert.equal(devManager.getActiveDeveloperGroup().memberIds.length, 3);
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev1.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev2.id));
+        assert(devManager.getActiveDeveloperGroup().memberIds.includes(dev3.id));
     });
 });

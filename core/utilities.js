@@ -1,9 +1,13 @@
 const path = require('path');
 const fs = require('fs');
+const InBetweenHelper = require('./InBetweenHelper.js');
 
 //official storyteller path separator (used internally for all relative file
 //and directory paths) 
 const storytellerPathSeparator = path.posix.sep;
+
+//used to find relative ordering of events in a file
+const inBetweenHelper = new InBetweenHelper();
 
 /*
  * Creates a random number of digits in the range 0-9, a-z, and A-Z. The 
@@ -19,7 +23,7 @@ function createRandomNumberBase62(numDigits) {
     //for each requested digit
     for(let i = 0;i < numDigits;i++) {
         //pick a random number between 0-61
-        const randPos = Math.floor(Math.random() * 62);
+        const randPos = Math.floor(Math.random() * validDigits.length);
 
         //add a random digit to the result
         randomId += validDigits[randPos];
@@ -89,6 +93,9 @@ function normalizeSeparators(fileOrDirPath) { //private
     return fileOrDirPath;
 }
 
+function replaceSpacesWithDashes(str) {
+    return decodeURI(str).replace(/ /g, '-');
+}
 /*
  * Copies a source directory and all of its files and subdirectories to a
  * destination directory
@@ -128,7 +135,9 @@ module.exports = {
     copyDirectoryHelper,
     createRandomNumberBase62,
     escapeSpecialCharacter,
+    inBetweenHelper,
     normalizeSeparators,
+    replaceSpacesWithDashes,
     storytellerPathSeparator,
     unescapeSpecialCharacter
 };

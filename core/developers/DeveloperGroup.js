@@ -1,28 +1,11 @@
 /*
  * Every developer group has an id and list of member dev ids.
- * A developer's id is auto-generated.
  */
 class DeveloperGroup {
-    constructor(id, memberIds) {
-        //generate an id if one is not supplied
-        this.id = id || this.generateId();
-        //if the member ids are supplied use them
-        if(memberIds) {
-            this.memberIds = memberIds;
-        } else {
-            //create an empty array of member ids
-            this.memberIds = [];
-        }
-    }
-
-    generateId() {
-        //use the static nextId to generate a string with a dev group id
-        const newId = `devGroupId-${DeveloperGroup.nextId}`;
-        
-        //increase for the next dev group
-        DeveloperGroup.nextId++;
-        
-        return newId;
+    constructor(memberIds, isActiveDeveloperGroup, id) {
+        this.id = id;
+        this.memberIds = memberIds;
+        this.isActiveDeveloperGroup = isActiveDeveloperGroup;
     }
 
     /*
@@ -87,7 +70,5 @@ class DeveloperGroup {
         return retVal;
     }
 }
-//used to autogenerate ids
-DeveloperGroup.nextId = 0;
 
 module.exports = DeveloperGroup;

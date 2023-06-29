@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 
 const express = require('express');
@@ -29,12 +28,8 @@ class HttpServer {
         //create the express server
         const app = express();
 
-        //for file uploads- 100Mb limit using a temp dir instead of memory
-        app.use(fileUpload({
-            limits: { fileSize: 100 * 1024 * 1024 },
-            useTempFiles : true,
-            tempFileDir : this.projectManager.commentManager.pathToTempDir
-        }));
+        //for file uploads
+        app.use(fileUpload());
 
         //serve js and css from the core/public/ directory
         app.use(express.static(pathToPublicDirInThisProject));
@@ -64,9 +59,9 @@ class HttpServer {
     createRoutes(app) {
         //routes
         //builds a js file that loads the data for playback
-        app.get('/js/loadPlayback.js', (req, res) => {
+        app.get('/js/loadPlayback.js', async (req, res) => {
             //get the text for a function that loads the playback data
-            const playbackData = this.projectManager.getPlaybackData(true);
+            const playbackData = await this.projectManager.getPlaybackData(true);
 
             //send the function back to the browser
             res.type('application/javascript');
@@ -79,24 +74,15 @@ class HttpServer {
             res.json(this.projectManager.project);
         });
 
-        app.put('/project', (req, res) => {
+        app.put('/project', async (req, res) => {
             //get an object with a title and description (comes from the user)
             const titleDescription = req.body;
 
             //title is required
             if(titleDescription.title && titleDescription.title.trim()) {
                 //trim and store the title
-                this.projectManager.project.title = titleDescription.title.trim();
-
-                //if there is a description
-                if(titleDescription.description) {
-                    //trim and store the description
-                    this.projectManager.project.description = titleDescription.description.trim();
-                } else { //no description property
-                    //default to empty string
-                    this.projectManager.project.description = '';
-                }
-
+                await this.projectManager.updateProjectTitleDescription(titleDescription.title.trim(), titleDescription.description ? titleDescription.description : '');
+                
                 //return the newly updated project
                 res.json(this.projectManager.project);
             } else { //title is missing
@@ -134,48 +120,48 @@ class HttpServer {
         });
 
         //events
-        app.get('/event', (req, res) => {
+        app.get('/event', async (req, res) => {
             //return all the events
-            const allEvents = this.projectManager.eventManager.read();
+            const allEvents = await this.projectManager.eventManager.getAllEvents();
             res.json(allEvents);
         });
 
-        app.get('/event/numberOfEvents', (req, res) => {
+        app.get('/event/numberOfEvents', async (req, res) => {
             //return the number of events
-            //const allEvents = this.projectManager.eventManager.read();
-            res.json({numberOfEvents: this.projectManager.eventManager.nextId});
+            const allEvents = await this.projectManager.eventManager.getAllEvents();
+            res.json({numberOfEvents: allEvents.length});
         });
 
-        app.get('/event/start/:start', (req, res) => {
+        app.get('/event/start/:start', async (req, res) => {
             //return all the events starting from a requested index
             const start = Number(req.params.start);
-            const allEvents = this.projectManager.eventManager.read();
+            const allEvents = await this.projectManager.eventManager.getAllEvents();
             res.json(allEvents.slice(start));
         });
 
-        app.get('/event/start/:start/numEvents/:numEvents', (req, res) => {
+        app.get('/event/start/:start/numEvents/:numEvents', async (req, res) => {
             //return all the events starting from a requested index plus a 
             //requested number of events after that
             const start = Number(req.params.start);
             const numEvents = Number(req.params.numEvents);
-            const allEvents = this.projectManager.eventManager.read();
+            const allEvents = await this.projectManager.eventManager.getAllEvents();
             res.json(allEvents.slice(start, (start + numEvents)));
         });
 
-        app.get('/event/start/:start/end/:end', (req, res) => {
+        app.get('/event/start/:start/end/:end', async (req, res) => {
             //return all the events starting from a requested index up to but
             //not including a requested end index
             const start = Number(req.params.start);
             const end = Number(req.params.end);
-            const allEvents = this.projectManager.eventManager.read();
+            const allEvents = await this.projectManager.eventManager.getAllEvents();
             res.json(allEvents.slice(start, end));
         });
 
-        app.get('/event/upToFirstComment', (req, res) => {
+        app.get('/event/upToFirstComment', async (req, res) => {
             //return all the events from the beginning up to and including the 
             //first event that has a comment (can be used to move from comment 
             //to comment)
-            const allEvents = this.projectManager.eventManager.read();
+            const allEvents = await this.projectManager.eventManager.getAllEvents();
             const events = [];
             //go from the beginning index until the next comment or the end
             for(let i = 0;i < allEvents.length;i++) {
@@ -192,12 +178,12 @@ class HttpServer {
             res.json(events);
         });
 
-        app.get('/event/start/:start/nextComment', (req, res) => {
+        app.get('/event/start/:start/nextComment', async (req, res) => {
             //return all the events that come after the requested start index
             //up to and including the next event that has a comment (can be used
             //to move from comment to comment)
             const start = Number(req.params.start);
-            const allEvents = this.projectManager.eventManager.read();
+            const allEvents = await this.projectManager.eventManager.getAllEvents();
             const events = [];
 
             //go from one beyond the starting index until the next comment or the end
@@ -225,297 +211,205 @@ class HttpServer {
             res.json({editable: true});
         });
 
-        app.post('/comment', (req, res) => {
+        app.post('/comment', async (req, res) => {
             //add a comment            
-            const comment = req.body;            
-            comment['developerGroupId'] = this.projectManager.developerManager.currentDeveloperGroupId;
-            const newComment = this.projectManager.commentManager.addComment(comment);
+            const comment = req.body;
+
+            //decode the urls
+            const newImageURLs = [];
+            for(const imageURL of comment.imageURLs) {
+                newImageURLs.push(utilities.replaceSpacesWithDashes(imageURL));
+            }
+            comment.imageURLs = newImageURLs;
+
+            const newVideoURLs = [];
+            for(const videoURL of comment.videoURLs) {
+                newVideoURLs.push(utilities.replaceSpacesWithDashes(videoURL));
+            }
+            comment.videoURLs = newVideoURLs;
+
+            const newAudioURLs = [];
+            for(const audioURL of comment.audioURLs) {
+                newAudioURLs.push(utilities.replaceSpacesWithDashes(audioURL));
+            }
+            comment.audioURLs = newAudioURLs;
+
+            //make the active dev group responsible for the comment
+            comment['developerGroupId'] = this.projectManager.developerManager.getActiveDeveloperGroupId();
+
+            const newComment = await this.projectManager.commentManager.addComment(comment);
             res.json(newComment);
         });
 
-        app.put('/comment', (req, res) => {
+        app.put('/comment', async (req, res) => {
             //update a comment
             const comment = req.body;
-            const newComment = this.projectManager.commentManager.updateComment(comment);
+
+            //decode the urls
+            const newImageURLs = [];
+            for(const imageURL of comment.imageURLs) {
+                newImageURLs.push(utilities.replaceSpacesWithDashes(imageURL));
+            }
+            comment.imageURLs = newImageURLs;
+
+            const newVideoURLs = [];
+            for(const videoURL of comment.videoURLs) {
+                newVideoURLs.push(utilities.replaceSpacesWithDashes(videoURL));
+            }
+            comment.videoURLs = newVideoURLs;
+
+            const newAudioURLs = [];
+            for(const audioURL of comment.audioURLs) {
+                newAudioURLs.push(utilities.replaceSpacesWithDashes(audioURL));
+            }
+            comment.audioURLs = newAudioURLs;
+            
+            const newComment = await this.projectManager.commentManager.updateComment(comment);
             res.json(newComment);
         });
         
-        app.put('/commentPosition', (req, res) => {
+        app.put('/commentPosition', async (req, res) => {
             //update the position of a comment
             const commentPositionData = req.body;
-            this.projectManager.commentManager.updateCommentPosition(commentPositionData);
+            await this.projectManager.commentManager.updateCommentPosition(commentPositionData);
             res.sendStatus(200);
         });
 
-        app.delete('/comment', (req, res) => {
+        app.delete('/comment', async (req, res) => {
             //delete a comment
             const comment = req.body;
-            this.projectManager.commentManager.deleteComment(comment);
+            await this.projectManager.commentManager.deleteComment(comment);
             res.sendStatus(200);
         });
 
         //for serving images
-        app.get('/media/images/:filePath', (req, res) => {
-            //create a path to the image and send it back to the client
-            const filePath = path.join(this.projectManager.commentManager.pathToImagesDir, req.params.filePath);
-            res.sendFile(filePath);
+        app.get('/media/images/:filePath', async (req, res) => {
+            const imageData = await this.projectManager.commentManager.getMediaFile(utilities.replaceSpacesWithDashes(req.path.substring(1)));
+            if(imageData) {
+                res.type(imageData.mimeType);
+                res.send(imageData.blob);
+            } else {
+                res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`);
+            }
         });
         //for serving videos
-        app.get('/media/videos/:filePath', (req, res) => {
-            //create a path to the video and send it back to the client
-            const filePath = path.join(this.projectManager.commentManager.pathToVideosDir, req.params.filePath);
-            res.sendFile(filePath);
+        app.get('/media/videos/:filePath', async (req, res) => {
+            const videoData = await this.projectManager.commentManager.getMediaFile(utilities.replaceSpacesWithDashes(req.path.substring(1)));
+            if(videoData) {
+                res.type(videoData.mimeType);
+                res.send(videoData.blob);
+            } else {
+                res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`);
+            }
         });
         //for serving audios
-        app.get('/media/audios/:filePath', (req, res) => {
-            //create a path to the audio and send it back to the client
-            const filePath = path.join(this.projectManager.commentManager.pathToAudiosDir, req.params.filePath);
-            res.sendFile(filePath);
+        app.get('/media/audios/:filePath', async (req, res) => {
+            const audioData = await this.projectManager.commentManager.getMediaFile(utilities.replaceSpacesWithDashes(req.path.substring(1)));
+            if(audioData) {
+                res.type(audioData.mimeType);
+                res.send(audioData.blob);
+            } else {
+                res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`);
+            }
         });
 
         //for uploading image files
         app.post('/newMedia/image', async (req, res) => {
-            //if there are no files, send a 400
-            if (!req.files || Object.keys(req.files).length === 0) {
-                return res.status(400).send('No files were uploaded.');
-            }
-
-            //get the new image files from the request
-            let newFiles = [];
-            //if there were more than one files uploaded then this will be an array
-            //if there is no length then only one file is being passed in (see FormData in client)
-            if(req.files.newImageFiles.length === undefined) {
-                //store the one file in an array
-                newFiles.push(req.files.newImageFiles);
-            } else { //there are an array of files, store them all
-                newFiles = req.files.newImageFiles;
-            }
-
-            //verify that every file has an acceptable mime type
-            if(newFiles.every(newFile => acceptableImageMimeTypes.includes(newFile.mimetype))) {
-                //all images uploaded together will get the same timestamp
-                const timestamp = new Date().getTime();
-                
-                //create a promise for all files
-                const addedPaths = await Promise.all(newFiles.map(async newFile => {
-                    return new Promise(async (resolve, reject) => {
-                        //create a new file path that includes a timestamp (to show files in order of upload)
-                        const newFileInfo = path.parse(newFile.name);
-                        const newFileName = `${timestamp}-${decodeURI(newFileInfo.base)}`; 
-                        
-                        //system dependent full path to where the file will be stored
-                        //like C:/users/mark/documents/project1/.storyteller/comments/media/images/123-pic.png
-                        const pathToNewFile = path.join(this.projectManager.commentManager.pathToImagesDir, newFileName);
-                        
-                        //move the file into the directory (using express-fileupload to move the file)
-                        await newFile.mv(pathToNewFile);
-
-                        //relative web path from the public directory
-                        //like /media/images/123-pic.png
-                        resolve(path.posix.join(this.projectManager.commentManager.webPathToImagesDir, newFileName));
-                    });
-                }));
-
-                //return the web paths of the files
-                res.json({filePaths: addedPaths});
-            } else { //at least one invalid mimetype
-                res.status(415).json({error: `One or more file types not supported`});
-            }
-        });
-
-        //for getting the web urls of the existing media items
-        app.get('/newMedia/image', async (req, res) => {
-            //get the contents of the images dir
-            const dirContents = fs.readdirSync(this.projectManager.commentManager.pathToImagesDir);
-            //holds the web paths of the images
-            const filePaths = dirContents.map(fileName => path.posix.join(this.projectManager.commentManager.webPathToImagesDir, fileName));
-            //return all of the web paths to the images
-            res.json({filePaths: filePaths});
+            this.addMediaFiles(req, res, 'images', acceptableImageMimeTypes);
         });
 
         //for deleting existing media items
         app.delete('/newMedia/image', async (req, res) => {
-            //get the file paths to delete
-            const filePaths = req.body;
-
-            //go through the paths
-            for(let i = 0;i < filePaths.length;i++) {
-                //change the relative web path to a full path and delete it 
-                const parts = decodeURI(filePaths[i]).split(path.posix.sep);
-                const fileName = path.join(parts[parts.length - 1]);
-                const fullFilePath = path.join(this.projectManager.commentManager.pathToImagesDir, fileName);
-                fs.unlinkSync(fullFilePath);
-            }
-
-            //return success
-            res.sendStatus(200);
+            this.deleteMediaFiles(req, res);
         });
         
         //for uploading video files
         app.post('/newMedia/video', async (req, res) => {
-            //if there are no files, send a 400
-            if (!req.files || Object.keys(req.files).length === 0) {
-                return res.status(400).send('No files were uploaded.');
-            }
-
-            //get the new video files from the request
-            let newFiles = [];
-            //if there were more than one files uploaded then this will be an array
-            //if there is no length then only one file is being passed in (see FormData in client)
-            if(req.files.newVideoFiles.length === undefined) {
-                //store the one file in an array
-                newFiles.push(req.files.newVideoFiles);
-            } else { //there are an array of files, store them all
-                newFiles = req.files.newVideoFiles;
-            }
-
-            //verify that every file has an acceptable mime type
-            if(newFiles.every(newFile => acceptableVideoMimeTypes.includes(newFile.mimetype))) {
-                //all videos uploaded together will get the same timestamp
-                const timestamp = new Date().getTime();
-                
-                //save the files in the comment's media directory
-                const addedPaths = await Promise.all(newFiles.map(async newFile => {
-                    return new Promise(async (resolve, reject) => {
-                        //create a new file path that includes a timestamp (to show files in order of upload)
-                        const newFileInfo = path.parse(newFile.name);
-                        const newFileName = `${timestamp}-${decodeURI(newFileInfo.base)}`; 
-                        
-                        //system dependent full path to where the file will be stored
-                        //like C:/users/mark/documents/project1/.storyteller/comments/media/videos/123-mov.mp4
-                        const pathToNewFile = path.join(this.projectManager.commentManager.pathToVideosDir, newFileName);
-                        
-                        //move the file into the directory (using express-fileupload to move the file)
-                        await newFile.mv(pathToNewFile);
-            
-                        //relative web path from the public directory
-                        //like /media/videos/123-mov.mp4
-                        resolve(path.posix.join(this.projectManager.commentManager.webPathToVideosDir, newFileName));
-                    });
-                }));
-
-                //return the web paths of the files
-                res.json({filePaths: addedPaths});
-            } else { //at least one invalid mimetype
-                res.status(415).json({error: `One or more file types not supported`});
-            }
-        });
-
-        //for getting the web urls of the existing media items
-        app.get('/newMedia/video', async (req, res) => {
-            //get the contents of the videos dir
-            const dirContents = fs.readdirSync(this.projectManager.commentManager.pathToVideosDir);
-            //holds the web paths of the videos
-            const filePaths = dirContents.map(fileName => path.posix.join(this.projectManager.commentManager.webPathToVideosDir, fileName));
-            //return all of the web paths to the videos
-            res.json({filePaths: filePaths});
+            this.addMediaFiles(req, res, 'videos', acceptableVideoMimeTypes);
         });
 
         //for deleting existing media items
         app.delete('/newMedia/video', async (req, res) => {
-            //get the file paths to delete
-            const filePaths = req.body;
-                        
-            //go through the paths
-            for(let i = 0;i < filePaths.length;i++) {
-                //change the relative web path to a full path and delete it 
-                const parts = decodeURI(filePaths[i]).split(path.posix.sep);
-                const fileName = path.join(parts[parts.length - 1]);
-                const fullFilePath = path.join(this.projectManager.commentManager.pathToVideosDir, fileName);
-                fs.unlinkSync(fullFilePath);
-            }
-
-            //return success
-            res.sendStatus(200);
+            this.deleteMediaFiles(req, res);
         });
 
         //for uploading audio files
         app.post('/newMedia/audio', async (req, res) => {
-            //if there are no files, send a 400
-            if (!req.files || Object.keys(req.files).length === 0) {
-                return res.status(400).send('No files were uploaded.');
-            }
-
-            //get the new audio files from the request
-            let newFiles = [];
-            //if there were more than one files uploaded then this will be an array
-            //if there is no length then only one file is being passed in (see FormData in client)
-            if(req.files.newAudioFiles.length === undefined) {
-                //store the one file in an array
-                newFiles.push(req.files.newAudioFiles);
-            } else { //there are an array of files, store them all
-                newFiles = req.files.newAudioFiles;
-            }
-
-            //verify that every file has an acceptable mime type
-            if(newFiles.every(newFile => acceptableAudioMimeTypes.includes(newFile.mimetype))) {
-                //all audios uploaded together will get the same timestamp
-                const timestamp = new Date().getTime();
-
-                //save the files in the comment's media directory
-                const addedPaths = await Promise.all(newFiles.map(async newFile => {
-                    return new Promise(async (resolve, reject) => {
-                        //create a new file path that includes a timestamp (to show files in order of upload)
-                        const newFileInfo = path.parse(newFile.name);
-                        const newFileName = `${timestamp}-${decodeURI(newFileInfo.base)}`; 
-                        
-                        //system dependent full path to where the file will be stored
-                        //like C:/users/mark/documents/project1/.storyteller/comments/media/audios/123-audio.mp3
-                        const pathToNewFile = path.join(this.projectManager.commentManager.pathToAudiosDir, newFileName);
-                        
-                        //move the file into the directory (using express-fileupload to move the file)
-                        await newFile.mv(pathToNewFile);
-
-                        //relative web path from the public directory
-                        //like /media/audios/123-audio.mp3
-                        resolve(path.posix.join(this.projectManager.commentManager.webPathToAudiosDir, newFileName));
-                    });
-                }));
-                //return the web paths of the files
-                res.json({filePaths: addedPaths});
-
-            } else { //at least one invalid mimetype
-                res.status(415).json({error: `One or more file types not supported`});
-            }
-        });
-
-        //for getting the web urls of the existing media items
-        app.get('/newMedia/audio', async (req, res) => {
-            //get the contents of the audios dir
-            const dirContents = fs.readdirSync(this.projectManager.commentManager.pathToAudiosDir);
-            //holds the web paths of the audios
-            const filePaths = dirContents.map(fileName => path.posix.join(this.projectManager.commentManager.webPathToAudiosDir, fileName));
-            //return all of the web paths to the audios
-            res.json({filePaths: filePaths});
+            this.addMediaFiles(req, res, 'audios', acceptableAudioMimeTypes);
         });
 
         //for deleting existing media items
         app.delete('/newMedia/audio', async (req, res) => {
-            //get the file paths to delete
-            const filePaths = req.body;
-
-            //go through the paths
-            for(let i = 0;i < filePaths.length;i++) {
-                //change the relative web path to a full path and delete it 
-                const parts = decodeURI(filePaths[i]).split(path.posix.sep);
-                const fileName = path.join(parts[parts.length - 1]);
-                const fullFilePath = path.join(this.projectManager.commentManager.pathToAudiosDir, fileName);
-                fs.unlinkSync(fullFilePath);
-            }
-
-            //return success
-            res.sendStatus(200);
+            this.deleteMediaFiles(req, res);
         });
-
-        //if this server will handle http requests from web editors
-        if(this.projectManager.useHttpServerForEditor) {
-            this.addEditorRoutes(app);
-        }
 
         //for invalid routes
         app.use((req, res) => {
             res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`);
         });
+    }
+
+    async addMediaFiles(req, res, mediaString, acceptableMimeTypes) {
+        //if there are no files, send a 400
+        if (!req.files || Object.keys(req.files).length === 0) {
+            return res.status(400).send('No files were uploaded.');
+        }
+
+        //get the new files from the request
+        let newFiles = [];
+        //if there were more than one files uploaded then this will be an array
+        //if there is no length then only one file is being passed in (see FormData in client)
+        if(req.files.newFiles.length === undefined) {
+            //store the one file in an array
+            newFiles.push(req.files.newFiles);
+        } else { //there are an array of files, store them all
+            newFiles = req.files.newFiles;
+        }
+
+        //verify that every file has an acceptable mime type
+        if(newFiles.every(newFile => acceptableMimeTypes.includes(newFile.mimetype))) {
+            //all images uploaded together will get the same timestamp
+            const timestamp = new Date().getTime();
+            
+            //create a promise for all files
+            const addedPaths = await Promise.all(newFiles.map(async newFile => {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        //create a new file path that includes a timestamp (to show files in order of upload)
+                        const newFileInfo = path.parse(newFile.name);
+                        const newFileName = `${timestamp}-${utilities.replaceSpacesWithDashes(newFileInfo.base)}`; 
+                        
+                        const pathToNewFile = utilities.normalizeSeparators(path.join('media', mediaString, newFileName));
+                        await this.projectManager.commentManager.addMediaFile(newFile.data, newFile.mimetype, pathToNewFile);
+                        
+                        resolve(pathToNewFile);
+                    } catch(error) {
+                        reject(error);
+                    }
+                });
+            }));
+
+            //return the web paths of the files
+            res.json({filePaths: addedPaths});
+        } else { //at least one invalid mimetype
+            res.status(415).json({error: `One or more file types not supported`});
+        }
+    }
+
+    async deleteMediaFiles(req, res) {
+        //get the file paths to delete
+        const filePaths = req.body;
+        const allDeletePromises = [];
+        
+        //go through the paths
+        for(let i = 0;i < filePaths.length;i++) {
+            allDeletePromises.push(this.projectManager.commentManager.deleteMediaFile(utilities.replaceSpacesWithDashes(filePaths[i])));
+            allDeletePromises.push(this.projectManager.commentManager.deleteMediaURL(utilities.replaceSpacesWithDashes(filePaths[i])));
+        }
+
+        await Promise.all(allDeletePromises);
+        //return success
+        res.sendStatus(200);
     }
 
     /*
@@ -546,35 +440,33 @@ class HttpServer {
             res.status(200).end();
         });
         
-        app.post('/add-new-developer', (req, res) => {
+        app.post('/add-new-developer', async (req, res) => {
             const devInfo = req.body.devInfo;
             //create a new dev and add them to the current dev group
-            this.projectManager.developerManager.createDeveloper(devInfo.userName, devInfo.email);
-            this.projectManager.developerManager.addDevelopersToActiveGroupByUserName([devInfo.userName]);
+            await this.projectManager.developerManager.createDeveloper(devInfo.userName, devInfo.email);
+            await this.projectManager.developerManager.addDevelopersToActiveGroupByUserName([devInfo.userName]);
             //get all the active devs
             res.json({allActiveDevs: this.projectManager.developerManager.getActiveDevelopers()});
         });
         
-        app.post('/add-dev-to-active-dev-group', (req, res) => {
+        app.post('/add-dev-to-active-dev-group', async (req, res) => {
             //add all the developers to the active dev group
             const devUserNames = req.body.devUserNames;
-            this.projectManager.developerManager.addDevelopersToActiveGroupByUserName(devUserNames);
+            await this.projectManager.developerManager.addDevelopersToActiveGroupByUserName(devUserNames);
             //get all the active devs
             res.json({allActiveDevs: this.projectManager.developerManager.getActiveDevelopers()});
         });
         
-        app.post('/remove-dev-from-active-dev-group', (req, res) => {
+        app.post('/remove-dev-from-active-dev-group', async (req, res) => {
             //remove all the developers to the active dev group
             const devUserNames = req.body.devUserNames;
-            this.projectManager.developerManager.removeDevelopersFromActiveGroupByUserName(devUserNames);
+            await this.projectManager.developerManager.removeDevelopersFromActiveGroupByUserName(devUserNames);
             //get all the active devs
             res.json({allActiveDevs: this.projectManager.developerManager.getActiveDevelopers()});
         });
         
         //file system /fs
         app.get('/save-all', (req, res) => {
-            //save the file state
-            this.projectManager.saveTextFileState();
             res.status(200).end();
         });
         

@@ -133,7 +133,7 @@ class EditorState {
       fileId,
       filePath,
       parentDirectoryId,
-      isDeleted: false
+      isDeleted: 'false'
     };
     //store the file id in the parent dir's collection of file ids
     this.allDirectories[parentDirectoryId].childFiles.push(fileId);
@@ -153,7 +153,7 @@ class EditorState {
 
   deleteFile(fileId, parentDirectoryId) {
     //mark a file as deleted
-    this.allFiles[fileId].isDeleted = true;
+    this.allFiles[fileId].isDeleted = 'true';
 
     //remove the file id from the parent
     const index = this.allDirectories[parentDirectoryId].childFiles.indexOf(fileId);
@@ -162,7 +162,7 @@ class EditorState {
 
   deleteFileBackward(fileId, parentDirectoryId) {
     //mark a file as NOT deleted anymore
-    this.allFiles[fileId].isDeleted = false;
+    this.allFiles[fileId].isDeleted = 'false';
 
     //store the file id in the parent dir's collection of file ids
     this.allDirectories[parentDirectoryId].childFiles.push(fileId);
@@ -208,10 +208,10 @@ class EditorState {
       parentDirectoryId,
       childDirectories: [],
       childFiles: [],
-      isDeleted: false
+      isDeleted: 'false'
     };
     //if this is not the root dir
-    if (parentDirectoryId) {
+    if (parentDirectoryId !== -1) {
       //store the directory id in the parent dir's collection of dir ids
       this.allDirectories[parentDirectoryId].childDirectories.push(directoryId);
     }
@@ -222,7 +222,7 @@ class EditorState {
     delete this.allDirectories[directoryId];
 
     //if this is not the root dir
-    if (parentDirectoryId) {
+    if (parentDirectoryId !== -1) {
       //remove the dir id from the parent
       const index = this.allDirectories[parentDirectoryId].childDirectories.indexOf(directoryId);
       this.allDirectories[parentDirectoryId].childDirectories.splice(index, 1);
@@ -231,10 +231,10 @@ class EditorState {
 
   deleteDirectory(directoryId, parentDirectoryId) {
     //mark a directory as deleted
-    this.allDirectories[directoryId].isDeleted = true;
+    this.allDirectories[directoryId].isDeleted = 'true';
 
     //if this is not the root dir
-    if (parentDirectoryId) {
+    if (parentDirectoryId !== -1) {
       //remove the directory id from the parent
       const index = this.allDirectories[parentDirectoryId].childDirectories.indexOf(directoryId);
       this.allDirectories[parentDirectoryId].childDirectories.splice(index, 1);
@@ -243,10 +243,10 @@ class EditorState {
 
   deleteDirectoryBackward(directoryId, parentDirectoryId) {
     //mark a directory as NOT deleted anymore
-    this.allDirectories[directoryId].isDeleted = false;
+    this.allDirectories[directoryId].isDeleted = 'false';
 
     //if this is not the root dir
-    if (parentDirectoryId) {
+    if (parentDirectoryId !== -1) {
       //store the dir id in the parent dir's collection of dir ids
       this.allDirectories[parentDirectoryId].childDirectories.push(directoryId);
     }

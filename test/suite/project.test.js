@@ -72,14 +72,14 @@ suite('Project Tests', function () {
         assert.equal(projectManager.project.description, description);
 
         //get the current dev group
-        const currentDevGroup = projectManager.developerManager.getCurrentDeveloperGroup();
+        const currentDevGroup = projectManager.developerManager.getActiveDeveloperGroup();
         //there is one dev in the current dev group
         assert.equal(currentDevGroup.id, 'devGroupId-1');
         assert.equal(currentDevGroup.memberIds.length, 1);
         assert.equal(currentDevGroup.memberIds[0], 'devId-1');
         
         //get the dev in the current dev group
-        const currentDev = projectManager.developerManager.getDeveloperById(projectManager.developerManager.getCurrentDeveloperGroup().memberIds[0]);
+        const currentDev = projectManager.developerManager.getDeveloperById(projectManager.developerManager.getActiveDeveloperGroup().memberIds[0]);
         assert.equal(currentDev.userName, 'Anonymous Developer');
         assert.equal(currentDev.email, '');
 

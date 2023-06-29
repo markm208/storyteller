@@ -1,19 +1,17 @@
 /*
- * This represents a comment in a playback. It has a copy of the event where
- * the comment will show up, a timestamp when it was created, a dev group id
- * some text entered by the author, the ids of any highlighted events and
- * two array of images and videos.
+ * This represents a comment in a playback.
  */
 class Comment {
-    constructor(displayCommentEvent, developerGroupId, timestamp, commentText, commentTitle, selectedCodeBlocks, imageURLs, videoURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData, id) {
+    constructor(displayCommentEventId, displayCommentEventSequenceNumber, developerGroupId, timestamp, commentText, commentTitle, selectedCodeBlocks, imageURLs, videoURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData, position, id) {
         //store the comment data
-        //generate an id if one is not supplied
-        this.id = id || this.generateId(); 
-        this.displayCommentEvent = displayCommentEvent;
-        this.developerGroupId = developerGroupId; 
+        this.id = id;
+        this.displayCommentEventId = displayCommentEventId;
+        this.displayCommentEventSequenceNumber = displayCommentEventSequenceNumber;
+        this.developerGroupId = developerGroupId;
         this.timestamp = timestamp;
         this.commentText = commentText;
         this.commentTitle = commentTitle;
+        this.position = position;
         this.selectedCodeBlocks = selectedCodeBlocks;
         this.imageURLs = imageURLs;
         this.videoURLs = videoURLs;
@@ -25,18 +23,6 @@ class Comment {
         this.commentTags = commentTags;
         this.questionCommentData = questionCommentData;
     }
-
-    generateId() {
-        //use the static nextId to generate a string with a comment id
-        const newId = `commentId-${Comment.nextId}`;
-        
-        //increase for the next comment
-        Comment.nextId++;
-
-        return newId;
-    }
 }
-//used to autogenerate ids
-Comment.nextId = 0;
 
 module.exports = Comment;

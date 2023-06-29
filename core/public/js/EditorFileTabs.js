@@ -97,7 +97,7 @@ class EditorFileTabs extends HTMLElement {
         
         //create a tab and add it
         const tab = document.createElement('span');
-        tab.setAttribute('id', file.fileId);
+        tab.setAttribute('id', `id-${file.fileId}`);
         tab.classList.add('fileTab');
         tab.title = file.filePath;
         tab.innerHTML = fileName;
@@ -120,12 +120,12 @@ class EditorFileTabs extends HTMLElement {
     let retVal = false;
     const file = this.playbackEngine.editorState.allFiles[fileId];
     //check to see if the file is deleted
-    if(file.isDeleted) {
+    if(file.isDeleted === 'true') {
       retVal = true;
     } else { //check to see if any parent dir has been deleted
       let parentDir = this.playbackEngine.editorState.allDirectories[file.parentDirectoryId];
       while(parentDir) {
-        if(parentDir.isDeleted) {
+        if(parentDir.isDeleted === 'true') {
           retVal = true;
           break;
         }
@@ -138,7 +138,8 @@ class EditorFileTabs extends HTMLElement {
   }
   
   handleFileTabClick = (event) => {
-    const fileId = event.target.getAttribute('id');
+    let fileId = event.target.getAttribute('id').substring('id-'.length);
+    fileId = parseInt(fileId);
     this.sendEventActiveFile(fileId);
   }
 

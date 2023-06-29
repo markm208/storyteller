@@ -100,7 +100,7 @@ class CommentGroup extends HTMLElement {
         totalNumberOfComments: this.totalNumberOfComments
       });
       //give the comment view the id of the comment
-      commentView.setAttribute('id', comment.id);
+      commentView.setAttribute('id', `id-${comment.id}`);
       //add the comment view to this comment group
       commentViews.appendChild(commentView);
     }
@@ -130,7 +130,7 @@ class CommentGroup extends HTMLElement {
     });
 
     //get the new active comment view and make it active
-    const newActiveCommentView = this.shadowRoot.querySelector(`st-comment-view#${this.playbackEngine.activeComment.id}`);
+    const newActiveCommentView = this.shadowRoot.querySelector(`st-comment-view#id-${this.playbackEngine.activeComment.id}`);
     newActiveCommentView.makeCommentViewActive();
 
     //if there are more than one comments in this group
@@ -303,7 +303,7 @@ class CommentGroup extends HTMLElement {
       if(dragPos !== dropPos) {
         //create the reordering data
         const updatedCommentPosition = {
-          eventId: draggedCommentView.comment.displayCommentEvent.id,
+          eventId: draggedCommentView.comment.displayCommentEventId,
           oldCommentPosition: dragPos,
           newCommentPosition:dropPos
         };

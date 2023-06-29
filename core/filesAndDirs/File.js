@@ -1,49 +1,25 @@
-const FileSystemElement = require('./FileSystemElement.js');
+const utilities = require('../utilities.js');
 
 /*
  * This class represents a file being tracked in a storyteller project. 
- * It extends the FileSystemElement class and adds a last modified date and 
- * a 2D array of minimal text events (event id and character). The 2D array 
- * of minimal events represents the state of the file at different points in 
- * time. This is used to get the complete text at a point in time and to get 
- * previous neighbor ids. 
+ * It has a last modified date and a 2D array of minimal text events 
+ * (event id and character). The 2D array of minimal events represents 
+ * the state of the file at different points in time. This is used to 
+ * get the complete text at a point in time and to get previous neighbor 
+ * ids. 
  */
-class File extends FileSystemElement {
-    constructor(parentDirectoryId, currentPath, lastModifiedDate, textFileInsertEvents, isDeleted, id) {
-        super(parentDirectoryId, currentPath);
-        
-        //generate an id if one is not supplied
-        this.id = id || this.generateId();
-
+class File {
+    constructor(parentDirectoryId, currentPath, lastModifiedDate, textFileInsertEvents, isDeleted, id) {        
+        this.id = id;
+        this.parentDirectoryId = parentDirectoryId;
+        this.currentPath = currentPath;
         this.lastModifiedDate = lastModifiedDate;
-        
-        //if insert events are supplied, use them
-        if(textFileInsertEvents) {
-            this.textFileInsertEvents = textFileInsertEvents;
-        } else {
-            //create an empty array
-            this.textFileInsertEvents = [];
-        }
-
-        //if the isDeleted value is supplied, use it
-        if(isDeleted) {
-            this.isDeleted = isDeleted;
-        } else {
-            this.isDeleted = 'false';
-        }
+        this.textFileInsertEvents = textFileInsertEvents; //stored in db as FileEvents
+        this.isDeleted = isDeleted;
+        //has a file changed since being read in from the db (not stored in db)
+        this.hasBeenModified = false; 
     }
 
-    /*
-     * Generates an id for a file.
-     */
-    generateId() {
-        //create a new event text
-        const newId = `fileId-${File.nextId}`;
-        File.nextId++;
-
-        return newId;
-    }
-    
     /*
      * Returns an object with the file data with the exception of the 
      * textFileInsertEvents. This is used when generating data to send to a
@@ -66,12 +42,22 @@ class File extends FileSystemElement {
      * the file. 
      */
     addInsertEventByPos(eventId, eventCharacter, row, col) {
+        //this file has been changed in the current session
+        this.hasBeenModified = true;
+
         //verify that the new insert is within the bounds of the file (check max column below)
         if(row >= 0 && row <= this.textFileInsertEvents.length && col >= 0 ) {
+            //get the events around where this new event will be inserted
+            const nextNeighbor = this.getEvent(row, col);
+            const previousNeighbor = this.getPreviousNeighbor(row, col);
+            const prevNeighborRelativeOrder = previousNeighbor ? previousNeighbor.relativeOrder : null;
+            const nextNeighborRelativeOrder = nextNeighbor ? nextNeighbor.relativeOrder : null;
+            const relativeOrder = utilities.inBetweenHelper.inbetween(prevNeighborRelativeOrder, nextNeighborRelativeOrder);
             //create a minimal insert event from the full event
             const event = {
-                id: eventId,
-                character: eventCharacter
+                eventId: eventId,
+                character: eventCharacter,
+                relativeOrder: relativeOrder
             };
             
             //if this is the first insert on a new row (underneath the current last row)
@@ -103,6 +89,8 @@ class File extends FileSystemElement {
                 //add a new row that the newline created with the end of the current line
                 this.textFileInsertEvents.splice(row + 1, 0, restOfLine); 
             }
+
+            return event;
         } else {
             //console.log(`In addInsertEventByPos(): File ${this.currentPath} Insert event cannot be added at position row: ${row} col: ${col}`);
             throw new Error(`Insert event cannot be added at position row: ${row} col: ${col}`);
@@ -114,6 +102,9 @@ class File extends FileSystemElement {
      * deleted.
      */
     removeInsertEventByPos(row, col) {
+        //this file has been changed in the current session
+        this.hasBeenModified = true;
+
         //make sure the request is within the bounds
         if(row >= 0 && row < this.textFileInsertEvents.length && col >= 0 && col < this.textFileInsertEvents[row].length) {
             //if we are removing a newline character
@@ -151,44 +142,41 @@ class File extends FileSystemElement {
     }
 
     /*
-     * Returns the id of the event before the passed in row and col ('none' if
-     * the request is for row zero, column zero).
+     * Returns the event before the passed in row and col
      */
-    getPreviousNeighborId(row, col) {
-        //id of the previous neighbor
-        let retVal;
+    getPreviousNeighbor(row, col) {
+        //the previous neighbor
+        let retVal = null;
         
         //the row and col should never be negative
         if(row >= 0 && col >= 0) {    
             //if we are asking for the previous neighbor of the very first element in the document
             if(row === 0 && col === 0) {
                 //there is no previous neighbor
-                retVal = 'none';
+                retVal = null;
             } else if(col === 0 && row <= this.textFileInsertEvents.length) { //previous neighbor of a first column
                 //get the previous row (there will always be one)
                 const previousRow = this.textFileInsertEvents[row - 1];
                 
                 //go to the end of the previous row and return the last insert event
-                const prevEvent = previousRow[previousRow.length - 1];
-
-                //get the id of the previous neighbor
-                retVal = prevEvent.id;
+                retVal = previousRow[previousRow.length - 1];
             } else if(col <= this.textFileInsertEvents[row].length) { //not in the first col
                 //go back one from the col and return it
-                const prevEvent = this.textFileInsertEvents[row][col - 1];
-
-                //get the id of the previous neighbor
-                retVal = prevEvent.id;
-            } else {
-                //console.log(`In getPreviousNeighborId(): File ${this.currentPath} Cannot get the previous neighbor for insert event at row: ${row} col: ${col}`);
-                throw new Error(`Cannot get the previous neighbor for insert event at row: ${row} col: ${col}`);
-            }
-        } else {
-            //console.log(`In getPreviousNeighborId(): File ${this.currentPath} Cannot get the previous neighbor for insert event at row: ${row} col: ${col} row and col must be non-negative`);
-            throw new Error(`Cannot get the previous neighbor for insert event at row: ${row} col: ${col} row and col must be non-negative`);
+                retVal = this.textFileInsertEvents[row][col - 1];
+            } 
         }
+
         //return the id of the previous neighbor
         return retVal;
+    }
+
+    /*
+     * Returns the id of the event before the passed in row and col ('none' if
+     * the request is for row zero, column zero).
+     */
+    getPreviousNeighborId(row, col) {
+        const previousNeighborEvent = this.getPreviousNeighbor(row, col);
+        return previousNeighborEvent ? previousNeighborEvent.eventId : 'none';
     }
 
     /*
@@ -196,15 +184,12 @@ class File extends FileSystemElement {
      */
     getEvent(row, col) {
         //event to return
-        let retVal;
+        let retVal = null;
         
         //make sure the request is within bounds
         if(row >= 0 && row < this.textFileInsertEvents.length && col >= 0 && col < this.textFileInsertEvents[row].length) {
             //return the id of the code
             retVal = this.textFileInsertEvents[row][col];
-        } else {
-            //console.log(`In getEvent(): File ${this.currentPath} Cannot get the insert event at row: ${row} col: ${col}`);
-            throw new Error(`Cannot get the insert event at row: ${row} col: ${col}`);
         }
         
         return retVal;
@@ -279,7 +264,5 @@ class File extends FileSystemElement {
         return text;
     }
 }
-//used to autogenerate ids
-File.nextId = 0;
 
 module.exports = File;

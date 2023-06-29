@@ -105,7 +105,7 @@ class FileSystemNavigator extends HTMLElement {
     //find the root directory and store it for later updates
     for(let dirId in this.playbackEngine.editorState.allDirectories) {
       const directory = this.playbackEngine.editorState.allDirectories[dirId];
-      if(directory.parentDirectoryId === null) {
+      if(directory.parentDirectoryId === -1) {
         this.root = directory;
         break;
       }
@@ -135,7 +135,7 @@ class FileSystemNavigator extends HTMLElement {
   }
 
   renderHelper(aDirectory, aList, changedFileIds) {
-    if(aDirectory.isDeleted === false) {
+    if(aDirectory.isDeleted === 'false') {
       //get the name of the directory
       const directory = this.playbackEngine.editorState.allDirectories[aDirectory.directoryId];
       const indexOfLastSlash = directory.directoryPath.lastIndexOf("/", directory.directoryPath.length - 2);
@@ -170,14 +170,14 @@ class FileSystemNavigator extends HTMLElement {
         //get the file from the collection of all files
         const file = this.playbackEngine.editorState.allFiles[fileId];
 
-        if(file.isDeleted === false) {
+        if(file.isDeleted === 'false') {
           //get the file name
           const indexOfLastSlash = file.filePath.lastIndexOf("/");
           let fileName = file.filePath.substring(indexOfLastSlash + 1);
           //add it as a child to the files list
           const newListItem = document.createElement('li');
           newListItem.innerHTML = fileName;
-          newListItem.setAttribute('id', file.fileId);
+          newListItem.setAttribute('id', `id-${file.fileId}`);
           newListItem.classList.add('fsFile');
           if (file.fileId === this.playbackEngine.activeFileId) {
             newListItem.classList.add('activeFileSystemFile');
@@ -216,7 +216,7 @@ class FileSystemNavigator extends HTMLElement {
     
     //highlight the new active file
     if(this.playbackEngine.activeFileId) {
-      activeFileSystemFile = this.shadowRoot.querySelector(`#${this.playbackEngine.activeFileId}`);
+      activeFileSystemFile = this.shadowRoot.querySelector(`#id-${this.playbackEngine.activeFileId}`);
       if(activeFileSystemFile) {
         activeFileSystemFile.classList.add('activeFileSystemFile');
       }
@@ -224,7 +224,8 @@ class FileSystemNavigator extends HTMLElement {
   }
 
   handleFileClick = (event) => {
-    const fileId = event.target.getAttribute('id');
+    let fileId = event.target.getAttribute('id').substring('id-'.length);
+    fileId = parseInt(fileId);
     this.sendActiveFileEvent(fileId);
   }
 

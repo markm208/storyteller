@@ -216,7 +216,8 @@ class PlaybackEngine {
     const comment = this.findCommentById(commentId);
     if(comment) {
       //step to the requested comment
-      const moveToPosition = comment.displayCommentEvent.eventSequenceNumber;
+      const moveToPosition = comment.displayCommentEventSequenceNumber;
+      
       this.stepToEventNumber(moveToPosition);
 
       //if there is some selected code in the comment
@@ -330,7 +331,7 @@ class PlaybackEngine {
       //create groups of comments and where they land in the sequence of events
       orderedCommentGroups.push({
         comments: this.playbackData.comments[eventId], 
-        eventSequenceNumber: this.playbackData.comments[eventId][0].displayCommentEvent.eventSequenceNumber
+        eventSequenceNumber: this.playbackData.comments[eventId][0].displayCommentEventSequenceNumber
       });
     }
     
@@ -387,8 +388,7 @@ class PlaybackEngine {
 
       //find the active file to display for this comment
       //default to the file where the event took place (if its a file event, undefined otherwise) 
-      let activeFileId = this.activeComment.displayCommentEvent.fileId;
-      //if there is some selected code in any comment in the group then make sure the file is being displayed
+      let activeFileId = this.activeFileId;//if there is some selected code in any comment in the group then make sure the file is being displayed
       for(let i = 0;i < allCommentsAtCurrentEvent.length;i++) {
         const comment = allCommentsAtCurrentEvent[i];
         if(comment.selectedCodeBlocks.length > 0) {
@@ -520,7 +520,7 @@ class PlaybackEngine {
       this.editorState.deleteDirectory(currentEvent.directoryId, currentEvent.parentDirectoryId);
     } else if (currentEvent.type === "RENAME DIRECTORY") {
       this.editorState.renameDirectory(currentEvent.directoryId, currentEvent.newDirectoryPath);
-    } else if (currentEvent.type === "MOVE  DIRECTORY") {
+    } else if (currentEvent.type === "MOVE DIRECTORY") {
       this.editorState.moveDirectory(currentEvent.directoryId, currentEvent.newDirectoryPath, currentEvent.newParentDirectoryId, currentEvent.oldParentDirectoryId);
     } else if (currentEvent.type === "CREATE FILE") {
       this.editorState.createFile(currentEvent.fileId, currentEvent.filePath, currentEvent.parentDirectoryId);
@@ -567,7 +567,7 @@ class PlaybackEngine {
       this.editorState.deleteDirectoryBackward(currentEvent.directoryId, currentEvent.parentDirectoryId);
     } else if (currentEvent.type === "RENAME DIRECTORY") {
       this.editorState.renameDirectoryBackward(currentEvent.directoryId, currentEvent.oldDirectoryPath);
-    } else if (currentEvent.type === "MOVE  DIRECTORY") {
+    } else if (currentEvent.type === "MOVE DIRECTORY") {
       this.editorState.moveDirectoryBackward(currentEvent.directoryId, currentEvent.oldDirectoryPath, currentEvent.newParentDirectoryId, currentEvent.oldParentDirectoryId,);
     } else if (currentEvent.type === "CREATE FILE") {
       this.editorState.createFileBackward(currentEvent.fileId, currentEvent.parentDirectoryId);
@@ -819,9 +819,9 @@ class PlaybackEngine {
     this.updateCommentInfo();
   }
 
-  updateComment(updatedComment) {
+  updateComment(originalComment, updatedComment) {
     //get the edited comment's event id 
-    const eventId = updatedComment.displayCommentEvent.id;
+    const eventId = updatedComment.displayCommentEventId;
     
     //get all of the comments in the group
     const commentsAtEvent = this.playbackData.comments[eventId];
@@ -829,7 +829,7 @@ class PlaybackEngine {
     //search for the comment by id
     for(let i = 0;i < commentsAtEvent.length;i++) {
       const comment = commentsAtEvent[i];
-      if(comment.id === updatedComment.id) {
+      if(comment.id === originalComment.id) {
         //replace the old comment with the new one
         commentsAtEvent[i] = updatedComment;
 
@@ -844,7 +844,7 @@ class PlaybackEngine {
 
   deleteComment(deletedComment) {
     //get the deleted comment's event id 
-    const eventId = deletedComment.displayCommentEvent.id;
+    const eventId = deletedComment.displayCommentEventId;
     
     //get all of the comments in the group
     const commentsAtEvent = this.playbackData.comments[eventId];

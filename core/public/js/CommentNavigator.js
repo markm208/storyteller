@@ -100,7 +100,7 @@ class CommentNavigator extends HTMLElement {
       }
 
       //look for the comment group that contains the new active comment
-      const newActiveCommentGroup = this.shadowRoot.querySelector(`st-comment-group.${this.playbackEngine.activeComment.id}`);
+      const newActiveCommentGroup = this.shadowRoot.querySelector(`st-comment-group.id-${this.playbackEngine.activeComment.id}`);
       newActiveCommentGroup.makeCommentGroupActive();
     } //else- no active comment, nothing to do in this case
   }
@@ -136,11 +136,11 @@ class CommentNavigator extends HTMLElement {
         playbackEngine: this.playbackEngine,
       });
       //give the group the id of the first comment
-      commentGroup.setAttribute('id', flattenedCommentGroup[0].id);
+      commentGroup.setAttribute('id', `id-${flattenedCommentGroup[0].id}`);
 
       //add each comment's id as a class in each comment group
       flattenedCommentGroup.forEach(comment => {
-        commentGroup.classList.add(comment.id);
+        commentGroup.classList.add(`id-${comment.id}`);
       });
       //add the group
       commentGroups.appendChild(commentGroup);

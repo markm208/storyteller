@@ -54,13 +54,13 @@ class CodeDownloader {
     let retVal = false;
     const file = this.playbackEngine.editorState.allFiles[fileId];
     //check to see if the file is deleted
-    if(file.isDeleted) {
+    if(file.isDeleted === 'true') {
       retVal = true;
     } else { 
       //check to see if any parent dir has been deleted
       let parentDir = this.playbackEngine.editorState.allDirectories[file.parentDirectoryId];
       while(parentDir) {
-        if(parentDir.isDeleted) {
+        if(parentDir.isDeleted === 'true') {
           retVal = true;
           break;
         }
@@ -75,13 +75,13 @@ class CodeDownloader {
     let retVal = false;
     const dir = this.playbackEngine.editorState.allDirectories[dirId];
     //check to see if the dir is deleted
-    if(dir.isDeleted) {
+    if(dir.isDeleted === 'true') {
       retVal = true;
     } else { 
       //check to see if any parent dir has been deleted
       let parentDir = this.playbackEngine.editorState.allDirectories[dir.parentDirectoryId];
       while(parentDir) {
-        if(parentDir.isDeleted) {
+        if(parentDir.isDeleted === 'true') {
           retVal = true;
           break;
         }
@@ -339,7 +339,8 @@ class CodeDownloader {
     //create a minimal insert event from the full event
     const event = {
       id: eventId,
-      character: eventCharacter
+      character: eventCharacter 
+      //TODO add relativeOrder member like in the File
     };
         
     //if this is the first insert on a new row (underneath the current last row)

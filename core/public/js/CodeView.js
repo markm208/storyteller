@@ -130,16 +130,16 @@ class CodeView extends HTMLElement {
     //existing comment successfully edited
     this.shadowRoot.addEventListener('edit-comment', async event => {
       //get the comment object (without the selected text)
-      const comment = event.detail.comment;
+      const originalComment = event.detail.comment;
       //add the selected text to the comment when creating a new comment
-      this.addSelectedTextToComment(comment);
+      this.addSelectedTextToComment(originalComment);
 
       //send the new comment to the st server
       const serverProxy = new ServerProxy();
-      const editedComment = await serverProxy.updateCommentOnServer(comment);
+      const editedComment = await serverProxy.updateCommentOnServer(originalComment);
 
       //update the playback engine's data
-      this.playbackEngine.updateComment(editedComment);
+      this.playbackEngine.updateComment(originalComment, editedComment);
 
       //close the editing UI and display the edited commnt
       this.updateForAddEditDeleteComment();

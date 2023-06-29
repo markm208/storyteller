@@ -136,7 +136,7 @@ class ServerProxy {
       //will create an array of the files
       for (let i = 0; i < files.length; i++) {
         //add the file to the form data
-        formData.append('newImageFiles', files[i]);
+        formData.append('newFiles', files[i]);
       }
 
       //post to the server
@@ -194,7 +194,7 @@ class ServerProxy {
       //will create an array of the files
       for (let i = 0; i < files.length; i++) {
         //add the file to the form data
-        formData.append('newVideoFiles', files[i]);
+        formData.append('newFiles', files[i]);
       }
 
       //post to the server
@@ -252,7 +252,7 @@ class ServerProxy {
       //will create an array of the files
       for (let i = 0; i < files.length; i++) {
         //add the file to the form data
-        formData.append('newAudioFiles', files[i]);
+        formData.append('newFiles', files[i]);
       }
 
       //post to the server

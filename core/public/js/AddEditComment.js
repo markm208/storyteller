@@ -475,10 +475,17 @@ class AddEditComment extends HTMLElement {
     if (retVal.status === 'ok') {
       const mostRecentEvent = this.playbackEngine.getMostRecentEvent();
       const activeFilePath = this.playbackEngine.getActiveFilePath();
+      // let numCommentsAtMostRecentEvent = 0;
+      // if(this.playbackEngine.playbackData.comments[mostRecentEvent.id]) {
+      //   numCommentsAtMostRecentEvent = this.playbackEngine.playbackData.comments[mostRecentEvent.id].length;
+      // }
 
       const comment = {
         id: this.editedComment ? this.editedComment.id : null,
-        displayCommentEvent: this.editedComment ? this.editedComment.displayCommentEvent : mostRecentEvent,
+        displayCommentEventId: this.editedComment ? this.editedComment.displayCommentEventId : mostRecentEvent.id,
+        displayCommentEventSequenceNumber: this.editedComment ? this.editedComment.displayCommentEventSequenceNumber : mostRecentEvent.eventSequenceNumber,
+        position: this.editedComment ? this.editedComment.position : 0,//numCommentsAtMostRecentEvent,
+
         developerGroupId: this.editedComment ? this.editedComment.developerGroupId : null,
         timestamp: this.editedComment ? this.editedComment.timestamp : new Date().getTime(),
         commentText: commentText.getFormattedText(),

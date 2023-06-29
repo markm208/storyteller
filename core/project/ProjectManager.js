@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const Project = require('./Project');
+const utilities = require('../utilities.js');
 const DeveloperManager = require('../developers/DeveloperManager');
 const EventManager = require('../events/EventManager');
 const FileSystemManager = require('../filesAndDirs/FileSystemManager');
@@ -11,8 +11,11 @@ const Reconciler = require('./Reconciler');
 const PathHelper = require('./PathHelper');
 const IgnorePath = require('./IgnorePath.js');
 
-const FileBackedCollection = require('../FileBackedCollection.js');
 const DBAbstraction = require('./DBAbstraction.js');
+
+//file name of the sqlite database
+const STORYTELLER_DB_NAME = 'st.db';
+
 /*
  * This class manages most aspects of the open storyteller project.
  * This includes responding to editor activity and generating events
@@ -20,93 +23,101 @@ const DBAbstraction = require('./DBAbstraction.js');
  * It creates references to the other managers (developer, file system,
  * event) and coordinates most of their interaction.
  */
-class ProjectManager extends FileBackedCollection {
-    constructor(projDirPath, useHttpServerForEditor=false) {
-        //init the base class
-        super(projDirPath, 'project', 'project.json');
+class ProjectManager {
+    constructor(projDirPath, stDirPath) {
+        this.projectDirPath = projDirPath;
+        this.storytellerDirPath = stDirPath;
         
-        //indicate whether there is an editor that will send http requests 
-        //(the vs code extension does not use this)
-        this.useHttpServerForEditor = useHttpServerForEditor;
-
-        //create the dev, file system, and event managers (opens and reads 
-        //data if present, initializes data otherwise)
-        this.developerManager = new DeveloperManager(this.storytellerDirPath);
-        this.fileSystemManager = new FileSystemManager(this.storytellerDirPath);
-        this.eventManager = new EventManager(this.storytellerDirPath);
-        this.commentManager = new CommentManager(this.storytellerDirPath);
-
-        //for normalizing paths (going from full paths to relative paths)
-        this.pathHelper = new PathHelper(this.storytellerDirPath);
-        
-        //read in the st-ignore file (if there is one)
-        this.ignorePath = new IgnorePath(this.storytellerDirPath);
-
-        //create a reconciler to handle file/dir discrepancies
-        this.reconciler = new Reconciler(this);
-
-        //if the json file exists then this is an existing project
-        if(this.fileExists()) {
-            //read all of the project data from the file system
-            this.read();
-        } else { //no json file exists, this is a new project
-            
-            this.db = new DBAbstraction(projDirPath, true);
-            
-            //create a Project (title, description, and initial 6 digit branch id)
-            this.project = new Project();
-
-            //write the relevant data to the file
-            this.write();
-
-            //create the root dir, /
-            this.createDirectory(this.storytellerDirPath, false);
-        }
-
         //the playback data should be altered for the next playback
         this.updateEventDataForPerfectProgrammer = false;
-
-        //create an http server to listen for editors and playbacks
-        this.httpServer = new HttpServer(this);
     }
 
-    /*
-     * Writes the project data to the json file.
-     */
-    write() {
-        //pass in an object to be written to a json file
-        super.write({
-            title: this.project.title, 
-            description: this.project.description, 
-            branchId: this.project.branchId
+    init(isNewProject) {
+        return new Promise(async (resolve, reject) => {
+            try {                
+                //create an unopened database then open it
+                const dbPath = path.join(this.projectDirPath, this.storytellerDirPath, STORYTELLER_DB_NAME);
+                this.db = new DBAbstraction(dbPath);
+                await this.db.openDb();
+                
+                //create the dev, file system, and event managers (opens and reads 
+                //data if present, initializes data otherwise)
+                this.developerManager = new DeveloperManager(this.db);
+                this.fileSystemManager = new FileSystemManager(this.db);
+                this.eventManager = new EventManager(this.db);
+                this.commentManager = new CommentManager(this.db);
+                
+                //init all of the managers
+                await Promise.all([
+                    this.developerManager.init(isNewProject),
+                    this.fileSystemManager.init(isNewProject),
+                    this.eventManager.init(isNewProject),
+                    this.commentManager.init(isNewProject)
+                ]);
+
+                //for normalizing paths (going from full paths to relative paths)
+                this.pathHelper = new PathHelper(this.projectDirPath);
+                
+                //read in the st-ignore file (if there is one)
+                this.ignorePath = new IgnorePath(this.projectDirPath);
+
+                //create a reconciler to handle file/dir discrepancies
+                this.reconciler = new Reconciler(this);
+
+                //create an http server to listen for editors and playbacks
+                this.httpServer = new HttpServer(this);
+                
+                if(isNewProject) {
+                    //create a Project (title, description, and initial 6 digit branch id)
+                    this.project = await this.db.createProject('Playback', 'Playback Description', utilities.createRandomNumberBase62(8));
+                    
+                    //create the root dir, /
+                    //get a normalized dir path
+                    const newNormalizedDirPath = this.pathHelper.normalizeDirPath(this.projectDirPath);
+        
+                    //add the new dir to the file state representation
+                    const dirObj = await this.fileSystemManager.addDirectory(newNormalizedDirPath);
+                    
+                    //insert a create directory event 
+                    const timestamp = new Date().getTime();
+                    const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+                    const branchId = this.project.branchId;
+                    await this.eventManager.insertCreateDirectoryEvent(dirObj, timestamp, devGroupId, branchId, false);
+                    await this.addDescriptionComment();
+                } else {
+                    //read project from db
+                    this.project = await this.db.getProject();
+                }
+
+                resolve();
+            } catch (err) {
+                console.error(err);
+                reject();
+            }
         });
     }
 
-    /*
-     * Reads the project data from the file into memory.
-     */
-    read() {
-        //read the data from the file
-        const anObject = super.read();
-
-        //store the data from the file back into this object
-        this.project = anObject;
+    async updateProjectTitleDescription(title, description) {
+        this.project.title = title;
+        this.project.description = description;
+        await this.db.updateProject(this.project);
     }
 
-    addDescriptionComment() {
+    async addDescriptionComment() {
         //get all the events (new projects only have 1)
-        const allEvents = this.eventManager.read();
+        const allEvents = await this.eventManager.getAllEvents();
         
         //get the last event
         const lastEvent = allEvents[allEvents.length - 1];
         
         //add the description comment
-        this.commentManager.addComment({
+        await this.commentManager.addComment({
             commentText: 'Enter a playback description.',
             commentTitle: '',
             timestamp: new Date().getTime(),
-            displayCommentEvent: lastEvent,
-            developerGroupId: this.developerManager.anonymousDeveloperGroup.id, 
+            displayCommentEventId: lastEvent.id,
+            displayCommentEventSequenceNumber: lastEvent.eventSequenceNumber,
+            developerGroupId: this.developerManager.getActiveDeveloperGroupId(), 
             selectedCodeBlocks: [],
             imageURLs: [],
             videoURLs: [],
@@ -122,51 +133,42 @@ class ProjectManager extends FileBackedCollection {
     /*
      * Writes all data to the file system.
      */
-    stopStoryteller() {
-        //write all of the project data to the file system
-        this.developerManager.write();
-        this.fileSystemManager.write();
-        this.eventManager.writeEventsBufferToFileSystem();
-        this.eventManager.write();
-        this.commentManager.write();
-        this.write();
-
+    async stopStoryteller() {
         //stop the http server
         this.httpServer.close();
-    }
 
-    /*
-     * Saves any events into the intermediate file and update each File's last
-     * modified date.
-     */
-    saveTextFileState() {
-        //write any events in memory to the intermediate event file
-        this.eventManager.writeEventsBufferToFileSystem(true);
+        //cleanup (if these don't execute the data will be fine)
+        await Promise.all([
+            this.fileSystemManager.minimizeRelativeOrder(),
+            this.commentManager.removeUnusedTags(),
+            this.commentManager.removeUnusedMediaFiles()
+            //TODO file last modified dates ???
+        ]);
     }
     
     /*
      * Creates a new directory.
      */
-    createDirectory(newDirPath, isRelevant=true) {
+    async createDirectory(newDirPath, isRelevant=true) {
         //get a normalized dir path
         const newNormalizedDirPath = this.pathHelper.normalizeDirPath(newDirPath);
         
         //if the directory should not be ignored
         if(this.ignorePath.ignoreThisFileOrDir(newNormalizedDirPath) === false) {
             //add the new dir to the in-memory file state representation
-            const dirObj = this.fileSystemManager.addDirectory(newNormalizedDirPath);
+            const dirObj = await this.fileSystemManager.addDirectory(newNormalizedDirPath);
             
             //insert a create directory event 
             const timestamp = new Date().getTime();
-            const devGroupId = this.developerManager.currentDeveloperGroupId;
-            const branchId = this.branchId;
-            this.eventManager.insertCreateDirectoryEvent(dirObj, timestamp, devGroupId, branchId, isRelevant);
+            const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+            const branchId = this.project.branchId;
+            return await this.eventManager.insertCreateDirectoryEvent(dirObj, timestamp, devGroupId, branchId, isRelevant);
         } //else- this dir should be ignored because the user requested it in /st-ignore.json
     }
     /*
      * Creates a new file.
      */
-    createFile(newFilePath, isRelevant=true) {
+    async createFile(newFilePath, isRelevant=true) {
         //get a normalized file path
         const newNormalizedFilePath = this.pathHelper.normalizeFilePath(newFilePath);
         
@@ -175,13 +177,13 @@ class ProjectManager extends FileBackedCollection {
             //get the file's last modified date
             const lastModifiedDate = fs.statSync(newFilePath).mtimeMs;
             //add the new file to the in-memory file state representation
-            const fileObj = this.fileSystemManager.addFile(newNormalizedFilePath, lastModifiedDate);
+            const fileObj = await this.fileSystemManager.addFile(newNormalizedFilePath, lastModifiedDate);
     
             //insert a create file event
             const timestamp = new Date().getTime();
-            const devGroupId = this.developerManager.currentDeveloperGroupId;
-            const branchId = this.branchId;
-            this.eventManager.insertCreateFileEvent(fileObj, timestamp, devGroupId, branchId, isRelevant);
+            const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+            const branchId = this.project.branchId;
+            await this.eventManager.insertCreateFileEvent(fileObj, timestamp, devGroupId, branchId, isRelevant);
     
             //it is possible that a new file will have some text in it already
             //for example, if a file is copied into a storyteller project
@@ -190,22 +192,22 @@ class ProjectManager extends FileBackedCollection {
             const fileContents = fs.readFileSync(newFilePath, 'utf8');
             if(fileContents.length > 0) {
                 //store the current dev group
-                const currentDevGroup = this.developerManager.getCurrentDeveloperGroup();
+                const currentDevGroup = this.developerManager.getActiveDeveloperGroup();
                 //assign the changes to the system dev group
-                this.developerManager.setCurrentDeveloperGroup(this.developerManager.systemDeveloperGroup);
+                await this.developerManager.setActiveDeveloperGroup(this.developerManager.systemDeveloperGroup);
                 
                 //record the new text
                 this.handleInsertedText(newFilePath, fileContents, 0, 0, [], isRelevant);
                 
                 //set the current dev group back to the original value
-                this.developerManager.setCurrentDeveloperGroup(currentDevGroup);
+                await this.developerManager.setActiveDeveloperGroup(currentDevGroup);
             }
         } //else- this file should be ignored because the user requested it in /st-ignore.json
     }
     /*
      * Deletes a file or a directory
      */
-    deleteFileOrDirectory(delPath) {
+    async deleteFileOrDirectory(delPath) {
         //get a normalized path
         const delNormalizedPath = this.pathHelper.normalizeDirPath(delPath);
     
@@ -214,16 +216,16 @@ class ProjectManager extends FileBackedCollection {
             this.fileSystemManager.getDirInfoFromDirPath(delNormalizedPath);
     
             //if the path is to a dir there will be no exception and we'll delete the dir
-            this.deleteDirectory(delPath);
+            await this.deleteDirectory(delPath);
         } catch(ex) {
             //the path did not represent a dir, so it must a file
-            this.deleteFile(delPath);
+            await this.deleteFile(delPath);
         }
     }
     /*
      * Deletes a directory
      */
-    deleteDirectory(delDirPath) {
+    async deleteDirectory(delDirPath) {
         //get a normalized dir path
         const delNormalizedDirPath = this.pathHelper.normalizeDirPath(delDirPath);
     
@@ -233,13 +235,13 @@ class ProjectManager extends FileBackedCollection {
             const dirObj = this.fileSystemManager.getDirInfoFromDirPath(delNormalizedDirPath);
     
             //remove the dir in the in-memory file state representation
-            this.fileSystemManager.removeDirectory(delNormalizedDirPath);
+            await this.fileSystemManager.removeDirectory(delNormalizedDirPath);
             
             //insert a delete dir event
             const timestamp = new Date().getTime();
-            const devGroupId = this.developerManager.currentDeveloperGroupId;
-            const branchId = this.branchId;
-            this.eventManager.insertDeleteDirectoryEvent(dirObj, timestamp, devGroupId, branchId);
+            const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+            const branchId = this.project.branchId;
+            await this.eventManager.insertDeleteDirectoryEvent(dirObj, timestamp, devGroupId, branchId);
 
             //currently does not create delete events for subdirs and files
             //if this is desired, uncomment the next line
@@ -251,7 +253,7 @@ class ProjectManager extends FileBackedCollection {
      * For creating multiple delete events on deleting a directory (not 
      * currently used- that may change in the future)
      */
-    deleteDirectoryHelper(deletedDirId, timestamp, devGroupId, branchId) {
+    async deleteDirectoryHelper(deletedDirId, timestamp, devGroupId, branchId) {
         //go through all of the tracked files
         for(let fileId in this.fileSystemManager.allFiles) {
             const file = this.fileSystemManager.allFiles[fileId];
@@ -259,7 +261,7 @@ class ProjectManager extends FileBackedCollection {
             //if a file has been deleted because it is in a deleted dir
             if(file.parentDirectoryId === deletedDirId) {
                 //generate a delete file event
-                this.eventManager.insertDeleteFileEvent(file, timestamp, devGroupId, branchId);
+                await this.eventManager.insertDeleteFileEvent(file, timestamp, devGroupId, branchId);
             }
         }
 
@@ -270,7 +272,7 @@ class ProjectManager extends FileBackedCollection {
             //if a dir has been deleted because it is in a deleted dir
             if(dir.parentDirectoryId === deletedDirId) {
                 //generate a delete dir event
-                this.eventManager.insertDeleteDirectoryEvent(dir, timestamp, devGroupId, branchId);
+                await this.eventManager.insertDeleteDirectoryEvent(dir, timestamp, devGroupId, branchId);
 
                 //recurse through out the subdir
                 this.deleteDirectoryHelper(dir.id, timestamp, devGroupId, branchId);
@@ -280,7 +282,7 @@ class ProjectManager extends FileBackedCollection {
     /*
      * Deletes a file.
      */
-    deleteFile(delFilePath) {
+    async deleteFile(delFilePath) {
         //get a normalized file path
         const delNormalizedFilePath = this.pathHelper.normalizeFilePath(delFilePath);
     
@@ -290,19 +292,19 @@ class ProjectManager extends FileBackedCollection {
             const fileObj = this.fileSystemManager.getFileInfoFromFilePath(delNormalizedFilePath);
             
             //remove the file in the in-memory file state representation
-            this.fileSystemManager.removeFile(delNormalizedFilePath);
+            await this.fileSystemManager.removeFile(delNormalizedFilePath);
     
             //insert a delete file event
             const timestamp = new Date().getTime();
-            const devGroupId = this.developerManager.currentDeveloperGroupId;
-            const branchId = this.branchId;
-            this.eventManager.insertDeleteFileEvent(fileObj, timestamp, devGroupId, branchId);
+            const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+            const branchId = this.project.branchId;
+            await this.eventManager.insertDeleteFileEvent(fileObj, timestamp, devGroupId, branchId);
         } //else- this file should be ignored because the user requested it in /st-ignore.json
     }
     /*
      * Moves a directory.
      */
-    moveDirectory(oldDirPath, newDirPath) {
+    async moveDirectory(oldDirPath, newDirPath) {
         //get normalized dir paths
         const oldNormalizedDirPath = this.pathHelper.normalizeDirPath(oldDirPath);
         const newNormalizedDirPath = this.pathHelper.normalizeDirPath(newDirPath);
@@ -311,14 +313,14 @@ class ProjectManager extends FileBackedCollection {
         if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedDirPath) === true &&
            this.ignorePath.ignoreThisFileOrDir(newNormalizedDirPath) === false) {
             //create directory with new dirPath
-            this.createDirectory(newDirPath);
+            await this.createDirectory(newDirPath);
             //recursively create the files and subdirectories inside this new one
-            this.createFilesAndSubDirs(newDirPath);
+            await this.createFilesAndSubDirs(newDirPath);
         //if the directory is moved from a relevant one to an ignored one
         } else if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedDirPath) === false &&
                   this.ignorePath.ignoreThisFileOrDir(newNormalizedDirPath) === true) {
             //delete the old dirPath directory
-            this.deleteDirectory(oldDirPath);
+            await this.deleteDirectory(oldDirPath);
         //if the directory move falls outside of the ignored paths, we need to perform a dir move
         } else if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedDirPath) === false &&
                   this.ignorePath.ignoreThisFileOrDir(newNormalizedDirPath) === false) {
@@ -327,21 +329,21 @@ class ProjectManager extends FileBackedCollection {
             const oldDirParentDirectoryId = oldDirObj.parentDirectoryId;
     
             //move the dir in the in-memory file state representation
-            this.fileSystemManager.moveDirectory(oldNormalizedDirPath, newNormalizedDirPath);
+            await this.fileSystemManager.moveDirectory(oldNormalizedDirPath, newNormalizedDirPath);
             //get the new parent dir id (updated in the code above)
             const newDirParentDirectoryId = oldDirObj.parentDirectoryId;
     
             //insert a delete dir event 
             const timestamp = new Date().getTime();
-            const devGroupId = this.developerManager.currentDeveloperGroupId;
-            const branchId = this.branchId;
-            this.eventManager.insertMoveDirectoryEvent(timestamp, devGroupId, branchId, oldDirObj.id, newDirParentDirectoryId, oldDirParentDirectoryId, newNormalizedDirPath, oldNormalizedDirPath);
+            const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+            const branchId = this.project.branchId;
+            await this.eventManager.insertMoveDirectoryEvent(timestamp, devGroupId, branchId, oldDirObj.id, newDirParentDirectoryId, oldDirParentDirectoryId, newNormalizedDirPath, oldNormalizedDirPath);
         } //else- this dir should be ignored because the user requested it in /st-ignore.json
     }
     /*
      * Moves a file.
      */
-    moveFile(oldFilePath, newFilePath) {
+    async moveFile(oldFilePath, newFilePath) {
         //get normalized file paths
         const oldNormalizedFilePath = this.pathHelper.normalizeFilePath(oldFilePath);
         const newNormalizedFilePath = this.pathHelper.normalizeFilePath(newFilePath);
@@ -350,12 +352,12 @@ class ProjectManager extends FileBackedCollection {
         if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedFilePath) === true &&
            this.ignorePath.ignoreThisFileOrDir(newNormalizedFilePath) === false) {
             //create file at the new file path
-            this.createFile(newFilePath);
+            await this.createFile(newFilePath);
         //if the file is moved from a relevant one to an ignored one
         } else if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedFilePath) === false &&
                   this.ignorePath.ignoreThisFileOrDir(newNormalizedFilePath) === true) {
             //delete the file at the old file path
-            this.deleteFile(oldFilePath)
+            await this.deleteFile(oldFilePath)
         //if the file move falls outside of the ignored paths
         } else if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedFilePath) === false &&
                   this.ignorePath.ignoreThisFileOrDir(newNormalizedFilePath) === false) {
@@ -364,22 +366,22 @@ class ProjectManager extends FileBackedCollection {
             const oldFileParentDirectoryId = oldFileObj.parentDirectoryId;
     
             //move the file in the in-memory file state representation
-            this.fileSystemManager.moveFile(oldNormalizedFilePath, newNormalizedFilePath);
+            await this.fileSystemManager.moveFile(oldNormalizedFilePath, newNormalizedFilePath);
     
             //get the new parent dir id (changed in the code above)
             const newFileParentDirectoryId = oldFileObj.parentDirectoryId;
     
             //insert a delete file event
             const timestamp = new Date().getTime();
-            const devGroupId = this.developerManager.currentDeveloperGroupId;
-            const branchId = this.branchId;
-            this.eventManager.insertMoveFileEvent(timestamp, devGroupId, branchId, oldFileObj.id, newFileParentDirectoryId, oldFileParentDirectoryId, newNormalizedFilePath, oldNormalizedFilePath);
+            const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+            const branchId = this.project.branchId;
+            await this.eventManager.insertMoveFileEvent(timestamp, devGroupId, branchId, oldFileObj.id, newFileParentDirectoryId, oldFileParentDirectoryId, newNormalizedFilePath, oldNormalizedFilePath);
         } //else- this file should be ignored because the user requested it in /st-ignore.json
     }
     /*
      * Renames a directory.
      */
-    renameDirectory(oldDirPath, newDirPath) {
+    async renameDirectory(oldDirPath, newDirPath) {
         //get normalized dir paths
         const oldNormalizedDirPath = this.pathHelper.normalizeDirPath(oldDirPath);
         const newNormalizedDirPath = this.pathHelper.normalizeDirPath(newDirPath);
@@ -388,14 +390,14 @@ class ProjectManager extends FileBackedCollection {
         if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedDirPath) === true &&
            this.ignorePath.ignoreThisFileOrDir(newNormalizedDirPath) === false) {
             //create directory at the new dir path
-            this.createDirectory(newDirPath);
+            await this.createDirectory(newDirPath);
             //recursively create the files and subdirectories inside this new one
-            this.createFilesAndSubDirs(newDirPath);
+            await this.createFilesAndSubDirs(newDirPath);
         //if the directory is renamed from a relevant one to an ignored one
         } else if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedDirPath) === false &&
                   this.ignorePath.ignoreThisFileOrDir(newNormalizedDirPath) === true) {
             //delete the old directory path 
-            this.deleteDirectory(oldDirPath);
+            await this.deleteDirectory(oldDirPath);
         //if the directory rename falls outside of the ignored paths
         } else if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedDirPath) === false &&
                   this.ignorePath.ignoreThisFileOrDir(newNormalizedDirPath) === false) {
@@ -403,19 +405,19 @@ class ProjectManager extends FileBackedCollection {
             const oldDirObj = this.fileSystemManager.getDirInfoFromDirPath(oldNormalizedDirPath);
     
             //move the dir in the in-memory file state representation
-            this.fileSystemManager.renameDirectory(oldNormalizedDirPath, newNormalizedDirPath);
+            await this.fileSystemManager.renameDirectory(oldNormalizedDirPath, newNormalizedDirPath);
     
             //insert a delete dir event
             const timestamp = new Date().getTime();
-            const devGroupId = this.developerManager.currentDeveloperGroupId;
-            const branchId = this.branchId;
-            this.eventManager.insertRenameDirectoryEvent(timestamp, devGroupId, branchId, oldDirObj.id, oldDirObj.parentDirectoryId, newNormalizedDirPath, oldNormalizedDirPath);
+            const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+            const branchId = this.project.branchId;
+            await this.eventManager.insertRenameDirectoryEvent(timestamp, devGroupId, branchId, oldDirObj.id, oldDirObj.parentDirectoryId, newNormalizedDirPath, oldNormalizedDirPath);
         } //else- this dir should be ignored because the user requested it in /st-ignore.json
     }
     /*
      * Renames a file.
      */
-    renameFile(oldFilePath, newFilePath) {
+    async renameFile(oldFilePath, newFilePath) {
         //get normalized file paths
         const oldNormalizedFilePath = this.pathHelper.normalizeFilePath(oldFilePath);
         const newNormalizedFilePath = this.pathHelper.normalizeFilePath(newFilePath);
@@ -424,12 +426,12 @@ class ProjectManager extends FileBackedCollection {
         if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedFilePath) === true &&
            this.ignorePath.ignoreThisFileOrDir(newNormalizedFilePath) === false) {
             //create file at the new path
-            this.createFile(newFilePath);
+            await this.createFile(newFilePath);
         //if the file is renamed from a relevant one to an ignored one
         } else if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedFilePath) === false &&
                   this.ignorePath.ignoreThisFileOrDir(newNormalizedFilePath) === true) {
             //delete the file at the old path
-            this.deleteFile(oldFilePath);
+            await this.deleteFile(oldFilePath);
         //if the file rename falls outside of the ignored paths
         } else if(this.ignorePath.ignoreThisFileOrDir(oldNormalizedFilePath) === false &&
                   this.ignorePath.ignoreThisFileOrDir(newNormalizedFilePath) === false) {
@@ -437,13 +439,13 @@ class ProjectManager extends FileBackedCollection {
             const oldFileObj = this.fileSystemManager.getFileInfoFromFilePath(oldNormalizedFilePath);
     
             //move the file in the in-memory file state representation
-            this.fileSystemManager.renameFile(oldNormalizedFilePath, newNormalizedFilePath);
+            await this.fileSystemManager.renameFile(oldNormalizedFilePath, newNormalizedFilePath);
     
             //insert a delete file event
             const timestamp = new Date().getTime();
-            const devGroupId = this.developerManager.currentDeveloperGroupId;
-            const branchId = this.branchId;
-            this.eventManager.insertRenameFileEvent(timestamp, devGroupId, branchId, oldFileObj.id, oldFileObj.parentDirectoryId, newNormalizedFilePath, oldNormalizedFilePath);
+            const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+            const branchId = this.project.branchId;
+            await this.eventManager.insertRenameFileEvent(timestamp, devGroupId, branchId, oldFileObj.id, oldFileObj.parentDirectoryId, newNormalizedFilePath, oldNormalizedFilePath);
         } //else- this file should be ignored because the user requested it in /st-ignore.json
     }
     /*
@@ -481,7 +483,7 @@ class ProjectManager extends FileBackedCollection {
     /*
      * Handles some text being inserted.
      */
-    handleInsertedText(filePath, insertedText, startRow, startCol, pastedInsertEventIds, isRelevant=true) {
+    async handleInsertedText(filePath, insertedText, startRow, startCol, pastedInsertEventIds, isRelevant=true) {
         try {
             //get a project specific path to the file 
             const normalizedFilePath = this.pathHelper.normalizeFilePath(filePath);
@@ -496,11 +498,11 @@ class ProjectManager extends FileBackedCollection {
                 if(file) {
                     //create a timestamp for the new event
                     const timestamp = new Date().getTime();
-                    const devGroupId = this.developerManager.currentDeveloperGroupId;
-                    const branchId = this.branchId;
+                    const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+                    const branchId = this.project.branchId;
                 
                     //insert the batch new text
-                    this.eventManager.insertTextEvents(file, timestamp, devGroupId, branchId, insertedText, startRow, startCol, pastedInsertEventIds, isRelevant);
+                    await this.eventManager.insertTextEvents(file, timestamp, devGroupId, branchId, insertedText, startRow, startCol, pastedInsertEventIds, isRelevant);
                 } else {
                     throw new Error(`Cannot insert text in the file ${filePath}`);
                 }
@@ -513,7 +515,7 @@ class ProjectManager extends FileBackedCollection {
     /*
      * Handles some text being deleted.
      */
-    handleDeletedText(filePath, startRow, startCol, numElementsToDelete) {
+    async handleDeletedText(filePath, startRow, startCol, numElementsToDelete) {
         try {
             //get a project specific path to the file 
             const normalizedFilePath = this.pathHelper.normalizeFilePath(filePath);
@@ -527,11 +529,11 @@ class ProjectManager extends FileBackedCollection {
                 if(file) {
                     //create a timestamp for the new event
                     const timestamp = new Date().getTime();
-                    const devGroupId = this.developerManager.currentDeveloperGroupId;
-                    const branchId = this.branchId;
+                    const devGroupId = this.developerManager.getActiveDeveloperGroupId();
+                    const branchId = this.project.branchId;
                     
                     //remove the batch of deleted text (and update the associated inserts)
-                    this.eventManager.insertDeleteEvents(file, timestamp, devGroupId, branchId, startRow, startCol, numElementsToDelete);
+                    await this.eventManager.insertDeleteEvents(file, timestamp, devGroupId, branchId, startRow, startCol, numElementsToDelete);
                 } else {
                     throw new Error(`Cannot delete text in the file ${filePath}`);
                 }
@@ -547,11 +549,9 @@ class ProjectManager extends FileBackedCollection {
      * playbacks can be served from the file system without requiring a
      * web server. Otherwise, we would have had a route that returns json.
      */
-    getPlaybackData(makeEditable) {
+    async getPlaybackData(makeEditable) {
         //get all the events from the file
-        let events = this.eventManager.read();
-        
-        //TODO do I need to make a copy here and update the URLs? Check to see if any modern playbacks have a leading slash. Is it a win/mac/nix thing? Or, can I get rig of it altogether and just use the raw comments?
+        let events = await this.eventManager.getAllEvents();
 
         //make a deep copy of the comments
         const copyOfComments = {};
@@ -584,9 +584,10 @@ class ProjectManager extends FileBackedCollection {
         return this.getLoadPlaybackDataFunc(events, copyOfComments, makeEditable);
     }
 
-    replaceEventsCommentsWithPerfectProgrammerData() {
+    //TODO look at perfect programmer again (func above too)
+    async replaceEventsCommentsWithPerfectProgrammerData() {
         //get all the events from the file
-        let events = this.eventManager.read();
+        let events = await this.eventManager.getAllEvents();
 
         //make a deep copy of the comments
         const copyOfComments = {};
@@ -606,8 +607,8 @@ class ProjectManager extends FileBackedCollection {
         events = this.editEventsForPerfectProgrammer(events, copyOfComments);
         
         //store the new data so it becomes part of the project
-        this.eventManager.writeUpdated(events);
-        this.commentManager.writeUpdated(copyOfComments);
+        //TODO do something in db??
+        //this.commentManager.writeUpdated(copyOfComments);
     }
 
     getLoadPlaybackDataFunc(events, comments, makeEditable) {
@@ -625,7 +626,6 @@ function loadPlaybackData() {
     playbackData.branchId = '${this.project.branchId}';
     playbackData.estimatedReadTime = ${this.commentManager.getReadTimeEstimate()};
 }`;
-//TODO add an exports at the end
         return func;
     }
 
@@ -698,6 +698,7 @@ function loadPlaybackData() {
                 if(comments[event.id]) {
                     //go through each comment and update the event sequence number in the redundant copy of the event, displayCommentEvent
                     comments[event.id].forEach(comment => {
+                        //TODO come back to this and update the display comment sequence number in memory and in the db
                         comment.displayCommentEvent.eventSequenceNumber = newEventSequenceNumber;
                     });
                 }
@@ -968,7 +969,12 @@ function loadPlaybackData() {
                 //copy the comments over
                 comments[originalCommentEvent.id].forEach(comment => {
                     //update the event associated with the comment
-                    comment.displayCommentEvent = lastUpdatedEvent;
+                    //TODO come back to this and update the display comment sequence number in memory and in the db
+                    //comment.displayCommentEvent = lastUpdatedEvent;
+                    comment.displayCommentEventId = lastUpdatedEvent.id;
+                    comment.displayCommentEventSequenceNumber = lastUpdatedEvent.eventSequenceNumber;
+
+
                     comments[lastUpdatedEvent.id].push(comment);
                 });
                 //get rid of the old array of comments
@@ -1066,7 +1072,12 @@ function loadPlaybackData() {
             //(the event sequence number is used to make the comment pips)
             comments[event.id].forEach(comment => {
                 //copy the updated event into the comment
-                comment.displayCommentEvent = event;
+                //comment.displayCommentEvent = event;
+
+                //TODO come back to this and update the display comment sequence number in memory and in the db
+                comment.displayCommentEventId = event.id;
+                comment.displayCommentEventSequenceNumber = event.eventSequenceNumber;
+
             });
         }
     }

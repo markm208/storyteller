@@ -77,7 +77,8 @@ class BlogView extends HTMLElement {
     //dev authors
     const blogDevelopersDiv = this.shadowRoot.querySelector('.blogDevelopersDiv');
     Object.values(this.playbackEngine.playbackData.developers).forEach(dev => {
-      if(dev.id !== 'devId-0' && dev.id !== 'devId-1') {
+      //system and anon dev ids are 1 and 2
+      if(dev.id !== 1 && dev.id !== 2) {
         blogDevelopersDiv.appendChild(new DevAvatar(dev.avatarURL, dev.userName, dev.email, true));
       }
     });
@@ -96,7 +97,7 @@ class BlogView extends HTMLElement {
       //create the content and add it to the page
       const blogComponent = new BlogComponent(this.playbackEngine, comment, this.editorProperties);
       //make each blog component identifiable by id
-      blogComponent.setAttribute('id', comment.id);
+      blogComponent.setAttribute('id', `id-${comment.id}`);
 
       //if this is the special 'description' comment (1st comment is always it)
       if(i === 0) {

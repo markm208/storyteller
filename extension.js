@@ -4,6 +4,9 @@ const path = require('path');
 const fs = require('fs');
 const JSZip = require('jszip');
 
+//name of the hidden storyteller directory
+const STORYTELLER_DIR = '.storyteller';
+
 //main interface with the storyteller server
 const ProjectManager = require('./core/project/ProjectManager');
 
@@ -68,7 +71,7 @@ function activate(context) {
     //if there is an open workspace then attempt to open storyteller without requiring user interaction
     if(vscode.workspace.workspaceFolders) {
         //path to the hidden .storyteller dir in every storyteller project 
-        const pathToHiddenStorytellerDir = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.storyteller');
+        const pathToHiddenStorytellerDir = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
         
         //if there is a .storyteller dir
         if(fs.existsSync(pathToHiddenStorytellerDir)) {
@@ -78,7 +81,7 @@ function activate(context) {
             //don't want to slow down the init of the system so we do the more expensive operations a little later
             setTimeout(function() {
                 //init storyteller without a prompt
-                startStoryteller();
+                resumeExistingProject()
             }, 1);
         } else { //there is an open directory but it does not have a .storyteller dir in it
             //don't start tracking unless the user chooses to use storyteller
@@ -99,9 +102,9 @@ function activate(context) {
 /*
  * Called when deactivating the extension.
  */
-function deactivate() {
+async function deactivate() {
     //stop tracking this project
-    stopStoryteller();
+    await stopStoryteller();
 }
 /*
  * Creates or opens a new Storyteller project in a workspace.
@@ -114,18 +117,8 @@ function startStoryteller() {
     } else { //st is not active
         //if there is an open workspace
         if(vscode.workspace.workspaceFolders) {
-            //check to see if there is a .storyteller directory before creating 
-            //the project manager
-            const projectExists = fs.existsSync(path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.storyteller'));
-
-            //if this is an existing project
-            if(projectExists === true) {
-                //resume working on an existing project
-                resumeExistingProject();
-            } else { //this is a brand new project
-                //start tracking changes in this folder
-                startTrackingInFolder();
-            }
+            //start tracking changes in this folder
+            startTrackingInFolder();
         } else { //there is no open workspace
             //tell the user they need to open a workspace in order to use Storyteller
             promptInformingAboutUsingStoryteller(true);
@@ -135,14 +128,14 @@ function startStoryteller() {
 /*
  * Used to stop tracking a project.
  */
-function stopStoryteller() {
+async function stopStoryteller() {
     //clear out any values that might still be in this array.
     recentlyCreatedFileOrDir = [];
 
     //if storyteller is active
     if(isStorytellerCurrentlyActive) {
         //close the project
-        projectManager.stopStoryteller();
+        await projectManager.stopStoryteller();
 
         //update the status bar
         updateStorytellerStatusBar('Start Storyteller', 'Start using Storyteller in this workspace', 'storyteller.startStoryteller');
@@ -166,20 +159,21 @@ function stopStoryteller() {
  * Used to resume an existing st project. This is where reconciliation happens
  * if it is needed.
  */
-function resumeExistingProject() {
-    //check to see if there is a .storyteller directory 
-    const projectExists = fs.existsSync(path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.storyteller'));
-   
-    //if a folder is open and there is a .storyteller directory in it
-    if(vscode.workspace.workspaceFolders && projectExists === true) {
+async function resumeExistingProject() {
+    try {
+        //indicate that storyteller is active
+        isStorytellerCurrentlyActive = true;
+
         //create and store the global project manager in the opened directory
-        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath);
+        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
+        await projectManager.init(false);
 
         //ask for any discrepancies between the open project and the file system
         const discrepancies = projectManager.reconciler.findDiscrepancies();
 
+
         //if there is at least one discrepancy
-        if(areDiscrepanciesPresent(discrepancies)) {
+        if(false /*areDiscrepanciesPresent(discrepancies)*/) {
             //let the user know they have to resolve some discrepancies
             vscode.window.showInformationMessage(`There were some changes to the project when Storyteller wasn't active. In a moment you will be prompted to resolve the discrepancies.`);
             //ask the user to decide how to handle them
@@ -190,22 +184,29 @@ function resumeExistingProject() {
             //give the user some feedback about starting storyteller in an info message
             storytellerState();
         }
+
         //update the status bar
         updateStorytellerStatusBar('Start Playback', 'Start a Storyteller playback in the browser', 'storyteller.startPlaybackNoComment');
-   }
+    } catch(err) {
+        console.log("Error resuming project");
+        console.log(err);
+    }
 }
 /*
 * Used to start tracking a new project. If the open folder is not empty then 
 * the contents of the existing files will be added to the history of the system.
 */
 async function startTrackingInFolder() {
-   //check to see if there is a .storyteller directory 
-   const projectExists = fs.existsSync(path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.storyteller'));
-   
-   //if a folder is open and there is not a .storyteller directory in it
-   if(vscode.workspace.workspaceFolders && projectExists === false) {
+    try {
+        //indicate that storyteller is active
+        isStorytellerCurrentlyActive = true;
+
+        //make the hidden storyteller directory
+        fs.mkdirSync(path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR));
+
         //create and store the global project manager in the opened directory
-        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath);
+        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
+        await projectManager.init(true);
 
         //ask for any discrepancies between the open project and the file system
         const discrepancies = projectManager.reconciler.findDiscrepancies();
@@ -216,18 +217,19 @@ async function startTrackingInFolder() {
             //add them to the project
             projectManager.reconciler.addExistingFilesDirs(discrepancies);
         }
-        //add the description comment to the end of the events
-        projectManager.addDescriptionComment();
         
         //turn on file watching
         turnOnFSWatcherAndTextHandler();
 
         //prompt for the first developer's info
         createFirstDeveloper();
-
+                    
         //update the status bar
         updateStorytellerStatusBar('Start Playback', 'Start a Storyteller playback in the browser', 'storyteller.startPlaybackNoComment');
-   }
+    } catch(err) {
+        console.log("Error starting new project");
+        console.log(err);
+    }
 }
 /*
  * Turns the file system watcher, text change handler, and save handler on.
@@ -236,8 +238,6 @@ async function startTrackingInFolder() {
 function turnOnFSWatcherAndTextHandler() {
     //register a handler to capture changes to files in the editor
     extensionContext.subscriptions.push(vscode.workspace.onDidChangeTextDocument(handleTextEditorChange));
-    //register a handler to be called whenever the user saves one or more files
-    extensionContext.subscriptions.push(vscode.workspace.onDidSaveTextDocument(handleFileSave));
     //create a file system watcher for all of the files in this workspace
     const fsWatcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, false);
     //handle file/dir creates and deletes (translate these to create, delete, move, rename events) 
@@ -256,9 +256,6 @@ function turnOnFSWatcherAndTextHandler() {
     //override the editor.action.clipboardPasteAction with our own
     clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction); 
     //extensionContext.subscriptions.push(clipboardPasteDisposable);
-
-    //indicate that storyteller is active
-    isStorytellerCurrentlyActive = true;
 }
 /* 
  * This function creates the storyteller status button (if it doesn't already exist) 
@@ -480,7 +477,7 @@ async function reconcileComplete() {
         //turn on file watching since reconciliation is complete
         turnOnFSWatcherAndTextHandler();
     } else if(options.indexOf(selectedOption) === 1) { //stop using st
-        projectManager.stopStoryteller();
+        await projectManager.stopStoryteller();
     }
 }
 /********************************** Playback **********************************/
@@ -518,9 +515,6 @@ function startPlaybackToMakeAComment() {
 function startPlayback(playbackIsForAComment) {
     //if we are tracking changes
     if(isStorytellerCurrentlyActive) {
-        //save the state of the storyteller data for this project
-        handleFileSave();
-
         //Display a message box to the user fo 5000 ms (5 s)
         vscode.window.setStatusBarMessage('Storyteller Playback Server at localhost:53140/playback', 5000);
 
@@ -640,8 +634,8 @@ async function createNewDeveloper() {
                 //parse the dev info
                 getDevInfo(devInfoString, developerInfoObject);
     
-                const newDev = projectManager.developerManager.createNewDeveloper(developerInfoObject.userName, developerInfoObject.email);
-                projectManager.developerManager.addDevelopersToActiveGroup([newDev.id]);
+                const newDev = await projectManager.developerManager.createNewDeveloper(developerInfoObject.userName, developerInfoObject.email);
+                await projectManager.developerManager.addDevelopersToActiveGroup([newDev.newDeveloper.id]);
     
                 //give the user some feedback about the active devs
                 const activeDevs = projectManager.developerManager.getActiveDevelopers(); 
@@ -705,7 +699,7 @@ async function addDevelopersToActiveGroup() {
                         const userNames = [userName];
 
                         //add the devs to the active group
-                        projectManager.developerManager.addDevelopersToActiveGroupByUserName(userNames);
+                        await projectManager.developerManager.addDevelopersToActiveGroupByUserName(userNames);
             
                         //get the active developer group devs
                         const activeDevs = projectManager.developerManager.getActiveDevelopers();
@@ -766,7 +760,7 @@ async function removeDevelopersFromActiveGroup() {
                         const userNames = [userName];
 
                         //remove the developers
-                        projectManager.developerManager.removeDevelopersFromActiveGroupByUserName(userNames);
+                        await projectManager.developerManager.removeDevelopersFromActiveGroupByUserName(userNames);
             
                         //get the active developer group devs
                         const activeDevs = projectManager.developerManager.getActiveDevelopers();
@@ -798,34 +792,28 @@ async function removeDevelopersFromActiveGroup() {
  * Prompt for the first developer and overwrite the anonymous developer.
  */
 async function createFirstDeveloper() {
-    if(isStorytellerCurrentlyActive) {
-        try {
-            //prompt for the dev info
-            let devInfoString = await vscode.window.showInputBox({prompt: 'Enter in a single developer\'s info like this: Grace Hopper grace@mail.com'})
+    try {
+        //prompt for the dev info
+        let devInfoString = await vscode.window.showInputBox({prompt: 'Enter in a single developer\'s info like this: Grace Hopper grace@mail.com'})
 
-            //if there is anything in the string
-            if(devInfoString) {
-                //a dev's required info in an object
-                const developerInfoObject = {
-                    userName: '',
-                    email: ''
-                };
-                //parse the dev info
-                getDevInfo(devInfoString, developerInfoObject);
-    
-                //projectManager.developerManager.addDevelopersToActiveGroup([developerInfoObject]);
-                projectManager.developerManager.replaceAnonymousDeveloperWithNewDeveloper(developerInfoObject.userName, developerInfoObject.email);
-    
-                //give the user some feedback about the active devs
-                currentActiveDevelopers();
-            } //else- they want to remain anonymous
-        } catch(ex) {
-            //show error message
-            vscode.window.showErrorMessage(`Error adding a developer. ${ex}`);
-        }
-    } else { //storyteller not active
-        //tell the user how they can use storyteller
-        promptInformingAboutUsingStoryteller(true);
+        //if there is anything in the string
+        if(devInfoString) {
+            //a dev's required info in an object
+            const developerInfoObject = {
+                userName: '',
+                email: ''
+            };
+            //parse the dev info
+            getDevInfo(devInfoString, developerInfoObject);
+
+            await projectManager.developerManager.replaceAnonymousDeveloperWithNewDeveloper(developerInfoObject.userName, developerInfoObject.email);
+
+            //give the user some feedback about the active devs
+            currentActiveDevelopers();
+        } //else- they want to remain anonymous
+    } catch(ex) {
+        //show error message
+        vscode.window.showErrorMessage(`Error adding a developer. ${ex}`);
     }
 }
 /*
@@ -883,7 +871,7 @@ function addRecentCreate(createEvent) {
         const fileDirPath = createEvent.fsPath;
 
         //path to hidden storyteller dir, .storyteller
-        const storytellerPath = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.storyteller');
+        const storytellerPath = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
 
         //if the path of the new file/dir is outside the hidden .storyteller dir 
         if(fileDirPath.startsWith(storytellerPath) === false) {
@@ -893,7 +881,7 @@ function addRecentCreate(createEvent) {
             //in the future, check to see if the path is still in the array. 
             //Give addRecentDelete() a chance to run and remove the path. If it
             //is still present, it is a new file/dir
-            setTimeout(function () {
+            setTimeout(async function () {
                 //look for the entry with the new path
                 const index = recentlyCreatedFileOrDir.indexOf(fileDirPath);
     
@@ -905,9 +893,9 @@ function addRecentCreate(createEvent) {
 
                     //if it is a file
                     if(stats.isFile()) {
-                        projectManager.createFile(fileDirPath);
+                        await projectManager.createFile(fileDirPath);
                     } else if(stats.isDirectory()) { //it is a dir 
-                        projectManager.createDirectory(fileDirPath);
+                        await projectManager.createDirectory(fileDirPath);
                     }
                     //remove the path since we have handled it
                     const removedPath = recentlyCreatedFileOrDir.splice(index, 1);
@@ -940,13 +928,13 @@ function addRecentCreate(createEvent) {
  * rename/move). If there are no paths that were added very recently we assume 
  * it is a real delete. 
  */
-function addRecentDelete(deleteEvent) {
+async function addRecentDelete(deleteEvent) {
     if(isStorytellerCurrentlyActive) {
         //get the path of the deleted file/dir
         const fileDirPath = deleteEvent.fsPath;
 
         //path to storyteller hidden dir
-        const storytellerPath = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.storyteller');
+        const storytellerPath = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
 
         //if the path of the new file/dir is not in the hidden .storyteller dir 
         if(fileDirPath.startsWith(storytellerPath) === false) {
@@ -982,17 +970,17 @@ function addRecentDelete(deleteEvent) {
                     //if the file ends up in the same parent dir AND the name 
                     //is different, then this is a rename
                     if(fullPathUpToNewName === fullPathUpToOldName && newName !== oldName) {
-                        projectManager.renameFile(fileDirPath, newFullPath);
+                        await projectManager.renameFile(fileDirPath, newFullPath);
                     } else { //file has moved from one parent dir to another
-                        projectManager.moveFile(fileDirPath, newFullPath);
+                        await projectManager.moveFile(fileDirPath, newFullPath);
                     }
                 } else if(stats.isDirectory()) { //it is a dir 
                     //if the dir ends up in the same parent dir AND the name 
                     //is different, then this is a rename
                     if(fullPathUpToNewName === fullPathUpToOldName && newName !== oldName) {
-                        projectManager.renameDirectory(fileDirPath, newFullPath);
+                        await projectManager.renameDirectory(fileDirPath, newFullPath);
                     } else { //dir has moved from one parent dir to another
-                        projectManager.moveDirectory(fileDirPath, newFullPath);
+                        await projectManager.moveDirectory(fileDirPath, newFullPath);
                     }
                 } else { //it is not a file or dir- something is wrong
                     console.log('Rename or move: Not a file or a dir????');
@@ -1002,7 +990,7 @@ function addRecentDelete(deleteEvent) {
                 //is gone we can't check to see if it is a file or dir so we 
                 //will let storyteller check the type based on the path and 
                 //call the correct delete function
-                projectManager.deleteFileOrDirectory(fileDirPath);
+                await projectManager.deleteFileOrDirectory(fileDirPath);
             }
         }
     }
@@ -1011,7 +999,7 @@ function addRecentDelete(deleteEvent) {
 /*
  * This function is called whenever code is added or removed from an editor.
  */
-function handleTextEditorChange(event) {
+async function handleTextEditorChange(event) {
     if(isStorytellerCurrentlyActive) {
         //path to the file that is being edited
         const filePath = event.document.fileName;
@@ -1032,7 +1020,7 @@ function handleTextEditorChange(event) {
                     const deleteTextStartColumn = change.range.start.character;
         
                     //record the deletion of text
-                    projectManager.handleDeletedText(filePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
+                    await projectManager.handleDeletedText(filePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
                 } else { //new text has been added in this change, this is an insert
                     //if there was some text that was selected and replaced 
                     //(deleted and then added)
@@ -1043,7 +1031,7 @@ function handleTextEditorChange(event) {
                         const deleteTextStartColumn = change.range.start.character;
 
                         //first delete the selected code (insert of new text to follow)
-                        projectManager.handleDeletedText(filePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
+                        await projectManager.handleDeletedText(filePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
                     } 
         
                     //get some data about the insert
@@ -1073,19 +1061,10 @@ function handleTextEditorChange(event) {
                         clipboardData.activePaste = false;
                     }
                     //record the insertion of new text
-                    projectManager.handleInsertedText(filePath, newText, newTextStartLine, newTextStartColumn, pastedInsertEventIds);
+                    await projectManager.handleInsertedText(filePath, newText, newTextStartLine, newTextStartColumn, pastedInsertEventIds);
                 }
             }
         }
-    }
-}
-/*
- * This function is called whenever code is saved.
- */
-function handleFileSave() {
-    if(isStorytellerCurrentlyActive) {
-        //a file save happened, let the project manager know
-        projectManager.saveTextFileState();
     }
 }
 
@@ -1189,7 +1168,7 @@ function getCurrentSelectionEvents() {
                     clipboardData.text = clipboardData.text + selectedEvents[j].character;
                     
                     //add the event id to the clipboard data
-                    clipboardData.eventIds.push(selectedEvents[j].id);
+                    clipboardData.eventIds.push(selectedEvents[j].eventId);
                 }
             }
         }
@@ -1329,7 +1308,7 @@ async function zipViewablePlayback() {
  * This way a playback can be viewed from the file system without requiring a 
  * web server
  */
-function zipPlaybackHelper(projectDirPath, zip) {
+async function zipPlaybackHelper(projectDirPath, zip) {
     //copy the public folder from this project to the zip
     const publicDirPath = path.join(__dirname, 'core', 'public');
     
@@ -1337,7 +1316,7 @@ function zipPlaybackHelper(projectDirPath, zip) {
     zipPublicHelper(publicDirPath, zip);
 
     //add the file loadPlayback.js to the zip
-    zip.file('js/loadPlayback.js', projectManager.getPlaybackData(false));
+    zip.file('js/loadPlayback.js', await projectManager.getPlaybackData(false));
     
     //add the media files
     addMediaToZip(projectDirPath, 'images', zip);
@@ -1384,7 +1363,7 @@ function zipPublicHelper(dirPath, zip) {
  */
 function addMediaToZip(dirPath, mediaType, zip) {
     //get the full path to the media directory in the st project 
-    const pathToImageMedia = path.join(dirPath, '.storyteller', 'comments', 'media', mediaType);
+    const pathToImageMedia = path.join(dirPath, STORYTELLER_DIR, 'comments', 'media', mediaType);
     //get all of the media files in the directory
     const allFiles = fs.readdirSync(pathToImageMedia);
     
@@ -1421,7 +1400,7 @@ async function replaceWithPerfectProgrammer() {
     //if the user selected the option to replace the history
     if(selectedOption === options[0]) {
         //remove events and update events/comments for the project
-        projectManager.replaceEventsCommentsWithPerfectProgrammerData();
+        await projectManager.replaceEventsCommentsWithPerfectProgrammerData();
     }
 }
 
