@@ -7,22 +7,18 @@ const Project = require('./Project');
 
 const sqlite3 = require('sqlite3').verbose();
 
-//XXX TODO: make the event id an auto generated integer 
-// -- really look into whether I need previousNeighborId or not
-//XXX TODO: make the root directory's parent directory id -1 
-//XXX TODO: trim the event objects' properties that get returned based on the type of event
-//TODO: look at the File's lastModifiedDate and make sure it is set based on event timestamp or fs lastModified, or get rid of it
-//TODO: look at perfect programmer
 //TODO: look at reconciliation
 // -- there is a line deactivating this in extension.js:
 // -- if(false /*areDiscrepanciesPresent(discrepancies)*/) {
 // -- remove before testing this
+//TODO: look at/remove zip functionality
+//TODO: look at perfect programmer
 //TODO: build converter to take a loadPlayback.json file and convert it to a db 
+//TODO: get rid of project description in the project class
+//TODO: look at the File's lastModifiedDate and make sure it is set based on event timestamp or fs lastModified, or get rid of it
 //TODO: cleanup repo get rid of mergeExample, threads.html and other docs
 //TODO: update tests or remove them
 //TODO: whitespace cleanup, use tabs remove trailing spaces
-//TODO: look at/remove zip functionality
-//TODO: get rid of project description in the project class
 /*
  * This class is responsible for storing project data persistently in a
  * database (sqlite). 
@@ -282,7 +278,6 @@ class DBAbstraction {
             //files and directories
             this.createDirectoryTable(),
             this.createFileTable(),
-            this.createFileEventTable(),
 
             //events
             this.createEventTable(),
@@ -881,105 +876,133 @@ class DBAbstraction {
                     reject();
                 } else {
                     //add the properties from the db to the objects
-                    const allEvents = [];
-
-                    for(const row of rows) {
-                        //common to all events
-                        const object = {
-                            id: row['id'],
-                            timestamp: row['timestamp'],
-                            type: row['type'],
-                            eventSequenceNumber: row['eventSequenceNumber'],
-                            permanentRelevance: row['permanentRelevance'],
-                            createdByDevGroupId: row['createdByDevGroupId'],
-                            branchId: row['branchId']
-                        }
-
-                        //add event specific properties
-                        if(row['type'] === 'INSERT') {
-                            object['fileId'] = row['fileId'];
-                            object['character'] = row['character'];
-                            object['previousNeighborId'] = row['previousNeighborId'];
-                            object['lineNumber'] = row['lineNumber'];
-                            object['column'] = row['column'];
-                            object['pastedEventId'] = row['pastedEventId'];
-                            //if this insert has been deleted
-                            if(row['deletedByEventId']) {
-                                object['deletedAtTimestamp'] = row['deletedAtTimestamp'];
-                                object['deletedByEventId'] = row['deletedByEventId'];
-                            }
-                        } else if(row['type'] === 'DELETE') {
-                            object['fileId'] = row['fileId'];
-                            object['character'] = row['character'];
-                            object['previousNeighborId'] = row['previousNeighborId'];
-                            object['lineNumber'] = row['lineNumber'];
-                            object['column'] = row['column'];
-                        } else if(row['type'] === 'CREATE FILE') {
-                            object['fileId'] = row['fileId'];
-                            object['filePath'] = row['filePath'];
-                            object['parentDirectoryId'] = row['parentDirectoryId'];
-                        } else if(row['type'] === 'DELETE FILE') {
-                            object['fileId'] = row['fileId'];
-                            object['filePath'] = row['filePath'];
-                            object['parentDirectoryId'] = row['parentDirectoryId'];
-                        } else if(row['type'] === 'MOVE FILE') {
-                            object['fileId'] = row['fileId'];
-                            object['newParentDirectoryId'] = row['newParentDirectoryId'];
-                            object['oldParentDirectoryId'] = row['oldParentDirectoryId'];
-                            object['newFilePath'] = row['newFilePath'];
-                            object['oldFilePath'] = row['oldFilePath'];
-                        } else if(row['type'] === 'RENAME FILE') {
-                            object['fileId'] = row['fileId'];
-                            object['parentDirectoryId'] = row['parentDirectoryId'];
-                            object['newFilePath'] = row['newFilePath'];
-                            object['oldFilePath'] = row['oldFilePath'];
-                        } else if(row['type'] === 'CREATE DIRECTORY') {
-                            object['directoryId'] = row['directoryId'];
-                            object['directoryPath'] = row['directoryPath'];
-                            object['parentDirectoryId'] = row['parentDirectoryId'];
-                        } else if(row['type'] === 'DELETE DIRECTORY') {
-                            object['directoryId'] = row['directoryId'];
-                            object['directoryPath'] = row['directoryPath'];
-                            object['parentDirectoryId'] = row['parentDirectoryId'];
-                        } else if(row['type'] === 'MOVE DIRECTORY') {
-                            object['directoryId'] = row['directoryId'];
-                            object['newParentDirectoryId'] = row['newParentDirectoryId'];
-                            object['oldParentDirectoryId'] = row['oldParentDirectoryId'];
-                            object['newDirectoryPath'] = row['newDirectoryPath'];
-                            object['oldDirectoryPath'] = row['oldDirectoryPath'];
-                        } else if(row['type'] === 'RENAME DIRECTORY') {
-                            object['directoryId'] = row['directoryId'];
-                            object['parentDirectoryId'] = row['parentDirectoryId'];
-                            object['newDirectoryPath'] = row['newDirectoryPath'];
-                            object['oldDirectoryPath'] = row['oldDirectoryPath'];
-                        } else {
-                            reject();
-                        }
-
-                        allEvents.push(object);
-                    }
+                    const allEvents = this.trimEventData(rows);
                     resolve(allEvents);
                 }
             });
         });
     }
 
-    addInsertEvents(insertEvents) {
-        return this.runInsertFromArrayOfObjects('Event', insertEvents);
+    getAllEventsFromNonDeletedFiles() {
+        return new Promise(async (resolve, reject) => {
+            const sql = `
+                SELECT * 
+                FROM Event 
+                WHERE Event.fileId IN (
+                    SELECT id
+                    FROM File
+                    WHERE isDeleted = 'false'
+                )
+                ORDER BY eventSequenceNumber;`;
+            this.db.all(sql, (err, rows) => {
+                if(err) {
+                    console.error(err);
+                    reject();
+                } else {
+                    //add the properties from the db to the objects
+                    const allEvents = this.trimEventData(rows);
+                    resolve(allEvents);
+                }
+            });
+        });
     }
 
-    addDeleteEvents(deleteEvents) {
-        return this.runInsertFromArrayOfObjects('Event', deleteEvents);
+    trimEventData(rows) {
+        //add the properties from the db to the objects
+        const allEvents = [];
+
+        for(const row of rows) {
+            //common to all events
+            const object = {
+                id: row['id'],
+                timestamp: row['timestamp'],
+                type: row['type'],
+                eventSequenceNumber: row['eventSequenceNumber'],
+                permanentRelevance: row['permanentRelevance'],
+                createdByDevGroupId: row['createdByDevGroupId'],
+                branchId: row['branchId']
+            }
+
+            //add event specific properties
+            if(row['type'] === 'INSERT') {
+                object['fileId'] = row['fileId'];
+                object['character'] = row['character'];
+                object['previousNeighborId'] = row['previousNeighborId'];
+                object['lineNumber'] = row['lineNumber'];
+                object['column'] = row['column'];
+                object['pastedEventId'] = row['pastedEventId'];
+                //if this insert has been deleted
+                if(row['deletedByEventId']) {
+                    object['deletedAtTimestamp'] = row['deletedAtTimestamp'];
+                    object['deletedByEventId'] = row['deletedByEventId'];
+                }
+            } else if(row['type'] === 'DELETE') {
+                object['fileId'] = row['fileId'];
+                object['character'] = row['character'];
+                object['previousNeighborId'] = row['previousNeighborId'];
+                object['lineNumber'] = row['lineNumber'];
+                object['column'] = row['column'];
+            } else if(row['type'] === 'CREATE FILE') {
+                object['fileId'] = row['fileId'];
+                object['filePath'] = row['filePath'];
+                object['parentDirectoryId'] = row['parentDirectoryId'];
+            } else if(row['type'] === 'DELETE FILE') {
+                object['fileId'] = row['fileId'];
+                object['filePath'] = row['filePath'];
+                object['parentDirectoryId'] = row['parentDirectoryId'];
+            } else if(row['type'] === 'MOVE FILE') {
+                object['fileId'] = row['fileId'];
+                object['newParentDirectoryId'] = row['newParentDirectoryId'];
+                object['oldParentDirectoryId'] = row['oldParentDirectoryId'];
+                object['newFilePath'] = row['newFilePath'];
+                object['oldFilePath'] = row['oldFilePath'];
+            } else if(row['type'] === 'RENAME FILE') {
+                object['fileId'] = row['fileId'];
+                object['parentDirectoryId'] = row['parentDirectoryId'];
+                object['newFilePath'] = row['newFilePath'];
+                object['oldFilePath'] = row['oldFilePath'];
+            } else if(row['type'] === 'CREATE DIRECTORY') {
+                object['directoryId'] = row['directoryId'];
+                object['directoryPath'] = row['directoryPath'];
+                object['parentDirectoryId'] = row['parentDirectoryId'];
+            } else if(row['type'] === 'DELETE DIRECTORY') {
+                object['directoryId'] = row['directoryId'];
+                object['directoryPath'] = row['directoryPath'];
+                object['parentDirectoryId'] = row['parentDirectoryId'];
+            } else if(row['type'] === 'MOVE DIRECTORY') {
+                object['directoryId'] = row['directoryId'];
+                object['newParentDirectoryId'] = row['newParentDirectoryId'];
+                object['oldParentDirectoryId'] = row['oldParentDirectoryId'];
+                object['newDirectoryPath'] = row['newDirectoryPath'];
+                object['oldDirectoryPath'] = row['oldDirectoryPath'];
+            } else if(row['type'] === 'RENAME DIRECTORY') {
+                object['directoryId'] = row['directoryId'];
+                object['parentDirectoryId'] = row['parentDirectoryId'];
+                object['newDirectoryPath'] = row['newDirectoryPath'];
+                object['oldDirectoryPath'] = row['oldDirectoryPath'];
+            } else {
+                throw new Error('Unknown event type');
+            }
+
+            allEvents.push(object);
+        }
+        return allEvents;
     }
 
-    updateInsertsFromDeletes(deleteEvents) {
-        //TODO do this in one query??
+    addInsertEvent(insertEvent) {
+        return this.runInsertFromObject('Event', insertEvent);
+    }
+
+    addDeleteEvent(deleteEvent) {
+        return this.runInsertFromObject('Event', deleteEvent);
+    }
+
+    updateInsertFromDelete(deleteEvent) {
         const sql = `
             UPDATE Event
             SET deletedAtTimestamp = ?, deletedByEventId = ?
             WHERE id = ?;`;
-        const allPromises = deleteEvents.map(deleteEvent => this.runQueryNoResultsWithParams(sql, [deleteEvent.timestamp, deleteEvent.id, deleteEvent.previousNeighborId]));
-        return Promise.all(allPromises);
+        return this.runQueryNoResultsWithParams(sql, [deleteEvent.timestamp, deleteEvent.id, deleteEvent.previousNeighborId]);
     }
     
     createDeveloperTable() {
@@ -1245,44 +1268,6 @@ class DBAbstraction {
         return this.runQueryGetAllNoParams('SELECT * FROM File;');
     }
 
-    createFileEventTable() {
-        const sql = `
-            CREATE TABLE IF NOT EXISTS FileEvent (
-                eventId TEXT PRIMARY KEY,
-                fileId INTEGER,
-                character TEXT,
-                relativeOrder TEXT,
-                FOREIGN KEY (fileId) REFERENCES File(id)
-            );`;
-
-        return this.runQueryNoResultsNoParams(sql);
-    }
-
-    addFileEvents(fileEvents, fileId) {
-        const updatedFileEvents = fileEvents.map(fileEvent => {
-            const clone = Object.assign({}, fileEvent);
-            //the original doesn't have a fileId, but the clone does
-            clone.fileId = fileId;
-            return clone;
-        });
-        return this.runInsertFromArrayOfObjects('FileEvent', updatedFileEvents);
-    }
-
-    removeFileEvents(deleteEventIds) {
-        const sql = `DELETE FROM FileEvent WHERE eventId IN (${deleteEventIds.map(() => '?').join(', ')});`;
-        return this.runQueryNoResultsWithParams(sql, deleteEventIds);
-    }
-
-    getAllFileEventsInRelativeOrder() {
-        const sql = 'SELECT * FROM FileEvent ORDER BY relativeOrder;';
-        return this.runQueryGetAllNoParams(sql);
-    }
-
-    updateFileEventRelativeOrder(fileEvent) {
-        const sql = 'UPDATE FileEvent SET relativeOrder = ? WHERE eventId = ?;';
-        return this.runQueryNoResultsWithParams(sql, [fileEvent.relativeOrder, fileEvent.eventId]);
-    }
-    
     createProjectTable() {
         const sql = `
             CREATE TABLE IF NOT EXISTS Project (

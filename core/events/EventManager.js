@@ -201,12 +201,8 @@ class EventManager {
     /*
      * Creates one or more 'INSERT' events.
      */
-    insertTextEvents(file, timestamp, createdByDevGroupId, branchId, insertedText, row, col, pastedInsertEventIds, isRelevant=true) {
+    async insertTextEvents(file, timestamp, createdByDevGroupId, branchId, insertedText, row, col, pastedInsertEventIds, isRelevant=true) {
         try {
-            //holds a collection of inserts and file events
-            const bulkInsertEvents = [];
-            const bulkFileEvents = [];
-
             //go through each new character being inserted
             for(let i = 0;i < insertedText.length;i++) {
                 //the next character to insert
@@ -245,12 +241,11 @@ class EventManager {
                 insertTextEvent['column'] = col + 1;
                 insertTextEvent['pastedEventId'] = pastedEventId;
 
-                //add the event to the array
-                bulkInsertEvents.push(insertTextEvent);
+                //insert the event and set its id
+                await this.db.addInsertEvent(insertTextEvent);
 
                 //insert the character in the text file state
-                const minimalFileEvent = file.addInsertEventByPos(insertTextEvent.id, insertTextEvent.character, row, col);
-                bulkFileEvents.push(minimalFileEvent);
+                file.addInsertEventByPos(insertTextEvent.id, insertTextEvent.character, row, col);
 
                 //if this code character was a newline
                 if(newText === '\n' || newText === '\r\n') {
@@ -264,19 +259,6 @@ class EventManager {
                     col++;
                 }
             }
-
-            //add the new events to the db
-            return Promise.all([
-                //add the insert event to the db
-                this.db.addInsertEvents(bulkInsertEvents),
-                
-                //TODO currently previousNeighborId is not correct because db
-                //is generating ids. If we add previousNeighborId back then 
-                //change the way the FileEvent eventId gets set
-
-                //add the file events to the db
-                this.db.addFileEvents(bulkFileEvents, file.id)
-            ]);
         } catch(ex) {
             console.log(`Error on insertTextEvents`);
             console.log(`file: ${file}, timestamp: ${timestamp}, createdByDevGroupId: ${createdByDevGroupId}, branchId: ${branchId}, insertedText: ${insertedText}, row: ${row}, col: ${col}, pastedInsertEventIds: ${pastedInsertEventIds}`);
@@ -286,10 +268,7 @@ class EventManager {
     /*
      * Creates one or more 'DELETE' events
      */
-    insertDeleteEvents(file, timestamp, createdByDevGroupId, branchId, row, col, numElementsToDelete) {
-        //holds a collection of deletes
-        const bulkDeletes = [];
-
+    async insertDeleteEvents(file, timestamp, createdByDevGroupId, branchId, row, col, numElementsToDelete) {
         //go through each new character being deleted
         for(let i = 0;i < numElementsToDelete;i++) {
             //create core event
@@ -313,21 +292,14 @@ class EventManager {
             deleteTextEvent['previousNeighborId'] = insertEventBeingDeleted.eventId;
             deleteTextEvent['lineNumber'] = row + 1;
             deleteTextEvent['column'] = col + 1;
-            
-            //add the event to the array
-            bulkDeletes.push(deleteTextEvent);
-            
+                        
             //remove the event in the text file state
             file.removeInsertEventByPos(row, col);
+
+            //add the delete event to the db and update the insert to show it has been deleted
+            await this.db.addDeleteEvent(deleteTextEvent);
+            await this.db.updateInsertFromDelete(deleteTextEvent);
         }
-        return Promise.all([
-            //add the new event to the db
-            this.db.addDeleteEvents(bulkDeletes),
-            //update the inserts that have been delete
-            this.db.updateInsertsFromDeletes(bulkDeletes),
-            //remove the file events that have been deleted
-            this.db.removeFileEvents(bulkDeletes.map(event => event.previousNeighborId))
-        ]);
     }   
 }
 

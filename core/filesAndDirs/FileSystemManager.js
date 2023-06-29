@@ -29,7 +29,6 @@ class FileSystemManager {
                 if(isNewProject === false) { //existing project
                     //load data from the db
                     this.loadDataFromDb();
-                    //this.loadDataFromDbAlt();
                 }
                 resolve();
             } catch(err) {
@@ -38,6 +37,8 @@ class FileSystemManager {
         });
     }
 
+    //this goes through all of the events and slowly inserts and deletes
+    //all of them until the files are filled with file events (inserts)
     loadDataFromDb() {
         return new Promise(async (resolve, reject) => {
             try {
@@ -59,68 +60,8 @@ class FileSystemManager {
                     this.pathToDirIdMap[newDir.currentPath] = newDir.id;
                 }
 
-                //get all of the file events
-                const allFileEvents = await this.db.getAllFileEventsInRelativeOrder();
-                
-                //add the file events to each file
-                for(const fileEvent of allFileEvents) {
-                    const file = this.allFiles[fileEvent.fileId];
-
-                    //if there are no events yet
-                    if(file.textFileInsertEvents.length === 0) {
-                        //add an empty row
-                        file.textFileInsertEvents.push([]);
-                    }
-
-                    //add the latest file event to the end of its row
-                    file.textFileInsertEvents[file.textFileInsertEvents.length - 1].push(fileEvent);
-                    
-                    //if the latest event is a newline
-                    if(fileEvent.character === 'NEWLINE') {
-                        //add an empty row
-                        file.textFileInsertEvents.push([]);    
-                    }
-
-                    //the file id is no longer needed in memory so remove it
-                    delete fileEvent.fileId;
-                }
-
-                resolve();
-            } catch(err) {
-                reject(err);
-            }
-        });
-    }
-
-    //this is an alternate approach to reading in and loading the files
-    //it goes through all of the events and slowly inserts and deletes
-    //all of them until the files are filled with file events (inserts)
-    //use this if the relativeOrder attribute of FileEvents becomes more
-    //trouble than they are worth (if we go with this then remove 
-    //minimizeRelativeOrder() too)
-    loadDataFromDbAlt() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                //get all the files and dirs stored in the db
-                const allFiles = await this.db.getAllFiles();
-                const allDirs = await this.db.getAllDirectories();
-
-                //add each of the files
-                for(const file of allFiles) {
-                    const newFile = new File(file.parentDirectoryId, file.currentPath, file.lastModifiedDate, [], file.isDeleted, file.id);
-                    this.allFiles[newFile.id] = newFile;
-                    this.pathToFileIdMap[newFile.currentPath] = newFile.id;
-                }
-
-                //add each of the dirs
-                for(const dir of allDirs) {
-                    const newDir = new Directory(dir.parentDirectoryId, dir.currentPath, dir.isDeleted, dir.id);
-                    this.allDirs[newDir.id] = newDir;
-                    this.pathToDirIdMap[newDir.currentPath] = newDir.id;
-                }
-
                 //get all of the events
-                const allEvents = await this.db.getAllEvents();
+                const allEvents = await this.db.getAllEventsFromNonDeletedFiles();
                 
                 //for inserts and deletes add the characters to each file
                 for(const event of allEvents) {
@@ -464,36 +405,6 @@ class FileSystemManager {
         }
     }
     
-    async minimizeRelativeOrder() {
-        //all of the update queries
-        const allPromises = [];
-
-        //go through all of the files being tracked
-        for(let fileId in this.allFiles) {
-            const file = this.allFiles[fileId];
-
-            //if the file has changes 
-            if(file.hasBeenModified) {
-                //pick a new relative order starting with a short value
-                let newRelativeOrder = utilities.inBetweenHelper.inbetween(null, null);
-                
-                //go through all of the file events in the order they are in the file 
-                //and update the relative order
-                for(const rowOfEvents of file.textFileInsertEvents) {
-                    for(const fileEvent of rowOfEvents) {
-                        //update the relative order
-                        fileEvent.relativeOrder = newRelativeOrder;
-                        //make the change in the db
-                        allPromises.push(this.db.updateFileEventRelativeOrder(fileEvent));
-                        //get the next new increasing value based on the current one
-                        newRelativeOrder = utilities.inBetweenHelper.inbetween(newRelativeOrder, null);
-                    }
-                }
-            }
-        }
-        return Promise.all(allPromises);
-    }
-
     /*
      * Returns a File object based on its id.
      */

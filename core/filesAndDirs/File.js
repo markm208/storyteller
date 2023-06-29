@@ -1,5 +1,3 @@
-const utilities = require('../utilities.js');
-
 /*
  * This class represents a file being tracked in a storyteller project. 
  * It has a last modified date and a 2D array of minimal text events 
@@ -47,17 +45,10 @@ class File {
 
         //verify that the new insert is within the bounds of the file (check max column below)
         if(row >= 0 && row <= this.textFileInsertEvents.length && col >= 0 ) {
-            //get the events around where this new event will be inserted
-            const nextNeighbor = this.getEvent(row, col);
-            const previousNeighbor = this.getPreviousNeighbor(row, col);
-            const prevNeighborRelativeOrder = previousNeighbor ? previousNeighbor.relativeOrder : null;
-            const nextNeighborRelativeOrder = nextNeighbor ? nextNeighbor.relativeOrder : null;
-            const relativeOrder = utilities.inBetweenHelper.inbetween(prevNeighborRelativeOrder, nextNeighborRelativeOrder);
             //create a minimal insert event from the full event
             const event = {
                 eventId: eventId,
-                character: eventCharacter,
-                relativeOrder: relativeOrder
+                character: eventCharacter 
             };
             
             //if this is the first insert on a new row (underneath the current last row)
