@@ -138,45 +138,45 @@ class AceEditor extends HTMLElement {
 
     //update the code in the editor
     if(this.playbackEngine.activeFileId) {
-      //get the file contents and load it into ace
-      const fileContents = this.playbackEngine.editorState.getFile(this.playbackEngine.activeFileId);
-      this.aceEditor.getSession().setValue(fileContents);
-      
-      //use the file extension for syntax highlighting
-      const filePath = this.playbackEngine.editorState.getFilePath(this.playbackEngine.activeFileId);
-      
-      //if there is a file path
-      if(filePath && filePath.trim()) { 
-        //if there is NOT an existing file mode for this type of file
-        if(!this.editorProperties.fileModes[filePath]) {
-          //get the file mode for this file type
-          this.editorProperties.fileModes[filePath] = this.editorProperties.modelist.getModeForPath(filePath);
+      //if the file was deleted, clear the editor
+      if(this.playbackEngine.editorState.isFileDeleted(this.playbackEngine.activeFileId)) {
+        this.aceEditor.getSession().setValue('');  
+      } else { //the file was not deleted
+        //get the file contents and load it into ace
+        const fileContents = this.playbackEngine.editorState.getFile(this.playbackEngine.activeFileId);
+        this.aceEditor.getSession().setValue(fileContents);
+        
+        //use the file extension for syntax highlighting
+        const filePath = this.playbackEngine.editorState.getFilePath(this.playbackEngine.activeFileId);
+        
+        //if there is a file path
+        if(filePath && filePath.trim()) { 
+          //if there is NOT an existing file mode for this type of file
+          if(!this.editorProperties.fileModes[filePath]) {
+            //get the file mode for this file type
+            this.editorProperties.fileModes[filePath] = this.editorProperties.modelist.getModeForPath(filePath);
+          }
+          //set the file mode type
+          const fileMode = this.editorProperties.fileModes[filePath];
+          this.aceEditor.getSession().setMode(fileMode.mode);
         }
-        //set the file mode type
-        const fileMode = this.editorProperties.fileModes[filePath];
-        this.aceEditor.getSession().setMode(fileMode.mode);
-      }
 
-      //get the position in the file of the last chatacter entered
-      const scrollToLine = this.playbackEngine.mostRecentChanges.fileEditLineNumber - 1;
-      const scrollToColumn = this.playbackEngine.mostRecentChanges.fileEditColumn - 1;
+        //get the position in the file of the last chatacter entered
+        const scrollToLine = this.playbackEngine.mostRecentChanges.fileEditLineNumber - 1;
+        const scrollToColumn = this.playbackEngine.mostRecentChanges.fileEditColumn - 1;
 
-      //if there is a comment at the end of the movement
-      if(this.playbackEngine.mostRecentChanges.endedOnAComment) {
-        //if there is selected code in the comment
-        if(this.playbackEngine.activeComment.selectedCodeBlocks.length > 0) {
-          //do nothing because the comment's selected code will be highlighted
-        } else { //no selected code in the comment
-          //if(this.playbackEngine.mostRecentChanges.fileEditLineNumber > 0) {
+        //if there is a comment at the end of the movement
+        if(this.playbackEngine.mostRecentChanges.endedOnAComment) {
+          //if there is selected code in the comment
+          if(this.playbackEngine.activeComment.selectedCodeBlocks.length > 0) {
+            //do nothing because the comment's selected code will be highlighted
+          } else { //no selected code in the comment
             this.scrollTo(scrollToLine, scrollToColumn);
-          //}
-        }
-      } else { //there is no comment here
-        //if(this.playbackEngine.mostRecentChanges.fileEditLineNumber > 0) {
+          }
+        } else { //there is no comment here
           this.scrollTo(scrollToLine, scrollToColumn);
-        //}
+        }
       }
-
       //go through the markers and highlight them
       this.addChangedCodeMarkers();
     }

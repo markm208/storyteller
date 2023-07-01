@@ -58,6 +58,15 @@ class EditorState {
     return filePath;
   }
 
+  isFileDeleted(fileId) {
+    let isDeleted = false;
+    if(this.allFiles[fileId]) {
+      const file = this.allFiles[fileId];
+      isDeleted = file.isDeleted === 'true';
+    }
+    return isDeleted;
+  }
+  
   insert(fileId, newCharacter, eventId, row, col) {
     //if this is the first insert on a new row (underneath the current last row)
     if (row === this.filesContents[fileId].length) {
