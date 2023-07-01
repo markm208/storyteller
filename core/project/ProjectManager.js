@@ -7,7 +7,6 @@ const EventManager = require('../events/EventManager');
 const FileSystemManager = require('../filesAndDirs/FileSystemManager');
 const CommentManager = require('../comments/CommentManager');
 const HttpServer = require('./HttpServer');
-const Reconciler = require('./Reconciler');
 const PathHelper = require('./PathHelper');
 const IgnorePath = require('./IgnorePath.js');
 
@@ -60,9 +59,6 @@ class ProjectManager {
                 
                 //read in the st-ignore file (if there is one)
                 this.ignorePath = new IgnorePath(this.projectDirPath);
-
-                //create a reconciler to handle file/dir discrepancies
-                this.reconciler = new Reconciler(this);
 
                 //create an http server to listen for editors and playbacks
                 this.httpServer = new HttpServer(this);
@@ -142,7 +138,6 @@ class ProjectManager {
             this.fileSystemManager.minimizeRelativeOrder(),
             this.commentManager.removeUnusedTags(),
             this.commentManager.removeUnusedMediaFiles()
-            //TODO file last modified dates ???
         ]);
     }
     
@@ -174,10 +169,8 @@ class ProjectManager {
         
         //if the file should not be ignored 
         if(this.ignorePath.ignoreThisFileOrDir(newNormalizedFilePath) === false) {
-            //get the file's last modified date
-            const lastModifiedDate = fs.statSync(newFilePath).mtimeMs;
             //add the new file to the in-memory file state representation
-            const fileObj = await this.fileSystemManager.addFile(newNormalizedFilePath, lastModifiedDate);
+            const fileObj = await this.fileSystemManager.addFile(newNormalizedFilePath);
     
             //insert a create file event
             const timestamp = new Date().getTime();

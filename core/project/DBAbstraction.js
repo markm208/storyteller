@@ -7,15 +7,10 @@ const Project = require('./Project');
 
 const sqlite3 = require('sqlite3').verbose();
 
-//TODO: look at reconciliation
-// -- there is a line deactivating this in extension.js:
-// -- if(false /*areDiscrepanciesPresent(discrepancies)*/) {
-// -- remove before testing this
 //TODO: look at/remove zip functionality
 //TODO: look at perfect programmer
 //TODO: build converter to take a loadPlayback.json file and convert it to a db 
 //TODO: get rid of project description in the project class
-//TODO: look at the File's lastModifiedDate and make sure it is set based on event timestamp or fs lastModified, or get rid of it
 //TODO: cleanup repo get rid of mergeExample, threads.html and other docs
 //TODO: update tests or remove them
 //TODO: whitespace cleanup, use tabs remove trailing spaces
@@ -1216,7 +1211,6 @@ class DBAbstraction {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 currentPath TEXT,
                 isDeleted TEXT,
-                lastModifiedDate TEXT,
                 parentDirectoryId INTEGER,
                 FOREIGN KEY (parentDirectoryId) REFERENCES Directory(id)
             );`;
@@ -1224,18 +1218,17 @@ class DBAbstraction {
         return this.runQueryNoResultsNoParams(sql);
     }
 
-    createFile(newFileParentDirId, newFilePath, lastModifiedDate) {
+    createFile(newFileParentDirId, newFilePath) {
         return new Promise(async (resolve, reject) => {
             try {
                 const newFileObject = {
                     currentPath: newFilePath,
                     isDeleted: 'false',
-                    lastModifiedDate: lastModifiedDate,
                     parentDirectoryId: newFileParentDirId
                 };
 
                 await this.runInsertFromObject('File', newFileObject);
-                const newFile = new File(newFileObject.parentDirectoryId, newFileObject.currentPath, newFileObject.lastModifiedDate, [], newFileObject.isDeleted, newFileObject.id);
+                const newFile = new File(newFileObject.parentDirectoryId, newFileObject.currentPath, [], newFileObject.isDeleted, newFileObject.id);
                 resolve(newFile);
             } catch(err) {
                 console.error(err);
@@ -1257,11 +1250,6 @@ class DBAbstraction {
     moveFile(file, newParentDirId, newPath) {
         const sql = 'UPDATE File SET parentDirectoryId = ?, currentPath = ? WHERE id = ?;';
         return this.runQueryNoResultsWithParams(sql, [newParentDirId, newPath, file.id]);
-    }
-
-    updateFileLastModifiedDate(file) {
-        const sql = 'UPDATE File SET lastModifiedDate = ? WHERE id = ?;';
-        return this.runQueryNoResultsWithParams(sql, [file.lastModifiedDate, file.id]);
     }
 
     getAllFiles() {

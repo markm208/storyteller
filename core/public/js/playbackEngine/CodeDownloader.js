@@ -215,7 +215,6 @@ class CodeDownloader {
           currentPath: nextEvent.filePath,
           isDeleted: 'false',
           id: nextEvent.fileId,
-          lastModifiedDate: nextEvent.timestamp,
           textFileInsertEvents: []
       };
       //create an entry for the path to id map

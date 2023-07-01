@@ -9,9 +9,13 @@ const STORYTELLER_DIR = '.storyteller';
 
 //main interface with the storyteller server
 const ProjectManager = require('./core/project/ProjectManager');
-
 //holds a reference to the storyteller project manager
 let projectManager = null;
+
+//reconciles changes to the file system when storyteller was not active
+const Reconciler = require('./core/project/Reconciler');
+//hold a reference to the reconciler 
+let reconciler = null;
 
 //keeps track if storyteller is currently active in a directory
 let isStorytellerCurrentlyActive = false;
@@ -168,22 +172,29 @@ async function resumeExistingProject() {
         projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
         await projectManager.init(false);
 
-        //ask for any discrepancies between the open project and the file system
-        const discrepancies = projectManager.reconciler.findDiscrepancies();
+        //create a new reconciler once the project has been created
+        reconciler = new Reconciler(projectManager);
 
-
-        //if there is at least one discrepancy
-        if(false /*areDiscrepanciesPresent(discrepancies)*/) {
+        //check to see if there is at least one discrepancy
+        if(reconciler.areDiscrepanciesPresent()) {
             //let the user know they have to resolve some discrepancies
             vscode.window.showInformationMessage(`There were some changes to the project when Storyteller wasn't active. In a moment you will be prompted to resolve the discrepancies.`);
+            
             //ask the user to decide how to handle them
-            resolveFileSystemDescrepancies(discrepancies);
-        } else { //there are no discrepancies
-            //turn on file watching
-            turnOnFSWatcherAndTextHandler();
-            //give the user some feedback about starting storyteller in an info message
-            storytellerState();
-        }
+            const action = await resolveFileSystemDescrepancies();
+            
+            //if they don't want to use storyteller anymore
+            if(action === 'stop') {
+                await projectManager.stopStoryteller();
+                return;
+            }
+        } //else- there are no discrepancies
+        
+        //turn on file watching
+        turnOnFSWatcherAndTextHandler();
+
+        //give the user some feedback about starting storyteller in an info message
+        storytellerState();
 
         //update the status bar
         updateStorytellerStatusBar('Start Playback', 'Start a Storyteller playback in the browser', 'storyteller.startPlaybackNoComment');
@@ -208,14 +219,13 @@ async function startTrackingInFolder() {
         projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
         await projectManager.init(true);
 
-        //ask for any discrepancies between the open project and the file system
-        const discrepancies = projectManager.reconciler.findDiscrepancies();
-        //holds the number of existing files and directories in the new project
-        const existingFilesDirs = discrepancies.fullDirPathsPresentButNotTracked.length + discrepancies.fullFilePathsPresentButNotTracked.length;
-        //if there are any files/dirs in the new project
-        if(existingFilesDirs > 0) {
+        //create a new reconciler to look for exisiting files and dirs after the project has been created
+        reconciler = new Reconciler(projectManager);
+        
+        //check to see if there is at least one discrepancy (an existing file or dir in a project)
+        if(reconciler.areDiscrepanciesPresent()) {
             //add them to the project
-            projectManager.reconciler.addExistingFilesDirs(discrepancies);
+            await reconciler.addExistingFilesDirs();
         }
         
         //turn on file watching
@@ -279,42 +289,26 @@ function updateStorytellerStatusBar(text, tooltip, command) {
 }
 /****************************** Reconciliation  *******************************/
 /*
- * Indicates if there is at least one discrepancy during reconciliation.
- */
-function areDiscrepanciesPresent(discrepancies) {
-    //count all of the discrepancies that were found
-    const numDiscrepancies = discrepancies.fullDirPathsPresentButNotTracked.length + 
-    discrepancies.fullFilePathsPresentButNotTracked.length +
-    discrepancies.missingDirectoryIds.length + 
-    discrepancies.missingFileIds.length +
-    discrepancies.modifiedFileIds.length;
-
-    //return whether there were more than one
-    return (numDiscrepancies > 0);
-}
-/*
  * Begins the reconciliation process. The helper functions have to be called
  * in order because of the promise based UI. The user will be prompted to 
  * choose what to do with files and dirs that have been modified outside of 
  * Storyteller, files and dirs currently not being tracked, and files and 
  * dirs that are missing.
  */
-function resolveFileSystemDescrepancies(discrepancies) {
+async function resolveFileSystemDescrepancies() {
     //start the sequential process of the user resolving discrepancies
-    resolveModified(discrepancies);
-    //at the end of resolveModified() will call:
-    //resolveUntracked(discrepancies);
-    //at the end of resolveUntracked() will call:
-    //resolveMissing(discrepancies);
-    //at the end of resolveMissing() will call:
-    //reconcileComplete();
+    //these require UI interaction and are therefore async functions
+    await resolveModified();
+    await resolveUntracked();
+    await resolveMissing();
+    return await reconcileComplete();
 }
 /*
  * Handles files that were modified outside of st.
  */
-async function resolveModified(discrepancies) {
+async function resolveModified() {
     //count how many modified files there are
-    const numModified = discrepancies.modifiedFileIds.length;
+    const numModified = reconciler.discrepancies.modifiedFileIds.length;
 
     //if there are some that need to be resolved by the user
     if(numModified > 0) {
@@ -325,36 +319,36 @@ async function resolveModified(discrepancies) {
         //if the user does not choose an option OR they want to accept the changes in the files
         if(!selectedOption || options.indexOf(selectedOption) === 0) {
             //accept changes made to the files
-            for(let i = 0;i < discrepancies.modifiedFileIds.length;i++) {
-                const fileId = discrepancies.modifiedFileIds[i];
+            for(let i = 0;i < reconciler.discrepancies.modifiedFileIds.length;i++) {
+                const fileId = reconciler.discrepancies.modifiedFileIds[i];
                 //accept changes to the storyteller state
-                projectManager.reconciler.resolveFileChanges(fileId, 'accept-changes');
+                await reconciler.resolveFileChanges(fileId, 'accept-changes');
             }
 
             //let the user know what happened
-            vscode.window.showInformationMessage(`Accepted the changes made in ${numModified} files. Files: ${discrepancies.modifiedFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
+            vscode.window.showInformationMessage(`Accepted the changes made in ${numModified} files. Files: ${reconciler.discrepancies.modifiedFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
         } else if(options.indexOf(selectedOption) === 1) {
             //abandon changes made to the files
-            for(let i = 0;i < discrepancies.modifiedFileIds.length;i++) {
-                const fileId = discrepancies.modifiedFileIds[i];
+            for(let i = 0;i < reconciler.discrepancies.modifiedFileIds.length;i++) {
+                const fileId = reconciler.discrepancies.modifiedFileIds[i];
                 //abandon change to the storyteller state
-                projectManager.reconciler.resolveFileChanges(fileId, 'recreate');
+                await reconciler.resolveFileChanges(fileId, 'recreate');
             }
 
             //let the user know what happened
-            vscode.window.showInformationMessage(`Abandoned the changes made in ${numModified} files.  Files: ${discrepancies.modifiedFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
+            vscode.window.showInformationMessage(`Abandoned the changes made in ${numModified} files.  Files: ${reconciler.discrepancies.modifiedFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
         }
     }
 
     //move on to the next type of discrepancy
-    resolveUntracked(discrepancies);
+    //resolveUntracked(discrepancies);
 }
 /*
  * Handles untracked (newly added when st was not active) files and dirs. 
  */
-async function resolveUntracked(discrepancies) {
+async function resolveUntracked() {
     //count how many untracked files and dirs there are
-    const numNotTracked = discrepancies.fullDirPathsPresentButNotTracked.length + discrepancies.fullFilePathsPresentButNotTracked.length;
+    const numNotTracked = reconciler.discrepancies.fullDirPathsPresentButNotTracked.length + reconciler.discrepancies.fullFilePathsPresentButNotTracked.length;
     
     //if there are some that need to be resolved by the user
     if(numNotTracked > 0) {
@@ -365,54 +359,54 @@ async function resolveUntracked(discrepancies) {
         //if the user does not choose an option OR they want to add and track the new files/dirs
         if(!selectedOption || options.indexOf(selectedOption) === 0) {
             //create and start tracking the new directories
-            for(let i = 0;i < discrepancies.fullDirPathsPresentButNotTracked.length;i++) {
-                const newDirPath = discrepancies.fullDirPathsPresentButNotTracked[i];
+            for(let i = 0;i < reconciler.discrepancies.fullDirPathsPresentButNotTracked.length;i++) {
+                const newDirPath = reconciler.discrepancies.fullDirPathsPresentButNotTracked[i];
                 //create the new directory
-                projectManager.reconciler.resolveNewDirectory(newDirPath, 'create');
+                await reconciler.resolveNewDirectory(newDirPath, 'create');
             }
 
             //create and start tracking the new files
-            for(let i = 0;i < discrepancies.fullFilePathsPresentButNotTracked.length;i++) {
-                const newFilePath = discrepancies.fullFilePathsPresentButNotTracked[i];
+            for(let i = 0;i < reconciler.discrepancies.fullFilePathsPresentButNotTracked.length;i++) {
+                const newFilePath = reconciler.discrepancies.fullFilePathsPresentButNotTracked[i];
                 //create the new file
-                projectManager.reconciler.resolveNewFile(newFilePath, 'create');
+                await reconciler.resolveNewFile(newFilePath, 'create');
             }
 
             //let the user know what happened
-            vscode.window.showInformationMessage(`${numNotTracked} files and dirs are now being tracked. Directories: ${discrepancies.fullDirPathsPresentButNotTracked.join(', ')} Files: ${discrepancies.fullFilePathsPresentButNotTracked.join(', ')}`);
+            vscode.window.showInformationMessage(`${numNotTracked} files and dirs are now being tracked. Directories: ${reconciler.discrepancies.fullDirPathsPresentButNotTracked.join(', ')} Files: ${reconciler.discrepancies.fullFilePathsPresentButNotTracked.join(', ')}`);
         } else if(options.indexOf(selectedOption) === 1) {
             //delete the new files first
-            for(let i = 0;i < discrepancies.fullFilePathsPresentButNotTracked.length;i++) {
-                const newFilePath = discrepancies.fullFilePathsPresentButNotTracked[i];
+            for(let i = 0;i < reconciler.discrepancies.fullFilePathsPresentButNotTracked.length;i++) {
+                const newFilePath = reconciler.discrepancies.fullFilePathsPresentButNotTracked[i];
                 //create the new file
-                projectManager.reconciler.resolveNewFile(newFilePath, 'delete');
+                await reconciler.resolveNewFile(newFilePath, 'delete');
             }
 
             //remove the directories- the array is generated in a top down way
             //reverse to remove from the bottom of the file system up towards 
             //the top
-            discrepancies.fullDirPathsPresentButNotTracked.reverse();
+            reconciler.discrepancies.fullDirPathsPresentButNotTracked.reverse();
             //delete the new directories
-            for(let i = 0;i < discrepancies.fullDirPathsPresentButNotTracked.length;i++) {
-                const newDirPath = discrepancies.fullDirPathsPresentButNotTracked[i];
+            for(let i = 0;i < reconciler.discrepancies.fullDirPathsPresentButNotTracked.length;i++) {
+                const newDirPath = reconciler.discrepancies.fullDirPathsPresentButNotTracked[i];
                 //create the new directory
-                projectManager.reconciler.resolveNewDirectory(newDirPath, 'delete');
+                await reconciler.resolveNewDirectory(newDirPath, 'delete');
             }
 
             //let the user know what happened
-            vscode.window.showInformationMessage(`${numNotTracked} files and dirs were deleted. Directories: ${discrepancies.fullDirPathsPresentButNotTracked.join(', ')} Files: ${discrepancies.fullFilePathsPresentButNotTracked.join(', ')}`);
+            vscode.window.showInformationMessage(`${numNotTracked} files and dirs were deleted. Directories: ${reconciler.discrepancies.fullDirPathsPresentButNotTracked.join(', ')} Files: ${reconciler.discrepancies.fullFilePathsPresentButNotTracked.join(', ')}`);
         }
     } 
     //move on to the next type of discrepancy
-    resolveMissing(discrepancies);
+    //resolveMissing(discrepancies);
 }
 /*
  * Handles missing files and dirs (were in st db but were deleted when st was
  * not active). 
  */
-async function resolveMissing(discrepancies) {
+async function resolveMissing() {
     //count how many missing files and dirs there are
-    const numMissing = discrepancies.missingDirectoryIds.length + discrepancies.missingFileIds.length;
+    const numMissing = reconciler.discrepancies.missingDirectoryIds.length + reconciler.discrepancies.missingFileIds.length;
     
     //if there are some that need to be resolved by the user
     if(numMissing > 0) {
@@ -423,43 +417,44 @@ async function resolveMissing(discrepancies) {
         //if the user does not choose an option OR they want to continue to track the missing files/dirs
         if(!selectedOption || options.indexOf(selectedOption) === 0) {
             //recreate the missing new directories
-            for(let i = 0;i < discrepancies.missingDirectoryIds.length;i++) {
-                const dirId = discrepancies.missingDirectoryIds[i];
+            for(let i = 0;i < reconciler.discrepancies.missingDirectoryIds.length;i++) {
+                const dirId = reconciler.discrepancies.missingDirectoryIds[i];
                 //recreate the directory
-                projectManager.reconciler.resolveDeletedDirectory(dirId, 'recreate');
+                await reconciler.resolveDeletedDirectory(dirId, 'recreate');
             }
 
             //recreate the missing files
-            for(let i = 0;i < discrepancies.missingFileIds.length;i++) {
-                const fileId = discrepancies.missingFileIds[i];
+            for(let i = 0;i < reconciler.discrepancies.missingFileIds.length;i++) {
+                const fileId = reconciler.discrepancies.missingFileIds[i];
                 //recreate the file
-                projectManager.reconciler.resolveDeletedFile(fileId, 'recreate');
+                await reconciler.resolveDeletedFile(fileId, 'recreate');
             }
 
             //let the user know what happened
-            vscode.window.showInformationMessage(`${numMissing} files and dirs have been restored. Directories: ${discrepancies.missingDirectoryIds.map(dirId => projectManager.fileSystemManager.allDirs[dirId].currentPath).join(', ') } Files: ${discrepancies.missingFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
+            vscode.window.showInformationMessage(`${numMissing} files and dirs have been restored. Directories: ${reconciler.discrepancies.missingDirectoryIds.map(dirId => projectManager.fileSystemManager.allDirs[dirId].currentPath).join(', ') } Files: ${reconciler.discrepancies.missingFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
         } else if(options.indexOf(selectedOption) === 1) {
             //accept that the missing new files will stay deleted
-            for(let i = 0;i < discrepancies.missingFileIds.length;i++) {
-                const fileId = discrepancies.missingFileIds[i];
+            for(let i = 0;i < reconciler.discrepancies.missingFileIds.length;i++) {
+                const fileId = reconciler.discrepancies.missingFileIds[i];
                 //delete the file
-                projectManager.reconciler.resolveDeletedFile(fileId, 'accept-delete');
+                await reconciler.resolveDeletedFile(fileId, 'accept-delete');
             }
             //accept that the missing new directories will stay deleted
-            for(let i = 0;i < discrepancies.missingDirectoryIds.length;i++) {
-                const dirId = discrepancies.missingDirectoryIds[i];
+            for(let i = 0;i < reconciler.discrepancies.missingDirectoryIds.length;i++) {
+                const dirId = reconciler.discrepancies.missingDirectoryIds[i];
                 //delete the directory
-                projectManager.reconciler.resolveDeletedDirectory(dirId, 'accept-delete');
+                await reconciler.resolveDeletedDirectory(dirId, 'accept-delete');
             }
 
             //let the user know what happened
-            vscode.window.showInformationMessage(`${numMissing} files and dirs will remain deleted. Directories: ${discrepancies.missingDirectoryIds.map(dirId => projectManager.fileSystemManager.allDirs[dirId].currentPath).join(', ') } Files: ${discrepancies.missingFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
+            vscode.window.showInformationMessage(`${numMissing} files and dirs will remain deleted. Directories: ${reconciler.discrepancies.missingDirectoryIds.map(dirId => projectManager.fileSystemManager.allDirs[dirId].currentPath).join(', ') } Files: ${reconciler.discrepancies.missingFileIds.map(fileId => projectManager.fileSystemManager.allFiles[fileId].currentPath).join(', ')}`);
         }
     }
 
     //move on to the next type of reconciliation 
-    reconcileComplete();
+    //reconcileComplete();
 }
+
 /*
  * This is used to indicate that each of the three types of issues (modified, 
  * untracked, missing) are complete. When they are all complete the user
@@ -467,6 +462,7 @@ async function resolveMissing(discrepancies) {
  * to stop using it.
  */
 async function reconcileComplete() {
+    let retVal = null;
     //let the user know reconciliation is complete and ask them if they 
     //want to continue using Storyteller
     const options = ['Continue using Storyteller', 'Stop using Storyteller'];
@@ -475,10 +471,13 @@ async function reconcileComplete() {
     //if the user does not choose an option OR they want to continue using st
     if(!selectedOption || options.indexOf(selectedOption) === 0) {
         //turn on file watching since reconciliation is complete
-        turnOnFSWatcherAndTextHandler();
+        //turnOnFSWatcherAndTextHandler();
+        retVal = 'continue';
     } else if(options.indexOf(selectedOption) === 1) { //stop using st
-        await projectManager.stopStoryteller();
+        retVal = 'stop';
+        //await projectManager.stopStoryteller();
     }
+    return retVal;
 }
 /********************************** Playback **********************************/
 /*

@@ -1,17 +1,15 @@
 /*
  * This class represents a file being tracked in a storyteller project. 
- * It has a last modified date and a 2D array of minimal text events 
- * (event id and character). The 2D array of minimal events represents 
- * the state of the file at different points in time. This is used to 
- * get the complete text at a point in time and to get previous neighbor 
- * ids. 
+ * It has a 2D array of minimal text events (event id and character). 
+ * The 2D array of minimal events represents the state of the file at 
+ * different points in time. This is used to get the complete text at 
+ * a point in time and to get previous neighbor ids. 
  */
 class File {
-    constructor(parentDirectoryId, currentPath, lastModifiedDate, textFileInsertEvents, isDeleted, id) {        
+    constructor(parentDirectoryId, currentPath, textFileInsertEvents, isDeleted, id) {        
         this.id = id;
         this.parentDirectoryId = parentDirectoryId;
         this.currentPath = currentPath;
-        this.lastModifiedDate = lastModifiedDate;
         this.textFileInsertEvents = textFileInsertEvents; //stored in db as FileEvents
         this.isDeleted = isDeleted;
         //has a file changed since being read in from the db (not stored in db)
@@ -29,7 +27,6 @@ class File {
             id: this.id,
             parentDirectoryId: this.parentDirectoryId, 
             currentPath: this.currentPath,
-            lastModifiedDate: this.lastModifiedDate,
             isDeleted: this.isDeleted
         };
 

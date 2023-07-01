@@ -48,7 +48,7 @@ class FileSystemManager {
 
                 //add each of the files
                 for(const file of allFiles) {
-                    const newFile = new File(file.parentDirectoryId, file.currentPath, file.lastModifiedDate, [], file.isDeleted, file.id);
+                    const newFile = new File(file.parentDirectoryId, file.currentPath, [], file.isDeleted, file.id);
                     this.allFiles[newFile.id] = newFile;
                     this.pathToFileIdMap[newFile.currentPath] = newFile.id;
                 }
@@ -86,7 +86,7 @@ class FileSystemManager {
     /*
      * Adds a new file to the file system
      */
-    async addFile(newFilePath, lastModifiedDate) {
+    async addFile(newFilePath) {
         let newFile = null;
 
         //if the file does not already exist
@@ -101,7 +101,7 @@ class FileSystemManager {
             //if the parent dir is being tracked
             if(this.allDirs[newFileParentDirId]) {
                 //create a new file object from the db
-                newFile = await this.db.createFile(newFileParentDirId, newFilePath, lastModifiedDate);
+                newFile = await this.db.createFile(newFileParentDirId, newFilePath);
 
                 //make a connection between the file path and an id 
                 this.pathToFileIdMap[newFilePath] = newFile.id;
@@ -537,6 +537,58 @@ class FileSystemManager {
         } else {
             throw new Error(`No path to id mapping exists for '${oldDirPath}'`);
         }
+    }
+
+    doesFilePathExist(filePath) {
+        let retVal = false;
+        //if there is a mapping from the file path to an id
+        if(this.pathToFileIdMap[filePath] !== undefined) {
+            //get the file id
+            const fileId = this.pathToFileIdMap[filePath];
+            //if the file is not deleted
+            if(this.allFiles[fileId].isDeleted === 'false') {
+                retVal = true;
+            }
+        }
+        return retVal;
+    }
+
+    doesFileIdExist(fileId) {
+        let retVal = false;
+        //if the file id exists
+        if(this.allFiles[fileId] !== undefined) {
+            //if the file is not deleted
+            if(this.allFiles[fileId].isDeleted === 'false') {
+                retVal = true;
+            }
+        }
+        return retVal;
+    }
+
+    doesDirPathExist(dirPath) {
+        let retVal = false;
+        //if there is a mapping from the dir path to an id
+        if(this.pathToDirIdMap[dirPath] !== undefined) {
+            //get the dir id
+            const dirId = this.pathToDirIdMap[dirPath];
+            //if the dir is not deleted
+            if(this.allDirs[dirId].isDeleted === 'false') {
+                retVal = true;
+            }
+        }
+        return retVal;
+    }
+
+    doesDirIdExist(dirId) {
+        let retVal = false;
+        //if the dir id exists
+        if(this.allDirs[dirId] !== undefined) {
+            //if the dir is not deleted
+            if(this.allDirs[dirId].isDeleted === 'false') {
+                retVal = true;
+            }
+        }
+        return retVal;
     }
 }
 
