@@ -2,7 +2,10 @@ const vscode = require('vscode');
 const spawn = require('child_process').spawn;
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
 const JSZip = require('jszip');
+
+const ConvertFormatHelper = require('./core/project/ConvertFormatHelper.js');
 
 //name of the hidden storyteller directory
 const STORYTELLER_DIR = '.storyteller';
@@ -66,6 +69,7 @@ function activate(context) {
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.removeDevelopersFromActiveGroup', removeDevelopersFromActiveGroup));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipProject', zipProject));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipViewablePlayback', zipViewablePlayback));
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.createProjectFromJSFile', createProjectFromJSFile));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.previewPerfectProgrammer', previewPerfectProgrammer));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.replaceWithPerfectProgrammer', replaceWithPerfectProgrammer));
 
@@ -1284,7 +1288,7 @@ async function zipViewablePlayback() {
             const projectDirPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
             //add the required static file for playback to the zip
-            zipPlaybackHelper(projectDirPath, zip);
+            await zipPlaybackHelper(projectDirPath, zip);
 
             //create and save the zip in the .storyteller dir
             zip.generateNodeStream({
@@ -1314,13 +1318,15 @@ async function zipPlaybackHelper(projectDirPath, zip) {
     //zip up the public directory in this repo 
     zipPublicHelper(publicDirPath, zip);
 
-    //add the file loadPlayback.js to the zip
-    zip.file('js/loadPlayback.js', await projectManager.getPlaybackData(false));
+    //get the loadPlayback.js data as a string and add it to the zip
+    const loadPlaybackDataString = await projectManager.getPlaybackData(false);
+    zip.file('js/loadPlayback.js', loadPlaybackDataString);
     
     //add the media files
-    addMediaToZip(projectDirPath, 'images', zip);
-    addMediaToZip(projectDirPath, 'videos', zip);
-    addMediaToZip(projectDirPath, 'audios', zip);
+    const allMediaFiles = await projectManager.commentManager.getAllMediaFiles();
+    for(const mediaFile of allMediaFiles) {
+        zip.file(mediaFile.filePath, mediaFile.blob);
+    }
 }
 /* 
  * Copies the js files required for playback (minus the storyteller data file) 
@@ -1357,23 +1363,109 @@ function zipPublicHelper(dirPath, zip) {
         }
     }
 }
-/* 
- * Adds the comments media files to the zip
- */
-function addMediaToZip(dirPath, mediaType, zip) {
-    //get the full path to the media directory in the st project 
-    const pathToImageMedia = path.join(dirPath, STORYTELLER_DIR, 'comments', 'media', mediaType);
-    //get all of the media files in the directory
-    const allFiles = fs.readdirSync(pathToImageMedia);
+
+async function createProjectFromJSFile() {
+    //prompt for the location of the stored playback
+    const bookUrl = await vscode.window.showInputBox({prompt: 'Enter in a url to a book'}); //'https://markm208.github.io/sqlbook';
     
-    //go through the contents of the dir
-    for (let i = 0; i < allFiles.length; i++) {
-        const fileName = allFiles[i];
-        //get the full path to the file or directory
-        const fullPathToFile = path.join(pathToImageMedia, fileName);
-        //read the file and store it in the zip
-        const fileBuffer = fs.readFileSync(fullPathToFile);
-        zip.file(`media/${mediaType}/${fileName}`, fileBuffer);
+    //prompt for where to put the new db file
+    let pathToNewDbs = await vscode.window.showOpenDialog({ //[{fsPath: '/Users/mmahoney/Documents/stTestRemoteDB/'}];
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        defaultUri: vscode.workspace.workspaceFolders[0].uri,
+        openLabel: 'Create Projects',
+        title: 'Choose a folder to store all of the playbacks'
+    });
+
+    //create a loop that goes through chapters like 'chapter1', 'chapter2', etc. from chapter1 to chapter15
+    //for each chapter create two digit folders like '01', '02', etc. from 01 to 15
+    //for each two digit folder create a file called 'js/loadPlayback.js' with the data from the js file in the chapter folder
+    for(let i = 1;i <= 15;i++) {
+        //get the chapter number as a string
+        const chapterNumber = `chapter${i}`;
+
+        for(let j = 1;j <= 15;j++) {
+            //get the two digit folder name
+            const twoDigitFolderName = `${j < 10 ? '0' : ''}${j}`;
+
+            //get the path to the chapter folder
+            const pathToChapterFolder = path.join(pathToNewDbs[0].fsPath, chapterNumber, twoDigitFolderName);
+            const urlToPlayback = `${bookUrl}/${chapterNumber}/${twoDigitFolderName}`;
+            await createProjectFromJSFileHelper(pathToChapterFolder, urlToPlayback);
+            console.log(`Playback created at ${pathToChapterFolder} from ${urlToPlayback}`);
+        }
+    }
+    //let the user know that the project was created successfully
+    vscode.window.showInformationMessage(`A book was created.`);
+}
+//--
+async function createProjectFromJSFileHelper(playbackPath, userUrl) {
+    return new Promise((resolve, reject) => {
+        try {
+            //url where the data is stored
+            const playbackDataUrl = `${userUrl}/js/loadPlayback.js`;
+
+            //get the playback data
+            let data = '';
+            https.request(playbackDataUrl, function(response) {
+                response.on('data', function(chunk) {
+                    data += chunk;
+                });
+                response.on('end', async function() {
+                    //convert the js file to a js object
+                    const playbackData = parsePlaybackData(data);
+                    if(playbackData) {
+                        const projDir = path.join(playbackPath, '.storyteller');
+                        const helper = new ConvertFormatHelper(projDir, 'st.db', userUrl, playbackData);
+                        await helper.convertToDB();
+                     }
+                    resolve();
+                });
+            }).end();  
+        } catch (error) {
+            console.error(`Download error: ${error.message}`);
+            reject();
+        }
+    });
+}
+
+function parsePlaybackData(playbackData) {
+    //split the file into lines
+    const allLines = playbackData.split('\n');
+    //use the format of the js file to parse out the data
+    const events = allLines[2].substring(allLines[2].indexOf('['), allLines[2].lastIndexOf(']') + 1);
+    const comments = allLines[3].substring(allLines[3].indexOf('{'), allLines[3].lastIndexOf('}') + 1);
+    const numEvents = allLines[4].substring(allLines[4].indexOf('=') + 2, allLines[4].lastIndexOf(';'));
+    const isEditable = allLines[5].substring(allLines[5].indexOf('=') + 2, allLines[5].lastIndexOf(';'));
+    const developers = allLines[6].substring(allLines[6].indexOf('{'), allLines[6].lastIndexOf('}') + 1);
+    const developerGroups = allLines[7].substring(allLines[7].indexOf('{'), allLines[7].lastIndexOf('}') + 1);
+    const playbackTitle = allLines[8].substring(allLines[8].indexOf('\'') + 1, allLines[8].lastIndexOf('\''));
+    const branchId = allLines[9].substring(allLines[9].indexOf('\'') + 1, allLines[9].lastIndexOf('\''));
+    const estimatedReadTime = projectManager.commentManager.getReadTimeEstimate();
+
+    try {
+        //convert the strings to objects
+        const parsedEvents = JSON.parse(events);
+        const parsedComments = JSON.parse(comments);
+        const parsedDevelopers = JSON.parse(developers);
+        const parsedDeveloperGroups = JSON.parse(developerGroups);
+
+        //return the parsed data
+        const projectData = {
+            title: playbackTitle,
+            branchId: branchId,
+            isEditable: isEditable,
+            numEvents: Number(numEvents),
+            estimatedReadTime: estimatedReadTime,
+            events: parsedEvents,
+            comments: parsedComments,
+            developers: parsedDevelopers,
+            developerGroups: parsedDeveloperGroups
+        };
+        return projectData;
+    } catch (e) {
+        return null;
     }
 }
 /*

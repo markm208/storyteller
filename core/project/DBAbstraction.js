@@ -10,6 +10,7 @@ const sqlite3 = require('sqlite3').verbose();
 //TODO: look at/remove zip functionality
 //TODO: look at perfect programmer
 //TODO: build converter to take a loadPlayback.json file and convert it to a db 
+//TODO: playback selected text only
 //TODO: get rid of project description in the project class
 //TODO: cleanup repo get rid of mergeExample, threads.html and other docs
 //TODO: update tests or remove them
@@ -25,201 +26,251 @@ class DBAbstraction {
     
     openDb() {
         return new Promise((resolve, reject) => {
-            this.db = new sqlite3.Database(this.dbPath, async (err) => {
-                if(err) {
-                    console.error(err);
-                    reject();
-                } else {
-                    //create all of the tables if they don't already exist
-                    await this.createTables();
+            try {
+                this.db = new sqlite3.Database(this.dbPath, async (err) => {
+                    if(err) {
+                        console.error(err);
+                        reject();
+                    } else {
+                        //create all of the tables if they don't already exist
+                        await this.createTables();
 
-                    resolve();
-                }
-            });
+                        resolve();
+                    }
+                });
+            } catch(err) {
+                console.error(err);
+                reject();
+            }
         });
     }
 
     //general promise based helper methods
     runQueryNoResultsNoParams(sql) {
         return new Promise((resolve, reject) => {
-            this.db.run(sql, (err) => {
-                if(err) {
-                    console.error(err);
-                    reject();
-                } else {
-                    resolve();
-                }
-            });
+            try {
+                this.db.run(sql, (err) => {
+                    if(err) {
+                        console.error(err);
+                        reject();
+                    } else {
+                        resolve();
+                    }
+                });
+            } catch(err) {
+                console.error(err);
+                reject();
+            }
         });
     }
 
     runQueryNoResultsWithParams(sql, params) {
         return new Promise((resolve, reject) => {
-            this.db.run(sql, params, (err) => {
-                if(err) {
-                    console.error(err);
-                    reject();
-                } else {
-                    resolve();
-                }
-            });
+            try {
+                this.db.run(sql, params, (err) => {
+                    if(err) {
+                        console.error(err);
+                        reject();
+                    } else {
+                        resolve();
+                    }
+                });
+            } catch(err) {
+                console.error(err);
+                reject();
+            }
         });
     }
 
     runInsertFromObject(tableName, anObject) {
         return new Promise((resolve, reject) => {
-            //collect the name and values of all of the properties
-            const propertyNames = Object.getOwnPropertyNames(anObject);
-            const propertyValues = propertyNames.map((propertyName) => anObject[propertyName]);
-    
-            //build the sql statement
-            var sql = `INSERT INTO ${tableName} (${propertyNames.join(', ')}) VALUES (${propertyValues.map(() => '?').join(', ')})`;
-            
-            this.db.run(sql, propertyValues, function(err) {
-                if(err) {
-                    console.error(err);
-                    reject();
-                } else {
-                    //add the auto generated id to the object
-                    anObject['id'] = this.lastID;
+            try {
+                //collect the name and values of all of the properties
+                const propertyNames = Object.getOwnPropertyNames(anObject);
+                const propertyValues = propertyNames.map((propertyName) => anObject[propertyName]);
+        
+                //build the sql statement
+                var sql = `INSERT INTO ${tableName} (${propertyNames.join(', ')}) VALUES (${propertyValues.map(() => '?').join(', ')})`;
+                
+                this.db.run(sql, propertyValues, function(err) {
+                    if(err) {
+                        console.error(err);
+                        reject();
+                    } else {
+                        //add the auto generated id to the object
+                        anObject['id'] = this.lastID;
 
-                    //return the new object
-                    resolve(anObject);
-                }
-            });
+                        //return the new object
+                        resolve(anObject);
+                    }
+                });
+            } catch(err) {
+                console.error(err);
+                reject();
+            }
         });
     }
 
     runInsertFromArrayOfObjects(tableName, someObjects) {
         return new Promise((resolve, reject) => {
-            //if there are any objects in the passed in array
-            if(someObjects.length > 0) {
-                //using the first object get all of the property names
-                const propertyNames = Object.getOwnPropertyNames(someObjects[0]);
-                const queryParams = `(${propertyNames.map(() => '?').join(', ')})`;
+            try {
+                //if there are any objects in the passed in array
+                if(someObjects.length > 0) {
+                    //using the first object get all of the property names
+                    const propertyNames = Object.getOwnPropertyNames(someObjects[0]);
+                    const queryParams = `(${propertyNames.map(() => '?').join(', ')})`;
 
-                //holds the values for all of the objects flattened out into a single array
-                const flattenedValues = [];
-                const queryParamsArray = [];
+                    //holds the values for all of the objects flattened out into a single array
+                    const flattenedValues = [];
+                    const queryParamsArray = [];
 
-                for(const object of someObjects) {
-                    //add the values from the objects into the flattened array
-                    flattenedValues.push(...propertyNames.map((propertyName) => object[propertyName]));
-                    //add the groups of ?'s
-                    queryParamsArray.push(queryParams);
-                }
-
-                //build the sql statement
-                var sql = `INSERT INTO ${tableName} (${propertyNames.join(', ')}) VALUES ${queryParamsArray.join(', ')}`;
-                
-                this.db.run(sql, flattenedValues, (err) => {
-                    if(err) {
-                        console.error(err);
-                        reject();
-                    } else {
-                        //don't return objects because they don't have the auto generated id
-                        resolve();
+                    for(const object of someObjects) {
+                        //add the values from the objects into the flattened array
+                        flattenedValues.push(...propertyNames.map((propertyName) => object[propertyName]));
+                        //add the groups of ?'s
+                        queryParamsArray.push(queryParams);
                     }
-                });
-            } else {
-                resolve();
+
+                    //build the sql statement
+                    var sql = `INSERT INTO ${tableName} (${propertyNames.join(', ')}) VALUES ${queryParamsArray.join(', ')}`;
+                    
+                    this.db.run(sql, flattenedValues, (err) => {
+                        if(err) {
+                            console.error(err);
+                            reject();
+                        } else {
+                            //don't return objects because they don't have the auto generated id
+                            resolve();
+                        }
+                    });
+                } else {
+                    resolve();
+                }
+            } catch(err) {
+                console.error(err);
+                reject();
             }
         });
     }
 
     runUpdateFromObject(tableName, anObject) {
         return new Promise((resolve, reject) => {
-            const propertyNames = Object.getOwnPropertyNames(anObject);
-            //combos of 'propertyName = ?'
-            const propertyNameArray = propertyNames.map((propertyName) => `${propertyName} = ?`);
-            //all of the values for the properties
-            const propertyValues = propertyNames.map((propertyName) => anObject[propertyName]);
-    
-            //build the sql statement
-            var sql = `UPDATE ${tableName} SET `;
-            sql += propertyNameArray.join(', ');
-            sql += ` WHERE id = ?`;
+            try {
+                const propertyNames = Object.getOwnPropertyNames(anObject);
+                //combos of 'propertyName = ?'
+                const propertyNameArray = propertyNames.map((propertyName) => `${propertyName} = ?`);
+                //all of the values for the properties
+                const propertyValues = propertyNames.map((propertyName) => anObject[propertyName]);
+        
+                //build the sql statement
+                var sql = `UPDATE ${tableName} SET `;
+                sql += propertyNameArray.join(', ');
+                sql += ` WHERE id = ?`;
 
-            this.db.run(sql, [...propertyValues, anObject.id], (err) => {
-                if(err) {
-                    console.error(err);
-                    reject();
-                } else {
-                    resolve();
-                }
-            });
+                this.db.run(sql, [...propertyValues, anObject.id], (err) => {
+                    if(err) {
+                        console.error(err);
+                        reject();
+                    } else {
+                        resolve();
+                    }
+                });
+            } catch(err) {
+                console.error(err);
+                reject();
+            }
         });
     }
 
     runQueryGetAllNoParams(sql) {
-        return new Promise((resolve, reject) => {            
-            this.db.all(sql, (err, rows) => {
-                if(err) {
-                    console.error(err);
-                    reject();
-                } else {
-                    //add the properties from the db to the objects
-                    const allObjects = this.buildObjectsFromRows(rows);
+        return new Promise((resolve, reject) => {  
+            try {          
+                this.db.all(sql, (err, rows) => {
+                    if(err) {
+                        console.error(err);
+                        reject();
+                    } else {
+                        //add the properties from the db to the objects
+                        const allObjects = this.buildObjectsFromRows(rows);
 
-                    resolve(allObjects);
-                }
-            });
+                        resolve(allObjects);
+                    }
+                });
+            } catch(err) {
+                console.error(err);
+                reject();
+            }
         });
     }
 
     runQueryGetAllWithParams(sql, params) {
-        return new Promise((resolve, reject) => {            
-            this.db.all(sql, params, (err, rows) => {
-                if(err) {
-                    console.error(err);
-                    reject();
-                } else {
-                    //add the properties from the db to the objects
-                    const allObjects = this.buildObjectsFromRows(rows);
+        return new Promise((resolve, reject) => {  
+            try {          
+                this.db.all(sql, params, (err, rows) => {
+                    if(err) {
+                        console.error(err);
+                        reject();
+                    } else {
+                        //add the properties from the db to the objects
+                        const allObjects = this.buildObjectsFromRows(rows);
 
-                    resolve(allObjects);
-                }
-            });
+                        resolve(allObjects);
+                    }
+                });
+            } catch(err) {
+                console.error(err);
+                reject();
+            }
         });
     }
 
     runQueryGetOneNoParams(sql) {
-        return new Promise((resolve, reject) => {            
-            this.db.get(sql, (err, row) => {
-                if(err) {
-                    console.error(err);
-                    reject();
-                } else {
-                    //return null if there is no row
-                    if(row === undefined) {
-                        resolve(null);
+        return new Promise((resolve, reject) => {   
+            try {         
+                this.db.get(sql, (err, row) => {
+                    if(err) {
+                        console.error(err);
+                        reject();
                     } else {
-                        //add properties from the db to the object
-                        const object = this.buildObjectFromRow(row);
-                        resolve(object);
+                        //return null if there is no row
+                        if(row === undefined) {
+                            resolve(null);
+                        } else {
+                            //add properties from the db to the object
+                            const object = this.buildObjectFromRow(row);
+                            resolve(object);
+                        }
                     }
-                }
-            });
+                });
+            } catch(err) {
+                console.error(err);
+                reject();
+            }
         });
     }
 
     runQueryGetOneWithParams(sql, params) {
         return new Promise((resolve, reject) => {            
-            this.db.get(sql, params, (err, row) => {
-                if(err) {
-                    console.error(err);
-                    reject();
-                } else {
-                    //return null if there is no row
-                    if(row === undefined) {
-                        resolve(null);
-                    } else { //there is one row
-                        //add properties from the db to the object
-                        const object = this.buildObjectFromRow(row);
-                        resolve(object);
+            try {
+                this.db.get(sql, params, (err, row) => {
+                    if(err) {
+                        console.error(err);
+                        reject();
+                    } else {
+                        //return null if there is no row
+                        if(row === undefined) {
+                            resolve(null);
+                        } else { //there is one row
+                            //add properties from the db to the object
+                            const object = this.buildObjectFromRow(row);
+                            resolve(object);
+                        }
                     }
-                }
-            });
+                });
+            } catch(err) {
+                console.error(err);
+                reject();
+            }
         });
     }
 
@@ -723,7 +774,7 @@ class DBAbstraction {
         const sql = `
             CREATE TABLE IF NOT EXISTS MediaURL (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                url TEXT UNIQUE,
+                url TEXT,
                 mediaType TEXT,
                 commentId INTEGER,
                 FOREIGN KEY(commentId) REFERENCES Comment(id)
@@ -785,7 +836,7 @@ class DBAbstraction {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 blob BLOB,
                 mimeType TEXT,
-                filePath TEXT UNIQUE
+                filePath TEXT
             );`;
 
         return this.runQueryNoResultsNoParams(sql);   
@@ -799,6 +850,24 @@ class DBAbstraction {
     getMediaFile(filePath) {
         const sql = 'SELECT * FROM MediaBlob WHERE filePath = ?;';
         return this.runQueryGetOneWithParams(sql, [filePath]);
+    }
+
+    async getAllMediaFiles() {
+        const allMediaFiles = [];
+
+        //get all the urls in the comments
+        const sql = `
+            SELECT MediaURL.url
+            FROM MediaURL;`;
+        const allMediaURLs = await this.runQueryGetAllNoParams(sql);
+
+        ///request the blob data for each url
+        for(const mediaUrl of allMediaURLs) {
+            allMediaFiles.push(this.getMediaFile(mediaUrl.url));
+        }
+
+        //return all the blobs
+        return Promise.all(allMediaFiles);
     }
 
     deleteMediaFile(filePath) {

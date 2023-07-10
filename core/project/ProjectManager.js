@@ -135,7 +135,6 @@ class ProjectManager {
 
         //cleanup (if these don't execute the data will be fine)
         await Promise.all([
-            this.fileSystemManager.minimizeRelativeOrder(),
             this.commentManager.removeUnusedTags(),
             this.commentManager.removeUnusedMediaFiles()
         ]);

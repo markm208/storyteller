@@ -76,6 +76,11 @@
                 "category": "Storyteller"
             },
             {
+                "command": "storyteller.createProjectFromJSFile",
+                "title": "Create a Project from a Downloaded Playback",
+                "category": "Storyteller"
+            },
+            {
                 "command": "storyteller.previewPerfectProgrammer",
                 "title": "Preview Playback at Comments Only",
                 "category": "Storyteller"

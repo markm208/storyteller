@@ -160,6 +160,9 @@ class CommentManager {
         return this.db.getMediaFile(filePath);
     }
 
+    getAllMediaFiles() {
+        return this.db.getAllMediaFiles();
+    }
     /*
      * Removes a media blob from the db.
      */

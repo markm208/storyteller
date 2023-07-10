@@ -249,9 +249,7 @@ class FileSystemNavigator extends HTMLElement {
     //update the message with instructions
     downloadProgressDisplay.innerHTML = `
       A zip file has been created that includes all of the files and directories at this point in the playback (event #${this.playbackEngine.currentEventIndex + 1}). 
-      Click on the link below to download the zip file and then unzip it. 
-      The zip file also contains a valid Storyteller project so you can build off of this code and create new playbacks.
-      Clear the zip download after you have downloaded it.`;
+      Click on the link below to download the zip file and then unzip it to access the code.`;
 
     const downloadArea = this.shadowRoot.querySelector('.downloadArea');
 
