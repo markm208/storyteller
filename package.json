@@ -89,6 +89,16 @@
                 "command": "storyteller.replaceWithPerfectProgrammer",
                 "title": "Replace the Current History at Comments Only",
                 "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.previewPerfectProgrammerBetweenTags",
+                "title": "Preview Playback Between Tags",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.replaceWithPerfectProgrammerBetweenTags",
+                "title": "Replace the Current History Between Tags",
+                "category": "Storyteller"
             }
         ]
     },

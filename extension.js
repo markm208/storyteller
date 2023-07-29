@@ -72,6 +72,9 @@ function activate(context) {
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.createProjectFromJSFile', createProjectFromJSFile));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.previewPerfectProgrammer', previewPerfectProgrammer));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.replaceWithPerfectProgrammer', replaceWithPerfectProgrammer));
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.previewPerfectProgrammerBetweenTags', previewPerfectProgrammerBetweenTags));
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.replaceWithPerfectProgrammerBetweenTags', replaceWithPerfectProgrammerBetweenTags));
+
 
     //use this for storing state of files:
     //https://code.visualstudio.com/api/references/vscode-api#ExtensionContext.workspaceState
@@ -1476,7 +1479,7 @@ function parsePlaybackData(playbackData) {
  */
 function previewPerfectProgrammer() {
     //create a playback with all insert/delete pairs within two comments removed
-    projectManager.setNextPlaybackPerfectProgrammer();
+    projectManager.setNextPlaybackPerfectProgrammer({type: 'betweenComments'});
     startPlayback(false);
 }
 
@@ -1492,6 +1495,41 @@ async function replaceWithPerfectProgrammer() {
     if(selectedOption === options[0]) {
         //remove events and update events/comments for the project
         await projectManager.replaceEventsCommentsWithPerfectProgrammerData();
+    }
+}
+
+/*
+ * Starts a playback where any insert/delete pair that happens within two
+ * comments is removed. This helps hide embarrassing and/or uninteresting
+ * attempts at problem solving and reduces the amount of data stored in
+ * the project.
+ */
+async function previewPerfectProgrammerBetweenTags() {
+    //prompt for the start and end tag
+    const startTag = await vscode.window.showInputBox({prompt: 'Enter in a start tag'});
+    const endTag = await vscode.window.showInputBox({prompt: 'Enter in an end tag'});
+
+    //create a playback with all insert/delete pairs within two comments removed
+    projectManager.setNextPlaybackPerfectProgrammer({type: 'betweenTags', startTag: startTag, endTag: endTag});
+    startPlayback(false);
+}
+
+/*
+ * Replaces the full project data history with a (potentially) minimized set of
+ * data where uninteresting/embarrassing attempts at problem solving are removed
+ */
+async function replaceWithPerfectProgrammerBetweenTags() {
+    //prompt for the start and end tag
+    const startTag = await vscode.window.showInputBox({prompt: 'Enter in a start tag'});
+    const endTag = await vscode.window.showInputBox({prompt: 'Enter in an end tag'});
+    
+    //prompt again since this action will wipe out all of the project's current history
+    const options = ['Yes', 'No'];
+    const selectedOption = await vscode.window.showQuickPick(options, {placeHolder: `Are you sure you want to replace the project's history? This cannot be undone.`});
+    //if the user selected the option to replace the history
+    if(selectedOption === options[0]) {
+        //remove events and update events/comments for the project
+        await projectManager.replaceEventsCommentsWithPerfectProgrammerData(startTag, endTag);
     }
 }
 

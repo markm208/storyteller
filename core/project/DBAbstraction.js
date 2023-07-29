@@ -7,10 +7,7 @@ const Project = require('./Project');
 
 const sqlite3 = require('sqlite3').verbose();
 
-//TODO: look at/remove zip functionality
-//TODO: look at perfect programmer
-//TODO: build converter to take a loadPlayback.json file and convert it to a db 
-//TODO: playback selected text only
+//TODO: make a downloadable playbackData.json file
 //TODO: get rid of project description in the project class
 //TODO: cleanup repo get rid of mergeExample, threads.html and other docs
 //TODO: update tests or remove them
@@ -607,6 +604,30 @@ class DBAbstraction {
         });
     }
 
+    updateCommentsForPerfectProgrammer(comments) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                for(const eventId in comments) {
+                    //get the comments for this event
+                    const commentsForEvent = comments[eventId];
+                    //update each comment
+                    for(const comment of commentsForEvent) {
+                        const sql = `
+                            UPDATE Comment
+                            SET displayCommentEventId = ?,
+                            displayCommentEventSequenceNumber = ?,
+                            position = ?
+                            WHERE id = ?;`;
+                        await this.runQueryNoResultsWithParams(sql, [comment.displayCommentEventId, comment.displayCommentEventSequenceNumber, comment.position, comment.id]);
+                    }
+                    resolve();
+                }
+            } catch(err) {
+                console.error(err);
+                reject();
+            }
+        });
+    }
     createTagTable() {
         const sql = `
             CREATE TABLE IF NOT EXISTS Tag (
@@ -1069,6 +1090,17 @@ class DBAbstraction {
         return this.runQueryNoResultsWithParams(sql, [deleteEvent.timestamp, deleteEvent.id, deleteEvent.previousNeighborId]);
     }
     
+    async replaceEvents(updatedEvents) {
+        //remove all of the existing events
+        await this.runQueryNoResultsNoParams('DELETE FROM Event');
+        
+        //add the new events that have been changed for 'perfect programmer' scenario 
+        for(const updatedEvent of updatedEvents) {
+            //add the event to the db
+            await this.runInsertFromObject('Event', updatedEvent);
+        }
+    }
+
     createDeveloperTable() {
         const sql = `
             CREATE TABLE IF NOT EXISTS Developer (
