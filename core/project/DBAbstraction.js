@@ -7,11 +7,6 @@ const Project = require('./Project');
 
 const sqlite3 = require('sqlite3').verbose();
 
-//TODO: make a downloadable playbackData.json file
-//TODO: get rid of project description in the project class
-//TODO: cleanup repo get rid of mergeExample, threads.html and other docs
-//TODO: update tests or remove them
-//TODO: whitespace cleanup, use tabs remove trailing spaces
 /*
  * This class is responsible for storing project data persistently in a
  * database (sqlite). 

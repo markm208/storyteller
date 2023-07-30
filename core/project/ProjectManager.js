@@ -609,7 +609,7 @@ class ProjectManager {
         //create the text for a js function that loads the playback into a global called playbackData
         const func = 
 `
-function loadPlaybackData() {
+function loadPlaybackData(playbackData) {
     playbackData.events = ${JSON.stringify(events)};
     playbackData.comments = ${JSON.stringify(comments)};
     playbackData.numEvents = ${events.length};
