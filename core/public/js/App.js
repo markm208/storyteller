@@ -7,7 +7,7 @@ class App extends HTMLElement {
     //code or blog mode
     this.activeMode = '';
     this.initialMode = initialMode;
-    
+
     //editor info
     this.editorProperties = {
       fontSize: 20,
@@ -65,33 +65,39 @@ class App extends HTMLElement {
   changeMode(newMode) {
     //if the mode has changed
     if(this.activeMode !== newMode) {
-      //make sure playback is paused TODO
-      //this.pausePlayback(true);
-
-      //get the title bar
-      const titleBar = this.shadowRoot.querySelector('st-title-bar');
-
-      //clear out the old view
-      const playbackContent = this.shadowRoot.querySelector('.playbackContent');
-      playbackContent.innerHTML = '';
-
-      let newView;
-      //create the requested view
-      if(newMode === 'code') {
-        newView = new CodeView(this.playbackEngine, this.editorProperties);
-      } else { //blog view
-        newView = new BlogView(this.playbackEngine, this.editorProperties);
-      }
-
-      //add the new view
-      playbackContent.appendChild(newView);
-
-      //store the current mode
-      this.activeMode = newMode;
+      this.updateForDisplay(newMode);
     }
   }
 
+  updateForDisplay(requestedMode) {
+    //get the title bar
+    const titleBar = this.shadowRoot.querySelector('st-title-bar');
+
+    //clear out the old view
+    const playbackContent = this.shadowRoot.querySelector('.playbackContent');
+    playbackContent.innerHTML = '';
+
+    //create the requested view
+    let newView;
+    if(requestedMode === 'code') {
+      newView = new CodeView(this.playbackEngine, this.editorProperties);
+    } else { //blog view
+      newView = new BlogView(this.playbackEngine, this.editorProperties);
+    }
+
+    //add the new view
+    playbackContent.appendChild(newView);
+
+    //store the current mode
+    this.activeMode = requestedMode;
+  }
+
   addEventListeners() {
+    //resize the main view when the window resizes
+    window.addEventListener('resize', () => {
+      this.updateForDisplay(this.activeMode);
+    });
+
     //code mode to blog mode or vice versa
     this.shadowRoot.addEventListener('mode-change', event => {
       //switch to a different mode ('code' or 'blog')
