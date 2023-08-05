@@ -114,7 +114,7 @@ class PlaybackSlider extends HTMLElement {
       commentMarker.classList.add('commentMarker');
 
       //set the left offset to the percentage calculated above
-      commentMarker.setAttribute('style', `left: ${percentageOffset}%`);
+      commentMarker.setAttribute('style', `left: ${percentageOffset >= 0 ? percentageOffset : 0.0}%`);
       commentMarker.addEventListener('click', this.addPipEventHandler);
       pips.appendChild(commentMarker);
     });

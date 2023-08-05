@@ -1,4 +1,5 @@
 const utilities = require('../utilities.js');
+const crypto = require('crypto');
 
 /*
  * This class is responsible for creating and managing events.
@@ -40,6 +41,7 @@ class EventManager {
     fillCoreEvent(timestamp, createdByDevGroupId, branchId, isRelevant=true) {
         //return an object with the properties common to every event
         const retVal = {
+            id: crypto.randomUUID(),
             timestamp,
             createdByDevGroupId,
             eventSequenceNumber: this.numberOfEvents,
@@ -241,9 +243,6 @@ class EventManager {
                 insertTextEvent['column'] = col + 1;
                 insertTextEvent['pastedEventId'] = pastedEventId;
 
-                //insert the event and set its id
-                await this.db.addInsertEvent(insertTextEvent);
-
                 //insert the character in the text file state
                 file.addInsertEventByPos(insertTextEvent.id, insertTextEvent.character, row, col);
 
@@ -258,6 +257,8 @@ class EventManager {
                     //move to the next column
                     col++;
                 }
+                //insert the event into the db
+                this.db.addInsertEvent(insertTextEvent);
             }
         } catch(ex) {
             console.log(`Error on insertTextEvents`);

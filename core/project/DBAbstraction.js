@@ -5,7 +5,7 @@ const Comment = require('../comments/Comment');
 const Directory = require('../filesAndDirs/Directory');
 const Project = require('./Project');
 
-const sqlite3 = require('sqlite3').verbose();
+const sqlite3 = require('@vscode/sqlite3').verbose();
 
 /*
  * This class is responsible for storing project data persistently in a
@@ -904,7 +904,7 @@ class DBAbstraction {
     createEventTable() {
         const sql = `
             CREATE TABLE IF NOT EXISTS Event (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, --TEXT PRIMARY KEY,
+                id TEXT PRIMARY KEY,
                 timestamp TEXT,
                 type TEXT,
                 eventSequenceNumber INTEGER,
@@ -926,9 +926,9 @@ class DBAbstraction {
                 parentDirectoryId INTEGER DEFAULT NULL,
                 newParentDirectoryId INTEGER DEFAULT NULL,
                 oldParentDirectoryId INTEGER DEFAULT NULL,
-                previousNeighborId INTEGER DEFAULT NULL,
-                pastedEventId INTEGER DEFAULT NULL,
-                deletedByEventId INTEGER DEFAULT NULL,
+                previousNeighborId TEXT DEFAULT NULL, 
+                pastedEventId TEXT DEFAULT NULL, 
+                deletedByEventId TEXT DEFAULT NULL, 
                 FOREIGN KEY(createdByDevGroupId) REFERENCES DeveloperGroup(id),
                 FOREIGN KEY(fileId) REFERENCES File(id),
                 FOREIGN KEY(directoryId) REFERENCES Directory(id),
