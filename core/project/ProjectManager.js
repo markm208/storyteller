@@ -475,7 +475,7 @@ class ProjectManager {
     /*
      * Handles some text being inserted.
      */
-    async handleInsertedText(filePath, insertedText, startRow, startCol, pastedInsertEventIds, isRelevant=true) {
+    handleInsertedText(filePath, insertedText, startRow, startCol, pastedInsertEventIds, isRelevant=true) {
         try {
             //get a project specific path to the file 
             const normalizedFilePath = this.pathHelper.normalizeFilePath(filePath);
@@ -494,7 +494,7 @@ class ProjectManager {
                     const branchId = this.project.branchId;
                 
                     //insert the batch new text
-                    await this.eventManager.insertTextEvents(file, timestamp, devGroupId, branchId, insertedText, startRow, startCol, pastedInsertEventIds, isRelevant);
+                    this.eventManager.insertTextEvents(file, timestamp, devGroupId, branchId, insertedText, startRow, startCol, pastedInsertEventIds, isRelevant);
                 } else {
                     throw new Error(`Cannot insert text in the file ${filePath}`);
                 }
@@ -507,7 +507,7 @@ class ProjectManager {
     /*
      * Handles some text being deleted.
      */
-    async handleDeletedText(filePath, startRow, startCol, numElementsToDelete) {
+    handleDeletedText(filePath, startRow, startCol, numElementsToDelete) {
         try {
             //get a project specific path to the file 
             const normalizedFilePath = this.pathHelper.normalizeFilePath(filePath);
@@ -525,7 +525,7 @@ class ProjectManager {
                     const branchId = this.project.branchId;
                     
                     //remove the batch of deleted text (and update the associated inserts)
-                    await this.eventManager.insertDeleteEvents(file, timestamp, devGroupId, branchId, startRow, startCol, numElementsToDelete);
+                    this.eventManager.insertDeleteEvents(file, timestamp, devGroupId, branchId, startRow, startCol, numElementsToDelete);
                 } else {
                     throw new Error(`Cannot delete text in the file ${filePath}`);
                 }
@@ -542,6 +542,7 @@ class ProjectManager {
      * web server. Otherwise, we would have had a route that returns json.
      */
     async getPlaybackData(makeEditable) {
+        console.time('allEvents');
         //get all the events from the file
         let events = await this.eventManager.getAllEvents();
 
@@ -582,7 +583,9 @@ class ProjectManager {
             makeEditable = false;
         }
 
-        return this.getLoadPlaybackDataFunc(events, copyOfComments, makeEditable);
+        const funcText = this.getLoadPlaybackDataFunc(events, copyOfComments, makeEditable);
+        console.timeEnd('allEvents');
+        return funcText;
     }
 
     async replaceEventsCommentsWithPerfectProgrammerData(startTag, endTag) {

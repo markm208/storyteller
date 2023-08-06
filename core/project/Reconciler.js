@@ -372,7 +372,7 @@ class Reconciler {
      * data and makes the storyteller data look like the file on the file system. 
      * The file system state is always given preference.
      */
-    async diffAndUpdateFile(filePath, originalFileText, newFileText) {
+    diffAndUpdateFile(filePath, originalFileText, newFileText) {
         //get the diffs between what is in the file system state and storyteller state
         const changes = diffTool.diffChars(originalFileText, newFileText);
 
@@ -399,7 +399,7 @@ class Reconciler {
             //if the change is a delete
             if(changeType === "deleted") {
                 //delete the text in the change
-                await this.projectManager.handleDeletedText(filePath, currRow, currCol, changeText.length);
+                this.projectManager.handleDeletedText(filePath, currRow, currCol, changeText.length);
             } else if(changeType === "no change") { //no change 
                 //no change but we do need to update the current row and column 
                 for(let j = 0;j < changeText.length;j++) {
@@ -415,7 +415,7 @@ class Reconciler {
                 }
             } else if(changeType === "inserted") { //change is an add
                 //insert the text in the change
-                await this.projectManager.handleInsertedText(filePath, changeText, currRow, currCol, []);
+                this.projectManager.handleInsertedText(filePath, changeText, currRow, currCol, []);
                 
                 //update the current row and column 
                 for(let k = 0;k < changeText.length;k++) {

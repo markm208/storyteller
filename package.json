@@ -125,6 +125,6 @@
         "express-fileupload": "^1.1.7-alpha.3",
         "jszip": "^3.5.0",
         "md5": "^2.3.0",
-        "@vscode/sqlite3": "^5.1.6-vscode"
+        "sqlite3": "^5.1.6"
     }
 }

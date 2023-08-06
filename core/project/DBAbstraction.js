@@ -5,7 +5,7 @@ const Comment = require('../comments/Comment');
 const Directory = require('../filesAndDirs/Directory');
 const Project = require('./Project');
 
-const sqlite3 = require('@vscode/sqlite3').verbose();
+const sqlite3 = require('sqlite3').verbose();
 
 /*
  * This class is responsible for storing project data persistently in a
@@ -1069,12 +1069,22 @@ class DBAbstraction {
         return allEvents;
     }
 
-    addInsertEvent(insertEvent) {
-        return this.runInsertFromObject('Event', insertEvent);
+    // addInsertEvent(insertEvent) {
+    //     return this.runInsertFromObject('Event', insertEvent);
+    // }
+
+    addInsertEvents(insertEvents) {
+        return this.runInsertFromArrayOfObjects('Event', insertEvents);
     }
 
-    addDeleteEvent(deleteEvent) {
-        return this.runInsertFromObject('Event', deleteEvent);
+    // addDeleteEvent(deleteEvent) {
+    //     return this.runInsertFromObject('Event', deleteEvent);
+    // }
+
+    addDeleteEvents(deleteEvents) {
+        const addEventsPromise = this.runInsertFromArrayOfObjects('Event', deleteEvents);
+        const updateEventPromises = deleteEvents.map(deleteEvent => this.updateInsertFromDelete(deleteEvent));
+        return Promise.all([addEventsPromise, ...updateEventPromises]);
     }
 
     updateInsertFromDelete(deleteEvent) {

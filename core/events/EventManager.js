@@ -203,8 +203,11 @@ class EventManager {
     /*
      * Creates one or more 'INSERT' events.
      */
-    async insertTextEvents(file, timestamp, createdByDevGroupId, branchId, insertedText, row, col, pastedInsertEventIds, isRelevant=true) {
+    insertTextEvents(file, timestamp, createdByDevGroupId, branchId, insertedText, row, col, pastedInsertEventIds, isRelevant=true) {
         try {
+            //the new events to add to the db
+            const newEvents = [];
+            
             //go through each new character being inserted
             for(let i = 0;i < insertedText.length;i++) {
                 //the next character to insert
@@ -243,6 +246,9 @@ class EventManager {
                 insertTextEvent['column'] = col + 1;
                 insertTextEvent['pastedEventId'] = pastedEventId;
 
+                //add the event to the array of new events
+                newEvents.push(insertTextEvent);
+
                 //insert the character in the text file state
                 file.addInsertEventByPos(insertTextEvent.id, insertTextEvent.character, row, col);
 
@@ -257,9 +263,9 @@ class EventManager {
                     //move to the next column
                     col++;
                 }
-                //insert the event into the db
-                this.db.addInsertEvent(insertTextEvent);
             }
+            //add the new events to the db
+            return this.db.addInsertEvents(newEvents);
         } catch(ex) {
             console.log(`Error on insertTextEvents`);
             console.log(`file: ${file}, timestamp: ${timestamp}, createdByDevGroupId: ${createdByDevGroupId}, branchId: ${branchId}, insertedText: ${insertedText}, row: ${row}, col: ${col}, pastedInsertEventIds: ${pastedInsertEventIds}`);
@@ -269,37 +275,46 @@ class EventManager {
     /*
      * Creates one or more 'DELETE' events
      */
-    async insertDeleteEvents(file, timestamp, createdByDevGroupId, branchId, row, col, numElementsToDelete) {
-        //go through each new character being deleted
-        for(let i = 0;i < numElementsToDelete;i++) {
-            //create core event
-            const deleteTextEvent = this.fillCoreEvent(timestamp, createdByDevGroupId, branchId);
-
-            //get the insert event that is being deleted
-            const insertEventBeingDeleted = file.getEvent(row, col);
+    insertDeleteEvents(file, timestamp, createdByDevGroupId, branchId, row, col, numElementsToDelete) {
+        try {
+            //the new events to add to the db
+            const newEvents = [];
             
-            //if a windows newline is being removed
-            if(insertEventBeingDeleted.character === 'CR-LF') {
-                //the editor will have an extra character (it counts \r and \n 
-                //as two separate characters whereas we store it in a single event)
-                //remove the extra character
-                numElementsToDelete--;
+            //go through each new character being deleted
+            for(let i = 0;i < numElementsToDelete;i++) {
+                //create core event
+                const deleteTextEvent = this.fillCoreEvent(timestamp, createdByDevGroupId, branchId);
+
+                //get the insert event that is being deleted
+                const insertEventBeingDeleted = file.getEvent(row, col);
+                
+                //if a windows newline is being removed
+                if(insertEventBeingDeleted.character === 'CR-LF') {
+                    //the editor will have an extra character (it counts \r and \n 
+                    //as two separate characters whereas we store it in a single event)
+                    //remove the extra character
+                    numElementsToDelete--;
+                }
+
+                //add specific properties
+                deleteTextEvent['type'] = 'DELETE';
+                deleteTextEvent['fileId'] = file.id;
+                deleteTextEvent['character'] = utilities.escapeSpecialCharacter(insertEventBeingDeleted.character);
+                deleteTextEvent['previousNeighborId'] = insertEventBeingDeleted.eventId;
+                deleteTextEvent['lineNumber'] = row + 1;
+                deleteTextEvent['column'] = col + 1;
+                
+                //add the event to the array of new events
+                newEvents.push(deleteTextEvent);
+
+                //remove the event in the text file state
+                file.removeInsertEventByPos(row, col);
             }
-
-            //add specific properties
-            deleteTextEvent['type'] = 'DELETE';
-            deleteTextEvent['fileId'] = file.id;
-            deleteTextEvent['character'] = utilities.escapeSpecialCharacter(insertEventBeingDeleted.character);
-            deleteTextEvent['previousNeighborId'] = insertEventBeingDeleted.eventId;
-            deleteTextEvent['lineNumber'] = row + 1;
-            deleteTextEvent['column'] = col + 1;
-                        
-            //remove the event in the text file state
-            file.removeInsertEventByPos(row, col);
-
-            //add the delete event to the db and update the insert to show it has been deleted
-            await this.db.addDeleteEvent(deleteTextEvent);
-            await this.db.updateInsertFromDelete(deleteTextEvent);
+            //add the new events to the db (and update inserts that were deleted)
+            return this.db.addDeleteEvents(newEvents);
+        } catch(ex) {
+            console.log(`Error on insertDeleteEvents`);
+            console.log(`file: ${file}, timestamp: ${timestamp}, createdByDevGroupId: ${createdByDevGroupId}, branchId: ${branchId}, row: ${row}, col: ${col}, numElementsToDelete: ${numElementsToDelete}`);
         }
     }   
 }

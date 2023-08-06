@@ -158,9 +158,9 @@ async function stopStoryteller() {
         isStorytellerCurrentlyActive = false;
 
         //clean up the cut/copy and paste disposables
-        clipboardCopyDisposable.dispose();
-        clipboardCutDisposable.dispose();
-        clipboardPasteDisposable.dispose();
+        // clipboardCopyDisposable.dispose();
+        // clipboardCutDisposable.dispose();
+        // clipboardPasteDisposable.dispose();
     } else { //there is no open workspace
         //tell the user they need to open a workspace in order to use Storyteller
         promptInformingAboutUsingStoryteller(false);
@@ -263,15 +263,15 @@ function turnOnFSWatcherAndTextHandler() {
     
     //cut/copy/paste overides
     //override the editor.action.clipboardCopyAction with our own
-    clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction); 
+    //clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction); 
     //extensionContext.subscriptions.push(clipboardCopyDisposable);
 
     //override the editor.action.clipboardCutAction with our own
-    clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction); 
+    //clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction); 
     //extensionContext.subscriptions.push(clipboardCutDisposable);
 
     //override the editor.action.clipboardPasteAction with our own
-    clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction); 
+    //clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction); 
     //extensionContext.subscriptions.push(clipboardPasteDisposable);
 }
 /* 
@@ -1005,7 +1005,7 @@ async function addRecentDelete(deleteEvent) {
 /*
  * This function is called whenever code is added or removed from an editor.
  */
-async function handleTextEditorChange(event) {
+function handleTextEditorChange(event) {
     if(isStorytellerCurrentlyActive) {
         //path to the file that is being edited
         const filePath = event.document.fileName;
@@ -1026,7 +1026,7 @@ async function handleTextEditorChange(event) {
                     const deleteTextStartColumn = change.range.start.character;
         
                     //record the deletion of text
-                    await projectManager.handleDeletedText(filePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
+                    projectManager.handleDeletedText(filePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
                 } else { //new text has been added in this change, this is an insert
                     //if there was some text that was selected and replaced 
                     //(deleted and then added)
@@ -1037,7 +1037,7 @@ async function handleTextEditorChange(event) {
                         const deleteTextStartColumn = change.range.start.character;
 
                         //first delete the selected code (insert of new text to follow)
-                        await projectManager.handleDeletedText(filePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
+                        projectManager.handleDeletedText(filePath, deleteTextStartLine, deleteTextStartColumn, numCharactersDeleted);
                     } 
         
                     //get some data about the insert
@@ -1067,7 +1067,7 @@ async function handleTextEditorChange(event) {
                         clipboardData.activePaste = false;
                     }
                     //record the insertion of new text
-                    await projectManager.handleInsertedText(filePath, newText, newTextStartLine, newTextStartColumn, pastedInsertEventIds);
+                    projectManager.handleInsertedText(filePath, newText, newTextStartLine, newTextStartColumn, pastedInsertEventIds);
                 }
             }
         }
