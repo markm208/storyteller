@@ -104,45 +104,70 @@ class DBAbstraction {
     }
 
     runInsertFromArrayOfObjects(tableName, someObjects) {
-        return new Promise((resolve, reject) => {
+        this.db.parallelize(() => {
             try {
-                //if there are any objects in the passed in array
-                if(someObjects.length > 0) {
-                    //using the first object get all of the property names
-                    const propertyNames = Object.getOwnPropertyNames(someObjects[0]);
-                    const queryParams = `(${propertyNames.map(() => '?').join(', ')})`;
-
-                    //holds the values for all of the objects flattened out into a single array
-                    const flattenedValues = [];
-                    const queryParamsArray = [];
-
-                    for(const object of someObjects) {
-                        //add the values from the objects into the flattened array
-                        flattenedValues.push(...propertyNames.map((propertyName) => object[propertyName]));
-                        //add the groups of ?'s
-                        queryParamsArray.push(queryParams);
-                    }
-
+                for(const anObject of someObjects) {
+                    //collect the name and values of all of the properties
+                    const propertyNames = Object.getOwnPropertyNames(anObject);
+                    const propertyValues = propertyNames.map((propertyName) => anObject[propertyName]);
+            
                     //build the sql statement
-                    var sql = `INSERT INTO ${tableName} (${propertyNames.join(', ')}) VALUES ${queryParamsArray.join(', ')}`;
+                    var sql = `INSERT INTO ${tableName} (${propertyNames.join(', ')}) VALUES (${propertyValues.map(() => '?').join(', ')})`;
                     
-                    this.db.run(sql, flattenedValues, (err) => {
+                    this.db.run(sql, propertyValues, function(err) {
                         if(err) {
                             console.error(err);
-                            reject();
-                        } else {
-                            //don't return objects because they don't have the auto generated id
-                            resolve();
                         }
                     });
-                } else {
-                    resolve();
                 }
             } catch(err) {
                 console.error(err);
-                reject();
             }
         });
+    
+
+
+
+
+        // return new Promise((resolve, reject) => {
+        //     try {
+        //         //if there are any objects in the passed in array
+        //         if(someObjects.length > 0) {
+        //             //using the first object get all of the property names
+        //             const propertyNames = Object.getOwnPropertyNames(someObjects[0]);
+        //             const queryParams = `(${propertyNames.map(() => '?').join(', ')})`;
+
+        //             //holds the values for all of the objects flattened out into a single array
+        //             const flattenedValues = [];
+        //             const queryParamsArray = [];
+
+        //             for(const object of someObjects) {
+        //                 //add the values from the objects into the flattened array
+        //                 flattenedValues.push(...propertyNames.map((propertyName) => object[propertyName]));
+        //                 //add the groups of ?'s
+        //                 queryParamsArray.push(queryParams);
+        //             }
+
+        //             //build the sql statement
+        //             var sql = `INSERT INTO ${tableName} (${propertyNames.join(', ')}) VALUES ${queryParamsArray.join(', ')}`;
+                    
+        //             this.db.run(sql, flattenedValues, (err) => {
+        //                 if(err) {
+        //                     console.error(err);
+        //                     reject();
+        //                 } else {
+        //                     //don't return objects because they don't have the auto generated id
+        //                     resolve();
+        //                 }
+        //             });
+        //         } else {
+        //             resolve();
+        //         }
+        //     } catch(err) {
+        //         console.error(err);
+        //         reject();
+        //     }
+        // });
     }
 
     runUpdateFromObject(tableName, anObject) {
@@ -1074,7 +1099,32 @@ class DBAbstraction {
     // }
 
     addInsertEvents(insertEvents) {
-        return this.runInsertFromArrayOfObjects('Event', insertEvents);
+        //return this.runInsertFromArrayOfObjects('Event', insertEvents);
+        //return Promise.all(insertEvents.map((event) => this.runInsertFromObject('Event', event)));
+        
+        //this.runInsertFromArrayOfObjects('Event', insertEvents);
+
+        this.db.parallelize(() => {
+            try {
+                if(insertEvents.length > 0) {
+                    const propertyNames = Object.getOwnPropertyNames(insertEvents[0]);
+                    const insertSql = `INSERT INTO Event (${propertyNames.join(', ')}) VALUES (${propertyNames.map(() => '?').join(', ')})`;
+                    const statement = this.db.prepare(insertSql);
+                    
+                    for(const insertEvent of insertEvents) {                
+                        const propertyValues = propertyNames.map((propertyName) => insertEvent[propertyName]);
+                        statement.run(propertyValues, (err) => {
+                            if(err) {
+                                throw err;
+                            }
+                        });
+                    }
+                    statement.finalize();
+                }
+            } catch(err) {
+                console.error(err);
+            }
+        });
     }
 
     // addDeleteEvent(deleteEvent) {
@@ -1082,17 +1132,69 @@ class DBAbstraction {
     // }
 
     addDeleteEvents(deleteEvents) {
-        const addEventsPromise = this.runInsertFromArrayOfObjects('Event', deleteEvents);
-        const updateEventPromises = deleteEvents.map(deleteEvent => this.updateInsertFromDelete(deleteEvent));
-        return Promise.all([addEventsPromise, ...updateEventPromises]);
+        // const addEventsPromise = this.runInsertFromArrayOfObjects('Event', deleteEvents);
+        // const updateEventPromises = deleteEvents.map(deleteEvent => this.updateInsertFromDelete(deleteEvent));
+        // return Promise.all([addEventsPromise, ...updateEventPromises]);
+
+        //this.runInsertFromArrayOfObjects('Event', deleteEvents);
+        //this.updateInsertsFromDeletes(deleteEvents);
+        this.db.parallelize(() => {
+            try {
+                if(deleteEvents.length > 0) {
+                    const propertyNames = Object.getOwnPropertyNames(deleteEvents[0]);
+                    const insertSql = `INSERT INTO Event (${propertyNames.join(', ')}) VALUES (${propertyNames.map(() => '?').join(', ')})`;
+                    const insertStatement = this.db.prepare(insertSql);
+
+                    const updateSql = 'UPDATE Event SET deletedAtTimestamp = ?, deletedByEventId = ? WHERE id = ?;';
+                    const updateStatement = this.db.prepare(updateSql);
+
+                    for(const deleteEvent of deleteEvents) {                
+                        const propertyValues = propertyNames.map((propertyName) => deleteEvent[propertyName]);
+                
+                        insertStatement.run(propertyValues, (err) => {
+                            if(err) {
+                                throw err;
+                            }
+                        });
+
+                        updateStatement.run([deleteEvent.timestamp, deleteEvent.id, deleteEvent.previousNeighborId], (err) => {
+                            if(err) {
+                                throw err;
+                            }
+                        });
+                    }
+                }
+            } catch(err) {
+                console.error(err);
+            }
+        });
     }
 
-    updateInsertFromDelete(deleteEvent) {
-        const sql = `
-            UPDATE Event
-            SET deletedAtTimestamp = ?, deletedByEventId = ?
-            WHERE id = ?;`;
-        return this.runQueryNoResultsWithParams(sql, [deleteEvent.timestamp, deleteEvent.id, deleteEvent.previousNeighborId]);
+    updateInsertsFromDeletes(deleteEvents) {
+        // const sql = `
+        //     UPDATE Event
+        //     SET deletedAtTimestamp = ?, deletedByEventId = ?
+        //     WHERE id = ?;`;
+        // return this.runQueryNoResultsWithParams(sql, [deleteEvent.timestamp, deleteEvent.id, deleteEvent.previousNeighborId]);
+        this.db.parallelize(() => {
+            try {
+                for(const deleteEvent of deleteEvents) {
+                    //collect the name and values of all of the properties
+                    const propertyValues = [deleteEvent.timestamp, deleteEvent.id, deleteEvent.previousNeighborId];
+            
+                    //build the sql statement
+                    var sql = `UPDATE Event SET deletedAtTimestamp = ?, deletedByEventId = ? WHERE id = ?;`;
+                   
+                    this.db.run(sql, propertyValues, function(err) {
+                        if(err) {
+                            console.error(err);
+                        }
+                    });
+                }
+            } catch(err) {
+                console.error(err);
+            }
+        });
     }
     
     async replaceEvents(updatedEvents) {
