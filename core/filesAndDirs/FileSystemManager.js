@@ -15,78 +15,24 @@ const utilities = require('../utilities.js');
  * paths to storyteller file and dir ids. 
  */
 class FileSystemManager {
-    constructor(db) {
-        this.db = db;
+    constructor() {
         this.allFiles = {};
         this.allDirs = {};
         this.pathToFileIdMap = {};
         this.pathToDirIdMap = {};
     }
 
-    init(isNewProject) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                if(isNewProject === false) { //existing project
-                    //load data from the db
-                    this.loadDataFromDb();
-                }
-                resolve();
-            } catch(err) {
-                reject(err);
-            }
-        });
-    }
-
-    //this goes through all of the events and slowly inserts and deletes
-    //all of them until the files are filled with file events (inserts)
-    loadDataFromDb() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                //get all the files and dirs stored in the db
-                const allFiles = await this.db.getAllFiles();
-                const allDirs = await this.db.getAllDirectories();
-
-                //add each of the files
-                for(const file of allFiles) {
-                    const newFile = new File(file.parentDirectoryId, file.currentPath, [], file.isDeleted, file.id);
-                    this.allFiles[newFile.id] = newFile;
-                    this.pathToFileIdMap[newFile.currentPath] = newFile.id;
-                }
-
-                //add each of the dirs
-                for(const dir of allDirs) {
-                    const newDir = new Directory(dir.parentDirectoryId, dir.currentPath, dir.isDeleted, dir.id);
-                    this.allDirs[newDir.id] = newDir;
-                    this.pathToDirIdMap[newDir.currentPath] = newDir.id;
-                }
-
-                //get all of the events
-                const allEvents = await this.db.getAllEventsFromNonDeletedFiles();
-                
-                //for inserts and deletes add the characters to each file
-                for(const event of allEvents) {
-                    if(event.type === 'INSERT' || event.type === 'DELETE') {
-                        const file = this.allFiles[event.fileId];
-
-                        if(event.type === 'INSERT') {
-                            file.addInsertEventByPos(event.id, event.character, event.lineNumber - 1, event.column - 1);
-                        } else {
-                            file.removeInsertEventByPos(event.lineNumber - 1, event.column - 1);
-                        }
-                    }
-                }
-
-                resolve();
-            } catch(err) {
-                reject(err);
-            }
-        });
+    load(fsInfo) {
+        this.allFiles = fsInfo.allFiles;
+        this.allDirs = fsInfo.allDirs;
+        this.pathToFileIdMap = fsInfo.pathToFileIdMap;
+        this.pathToDirIdMap = fsInfo.pathToDirIdMap;
     }
     
     /*
      * Adds a new file to the file system
      */
-    async addFile(newFilePath) {
+    addFile(newFilePath) {
         let newFile = null;
 
         //if the file does not already exist
@@ -101,7 +47,7 @@ class FileSystemManager {
             //if the parent dir is being tracked
             if(this.allDirs[newFileParentDirId]) {
                 //create a new file object from the db
-                newFile = await this.db.createFile(newFileParentDirId, newFilePath);
+                newFile = new File(newFileParentDirId, newFilePath, [], false);
 
                 //make a connection between the file path and an id 
                 this.pathToFileIdMap[newFilePath] = newFile.id;
@@ -122,20 +68,17 @@ class FileSystemManager {
      * Marks a file from the file system as deleted and removes its path to
      * id mapping.
      */
-    async removeFile(deletedFilePath) {
+    removeFile(deletedFilePath) {
         //get the file id based on the file path
         const deletedFileId = this.getFileIdFromFilePath(deletedFilePath);
     
         //if the file is being tracked
         if(this.allFiles[deletedFileId]) {
-            //remove the file from the db (mark it as deleted)
-            await this.db.removeFile(this.allFiles[deletedFileId]);
-            
             //delete the mapping from the old file path 
             delete this.pathToFileIdMap[deletedFilePath];
 
             //update the file in the collection of all files to be marked as deleted
-            this.allFiles[deletedFileId].isDeleted = 'true';
+            this.allFiles[deletedFileId].isDeleted = true;
         } else {
             throw new Error(`File: ${deletedFilePath} not tracked, cannot be removed`);
         }
@@ -144,15 +87,12 @@ class FileSystemManager {
     /*
      * Renames a file.
      */
-    async renameFile(oldFilePath, newFilePath) {
+    renameFile(oldFilePath, newFilePath) {
         //get the id of the renamed file
         const fileId = this.getFileIdFromFilePath(oldFilePath);
     
         //if the file is being tracked
         if(this.allFiles[fileId]) {
-            //update the file in the db
-            await this.db.renameFile(this.allFiles[fileId], newFilePath);
-
             //update the mapping from path to id
             this.replaceFilePathWithAnother(oldFilePath, newFilePath);
 
@@ -166,7 +106,7 @@ class FileSystemManager {
     /*
      * Moves a file.
      */
-    async moveFile(oldFilePath, newFilePath) {
+    moveFile(oldFilePath, newFilePath) {
         //get the id of the moved file
         const fileId = this.getFileIdFromFilePath(oldFilePath);
     
@@ -178,10 +118,7 @@ class FileSystemManager {
             const newFileParentId = this.getDirIdFromDirPath(newFileParentPath);
             
             //if the parent dir is being tracked
-            if(this.allDirs[newFileParentId]/* && this.allDirs[newFileParentId].isDeleted === 'false'*/) {
-                //update the file in the db
-                await this.db.moveFile(this.allFiles[fileId], newFileParentId, newFilePath);
-                
+            if(this.allDirs[newFileParentId] && this.allDirs[newFileParentId].isDeleted === false) {                
                 //update the mapping from path to id
                 this.replaceFilePathWithAnother(oldFilePath, newFilePath);
         
@@ -200,7 +137,7 @@ class FileSystemManager {
     /*
      * Adds a directory to the file system.
      */
-    async addDirectory(newDirPath) {
+    addDirectory(newDirPath) {
         let newDirectory = null;
 
         //if the dir does not already exist
@@ -210,7 +147,7 @@ class FileSystemManager {
             //get the path to the containing directory (make sure it ends with a separator)
             const newDirParentPath = utilities.addEndingPathSeparator(dirInfo.dir);
             //holds the parent dir id
-            let newDirParentDirId = -1;
+            let newDirParentDirId = 'none';
             //the root dir will have no name, a non-root dir will have one
             if(dirInfo.name !== '') {
                 //retrieve the parent dir id based on the path to the parent dir
@@ -223,7 +160,7 @@ class FileSystemManager {
             } //else- it is the root dir and its parent dir id will be null
 
             //create a new directory object from the db
-            newDirectory = await this.db.createDirectory(newDirParentDirId, newDirPath);
+            newDirectory = new Directory(newDirParentDirId, newDirPath, false);
 
             //make a connection between the dir path and an id 
             this.pathToDirIdMap[newDirPath] = newDirectory.id;
@@ -241,23 +178,20 @@ class FileSystemManager {
      * Marks a directory as deleted in the file system and removes the path  to
      * if mapping.
      */
-    async removeDirectory(deletedDirPath) {
+    removeDirectory(deletedDirPath) {
         //get the deleted dir id based on the dir path
         const deletedDirId = this.getDirIdFromDirPath(deletedDirPath);
     
         //if the directory is being tracked
         if(this.allDirs[deletedDirId]) {
-            //update the dir in the db
-            await this.db.removeDirectory(this.allDirs[deletedDirId]);
-            
             //delete the mapping from the old dir path
             delete this.pathToDirIdMap[deletedDirPath];
             
             //update the dir in the collection of all dirs to be marked as deleted
-            this.allDirs[deletedDirId].isDeleted = 'true';
+            this.allDirs[deletedDirId].isDeleted = true;
     
             //recursively remove the children files and dirs
-            await this.removeDirectoryHelper(deletedDirId);
+            this.removeDirectoryHelper(deletedDirId);
         } else {
             throw new Error(`Dir: ${deletedDirPath} not tracked, cannot be deleted`);
         }
@@ -266,22 +200,23 @@ class FileSystemManager {
     /*
      * Helper that recursively removes the contents of a directory.
      */
-    async removeDirectoryHelper(deletedParentDirId) {
+    removeDirectoryHelper(deletedParentDirId) {
         //delete the child files
         for(const fileId in this.allFiles) {
             //if the file is a child of the deleted parent
             if(this.allFiles[fileId].parentDirectoryId === deletedParentDirId) {
                 //remove all files in the passed in parent dir
-                await this.removeFile(this.allFiles[fileId].currentPath)
+                this.removeFile(this.allFiles[fileId].currentPath)
             }
         }
     
         //delete the child dirs
         for(const dirId in this.allDirs) {
             //if the directory is a child of the deleted parent
-            if(this.allDirs[dirId].parentDirectoryId === deletedParentDirId) {
+            if(this.allDirs[dirId].parentDirectoryId === deletedParentDirId &&
+               this.allDirs[dirId].isDeleted === false) {
                 //remove the dir (and its children recursively) 
-                await this.removeDirectory(this.allDirs[dirId].currentPath);
+                this.removeDirectory(this.allDirs[dirId].currentPath);
             }
         }
     }
@@ -289,15 +224,12 @@ class FileSystemManager {
     /*
      * Rename a directory.
      */
-    async renameDirectory(oldDirPath, newDirPath) {
+    renameDirectory(oldDirPath, newDirPath) {
         //get the id of the renamed dir
         const dirId = this.getDirIdFromDirPath(oldDirPath);
     
         //if the directory is being tracked
         if(this.allDirs[dirId]) {
-            //update the dir in the db
-            await this.db.renameDirectory(this.allDirs[dirId], newDirPath);
-
             //update all of the path to id mappings for the renamed dir
             this.replaceDirectoryPathWithAnother(oldDirPath, newDirPath);
 
@@ -305,7 +237,7 @@ class FileSystemManager {
             this.allDirs[dirId].currentPath = newDirPath;
 
             //update the children recursively
-            await this.renameMoveDirectoryHelper(dirId, oldDirPath, newDirPath);
+            this.renameMoveDirectoryHelper(dirId, oldDirPath, newDirPath);
         } else {
             throw new Error(`Dir: ${oldDirPath} not tracked, cannot be renamed`);
         }
@@ -315,7 +247,7 @@ class FileSystemManager {
      * Helper that recursively updates the paths to the contents of a renamed
      * directory.
      */
-    async renameMoveDirectoryHelper(renamedDirId, oldDirPath, newDirPath) {
+    renameMoveDirectoryHelper(renamedDirId, oldDirPath, newDirPath) {
         //rename the child files
         for(const fileId in this.allFiles) {
             //if the file is a child of the deleted parent
@@ -332,10 +264,7 @@ class FileSystemManager {
                     this.replaceFilePathWithAnother(originalFilePath, updatedFilePath);
         
                     //update the file in the collection of all files
-                    this.allFiles[fileId].currentPath = updatedFilePath;
-                    
-                    //update the file in the db
-                    await this.db.renameFile(this.allFiles[fileId], updatedFilePath);
+                    this.allFiles[fileId].currentPath = updatedFilePath;                    
                 }
             }
         }
@@ -358,11 +287,8 @@ class FileSystemManager {
                     //update the dir in the collection of all files
                     this.allDirs[dirId].currentPath = updatedDirPath;
                     
-                    //update the dir in the db
-                    await this.db.renameDirectory(this.allDirs[dirId], updatedDirPath);
-
                     //recursively rename the children
-                    await this.renameMoveDirectoryHelper(dirId, originalDirPath, updatedDirPath);
+                    this.renameMoveDirectoryHelper(dirId, originalDirPath, updatedDirPath);
                 }
             }
         }
@@ -371,7 +297,7 @@ class FileSystemManager {
     /*
      * Moves a directory.
      */
-    async moveDirectory(oldDirPath, newDirPath) {
+    moveDirectory(oldDirPath, newDirPath) {
         //get the id of the moved dir
         const dirId = this.getDirIdFromDirPath(oldDirPath);
     
@@ -383,10 +309,7 @@ class FileSystemManager {
             const newDirParentId = this.getDirIdFromDirPath(newDirParentPath);
 
             //if the new parent dir is being tracked
-            if(this.allDirs[newDirParentId]/* && this.allDirs[newDirParentId].isDeleted === 'false'*/) {
-                //update the dir in the db
-                await this.db.moveDirectory(this.allDirs[dirId], newDirParentId, newDirPath);
-                
+            if(this.allDirs[newDirParentId] && this.allDirs[newDirParentId].isDeleted === false) {                
                 //update the mapping from path to id
                 this.replaceDirectoryPathWithAnother(oldDirPath, newDirPath);
 
@@ -396,7 +319,7 @@ class FileSystemManager {
                 this.allDirs[dirId].currentPath = newDirPath;
         
                 //recursively update the child files and dirs
-                await this.renameMoveDirectoryHelper(dirId, oldDirPath, newDirPath);
+                this.renameMoveDirectoryHelper(dirId, oldDirPath, newDirPath);
             } else {
                 throw new Error(`A dir cannot be moved because the new parent dir ${newDirParentPath} does not exist`);
             }
@@ -546,7 +469,7 @@ class FileSystemManager {
             //get the file id
             const fileId = this.pathToFileIdMap[filePath];
             //if the file is not deleted
-            if(this.allFiles[fileId].isDeleted === 'false') {
+            if(this.allFiles[fileId].isDeleted === false) {
                 retVal = true;
             }
         }
@@ -558,7 +481,7 @@ class FileSystemManager {
         //if the file id exists
         if(this.allFiles[fileId] !== undefined) {
             //if the file is not deleted
-            if(this.allFiles[fileId].isDeleted === 'false') {
+            if(this.allFiles[fileId].isDeleted === false) {
                 retVal = true;
             }
         }
@@ -572,7 +495,7 @@ class FileSystemManager {
             //get the dir id
             const dirId = this.pathToDirIdMap[dirPath];
             //if the dir is not deleted
-            if(this.allDirs[dirId].isDeleted === 'false') {
+            if(this.allDirs[dirId].isDeleted === false) {
                 retVal = true;
             }
         }
@@ -584,7 +507,7 @@ class FileSystemManager {
         //if the dir id exists
         if(this.allDirs[dirId] !== undefined) {
             //if the dir is not deleted
-            if(this.allDirs[dirId].isDeleted === 'false') {
+            if(this.allDirs[dirId].isDeleted === false) {
                 retVal = true;
             }
         }

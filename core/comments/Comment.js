@@ -1,10 +1,11 @@
+const crypto = require('crypto');
 /*
  * This represents a comment in a playback.
  */
 class Comment {
     constructor(displayCommentEventId, displayCommentEventSequenceNumber, developerGroupId, timestamp, commentText, commentTitle, selectedCodeBlocks, imageURLs, videoURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData, position, id) {
         //store the comment data
-        this.id = id;
+        this.id = (id || crypto.randomUUID());
         this.displayCommentEventId = displayCommentEventId;
         this.displayCommentEventSequenceNumber = displayCommentEventSequenceNumber;
         this.developerGroupId = developerGroupId;

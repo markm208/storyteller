@@ -386,12 +386,6 @@ class AddEditComment extends HTMLElement {
   }
 
   sendEventDeleteComment = () => {
-    //go through all of the media containers and delete the media associated with the comment
-    const allVMCs = this.shadowRoot.querySelectorAll('st-vertical-media-container');
-    allVMCs.forEach(aVMC => {
-      aVMC.deleteAll();
-    });
-
     const event = new CustomEvent('delete-comment', {
       detail: {
         comment: this.editedComment

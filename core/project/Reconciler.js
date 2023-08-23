@@ -106,7 +106,7 @@ class Reconciler {
             //if a directory is being tracked (and has not been deleted) AND
             //it is not present in storytellerTrackedDirIds AND 
             //it should not be ignored
-            if(dirObj.isDeleted === 'false' && 
+            if(dirObj.isDeleted === false && 
                !storytellerTrackedDirIds[dirObj.id] &&
                this.projectManager.ignorePath.ignoreThisFileOrDir(dirObj.currentPath) === false) {
                 //record that the dir was deleted outside of storyteller
@@ -120,7 +120,7 @@ class Reconciler {
             //if a file is being tracked (and has not been deleted) AND
             //it is not present in storytellerTrackedFileIds AND
             //it should not be ignored
-            if(fileObj.isDeleted === 'false' && 
+            if(fileObj.isDeleted === false && 
                !storytellerTrackedFileIds[fileObj.id] &&
                this.projectManager.ignorePath.ignoreThisFileOrDir(fileObj.currentPath) === false) {
                 //record that the file was deleted outside of storyteller
@@ -202,19 +202,19 @@ class Reconciler {
      * issue of a new file. The action says what the user chose to do. 
      * Currently, the only option is to create the new file.
      */
-    async resolveNewFile(newFilePath, action, isRelevant) {
+    resolveNewFile(newFilePath, action, isRelevant) {
         //add the file to the project
         if(action === 'create') {
             //attribute any reconciliation changes to the system developer
             const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
             const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
-            await this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //record the creating of a new file
-            await this.projectManager.createFile(newFilePath, isRelevant);
+            this.projectManager.createFile(newFilePath, isRelevant);
 
             //set the original dev group back
-            await this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
         } else if(action === 'delete') { //remove the new file
             //delete the file
             fs.unlinkSync(newFilePath);
@@ -226,19 +226,19 @@ class Reconciler {
      * issue of a new dir. The action says what the user chose to do. Currently,
      * the only option is to create the new dir.
      */ 
-    async resolveNewDirectory(newDirectoryPath, action, isRelevant) {
+    resolveNewDirectory(newDirectoryPath, action, isRelevant) {
         //add the dir to the project
         if(action === 'create') {
             //attribute any reconciliation changes to the system developer
             const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
             const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
-            await this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //record the creating of a new file
-            await this.projectManager.createDirectory(newDirectoryPath, isRelevant);
+            this.projectManager.createDirectory(newDirectoryPath, isRelevant);
 
             //set the original dev group back
-            await this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
         } else if(action === 'delete') { //delete the new directory
             //delete the file
             fs.rmdirSync(newDirectoryPath);
@@ -249,7 +249,7 @@ class Reconciler {
      * the option of recreating the deleted file or accepting the delete.
      * This function resolves that situation.
      */
-    async resolveDeletedFile(deletedFileId, action) {
+    resolveDeletedFile(deletedFileId, action) {
         //get the normalized file path
         const deletedFilePath = this.projectManager.fileSystemManager.getFileInfo(deletedFileId).currentPath;
 
@@ -270,13 +270,13 @@ class Reconciler {
                 //attribute any reconciliation changes to the system developer
                 const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
                 const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
-                await this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
+                this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
                 //record the deletion of this file
-                await this.projectManager.deleteFile(deletedFilePath);
+                this.projectManager.deleteFile(deletedFilePath);
 
                 //set the original dev group back
-                await this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
+                this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
             }
         }
     }
@@ -285,7 +285,7 @@ class Reconciler {
      * the option of recreating the deleted dir or accepting the delete.
      * This function resolves that situation.
      */
-    async resolveDeletedDirectory(deletedDirectoryId, action) {
+    resolveDeletedDirectory(deletedDirectoryId, action) {
         //get the normalized dir path
         const deletedDirPath = this.projectManager.fileSystemManager.getDirInfo(deletedDirectoryId).currentPath;
 
@@ -305,13 +305,13 @@ class Reconciler {
                 //attribute any reconciliation changes to the system developer
                 const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
                 const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
-                await this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
+                this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
                 //record the deletion of this dir
-                await this.projectManager.deleteDirectory(deletedDirPath);
+                this.projectManager.deleteDirectory(deletedDirPath);
 
                 //set the original dev group back
-                await this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
+                this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
             }
         }
     }
@@ -319,13 +319,13 @@ class Reconciler {
      * Used during reconciliation to create files and dirs that are present in 
      * a new project directory.
      */
-    async addExistingFilesDirs() {
+    addExistingFilesDirs() {
         //create and start tracking the new directories
         for(let i = 0;i < this.discrepancies.fullDirPathsPresentButNotTracked.length;i++) {
             const newDirPath = this.discrepancies.fullDirPathsPresentButNotTracked[i];
             //create the new directory
             //indicate that the new dir events are not relevant to playback
-            await this.resolveNewDirectory(newDirPath, 'create', false);
+            this.resolveNewDirectory(newDirPath, 'create', false);
         }
 
         //create and start tracking the new files
@@ -333,14 +333,14 @@ class Reconciler {
             const newFilePath = this.discrepancies.fullFilePathsPresentButNotTracked[i];
             //create the new file
             //indicate that the new file events are not relevant to playback
-            await this.resolveNewFile(newFilePath, 'create', false);
+            this.resolveNewFile(newFilePath, 'create', false);
         }
     }
     /*
      * Resolves any changes between the text in a file and the contents
      * of the file in storyteller. 
      */
-    async resolveFileChanges(modifiedFileId, action) {
+    resolveFileChanges(modifiedFileId, action) {
         //get the normalized file path
         const modifiedFilePath = this.projectManager.fileSystemManager.getFileInfo(modifiedFileId).currentPath;
         //create the full path
@@ -358,13 +358,13 @@ class Reconciler {
             //attribute any reconciliation changes to the system developer
             const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
             const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
-            await this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //update storyteller to hold the new state of the file
-            await this.diffAndUpdateFile(fullPath, fileText, newFileText);
+            this.diffAndUpdateFile(fullPath, fileText, newFileText);
 
             //set the original dev group back
-            await this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
+            this.projectManager.developerManager.setActiveDeveloperGroup(originalDevGroup);
         }
     }
     /* 

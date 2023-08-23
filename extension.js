@@ -2,10 +2,7 @@ const vscode = require('vscode');
 const spawn = require('child_process').spawn;
 const path = require('path');
 const fs = require('fs');
-const https = require('https');
 const JSZip = require('jszip');
-
-const ConvertFormatHelper = require('./core/project/ConvertFormatHelper.js');
 
 //name of the hidden storyteller directory
 const STORYTELLER_DIR = '.storyteller';
@@ -69,12 +66,8 @@ function activate(context) {
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.removeDevelopersFromActiveGroup', removeDevelopersFromActiveGroup));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipProject', zipProject));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipViewablePlayback', zipViewablePlayback));
-    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.createProjectFromJSFile', createProjectFromJSFile));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.previewPerfectProgrammer', previewPerfectProgrammer));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.replaceWithPerfectProgrammer', replaceWithPerfectProgrammer));
-    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.previewPerfectProgrammerBetweenTags', previewPerfectProgrammerBetweenTags));
-    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.replaceWithPerfectProgrammerBetweenTags', replaceWithPerfectProgrammerBetweenTags));
-
 
     //use this for storing state of files:
     //https://code.visualstudio.com/api/references/vscode-api#ExtensionContext.workspaceState
@@ -113,9 +106,9 @@ function activate(context) {
 /*
  * Called when deactivating the extension.
  */
-async function deactivate() {
+function deactivate() {
     //stop tracking this project
-    await stopStoryteller();
+    stopStoryteller();
 }
 /*
  * Creates or opens a new Storyteller project in a workspace.
@@ -139,14 +132,14 @@ function startStoryteller() {
 /*
  * Used to stop tracking a project.
  */
-async function stopStoryteller() {
+function stopStoryteller() {
     //clear out any values that might still be in this array.
     recentlyCreatedFileOrDir = [];
 
     //if storyteller is active
     if(isStorytellerCurrentlyActive) {
         //close the project
-        await projectManager.stopStoryteller();
+        projectManager.stopStoryteller();
 
         //update the status bar
         updateStorytellerStatusBar('Start Storyteller', 'Start using Storyteller in this workspace', 'storyteller.startStoryteller');
@@ -158,9 +151,9 @@ async function stopStoryteller() {
         isStorytellerCurrentlyActive = false;
 
         //clean up the cut/copy and paste disposables
-        // clipboardCopyDisposable.dispose();
-        // clipboardCutDisposable.dispose();
-        // clipboardPasteDisposable.dispose();
+        clipboardCopyDisposable.dispose();
+        clipboardCutDisposable.dispose();
+        clipboardPasteDisposable.dispose();
     } else { //there is no open workspace
         //tell the user they need to open a workspace in order to use Storyteller
         promptInformingAboutUsingStoryteller(false);
@@ -177,7 +170,7 @@ async function resumeExistingProject() {
 
         //create and store the global project manager in the opened directory
         projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
-        await projectManager.init(false);
+        await projectManager.startStoryteller(false);
 
         //create a new reconciler once the project has been created
         reconciler = new Reconciler(projectManager);
@@ -192,7 +185,7 @@ async function resumeExistingProject() {
             
             //if they don't want to use storyteller anymore
             if(action === 'stop') {
-                await projectManager.stopStoryteller();
+                projectManager.stopStoryteller();
                 return;
             }
         } //else- there are no discrepancies
@@ -219,12 +212,9 @@ async function startTrackingInFolder() {
         //indicate that storyteller is active
         isStorytellerCurrentlyActive = true;
 
-        //make the hidden storyteller directory
-        fs.mkdirSync(path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR));
-
         //create and store the global project manager in the opened directory
         projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
-        await projectManager.init(true);
+        await projectManager.startStoryteller(true);
 
         //create a new reconciler to look for exisiting files and dirs after the project has been created
         reconciler = new Reconciler(projectManager);
@@ -263,16 +253,16 @@ function turnOnFSWatcherAndTextHandler() {
     
     //cut/copy/paste overides
     //override the editor.action.clipboardCopyAction with our own
-    //clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction); 
-    //extensionContext.subscriptions.push(clipboardCopyDisposable);
+    clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction); 
+    extensionContext.subscriptions.push(clipboardCopyDisposable);
 
     //override the editor.action.clipboardCutAction with our own
-    //clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction); 
-    //extensionContext.subscriptions.push(clipboardCutDisposable);
+    clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction); 
+    extensionContext.subscriptions.push(clipboardCutDisposable);
 
     //override the editor.action.clipboardPasteAction with our own
-    //clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction); 
-    //extensionContext.subscriptions.push(clipboardPasteDisposable);
+    clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction); 
+    extensionContext.subscriptions.push(clipboardPasteDisposable);
 }
 /* 
  * This function creates the storyteller status button (if it doesn't already exist) 
@@ -482,7 +472,7 @@ async function reconcileComplete() {
         retVal = 'continue';
     } else if(options.indexOf(selectedOption) === 1) { //stop using st
         retVal = 'stop';
-        //await projectManager.stopStoryteller();
+        projectManager.stopStoryteller();
     }
     return retVal;
 }
@@ -581,7 +571,7 @@ function storytellerState() {
     if(isStorytellerCurrentlyActive) {
         try {
             //get the active developer group devs
-            const activeDevs = projectManager.developerManager.getActiveDevelopers();
+            const activeDevs = projectManager.getActiveDevelopers();
 
             //create a friendly string of dev info (user name <email>)
             const devStrings = activeDevs.map(dev => `${dev.userName} <${dev.email}>`);
@@ -605,7 +595,7 @@ function currentActiveDevelopers() {
     if(isStorytellerCurrentlyActive) {
         try {
             //get the active developer group devs
-            const activeDevs = projectManager.developerManager.getActiveDevelopers();
+            const activeDevs = projectManager.getActiveDevelopers();
 
             //create a friendly string of dev info (user name <email>)
             const devStrings = activeDevs.map(dev => `${dev.userName} <${dev.email}>`);
@@ -640,11 +630,10 @@ async function createNewDeveloper() {
                 //parse the dev info
                 getDevInfo(devInfoString, developerInfoObject);
     
-                const newDev = await projectManager.developerManager.createNewDeveloper(developerInfoObject.userName, developerInfoObject.email);
-                await projectManager.developerManager.addDevelopersToActiveGroup([newDev.newDeveloper.id]);
-    
+                projectManager.createDeveloperAndAddToActiveGroup(developerInfoObject.userName, developerInfoObject.email);
+
                 //give the user some feedback about the active devs
-                const activeDevs = projectManager.developerManager.getActiveDevelopers(); 
+                const activeDevs = projectManager.getActiveDevelopers(); 
 
                 //create a friendly string of dev info (user name <email>)
                 const devStrings = activeDevs.map(dev => `${dev.userName} <${dev.email}>`);
@@ -672,7 +661,7 @@ async function addDevelopersToActiveGroup() {
     if(isStorytellerCurrentlyActive) {
         try {
             //request the inactive devs
-            const inactiveDevs = projectManager.developerManager.getInactiveDevelopers();
+            const inactiveDevs = projectManager.getInactiveDevelopers();
 
             //if there are any inactive devs
             if(inactiveDevs.length > 0) {
@@ -680,7 +669,7 @@ async function addDevelopersToActiveGroup() {
                 const inactiveDevStrings = inactiveDevs.map(dev => `${dev.userName} <${dev.email}>`);
     
                 //request the active developer group devs
-                const activeDevs = projectManager.developerManager.getActiveDevelopers();
+                const activeDevs = projectManager.getActiveDevelopers();
 
                 //create a friendly string of dev info (user name <email>)
                 const activeDevStrings = activeDevs.map(dev => `${dev.userName} <${dev.email}>`);
@@ -705,10 +694,10 @@ async function addDevelopersToActiveGroup() {
                         const userNames = [userName];
 
                         //add the devs to the active group
-                        await projectManager.developerManager.addDevelopersToActiveGroupByUserName(userNames);
+                        projectManager.addDevelopersToActiveGroupByUserName(userNames);
             
                         //get the active developer group devs
-                        const activeDevs = projectManager.developerManager.getActiveDevelopers();
+                        const activeDevs = projectManager.getActiveDevelopers();
                         //create a friendly string of dev info (user name <email>)
                         const activeDevStrings = activeDevs.map(dev => `${dev.userName} <${dev.email}>`);
             
@@ -739,7 +728,7 @@ async function removeDevelopersFromActiveGroup() {
     if(isStorytellerCurrentlyActive) {
         try {
             //request the active developer group devs
-            const activeDevs = projectManager.developerManager.getActiveDevelopers();
+            const activeDevs = projectManager.getActiveDevelopers();
 
             //create a friendly string of dev info (user name <email>)
             const activeDevStrings = activeDevs.map(dev => `${dev.userName} <${dev.email}>`);
@@ -766,10 +755,10 @@ async function removeDevelopersFromActiveGroup() {
                         const userNames = [userName];
 
                         //remove the developers
-                        await projectManager.developerManager.removeDevelopersFromActiveGroupByUserName(userNames);
+                        projectManager.removeDevelopersFromActiveGroupByUserName(userNames);
             
                         //get the active developer group devs
-                        const activeDevs = projectManager.developerManager.getActiveDevelopers();
+                        const activeDevs = projectManager.getActiveDevelopers();
 
                         //create a friendly string of dev info (user name <email>)
                         const activeDevStrings = activeDevs.map(dev => `${dev.userName} <${dev.email}>`);
@@ -812,7 +801,7 @@ async function createFirstDeveloper() {
             //parse the dev info
             getDevInfo(devInfoString, developerInfoObject);
 
-            await projectManager.developerManager.replaceAnonymousDeveloperWithNewDeveloper(developerInfoObject.userName, developerInfoObject.email);
+            projectManager.replaceAnonymousDeveloperWithNewDeveloper(developerInfoObject.userName, developerInfoObject.email);
 
             //give the user some feedback about the active devs
             currentActiveDevelopers();
@@ -899,9 +888,9 @@ function addRecentCreate(createEvent) {
 
                     //if it is a file
                     if(stats.isFile()) {
-                        await projectManager.createFile(fileDirPath);
+                        projectManager.createFile(fileDirPath);
                     } else if(stats.isDirectory()) { //it is a dir 
-                        await projectManager.createDirectory(fileDirPath);
+                        projectManager.createDirectory(fileDirPath);
                     }
                     //remove the path since we have handled it
                     const removedPath = recentlyCreatedFileOrDir.splice(index, 1);
@@ -934,7 +923,7 @@ function addRecentCreate(createEvent) {
  * rename/move). If there are no paths that were added very recently we assume 
  * it is a real delete. 
  */
-async function addRecentDelete(deleteEvent) {
+function addRecentDelete(deleteEvent) {
     if(isStorytellerCurrentlyActive) {
         //get the path of the deleted file/dir
         const fileDirPath = deleteEvent.fsPath;
@@ -976,17 +965,17 @@ async function addRecentDelete(deleteEvent) {
                     //if the file ends up in the same parent dir AND the name 
                     //is different, then this is a rename
                     if(fullPathUpToNewName === fullPathUpToOldName && newName !== oldName) {
-                        await projectManager.renameFile(fileDirPath, newFullPath);
+                        projectManager.renameFile(fileDirPath, newFullPath);
                     } else { //file has moved from one parent dir to another
-                        await projectManager.moveFile(fileDirPath, newFullPath);
+                        projectManager.moveFile(fileDirPath, newFullPath);
                     }
                 } else if(stats.isDirectory()) { //it is a dir 
                     //if the dir ends up in the same parent dir AND the name 
                     //is different, then this is a rename
                     if(fullPathUpToNewName === fullPathUpToOldName && newName !== oldName) {
-                        await projectManager.renameDirectory(fileDirPath, newFullPath);
+                        projectManager.renameDirectory(fileDirPath, newFullPath);
                     } else { //dir has moved from one parent dir to another
-                        await projectManager.moveDirectory(fileDirPath, newFullPath);
+                        projectManager.moveDirectory(fileDirPath, newFullPath);
                     }
                 } else { //it is not a file or dir- something is wrong
                     console.log('Rename or move: Not a file or a dir????');
@@ -996,7 +985,7 @@ async function addRecentDelete(deleteEvent) {
                 //is gone we can't check to see if it is a file or dir so we 
                 //will let storyteller check the type based on the path and 
                 //call the correct delete function
-                await projectManager.deleteFileOrDirectory(fileDirPath);
+                projectManager.deleteFileOrDirectory(fileDirPath);
             }
         }
     }
@@ -1291,7 +1280,7 @@ async function zipViewablePlayback() {
             const projectDirPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
             //add the required static file for playback to the zip
-            await zipPlaybackHelper(projectDirPath, zip);
+            zipPlaybackHelper(projectDirPath, zip);
 
             //create and save the zip in the .storyteller dir
             zip.generateNodeStream({
@@ -1314,7 +1303,7 @@ async function zipViewablePlayback() {
  * This way a playback can be viewed from the file system without requiring a 
  * web server
  */
-async function zipPlaybackHelper(projectDirPath, zip) {
+function zipPlaybackHelper(projectDirPath, zip) {
     //copy the public folder from this project to the zip
     const publicDirPath = path.join(__dirname, 'core', 'public');
     
@@ -1322,14 +1311,13 @@ async function zipPlaybackHelper(projectDirPath, zip) {
     zipPublicHelper(publicDirPath, zip);
 
     //get the loadPlayback.js data as a string and add it to the zip
-    const loadPlaybackDataString = await projectManager.getPlaybackData(false);
+    const loadPlaybackDataString = projectManager.getPlaybackData(false);
     zip.file('js/loadPlayback.js', loadPlaybackDataString);
     
     //add the media files
-    const allMediaFiles = await projectManager.commentManager.getAllMediaFiles();
-    for(const mediaFile of allMediaFiles) {
-        zip.file(mediaFile.filePath, mediaFile.blob);
-    }
+    addMediaToZip(projectDirPath, 'images', zip);
+    addMediaToZip(projectDirPath, 'videos', zip);
+    addMediaToZip(projectDirPath, 'audios', zip);
 }
 /* 
  * Copies the js files required for playback (minus the storyteller data file) 
@@ -1366,120 +1354,38 @@ function zipPublicHelper(dirPath, zip) {
         }
     }
 }
-
-async function createProjectFromJSFile() {
-    //prompt for the location of the stored playback
-    const bookUrl = await vscode.window.showInputBox({prompt: 'Enter in a url to a book'}); //'https://markm208.github.io/sqlbook';
+/* 
+ * Adds the comments media files to the zip
+ */
+function addMediaToZip(dirPath, mediaType, zip) {
+    //get the full path to the media directory in the st project 
+    const pathToImageMedia = path.join(dirPath, '.storyteller', 'comments', 'media', mediaType);
+    //get all of the media files in the directory
+    const allFiles = fs.readdirSync(pathToImageMedia);
     
-    //prompt for where to put the new db file
-    let pathToNewDbs = await vscode.window.showOpenDialog({ //[{fsPath: '/Users/mmahoney/Documents/stTestRemoteDB/'}];
-        canSelectFiles: false,
-        canSelectFolders: true,
-        canSelectMany: false,
-        defaultUri: vscode.workspace.workspaceFolders[0].uri,
-        openLabel: 'Create Projects',
-        title: 'Choose a folder to store all of the playbacks'
-    });
-
-    //create a loop that goes through chapters like 'chapter1', 'chapter2', etc. from chapter1 to chapter15
-    //for each chapter create two digit folders like '01', '02', etc. from 01 to 15
-    //for each two digit folder create a file called 'js/loadPlayback.js' with the data from the js file in the chapter folder
-    for(let i = 1;i <= 15;i++) {
-        //get the chapter number as a string
-        const chapterNumber = `chapter${i}`;
-
-        for(let j = 1;j <= 15;j++) {
-            //get the two digit folder name
-            const twoDigitFolderName = `${j < 10 ? '0' : ''}${j}`;
-
-            //get the path to the chapter folder
-            const pathToChapterFolder = path.join(pathToNewDbs[0].fsPath, chapterNumber, twoDigitFolderName);
-            const urlToPlayback = `${bookUrl}/${chapterNumber}/${twoDigitFolderName}`;
-            await createProjectFromJSFileHelper(pathToChapterFolder, urlToPlayback);
-            console.log(`Playback created at ${pathToChapterFolder} from ${urlToPlayback}`);
-        }
-    }
-    //let the user know that the project was created successfully
-    vscode.window.showInformationMessage(`A book was created.`);
-}
-//--
-async function createProjectFromJSFileHelper(playbackPath, userUrl) {
-    return new Promise((resolve, reject) => {
-        try {
-            //url where the data is stored
-            const playbackDataUrl = `${userUrl}/js/loadPlayback.js`;
-
-            //get the playback data
-            let data = '';
-            https.request(playbackDataUrl, function(response) {
-                response.on('data', function(chunk) {
-                    data += chunk;
-                });
-                response.on('end', async function() {
-                    //convert the js file to a js object
-                    const playbackData = parsePlaybackData(data);
-                    if(playbackData) {
-                        const projDir = path.join(playbackPath, '.storyteller');
-                        const helper = new ConvertFormatHelper(projDir, 'st.db', userUrl, playbackData);
-                        await helper.convertToDB();
-                     }
-                    resolve();
-                });
-            }).end();  
-        } catch (error) {
-            console.error(`Download error: ${error.message}`);
-            reject();
-        }
-    });
-}
-
-function parsePlaybackData(playbackData) {
-    //split the file into lines
-    const allLines = playbackData.split('\n');
-    //use the format of the js file to parse out the data
-    const events = allLines[2].substring(allLines[2].indexOf('['), allLines[2].lastIndexOf(']') + 1);
-    const comments = allLines[3].substring(allLines[3].indexOf('{'), allLines[3].lastIndexOf('}') + 1);
-    const numEvents = allLines[4].substring(allLines[4].indexOf('=') + 2, allLines[4].lastIndexOf(';'));
-    const isEditable = allLines[5].substring(allLines[5].indexOf('=') + 2, allLines[5].lastIndexOf(';'));
-    const developers = allLines[6].substring(allLines[6].indexOf('{'), allLines[6].lastIndexOf('}') + 1);
-    const developerGroups = allLines[7].substring(allLines[7].indexOf('{'), allLines[7].lastIndexOf('}') + 1);
-    const playbackTitle = allLines[8].substring(allLines[8].indexOf('\'') + 1, allLines[8].lastIndexOf('\''));
-    const branchId = allLines[9].substring(allLines[9].indexOf('\'') + 1, allLines[9].lastIndexOf('\''));
-    const estimatedReadTime = projectManager.commentManager.getReadTimeEstimate();
-
-    try {
-        //convert the strings to objects
-        const parsedEvents = JSON.parse(events);
-        const parsedComments = JSON.parse(comments);
-        const parsedDevelopers = JSON.parse(developers);
-        const parsedDeveloperGroups = JSON.parse(developerGroups);
-
-        //return the parsed data
-        const projectData = {
-            title: playbackTitle,
-            branchId: branchId,
-            isEditable: isEditable,
-            numEvents: Number(numEvents),
-            estimatedReadTime: estimatedReadTime,
-            events: parsedEvents,
-            comments: parsedComments,
-            developers: parsedDevelopers,
-            developerGroups: parsedDeveloperGroups
-        };
-        return projectData;
-    } catch (e) {
-        return null;
+    //go through the contents of the dir
+    for (let i = 0; i < allFiles.length; i++) {
+        const fileName = allFiles[i];
+        //get the full path to the file or directory
+        const fullPathToFile = path.join(pathToImageMedia, fileName);
+        //read the file and store it in the zip
+        const fileBuffer = fs.readFileSync(fullPathToFile);
+        zip.file(`media/${mediaType}/${fileName}`, fileBuffer);
     }
 }
+
 /*
  * Starts a playback where any insert/delete pair that happens within two
  * comments is removed. This helps hide embarrassing and/or uninteresting
  * attempts at problem solving and reduces the amount of data stored in
  * the project.
  */
-function previewPerfectProgrammer() {
+async function previewPerfectProgrammer() {
+    const options = ['Yes', 'No'];
+    const perfectProgrammerOption = await vscode.window.showQuickPick(options, {placeHolder: `Use 'perfect programmer' reordering?`});
+
     //create a playback with all insert/delete pairs within two comments removed
-    projectManager.setNextPlaybackPerfectProgrammer({type: 'betweenComments'});
+    projectManager.setNextPlaybackPerfectProgrammer({type: 'betweenComments', usePerfectProgrammerStyle: perfectProgrammerOption === options[0] ? true : false});
     startPlayback(false);
 }
 
@@ -1490,46 +1396,13 @@ function previewPerfectProgrammer() {
 async function replaceWithPerfectProgrammer() {
     //prompt again since this action will wipe out all of the project's current history
     const options = ['Yes', 'No'];
+    const perfectProgrammerOption = await vscode.window.showQuickPick(options, {placeHolder: `Use 'perfect programmer' reordering?`});
+
     const selectedOption = await vscode.window.showQuickPick(options, {placeHolder: `Are you sure you want to replace the project's history? This cannot be undone.`});
     //if the user selected the option to replace the history
     if(selectedOption === options[0]) {
         //remove events and update events/comments for the project
-        await projectManager.replaceEventsCommentsWithPerfectProgrammerData();
-    }
-}
-
-/*
- * Starts a playback where any insert/delete pair that happens within two
- * comments is removed. This helps hide embarrassing and/or uninteresting
- * attempts at problem solving and reduces the amount of data stored in
- * the project.
- */
-async function previewPerfectProgrammerBetweenTags() {
-    //prompt for the start and end tag
-    const startTag = await vscode.window.showInputBox({prompt: 'Enter in a start tag'});
-    const endTag = await vscode.window.showInputBox({prompt: 'Enter in an end tag'});
-
-    //create a playback with all insert/delete pairs within two comments removed
-    projectManager.setNextPlaybackPerfectProgrammer({type: 'betweenTags', startTag: startTag, endTag: endTag});
-    startPlayback(false);
-}
-
-/*
- * Replaces the full project data history with a (potentially) minimized set of
- * data where uninteresting/embarrassing attempts at problem solving are removed
- */
-async function replaceWithPerfectProgrammerBetweenTags() {
-    //prompt for the start and end tag
-    const startTag = await vscode.window.showInputBox({prompt: 'Enter in a start tag'});
-    const endTag = await vscode.window.showInputBox({prompt: 'Enter in an end tag'});
-    
-    //prompt again since this action will wipe out all of the project's current history
-    const options = ['Yes', 'No'];
-    const selectedOption = await vscode.window.showQuickPick(options, {placeHolder: `Are you sure you want to replace the project's history? This cannot be undone.`});
-    //if the user selected the option to replace the history
-    if(selectedOption === options[0]) {
-        //remove events and update events/comments for the project
-        await projectManager.replaceEventsCommentsWithPerfectProgrammerData(startTag, endTag);
+        projectManager.replaceEventsCommentsWithPerfectProgrammerData(perfectProgrammerOption === options[0] ? true : false);
     }
 }
 

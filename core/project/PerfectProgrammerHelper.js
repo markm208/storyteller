@@ -2,68 +2,125 @@
  * This class alters an array of events and comments to simulate a 'perfect programmer',
  * one that does not make any mistakes. This is used for removing embarrassing forays
  * while creating a playback. The author can select certain code to be removed from the
- * playback as if it was never written. The code can be removed in two different ways:
- * - edit between comments:
- *     It is as if a perfect programmer had written it with file/dir events being 
- *     played out first, then deletes of previously inserted events, finally any new inserts 
- *     that were not deleted will be played out. This significantly alters the order of the
- *     events compared to how the author originally wrote the code.
- * - edit between tags:
- *     The user specifies start and end tags which are associated with comments. The events 
- *     are played out in order as they were written by the programmer but any insert/create
- *     that was added and then removed between the start and end tags are removed. The events 
- *     are in the same order as the programmer wrote them.
+ * playback as if it was never written. The changes are made between comments. Anything
+ * that was added and then removed between the comments will be removed from the playback.
+ * 
+ * The code can be removed in two different ways:
+ * - It is as if a perfect programmer had written it with file/dir events being played out 
+ *   first, then deletes of previously inserted events, finally any new inserts 
+ *   that were not deleted will be played out. This significantly alters the order of the
+ *   events compared to how the author originally wrote the code. Deletes appear first 
+ *   right-to-left, bottom-to-top. Inserts follow and appear left-to-right, top-to-bottom. 
+ *   
+ * - The events are played out in order as they were written by the programmer but any 
+ *   insert/create that was added and then removed between the start and end tags are 
+ *   removed. The events are in the same order as the programmer wrote them.
  */
 class PerfectProgrammerHelper {
     /*
      * Returns the modified events array with only events that contrbute to the
-     * code at the comment points. This also may alter the passed in comments.
+     * code at the comment points. This also returns updated comments (each comment's
+     * display sequence number may be altered).
      */
-    editBetweenComments(originalEvents, comments) {
+    editBetweenComments(originalEvents, originalComments, likePerfectProgrammer) {
         //holds the insert events of all the files during playback
         const allFiles = {};
 
-        //an updated list of events with some thrown out from originalEvents
+        //an updated list of events and comments
         const updatedEvents = [];
+        const updatedComments = {};
 
-        //marks the start and end of a range of events in between two comments
-        let startPos = 0;
-        let endPos;
+        //get all of the ranges of comments
+        const allRanges = this.getRangesBetweenComments(originalComments, originalEvents);
+        
+        //for each range of events in between the comments
+        for(const range of allRanges) {
+            //perfect programmer, left-to-right, top-to-bottom
+            if(likePerfectProgrammer) {
+                this.editEventsPerfectProgrammer(range.startPos, range.endPos, originalEvents, updatedEvents, allFiles);
+            } else { //playback with filtered event in order as written
+                this.editEventsOriginalOrder(range.startPos, range.endPos, originalEvents, updatedEvents, allFiles);
+            }
 
-        //there's always a comment at position 0 so start at position 1
-        for(let i = 1;i < originalEvents.length;i++) {
-            //get the latest event
-            const event = originalEvents[i];
-            
-            //if there is at least one comment at this event or at the end of playback
-            if(comments[event.id] || i === originalEvents.length - 1) {
-                //store the position in the events where the comment is
-                endPos = i;
+            //add the comments
+            const endOfRangeEvent = originalEvents[range.endPos];
+            const commentsAtEndOfRangeEvent = originalComments[endOfRangeEvent.id];
+            //if there is a comment (this is true except for the end of the playback)
+            if(commentsAtEndOfRangeEvent) {
+                //get the last event added to the updated events
+                const latestEvent = updatedEvents[updatedEvents.length - 1];
+                //create an array in the updated comments object to hold comments at this event
+                updatedComments[latestEvent.id] = [];
 
-                //fill updatedEvents with the events that will be played back in a perfect programmer scenario
-                this.editEventsBetweenTwoPoints(startPos, endPos, originalEvents, updatedEvents, allFiles, comments);
-                
-                //if the last original event did not get added to the updated events, then edit the comments
-                this.updateCommentPosition(originalEvents[endPos], updatedEvents, comments);
-
-                //the next range will start after this comment
-                startPos = i + 1;
+                //go through each comment and update its event sequence number
+                for(const comment of commentsAtEndOfRangeEvent) {
+                    const copyOfComment = JSON.parse(JSON.stringify(comment));
+                    //update the sequence number
+                    copyOfComment.displayCommentEventSequenceNumber = latestEvent.eventSequenceNumber;
+                    updatedComments[latestEvent.id].push(copyOfComment);
+                }
             }
         }
 
         //return the filtered and edited events
-        return updatedEvents;
+        return { updatedEvents, updatedComments };
     }
 
     /*
-     * Moves between two points in the events array and removes/modifies events
-     * that are no longer needed. The events are played out in order and then the
-     * state of the code is examined. It is the same as if a perfect programmer 
+     * Builds up ranges of index values of all of the comments in the playback. A range's
+     * start position is the first event after a comment and the end position is the event
+     * that has a comment. The last range is from the last comment to the end of the playback
+     * (if there are any events after the last comment).
+     */
+    getRangesBetweenComments(originalComments, originalEvents) {
+        //holds the first comment at each pause point (each comment has the same sequence number)
+        //sort these first comments by the order they appear in the playback
+        const firstCommentsAtEvent = [];
+        //get the first comment in each comment group
+        for(const eventId in originalComments) {
+            firstCommentsAtEvent.push(originalComments[eventId][0]);
+        }
+        //sort based on the event sequence number
+        firstCommentsAtEvent.sort((aComment, anotherComment) => {
+            return aComment.displayCommentEventSequenceNumber - anotherComment.displayCommentEventSequenceNumber;
+        });
+
+        //build up a sorted array of ranges of events inbetween comments
+        const allRanges = [];
+        let startPos = 0;
+
+        //create the ranges between the comments
+        for(const comment of firstCommentsAtEvent) {
+            allRanges.push({
+                startPos: startPos,
+                endPos: comment.displayCommentEventSequenceNumber
+            });
+            //update for the start of the next range
+            startPos = comment.displayCommentEventSequenceNumber + 1;
+        }
+
+        //if there are any events after the last comment add a final range
+        const lastEventId = originalEvents[originalEvents.length - 1].id;
+        //if the last event does NOT have a comment associated with it
+        if(!originalComments[lastEventId]) {
+            //add a final range to the end of the events
+            allRanges.push({
+                startPos: startPos,
+                endPos: originalEvents.length - 1
+            });
+        }
+
+        return allRanges;
+    }
+
+    /*
+     * Moves between two points in the events array and removes events that were added
+     * and then removed in the range. The events are played out as if a perfect programmer 
      * had written it with file/dir events being played out first, then deletes of 
      * previously inserted events, finally any new inserts that were not deleted
      * will be played out. 
      */
-    editEventsBetweenTwoPoints(startPos, endPos, originalEvents, updatedEvents, allFiles, comments) {
+    editEventsPerfectProgrammer(startPos, endPos, originalEvents, updatedEvents, allFiles) {
         //holds all of the perfect programmer events to playback in this range by the 
         //file or dir they happen in the events are stored in this order:
         // 1. file system events
@@ -77,26 +134,20 @@ class PerfectProgrammerHelper {
         const ignoreFilesCreatedAndDeleted = new Set();
         const ignoreDirsCreatedAndDeleted = new Set();
 
-        //get the fs, delete, and insert events and adds them to the eventsByFileOrDir object (keyed by file/dir id)
+        //get the fs, delete, and insert events in that order and adds them to the eventsByFileOrDir object (keyed by file/dir id)
         this.getFileSystemEvents(startPos, endPos, originalEvents, eventsByFileOrDir, ignoreFilesCreatedAndDeleted, ignoreDirsCreatedAndDeleted);
         this.getDeleteEvents(startPos, endPos, originalEvents, eventsByFileOrDir, allFiles, ignoreFilesCreatedAndDeleted);
         this.getInsertEvents(startPos, endPos, originalEvents, eventsByFileOrDir, allFiles, ignoreFilesCreatedAndDeleted);
-
-        //to update the event sequence number of each of event use the number of updated events stored so far 
-        let newEventSequenceNumber = updatedEvents.length;
 
         //go through all of the new events and add them to the array updatedEvents while updating the event sequence numbers
         for(let fileOrDirId in eventsByFileOrDir) {
             //add the events for a file or dir
             for(const event of eventsByFileOrDir[fileOrDirId]) {
                 //add the event to the updated events and modify any comments
-                this.addToUpdatedEvents(event, updatedEvents, newEventSequenceNumber, comments);
-                //get ready for the next relevant event update
-                newEventSequenceNumber++;
+                this.addToUpdatedEvents(event, updatedEvents);
             }
         }
-    }
-
+    }    
     /*
      * Gets all of the file system events that should stay in the playback in this range.
      */
@@ -154,16 +205,18 @@ class PerfectProgrammerHelper {
             }
         }
 
-        //go through all of the file/dir events
+        //go through all of the file/dir events and remove ones related to files/dirs that 
+        //were created and deleted in the range
         for(let fileOrDirId in eventsByFileOrDir) {
             //go through the file system events found above (in reverse because I will remove in the loop)
             for(let i = eventsByFileOrDir[fileOrDirId].length - 1;i >= 0;i--) {
                 const fsEvent = eventsByFileOrDir[fileOrDirId][i];
 
                 //if this is a file or directory event that should be removed 
-                //because it was created and deleted in the same range, then remove it
+                //because it was created and deleted in the same range or is the child of one, then remove it
                 if((fsEvent.fileId && ignoreFilesCreatedAndDeleted.has(fsEvent.fileId)) ||
-                   (fsEvent.directoryId && ignoreDirsCreatedAndDeleted.has(fsEvent.directoryId))) {
+                   (fsEvent.directoryId && ignoreDirsCreatedAndDeleted.has(fsEvent.directoryId)) ||
+                   ignoreDirsCreatedAndDeleted.has(fsEvent.parentDirectoryId)) {
                     eventsByFileOrDir[fileOrDirId].splice(i, 1);
                 }
             }
@@ -220,7 +273,7 @@ class PerfectProgrammerHelper {
                             }
                             //add the delete event
                             eventsByFileOrDir[deleteEvent.fileId].push(deleteEvent);
-                        }
+                        } //else- this is a delete of an insert in this range, ignore it
                     }
                 }
             }
@@ -240,21 +293,23 @@ class PerfectProgrammerHelper {
             if(event.type === 'INSERT' && !ignoreFilesCreatedAndDeleted.has(event.fileId)) {
                 //mark this event as needing to be added to the group of updated events
                 event.needsToBeAdded = true;
-                //add it in the file
+                //add it in the file (these objects will have the special property 'needsToBeAdded')
                 this.addInsertEvent(event, allFiles);
-                //make sure to move through the events in this file below
+                //indicate which file has inserts in it
                 filesWithInserts.add(event.fileId);
             } else if(event.type === 'DELETE' && !ignoreFilesCreatedAndDeleted.has(event.fileId)) {
-                //remove the delete from the file
+                //remove an insert event from the file (including inserts that were added and removed)
                 this.addDeleteEvent(event, allFiles);
             } //else- not an INSERT or DELETE
         }
-        //now any insert that has been added and removed will be gone
+        //now any insert that has been added and removed will be gone, only ones marked as 
+        //'needsToBeAdded' will be added
 
-        //now go through all of the events in the file and handle the adjusted insert events
+        //now go through all of the files with insert events
         for(const fileId of filesWithInserts) {
             //get the 2D array of events for this file
             const textFileInsertEvents = allFiles[fileId];
+            //go through all of the remaining inserts
             for(let row = 0;row < textFileInsertEvents.length;row++) {
                 for(let col = 0;col < textFileInsertEvents[row].length;col++) {
                     const latestEvent = textFileInsertEvents[row][col];
@@ -289,7 +344,7 @@ class PerfectProgrammerHelper {
 
                         //remove the flag that this event needs to be added 
                         delete latestEvent.needsToBeAdded;
-                    }
+                    } //else- the insert is from a previous range, ignore it
                 }
             }
         }
@@ -374,188 +429,96 @@ class PerfectProgrammerHelper {
             textFileInsertEvents.splice(row, 1);
         }
     }
-
     /*
-     * Update the comments so that if the original comment event is no longer going to be
-     * played back then the new last updated event holds the comment.
+     * Used for adding an original event to the array of updated events and updating 
+     * the comments with the correct event sequence number.
      */
-    updateCommentPosition(originalCommentEvent, updatedEvents, comments) {                
-        //if there was a comment at the end position (it is not just the end of the playback)
-        if(comments[originalCommentEvent.id]) {
-            //get the last event in the updated list of events
-            const lastUpdatedEvent = updatedEvents[updatedEvents.length - 1];
-            
-            //if the comment event is different than the new last event
-            if(originalCommentEvent.id !== lastUpdatedEvent.id) {
-                //if there is not already an entry for the event
-                if(!comments[lastUpdatedEvent.id]) {
-                    //add a new entry using the new event id
-                    comments[lastUpdatedEvent.id] = [];
-                }
-
-                //copy the comments over
-                for(let i = 0;i < comments[originalCommentEvent.id].length;i++) {
-                    const comment = comments[originalCommentEvent.id][i];
-                    //update the event associated with the comment
-                    comment.displayCommentEventId = lastUpdatedEvent.id;
-                    comment.displayCommentEventSequenceNumber = lastUpdatedEvent.eventSequenceNumber;
-                    //get the position in the new array (non-zero if adding to an existing array of comments)
-                    comment.position = comments[lastUpdatedEvent.id].length;
-                    //add the new comment 
-                    comments[lastUpdatedEvent.id].push(comment);
-                }
-                //get rid of the old array of comments
-                delete comments[originalCommentEvent.id];
-            }
-        } //else- it is the end of a playback without a comment
+    addToUpdatedEvents(event, updatedEvents) {
+        //update the event sequence number
+        event.eventSequenceNumber = updatedEvents.length;
+        
+        //add the event to the updated events
+        updatedEvents.push(event);
     }
 
     /*
-     * Returns a modified events array with only events that contribute to the
-     * code between the start/end tag combinations. The events are played out in
-     * order as they were written by the programmer but any insert/create that was
-     * added and then removed between the start and end tags are removed. 
+     * This method is used to remove events that were added and then removed between
+     * comments. The events are played out in order as they were written by the programmer.
      */
-    editBetweenTags(originalEvents, comments, startTag, endTag) {
-        //holds the insert events of all the files during playback
-        const allFiles = {};
+    editEventsOriginalOrder(startPos, endPos, originalEvents, updatedEvents, allFiles) {
+        //get the deleted inserts/files/dirs in this range, these will be ignored
+        let deletedInsertsFilesDirs = this.collectDeletedInsertsFilesDirs(startPos, endPos, originalEvents);
 
-        //an updated list of events with edits
-        const updatedEvents = [];
-
-        //hold the ids of the inserts/files/dirs that were created and deleted in the current range,
-        //init to none
-        let deletedInsertsFilesDirs = this.clearDeletedInsertsFilesDirs();
-        
-        //updated event sequence number
-        let updatedEventSequenceNumber = 0;
-
-        //go through all of the events
-        for(let i = 0;i < originalEvents.length;i++) {
+        //go through the events
+        for (let i = startPos; i <= endPos; i++) {
             const event = originalEvents[i];
-            
-            //see if the start tag is in a comment at this event
-            if(this.isTagInComment(event, startTag, comments)) {
-                //get the inserts/create file/create dirs that were deleted in this range
-                deletedInsertsFilesDirs = this.collectDeletedInsertsFilesDirs(i, endTag, originalEvents, comments);
-            }
-    
+
             //check the event type
-            if(event.type === 'INSERT') {
+            if (event.type === 'INSERT') {
                 //if this is an insert that is deleted in the range OR
                 //this is an insert in a file created and deleted in the range
-                if(event.id in deletedInsertsFilesDirs.deletedInsertIds || 
-                   event.fileId in deletedInsertsFilesDirs.deletedFileIds) {
+                if (event.id in deletedInsertsFilesDirs.deletedInsertIds ||
+                    event.fileId in deletedInsertsFilesDirs.deletedFileIds) {
                     //mark the event as one that should be ignored (this event will not be added to the updated events)
                     event.ignore = true;
                     //add the insert to the file
-                    this.addInsertEvent(event, allFiles);  
-    
-                    //if there are comments on this ignored event then move them
-                    this.updateCommentPosition(event, updatedEvents, comments);
+                    this.addInsertEvent(event, allFiles);
                 } else { //this event will survive the filtering
                     //add the event to the updated events and modify any comments
-                    this.addToUpdatedEvents(event, updatedEvents, updatedEventSequenceNumber, comments);
-                    updatedEventSequenceNumber++;
+                    this.addToUpdatedEvents(event, updatedEvents);
 
                     //add the event to the file
-                    this.addInsertEvent(event, allFiles);  
+                    this.addInsertEvent(event, allFiles);
                     //update the insert event with the correct line number, column, and prev neighbor
-                    this.updateInsertEvent(event, allFiles[event.fileId]);    
+                    this.updateInsertEvent(event, allFiles[event.fileId]);
                 }
-            } else if(event.type === 'DELETE') {
+            } else if (event.type === 'DELETE') {
                 //if this is a delete of an insert in this range OR
                 //this is a delete in a file created and deleted in the range
-                if(event.id in deletedInsertsFilesDirs.deleteEventIds || 
-                   event.fileId in deletedInsertsFilesDirs.deletedFileIds) {
-                    //don't add the delete to the updated events
+                if (event.id in deletedInsertsFilesDirs.deleteEventIds ||
+                    event.fileId in deletedInsertsFilesDirs.deletedFileIds) {
+                    //remove an insert from the file but don't add the delete to 
+                    //the updated events or change its line number and column
+                    this.addDeleteEvent(event, allFiles);
+                } else { //this event will survive the filtering
+                    this.addToUpdatedEvents(event, updatedEvents);
 
-                    //if there are comments on this ignored event then move them
-                    this.updateCommentPosition(event, updatedEvents, comments);
-                } else { //this event will survive the filtering
-                    this.addToUpdatedEvents(event, updatedEvents, updatedEventSequenceNumber, comments);
-                    updatedEventSequenceNumber++;
-                } 
-                //remove an insert from the file
-                this.addDeleteEvent(event, allFiles);
-                //update the delete event with the correct line number and column
-                this.updateDeleteEvent(event, allFiles[event.fileId]);    
-            } else if(event.type === 'CREATE FILE') {
-                //if this is a file created and deleted in the range
-                if(event.fileId in deletedInsertsFilesDirs.deletedFileIds) {
-                    //if there are comments on this ignored event then move them
-                    this.updateCommentPosition(event, updatedEvents, comments);
-                } else { //this event will survive the filtering
-                    this.addToUpdatedEvents(event, updatedEvents, updatedEventSequenceNumber, comments);
-                    updatedEventSequenceNumber++;
+                    //remove an insert from the file
+                    this.addDeleteEvent(event, allFiles);
+                    //update the delete event with the correct line number and column
+                    this.updateDeleteEvent(event, allFiles[event.fileId]);
                 }
-            } else if(event.type === 'DELETE FILE') {
-                //if this is a file delete of a file created and deleted in the range
-                if(event.id in deletedInsertsFilesDirs.deleteFileEventIds) {
-                    //if there are comments on this ignored event then move them
-                    this.updateCommentPosition(event, updatedEvents, comments);
-                } else { //this event will survive the filtering
-                    this.addToUpdatedEvents(event, updatedEvents, updatedEventSequenceNumber, comments);
-                    updatedEventSequenceNumber++;
+            } else if (event.type === 'CREATE FILE') {
+                //if this event is NOT being deleted in the range
+                if (!(event.fileId in deletedInsertsFilesDirs.deletedFileIds ||
+                    event.parentDirectoryId in deletedInsertsFilesDirs.deletedDirIds)) {
+                    this.addToUpdatedEvents(event, updatedEvents);
                 }
-            } else if(event.type === 'CREATE DIRECTORY') {
-                //if this is a dir created and deleted in the range
-                if(event.directoryId in deletedInsertsFilesDirs.deletedDirIds) {
-                    //if there are comments on this ignored event then move them
-                    this.updateCommentPosition(event, updatedEvents, comments);
-                } else { //this event will survive the filtering
-                    this.addToUpdatedEvents(event, updatedEvents, updatedEventSequenceNumber, comments);
-                    updatedEventSequenceNumber++;
+            } else if (event.type === 'DELETE FILE') {
+                //if this event is NOT being deleted in the range
+                if (!(event.id in deletedInsertsFilesDirs.deleteFileEventIds)) {
+                    this.addToUpdatedEvents(event, updatedEvents);
                 }
-            } else if(event.type === 'DELETE DIRECTORY') {
-                //if this is a dir delete of a dir created and deleted in the range
-                if(event.id in deletedInsertsFilesDirs.deleteDirEventIds) {
-                    //if there are comments on this ignored event then move them
-                    this.updateCommentPosition(event, updatedEvents, comments);
-                } else { //this event will survive the filtering
-                    this.addToUpdatedEvents(event, updatedEvents, updatedEventSequenceNumber, comments);
-                    updatedEventSequenceNumber++;
+            } else if (event.type === 'CREATE DIRECTORY') {
+                //if this event is NOT being deleted in the range
+                if (!(event.directoryId in deletedInsertsFilesDirs.deletedDirIds)) {
+                    this.addToUpdatedEvents(event, updatedEvents);
+                }
+            } else if (event.type === 'DELETE DIRECTORY') {
+                //if this event is NOT being deleted in the range
+                if (!(event.id in deletedInsertsFilesDirs.deleteDirEventIds)) {
+                    this.addToUpdatedEvents(event, updatedEvents);
                 }
             } else { //other file/dir event (RENAME FILE, RENAME DIR, etc.)
-                this.addToUpdatedEvents(event, updatedEvents, updatedEventSequenceNumber, comments);
-                updatedEventSequenceNumber++;
-            }
-
-            //see if the end tag is in a comment at this event
-            if(this.isTagInComment(event, endTag, comments)) {
-                //clear out the deleted inserts/files/dirs
-                deletedInsertsFilesDirs = this.clearDeletedInsertsFilesDirs();
+                this.addToUpdatedEvents(event, updatedEvents);
             }
         }
-
-        //return the filtered and edited events
-        return updatedEvents;
     }
-
-    /*
-     * Returns true if the tag is in a comment at the event.
-     */
-    isTagInComment(event, tag, comments) {
-        let retVal = false;
-
-        //if there is at least one comment at this event 
-        if(comments[event.id]) {
-            //check all of the comments at this point for a tag
-            for(const comment of comments[event.id]) {
-                //if this is the beginning of an edit range
-                if(comment.commentTags.includes(tag)) {
-                    retVal = true;
-                    break;
-                }
-            }
-        }
-        return retVal;
-    }
-
+    
     /*
      * Returns the ids of the inserts/files/dirs that were created and deleted in the current range.
      */
-    collectDeletedInsertsFilesDirs(startPos, endTag, originalEvents, comments) {
+    collectDeletedInsertsFilesDirs(startPos, endPos, originalEvents) {
         //data about insert/delete events, files, and dirs
         const retVal = {
             deleteEventIds: {},
@@ -571,8 +534,8 @@ class PerfectProgrammerHelper {
         const newFileIds = {};
         const newDirIds = {};
 
-        //move through the original events from startPos until the end tag is found
-        for(let i = startPos;i < originalEvents.length;i++) {
+        //move through the events in the range
+        for(let i = startPos;i <= endPos;i++) {
             const event = originalEvents[i];
 
             if(event.type === 'INSERT') {
@@ -601,57 +564,10 @@ class PerfectProgrammerHelper {
                     retVal.deleteDirEventIds[event.id] = event.id;
                 }
             }
-
-            //if there is at least one comment at this event 
-            if(comments[event.id]) {
-                for(const comment of comments[event.id]) {
-                    //if this is the end tag
-                    if(comment.commentTags.includes(endTag)) {
-                        //return the captured data
-                        return retVal;
-                    }
-                }
-            }
         }
 
-        //if the flow gets here then there was no end tag, return an empty object
-        return this.clearDeletedInsertsFilesDirs();
+        return retVal;
     }
-
-    /*
-     * Returns an object with empty sub-objects for the deleted inserts/files/dirs.
-     */
-    clearDeletedInsertsFilesDirs() {
-        return {
-            deleteEventIds: {},
-            deletedInsertIds: {},
-            deleteFileEventIds: {},
-            deletedFileIds: {},
-            deleteDirEventIds: {},
-            deletedDirIds: {}
-        };
-    }
-
-    /*
-     * Used for adding an original event to the array of updated events and updating 
-     * the comments with the correct event sequence number.
-     */
-    addToUpdatedEvents(event, updatedEvents, updatedEventSequenceNumber, comments) {
-        //update the event sequence number
-        event.eventSequenceNumber = updatedEventSequenceNumber;
-        
-        //add the event to the updated events
-        updatedEvents.push(event);
-
-        //if there are comments at this event
-        if(comments[event.id]) {
-            //go through each comment and update its event sequence number
-            for(const comment of comments[event.id]) {
-                comment.displayCommentEventSequenceNumber = updatedEventSequenceNumber;
-            }
-        }
-    }
-
     /*
      * Used to update an insert event with the correct line number, column, and 
      * previous neighbor id based on the fact that the inserts that were added and 

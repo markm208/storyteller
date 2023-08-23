@@ -50,13 +50,13 @@ class CodeDownloader {
     let retVal = false;
     const file = this.playbackEngine.editorState.allFiles[fileId];
     //check to see if the file is deleted
-    if(file.isDeleted === 'true') {
+    if(file.isDeleted === true) {
       retVal = true;
     } else { 
       //check to see if any parent dir has been deleted
       let parentDir = this.playbackEngine.editorState.allDirectories[file.parentDirectoryId];
       while(parentDir) {
-        if(parentDir.isDeleted === 'true') {
+        if(parentDir.isDeleted === true) {
           retVal = true;
           break;
         }
@@ -71,13 +71,13 @@ class CodeDownloader {
     let retVal = false;
     const dir = this.playbackEngine.editorState.allDirectories[dirId];
     //check to see if the dir is deleted
-    if(dir.isDeleted === 'true') {
+    if(dir.isDeleted === true) {
       retVal = true;
     } else { 
       //check to see if any parent dir has been deleted
       let parentDir = this.playbackEngine.editorState.allDirectories[dir.parentDirectoryId];
       while(parentDir) {
-        if(parentDir.isDeleted === 'true') {
+        if(parentDir.isDeleted === true) {
           retVal = true;
           break;
         }

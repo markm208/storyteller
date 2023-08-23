@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 /*
  * This class represents a file being tracked in a storyteller project. 
  * It has a 2D array of minimal text events (event id and character). 
@@ -7,13 +9,11 @@
  */
 class File {
     constructor(parentDirectoryId, currentPath, textFileInsertEvents, isDeleted, id) {        
-        this.id = id;
+        this.id = (id || crypto.randomUUID());
         this.parentDirectoryId = parentDirectoryId;
         this.currentPath = currentPath;
         this.textFileInsertEvents = textFileInsertEvents; //stored in db as FileEvents
         this.isDeleted = isDeleted;
-        //has a file changed since being read in from the db (not stored in db)
-        this.hasBeenModified = false; 
     }
 
     /*
@@ -37,9 +37,6 @@ class File {
      * the file. 
      */
     addInsertEventByPos(eventId, eventCharacter, row, col) {
-        //this file has been changed in the current session
-        this.hasBeenModified = true;
-
         //verify that the new insert is within the bounds of the file (check max column below)
         if(row >= 0 && row <= this.textFileInsertEvents.length && col >= 0 ) {
             //create a minimal insert event from the full event
@@ -90,9 +87,6 @@ class File {
      * deleted.
      */
     removeInsertEventByPos(row, col) {
-        //this file has been changed in the current session
-        this.hasBeenModified = true;
-
         //make sure the request is within the bounds
         if(row >= 0 && row < this.textFileInsertEvents.length && col >= 0 && col < this.textFileInsertEvents[row].length) {
             //if we are removing a newline character

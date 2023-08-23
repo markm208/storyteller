@@ -1,11 +1,12 @@
+const crypto = require('crypto');
+
 /*
  * Every developer group has an id and list of member dev ids.
  */
 class DeveloperGroup {
-    constructor(memberIds, isActiveDeveloperGroup, id) {
-        this.id = id;
+    constructor(memberIds, id) {
+        this.id = (id || crypto.randomUUID());
         this.memberIds = memberIds;
-        this.isActiveDeveloperGroup = isActiveDeveloperGroup;
     }
 
     /*
@@ -60,11 +61,9 @@ class DeveloperGroup {
         //can be exactly equal
         if(allDeveloperIds.length === this.memberIds.length) {
             //find the dev ids who are in the member ids 
-            const presentDevIds = allDeveloperIds.filter(candidateDevId => {
+            return allDeveloperIds.every(candidateDevId => {
                 return this.memberIds.includes(candidateDevId);
             });
-            //if the number present is the same as the number of members
-            retVal = presentDevIds.length === allDeveloperIds.length;
         }
 
         return retVal;

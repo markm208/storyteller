@@ -76,11 +76,6 @@
                 "category": "Storyteller"
             },
             {
-                "command": "storyteller.createProjectFromJSFile",
-                "title": "Create a Project from a Downloaded Playback",
-                "category": "Storyteller"
-            },
-            {
                 "command": "storyteller.previewPerfectProgrammer",
                 "title": "Preview Playback at Comments Only",
                 "category": "Storyteller"
@@ -88,16 +83,6 @@
             {
                 "command": "storyteller.replaceWithPerfectProgrammer",
                 "title": "Replace the Current History at Comments Only",
-                "category": "Storyteller"
-            },
-            {
-                "command": "storyteller.previewPerfectProgrammerBetweenTags",
-                "title": "Preview Playback Between Tags",
-                "category": "Storyteller"
-            },
-            {
-                "command": "storyteller.replaceWithPerfectProgrammerBetweenTags",
-                "title": "Replace the Current History Between Tags",
                 "category": "Storyteller"
             }
         ]
@@ -124,7 +109,6 @@
         "express": "^4.17.1",
         "express-fileupload": "^1.1.7-alpha.3",
         "jszip": "^3.5.0",
-        "md5": "^2.3.0",
-        "sqlite3": "^5.1.6"
+        "md5": "^2.3.0"
     }
 }

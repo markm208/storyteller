@@ -105,7 +105,7 @@ class FileSystemNavigator extends HTMLElement {
     //find the root directory and store it for later updates
     for(let dirId in this.playbackEngine.editorState.allDirectories) {
       const directory = this.playbackEngine.editorState.allDirectories[dirId];
-      if(directory.parentDirectoryId === -1) {
+      if(directory.parentDirectoryId === 'none') {
         this.root = directory;
         break;
       }
@@ -135,7 +135,7 @@ class FileSystemNavigator extends HTMLElement {
   }
 
   renderHelper(aDirectory, aList, changedFileIds) {
-    if(aDirectory.isDeleted === 'false') {
+    if(aDirectory.isDeleted === false) {
       //get the name of the directory
       const directory = this.playbackEngine.editorState.allDirectories[aDirectory.directoryId];
       const indexOfLastSlash = directory.directoryPath.lastIndexOf("/", directory.directoryPath.length - 2);
@@ -170,7 +170,7 @@ class FileSystemNavigator extends HTMLElement {
         //get the file from the collection of all files
         const file = this.playbackEngine.editorState.allFiles[fileId];
 
-        if(file.isDeleted === 'false') {
+        if(file.isDeleted === false) {
           //get the file name
           const indexOfLastSlash = file.filePath.lastIndexOf("/");
           let fileName = file.filePath.substring(indexOfLastSlash + 1);
@@ -225,7 +225,7 @@ class FileSystemNavigator extends HTMLElement {
 
   handleFileClick = (event) => {
     let fileId = event.target.getAttribute('id').substring('id-'.length);
-    fileId = parseInt(fileId);
+    fileId = fileId;
     this.sendActiveFileEvent(fileId);
   }
 

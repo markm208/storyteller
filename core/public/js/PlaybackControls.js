@@ -54,7 +54,7 @@ class PlaybackControls extends HTMLElement {
         }
       </style>
 
-      <button id="goToNextCommentButton" type="button" class="playbackButton" title="Go to the next comment">
+      <button id="goToNextCommentButton" type="button" class="playbackButton" title="Go to the next comment (Shift + Right Arrow)">
         <!-- icon url: https://icons.getbootstrap.com/icons/skip-forward-circle-fill/ -->
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-skip-forward-circle" viewBox="0 0 16 16">
           <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>

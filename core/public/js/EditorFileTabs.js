@@ -120,12 +120,12 @@ class EditorFileTabs extends HTMLElement {
     let retVal = false;
     const file = this.playbackEngine.editorState.allFiles[fileId];
     //check to see if the file is deleted
-    if(file.isDeleted === 'true') {
+    if(file.isDeleted === true) {
       retVal = true;
     } else { //check to see if any parent dir has been deleted
       let parentDir = this.playbackEngine.editorState.allDirectories[file.parentDirectoryId];
       while(parentDir) {
-        if(parentDir.isDeleted === 'true') {
+        if(parentDir.isDeleted === true) {
           retVal = true;
           break;
         }
@@ -139,7 +139,6 @@ class EditorFileTabs extends HTMLElement {
   
   handleFileTabClick = (event) => {
     let fileId = event.target.getAttribute('id').substring('id-'.length);
-    fileId = parseInt(fileId);
     this.sendEventActiveFile(fileId);
   }
 

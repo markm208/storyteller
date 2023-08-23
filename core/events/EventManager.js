@@ -6,33 +6,17 @@ const crypto = require('crypto');
  * The events are:
  * - keystrokes (inserts and deletes) 
  * - file and directory operations (create, delete, move, and rename)
- * and are all stored in the database.
  */ 
 class EventManager {
-    constructor(db) {
-        this.db = db;
+    constructor() {
         //the total number of events that have been created
         //used for event sequence numbers
         this.numberOfEvents = 0;
-    }
-
-    init(isNewProject) {
-        return new Promise(async (resolve, reject) => {            
-            try {
-                if(isNewProject === false) { //existing project
-                    //get the total number of events
-                    this.numberOfEvents = await this.db.getNumberOfEvents();
-                }
-                resolve();
-            } catch(ex) {
-                console.error(ex);
-                reject();
-            }
-        });
+        this.unwrittenEvents = [];
     }
     
-    getAllEvents() {
-        return this.db.getAllEvents();
+    load(numberOfEvents) {
+        this.numberOfEvents = numberOfEvents;
     }
 
     /*
@@ -71,8 +55,7 @@ class EventManager {
         createFileEvent['filePath'] = fileObj.currentPath
         createFileEvent['parentDirectoryId'] = fileObj.parentDirectoryId;
 
-        //add the new event to the db
-        return this.db.runInsertFromObject('Event', createFileEvent);
+        this.unwrittenEvents.push(createFileEvent);
     }
     
     /*
@@ -88,8 +71,7 @@ class EventManager {
         deleteFileEvent['filePath'] = fileObj.currentPath
         deleteFileEvent['parentDirectoryId'] = fileObj.parentDirectoryId;
 
-        //add the new event to the db
-        return this.db.runInsertFromObject('Event', deleteFileEvent);
+        this.unwrittenEvents.push(deleteFileEvent);
     }
     
     /*
@@ -107,8 +89,7 @@ class EventManager {
         moveFileEvent['newFilePath'] = newFilePath;
         moveFileEvent['oldFilePath'] = oldFilePath;
 
-        //add the new event to the db
-        return this.db.runInsertFromObject('Event', moveFileEvent);
+        this.unwrittenEvents.push(moveFileEvent);
     }
     
     /*
@@ -125,8 +106,7 @@ class EventManager {
         renameFileEvent['newFilePath'] = newFilePath;
         renameFileEvent['oldFilePath'] = oldFilePath;
         
-        //add the new event to the db
-        return this.db.runInsertFromObject('Event', renameFileEvent);
+        this.unwrittenEvents.push(renameFileEvent);
     }
     
     /*
@@ -142,8 +122,7 @@ class EventManager {
         createDirectoryEvent['directoryPath'] = dirObj.currentPath
         createDirectoryEvent['parentDirectoryId'] = dirObj.parentDirectoryId;
 
-        //add the new event to the db
-        return this.db.runInsertFromObject('Event', createDirectoryEvent);
+        this.unwrittenEvents.push(createDirectoryEvent);
     }
     
     /*
@@ -159,8 +138,7 @@ class EventManager {
         deleteDirectoryEvent['directoryPath'] = dirObj.currentPath
         deleteDirectoryEvent['parentDirectoryId'] = dirObj.parentDirectoryId;
 
-        //add the new event to the db
-        return this.db.runInsertFromObject('Event', deleteDirectoryEvent);
+        this.unwrittenEvents.push(deleteDirectoryEvent);
     }
     
     /*
@@ -178,8 +156,7 @@ class EventManager {
         moveDirectoryEvent['newDirectoryPath'] = newDirectoryPath;
         moveDirectoryEvent['oldDirectoryPath'] = oldDirectoryPath;
 
-        //add the new event to the db
-        return this.db.runInsertFromObject('Event', moveDirectoryEvent);
+        this.unwrittenEvents.push(moveDirectoryEvent);
     }
     
     /*
@@ -196,8 +173,7 @@ class EventManager {
         renameDirectoryEvent['newDirectoryPath'] = newDirPath;
         renameDirectoryEvent['oldDirectoryPath'] = oldDirPath;
 
-        //add the new event to the db
-        return this.db.runInsertFromObject('Event', renameDirectoryEvent);
+        this.unwrittenEvents.push(renameDirectoryEvent);
     }
 
     /*
@@ -205,9 +181,6 @@ class EventManager {
      */
     insertTextEvents(file, timestamp, createdByDevGroupId, branchId, insertedText, row, col, pastedInsertEventIds, isRelevant=true) {
         try {
-            //the new events to add to the db
-            const newEvents = [];
-            
             //go through each new character being inserted
             for(let i = 0;i < insertedText.length;i++) {
                 //the next character to insert
@@ -246,8 +219,7 @@ class EventManager {
                 insertTextEvent['column'] = col + 1;
                 insertTextEvent['pastedEventId'] = pastedEventId;
 
-                //add the event to the array of new events
-                newEvents.push(insertTextEvent);
+                this.unwrittenEvents.push(insertTextEvent);
 
                 //insert the character in the text file state
                 file.addInsertEventByPos(insertTextEvent.id, insertTextEvent.character, row, col);
@@ -264,11 +236,9 @@ class EventManager {
                     col++;
                 }
             }
-            //add the new events to the db
-            return this.db.addInsertEvents(newEvents);
         } catch(ex) {
             console.log(`Error on insertTextEvents`);
-            console.log(`file: ${file}, timestamp: ${timestamp}, createdByDevGroupId: ${createdByDevGroupId}, branchId: ${branchId}, insertedText: ${insertedText}, row: ${row}, col: ${col}, pastedInsertEventIds: ${pastedInsertEventIds}`);
+            console.log(`file: ${file.currentPath}, timestamp: ${timestamp}, createdByDevGroupId: ${createdByDevGroupId}, branchId: ${branchId}, insertedText: ${insertedText}, row: ${row}, col: ${col}, pastedInsertEventIds: ${pastedInsertEventIds}`);
         }
     }
     
@@ -277,9 +247,6 @@ class EventManager {
      */
     insertDeleteEvents(file, timestamp, createdByDevGroupId, branchId, row, col, numElementsToDelete) {
         try {
-            //the new events to add to the db
-            const newEvents = [];
-            
             //go through each new character being deleted
             for(let i = 0;i < numElementsToDelete;i++) {
                 //create core event
@@ -304,17 +271,14 @@ class EventManager {
                 deleteTextEvent['lineNumber'] = row + 1;
                 deleteTextEvent['column'] = col + 1;
                 
-                //add the event to the array of new events
-                newEvents.push(deleteTextEvent);
+                this.unwrittenEvents.push(deleteTextEvent);
 
                 //remove the event in the text file state
                 file.removeInsertEventByPos(row, col);
             }
-            //add the new events to the db (and update inserts that were deleted)
-            return this.db.addDeleteEvents(newEvents);
         } catch(ex) {
             console.log(`Error on insertDeleteEvents`);
-            console.log(`file: ${file}, timestamp: ${timestamp}, createdByDevGroupId: ${createdByDevGroupId}, branchId: ${branchId}, row: ${row}, col: ${col}, numElementsToDelete: ${numElementsToDelete}`);
+            console.log(`file: ${file.currentPath}, timestamp: ${timestamp}, createdByDevGroupId: ${createdByDevGroupId}, branchId: ${branchId}, row: ${row}, col: ${col}, numElementsToDelete: ${numElementsToDelete}`);
         }
     }   
 }
