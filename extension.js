@@ -68,7 +68,7 @@ function activate(context) {
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.zipViewablePlayback', zipViewablePlayback));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.previewPerfectProgrammer', previewPerfectProgrammer));
     extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.replaceWithPerfectProgrammer', replaceWithPerfectProgrammer));
-
+    extensionContext.subscriptions.push(vscode.commands.registerCommand('storyteller.playbackSelectedText', getCompleteHistoryOfSelectedText));
     //use this for storing state of files:
     //https://code.visualstudio.com/api/references/vscode-api#ExtensionContext.workspaceState
     
@@ -1070,7 +1070,7 @@ function handleTextEditorChange(event) {
  */
 function overriddenClipboardCopyAction(textEditor, edit, params) {
     //use the selected text that is being copied here
-    getCurrentSelectionEvents();
+    saveSelectedTextToClipboard();
 
     //dispose of the overridden editor.action.clipboardCopyAction- back to default copy behavior
     clipboardCopyDisposable.dispose();
@@ -1092,7 +1092,7 @@ function overriddenClipboardCopyAction(textEditor, edit, params) {
  */
 function overriddenClipboardCutAction(textEditor, edit, params) {
     //use the selected text that is being cut here
-    getCurrentSelectionEvents();
+    saveSelectedTextToClipboard();
 
     //dispose of the overridden editor.action.clipboardCutAction- back to default cut behavior
     clipboardCutDisposable.dispose();
@@ -1135,6 +1135,8 @@ function overriddenClipboardPasteAction(textEditor, edit, params) {
  * clipboard.
  */
 function getCurrentSelectionEvents() {
+    let selectedEvents = [];
+
     //get the active editor
     const editor = vscode.window.activeTextEditor;
 
@@ -1151,23 +1153,40 @@ function getCurrentSelectionEvents() {
                 const filePath = projectManager.pathHelper.normalizeFilePath(editor.document.fileName);
                 const file = projectManager.fileSystemManager.getFileInfoFromFilePath(filePath);
                 //get the storyteller events associated with the selected text
-                const selectedEvents = file.getInsertEventsByPos(selection.start.line, selection.start.character, selection.end.line, selection.end.character);
-                
-                //clear out any old data
-                clipboardData.text = "";
-                clipboardData.eventIds = [];
-
-                //go through the selected events
-                for(let j = 0;j < selectedEvents.length;j++) {
-                    //append the individual selected characters to the clipboard data
-                    clipboardData.text = clipboardData.text + selectedEvents[j].character;
-                    
-                    //add the event id to the clipboard data
-                    clipboardData.eventIds.push(selectedEvents[j].eventId);
-                }
+                selectedEvents = file.getInsertEventsByPos(selection.start.line, selection.start.character, selection.end.line, selection.end.character);
             }
         }
     }
+    return selectedEvents;
+}
+/*
+ *
+ */
+function saveSelectedTextToClipboard() {
+    //get the storyteller events associated with the selected text
+    const selectedEvents = getCurrentSelectionEvents();
+                
+    //clear out any old data
+    clipboardData.text = "";
+    clipboardData.eventIds = [];
+
+    //go through the selected events
+    for(let j = 0;j < selectedEvents.length;j++) {
+        //append the individual selected characters to the clipboard data
+        clipboardData.text = clipboardData.text + selectedEvents[j].character;
+        
+        //add the event id to the clipboard data
+        clipboardData.eventIds.push(selectedEvents[j].eventId);
+    }
+}
+/*
+ *
+ */
+function getCompleteHistoryOfSelectedText() {
+    //get the storyteller events associated with the selected text
+    const selectedEvents = getCurrentSelectionEvents();
+    projectManager.setNextPlaybackSelectedText(selectedEvents);
+    startPlayback(false);
 }
 /*
  * Used to create a zip file of a project. These can be shared with others
@@ -1385,7 +1404,7 @@ async function previewPerfectProgrammer() {
     const perfectProgrammerOption = await vscode.window.showQuickPick(options, {placeHolder: `Use 'perfect programmer' reordering?`});
 
     //create a playback with all insert/delete pairs within two comments removed
-    projectManager.setNextPlaybackPerfectProgrammer({type: 'betweenComments', usePerfectProgrammerStyle: perfectProgrammerOption === options[0] ? true : false});
+    projectManager.setNextPlaybackPerfectProgrammer(perfectProgrammerOption === options[0] ? true : false);
     startPlayback(false);
 }
 

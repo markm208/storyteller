@@ -582,12 +582,26 @@ class ProjectManager {
                 const updatedEventsAndComments = pph.editBetweenComments(playbackEvents, playbackComments, this.playbackConstraints.usePerfectProgrammerStyle);
                 playbackEvents = updatedEventsAndComments.updatedEvents;
                 playbackComments = updatedEventsAndComments.updatedComments;
-            } 
+
+                //'perfect programmer' preview playbacks can't be edited
+                makeEditable = false;
+            } else if(this.playbackConstraints.type === 'selectedText') {
+                //go through all of the events and mark the ones that are not relevant
+                for(const event of playbackEvents) {
+                    //if this event has NOT already been filtered out 
+                    if(event.permanentRelevance !== 'never relevant') {
+                        //if this event is not relevant
+                        if(!this.playbackConstraints.relevantIds.has(event.id)) {
+                            //mark the event with a temporary attribute as filtered out
+                            event.relevance = 'filtered out';
+                        }
+                    }
+                }
+                //'selected text' preview playbacks can be edited
+                makeEditable = true;
+            }
             //future playbacks will be normal
             this.playbackConstraints = null;
-            
-            //'perfect programmer' preview playbacks can't be edited
-            makeEditable = false;
         }
 
         //create the js function that loads the playback data
@@ -757,9 +771,51 @@ function loadPlaybackData(playbackData) {
         return func;
     }
 
-    setNextPlaybackPerfectProgrammer(constraints) {
-        //set the next playback to be a preview of perfect programmer
-        this.playbackConstraints = constraints;
+    setNextPlaybackPerfectProgrammer(isPerfectProgrammer) {
+        this.playbackConstraints = {
+            type: 'betweenComments', 
+            usePerfectProgrammerStyle: isPerfectProgrammer
+        };
+    }
+
+    setNextPlaybackSelectedText(selectedEvents) {
+        const relevantIds = this.filterBySelectedText(selectedEvents);
+        this.playbackConstraints = {
+            type: 'selectedText',
+            relevantIds: relevantIds
+        };
+    }
+
+    filterBySelectedText(selectedEvents) {
+        //ids of all the events that will get played out
+        const idsOfRelevantInsertsAndDeletes = new Set();
+
+        //if there are any selected events
+        if(selectedEvents.length > 0) {
+            //add all of the ids of the selected text 
+            for(let i = 0;i < selectedEvents.length;i++) {
+                idsOfRelevantInsertsAndDeletes.add(selectedEvents[i].eventId);
+            }
+            //used to prevent previous neighbors of the last event from being added
+            const lastEvent = selectedEvents[selectedEvents.length - 1];
+            
+            //get all of the events and find the ones that should be played back
+            const allEvents = this.getAllEvents();
+            for(const event of allEvents) {
+                if(event.type === 'INSERT' || event.type === 'DELETE') {
+                    //if this not backing up to the last event AND is an insert/delete that backs up to a relevant event
+                    if(event.previousNeighborId !== lastEvent.eventId &&
+                       idsOfRelevantInsertsAndDeletes.has(event.previousNeighborId)) {
+                        //add this event as a relevant event
+                        idsOfRelevantInsertsAndDeletes.add(event.id);
+                    }
+                }
+            }
+            //now add the last selected character
+            idsOfRelevantInsertsAndDeletes.add(selectedEvents[selectedEvents.length - 1].eventId);
+        }
+    
+        return idsOfRelevantInsertsAndDeletes;        
     }
 
     debugPrint(textFileInsertEvents) {

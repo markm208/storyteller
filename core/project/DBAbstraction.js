@@ -262,10 +262,6 @@ class DBAbstraction {
         //make sure the file exists before attempting to delete it
         if(fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
-            console.log(`Delete attempt: successfully removed the file ${filePath}.`);
-
-        } else {
-            console.log(`Delete attempt: the file ${filePath} does not exist.`);
         }
     }
 }

@@ -84,6 +84,11 @@
                 "command": "storyteller.replaceWithPerfectProgrammer",
                 "title": "Replace the Current History at Comments Only",
                 "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.playbackSelectedText",
+                "title": "Playback Complete History of Selected Text",
+                "category": "Storyteller"
             }
         ]
     },

@@ -69,7 +69,6 @@ class CommentManager {
      * Deletes a comment.
      */
     deleteComment(commentData) {
-        console.log('deleteComment attempt');
         //if the array of comments exists for the specified event 
         if(this.comments[commentData.displayCommentEventId]) {
             //get the array of comments for the event

@@ -127,6 +127,12 @@ class PlaybackEngine {
         //playback the event
         currentEvent = this.playbackData.events[this.currentEventIndex];
         this.handleEvent(currentEvent);
+
+        //if this event is not filtered
+        if(currentEvent.relevance === "filtered out") {
+          //if this event is not relevant do not count it as a complete step
+          stepNumber--;
+        }
       }
       //store the active developer group
       this.changeActiveDeveloperGroupId(currentEvent.createdByDevGroupId);
@@ -170,6 +176,12 @@ class PlaybackEngine {
         currentEvent = this.playbackData.events[this.currentEventIndex];
         this.handleEventBackward(currentEvent);
 
+        //if this event is not filtered
+        if(currentEvent.relevance === "filtered out") {
+          //if this event is not relevant do not count it as a complete step
+          stepNumber--;
+        }
+        
         //move backward after handling event
         this.currentEventIndex--;
       }
