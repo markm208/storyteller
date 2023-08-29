@@ -37,9 +37,9 @@ const clipboardData = {
 };
 
 //disposables for overriding cut/copy/paste functionality
-let clipboardCopyDisposable; 
-let clipboardCutDisposable; 
-let clipboardPasteDisposable; 
+// let clipboardCopyDisposable; 
+// let clipboardCutDisposable; 
+// let clipboardPasteDisposable; 
 
 //storyteller status bar
 let storytellerStatusBarItem = null;
@@ -151,9 +151,9 @@ function stopStoryteller() {
         isStorytellerCurrentlyActive = false;
 
         //clean up the cut/copy and paste disposables
-        clipboardCopyDisposable.dispose();
-        clipboardCutDisposable.dispose();
-        clipboardPasteDisposable.dispose();
+        // clipboardCopyDisposable.dispose();
+        // clipboardCutDisposable.dispose();
+        // clipboardPasteDisposable.dispose();
     } else { //there is no open workspace
         //tell the user they need to open a workspace in order to use Storyteller
         promptInformingAboutUsingStoryteller(false);
@@ -253,16 +253,16 @@ function turnOnFSWatcherAndTextHandler() {
     
     //cut/copy/paste overides
     //override the editor.action.clipboardCopyAction with our own
-    clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction); 
-    extensionContext.subscriptions.push(clipboardCopyDisposable);
+    // clipboardCopyDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCopyAction', overriddenClipboardCopyAction); 
+    // extensionContext.subscriptions.push(clipboardCopyDisposable);
 
     //override the editor.action.clipboardCutAction with our own
-    clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction); 
-    extensionContext.subscriptions.push(clipboardCutDisposable);
+    // clipboardCutDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardCutAction', overriddenClipboardCutAction); 
+    // extensionContext.subscriptions.push(clipboardCutDisposable);
 
     //override the editor.action.clipboardPasteAction with our own
-    clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction); 
-    extensionContext.subscriptions.push(clipboardPasteDisposable);
+    // clipboardPasteDisposable = vscode.commands.registerTextEditorCommand('editor.action.clipboardPasteAction', overriddenClipboardPasteAction); 
+    // extensionContext.subscriptions.push(clipboardPasteDisposable);
 }
 /* 
  * This function creates the storyteller status button (if it doesn't already exist) 
