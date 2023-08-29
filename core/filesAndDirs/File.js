@@ -232,8 +232,10 @@ class File {
         //go through the entire 2D array of events
         for(let line = 0;line < this.textFileInsertEvents.length;line++) {
             for(let column = 0;column < this.textFileInsertEvents[line].length;column++) {
-                if(this.textFileInsertEvents[line][column].character === 'NEWLINE' || this.textFileInsertEvents[line][column].character === 'CR-LF') {
+                if(this.textFileInsertEvents[line][column].character === 'NEWLINE') { 
                     text += '\n';
+                } else if(this.textFileInsertEvents[line][column].character === 'CR-LF') {
+                    text += '\r\n';
                 } else if(this.textFileInsertEvents[line][column].character === 'TAB') {
                     text += '\t';
                 } else {
