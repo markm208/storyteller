@@ -22,11 +22,12 @@ const DBAbstraction = require('./DBAbstraction.js');
  * data to disk.
  */
 class ProjectManager {
-    constructor(projDirPath, stDirPath) {
+    constructor(projDirPath, stDirPath, version) {
         this.projectDirPath = projDirPath;
         this.storytellerDirPath = path.join(projDirPath, stDirPath);
         this.db = null;
         this.project = {};
+        this.version = version;
         this.eventTimer = null;
         //whether playback data should be altered for the next playback
         this.playbackConstraints = null;
@@ -56,7 +57,7 @@ class ProjectManager {
                 
                 if(isNewProject) {
                     //create the initial data
-                    this.project = new Project('Playback', 'Playback Description');
+                    this.project = new Project('Playback', 'Playback Description', this.version);
                     this.developerManager.init();
 
                     //create the root dir, /
@@ -71,7 +72,7 @@ class ProjectManager {
                     this.addDescriptionComment(this.eventManager.unwrittenEvents[0]);
 
                     //switch to the anonymous developer group
-                    this.developerManager.setActiveDeveloperGroup(this.developerManager.anonymousDeveloperGroup);
+                    this.developerManager.setActiveDeveloperGroup(this.developerManager.getAnonymousDeveloperGroup());
 
                     //write the initial data to the db
                     this.db.writeDeveloperInfo(this.developerManager);
@@ -200,7 +201,7 @@ class ProjectManager {
                 //store the current dev group
                 const currentDevGroup = this.developerManager.getActiveDeveloperGroup();
                 //assign the changes to the system dev group
-                this.developerManager.setActiveDeveloperGroup(this.developerManager.systemDeveloperGroup);
+                this.developerManager.setActiveDeveloperGroup(this.developerManager.getSystemDeveloperGroup());
                 
                 //record the new text
                 this.handleInsertedText(newFilePath, fileContents, 0, 0, [], isRelevant);
@@ -764,6 +765,10 @@ function loadPlaybackData(playbackData) {
     playbackData.isEditable = ${makeEditable ? 'true' : 'false'};
     playbackData.developers = ${JSON.stringify(this.developerManager.allDevelopers)};
     playbackData.developerGroups = ${JSON.stringify(this.developerManager.allDeveloperGroups)};
+    playbackData.anonymousDeveloperId = ${JSON.stringify(this.developerManager.anonymousDeveloperId)};
+    playbackData.anonymousDeveloperGroupId = ${JSON.stringify(this.developerManager.anonymousDeveloperGroupId)};
+    playbackData.systemDeveloperId = ${JSON.stringify(this.developerManager.systemDeveloperId)};
+    playbackData.systemDeveloperGroupId = ${JSON.stringify(this.developerManager.systemDeveloperGroupId)};
     playbackData.playbackTitle = '${this.project.title.replace(/'/g, "&#39;")}';
     playbackData.branchId = '${this.project.branchId}';
     playbackData.estimatedReadTime = ${this.getReadTimeEstimate()};

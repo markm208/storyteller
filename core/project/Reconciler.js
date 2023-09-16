@@ -207,7 +207,7 @@ class Reconciler {
         if(action === 'create') {
             //attribute any reconciliation changes to the system developer
             const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
-            const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
+            const systemDevGroup = this.projectManager.developerManager.getSystemDeveloperGroup();
             this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //record the creating of a new file
@@ -231,7 +231,7 @@ class Reconciler {
         if(action === 'create') {
             //attribute any reconciliation changes to the system developer
             const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
-            const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
+            const systemDevGroup = this.projectManager.developerManager.getSystemDeveloperGroup();
             this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //record the creating of a new file
@@ -269,7 +269,7 @@ class Reconciler {
             if(this.projectManager.fileSystemManager.doesFileIdExist(deletedFileId)) {
                 //attribute any reconciliation changes to the system developer
                 const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
-                const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
+                const systemDevGroup = this.projectManager.developerManager.getSystemDeveloperGroup();
                 this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
                 //record the deletion of this file
@@ -304,7 +304,7 @@ class Reconciler {
             if(this.projectManager.fileSystemManager.doesDirIdExist(deletedDirectoryId)) {     
                 //attribute any reconciliation changes to the system developer
                 const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
-                const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
+                const systemDevGroup = this.projectManager.developerManager.getSystemDeveloperGroup();
                 this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
                 //record the deletion of this dir
@@ -357,7 +357,7 @@ class Reconciler {
 
             //attribute any reconciliation changes to the system developer
             const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
-            const systemDevGroup = this.projectManager.developerManager.systemDeveloperGroup;
+            const systemDevGroup = this.projectManager.developerManager.getSystemDeveloperGroup();
             this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
 
             //update storyteller to hold the new state of the file

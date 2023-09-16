@@ -76,8 +76,10 @@ class DBAbstraction {
             allDevelopers: {},
             allDeveloperGroups: {},
             activeDeveloperGroupId: {},
-            systemDeveloperGroup: {},
-            anonymousDeveloperGroup: {}
+            systemDeveloperGroupId: null,
+            systemDeveloperId:  null,
+            anonymousDeveloperGroupId: null,
+            anonymousDeveloperId: null,
         };
 
         //convert text from file into plain objects
@@ -94,13 +96,12 @@ class DBAbstraction {
             devs.allDeveloperGroups[devGroupObject.id] = new DeveloperGroup(devGroupObject.memberIds, devGroupObject.id);
         }
 
-        //store the system and anonymous developer groups
-        devs.systemDeveloperGroup = devs.allDeveloperGroups[devObjects.systemDeveloperGroup.id];
-        devs.anonymousDeveloperGroup = devs.allDeveloperGroups[devObjects.anonymousDeveloperGroup.id];
-        
-        //store the active developer group
         devs.activeDeveloperGroupId = devObjects.activeDeveloperGroupId;
-
+        devs.systemDeveloperGroupId = devObjects.systemDeveloperGroupId;
+        devs.systemDeveloperId = devObjects.systemDeveloperId;
+        devs.anonymousDeveloperGroupId = devObjects.anonymousDeveloperGroupId;
+        devs.anonymousDeveloperId = devObjects.anonymousDeveloperId;
+        
         return devs;
     }
 
@@ -156,15 +157,15 @@ class DBAbstraction {
         return project;
     }
 
-    writeDeveloperInfo({anonymousDeveloper, systemDeveloper, allDevelopers, allDeveloperGroups, activeDeveloperGroupId, systemDeveloperGroup, anonymousDeveloperGroup}) {
+    writeDeveloperInfo({allDevelopers, allDeveloperGroups, activeDeveloperGroupId, systemDeveloperGroupId, anonymousDeveloperGroupId, anonymousDeveloperId, systemDeveloperId}) {
         const allDevInfo = {
-            anonymousDeveloper: anonymousDeveloper,
-            anonymousDeveloperGroup: anonymousDeveloperGroup,
-            systemDeveloper: systemDeveloper,
-            systemDeveloperGroup: systemDeveloperGroup,
             allDevelopers: allDevelopers,
             allDeveloperGroups: allDeveloperGroups,
             activeDeveloperGroupId: activeDeveloperGroupId,
+            anonymousDeveloperId: anonymousDeveloperId,
+            anonymousDeveloperGroupId: anonymousDeveloperGroupId,
+            systemDeveloperId: systemDeveloperId,
+            systemDeveloperGroupId: systemDeveloperGroupId
         };
 
         const devInfoText = JSON.stringify(allDevInfo, null, 2);

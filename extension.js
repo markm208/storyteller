@@ -169,7 +169,7 @@ async function resumeExistingProject() {
         isStorytellerCurrentlyActive = true;
 
         //create and store the global project manager in the opened directory
-        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
+        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR, extensionContext.extension.packageJSON.version);
         await projectManager.startStoryteller(false);
 
         //create a new reconciler once the project has been created
@@ -213,7 +213,7 @@ async function startTrackingInFolder() {
         isStorytellerCurrentlyActive = true;
 
         //create and store the global project manager in the opened directory
-        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR);
+        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR, extensionContext.extension.packageJSON.version);
         await projectManager.startStoryteller(true);
 
         //create a new reconciler to look for exisiting files and dirs after the project has been created

@@ -15,37 +15,61 @@ class DeveloperManager {
         this.allDevelopers = {};
         this.allDeveloperGroups = {};
         this.activeDeveloperGroupId = null;
-        this.systemDeveloperGroup = {};
-        this.anonymousDeveloperGroup = {};
+        this.systemDeveloperGroupId = null;
+        this.systemDeveloperId = null
+        this.anonymousDeveloperGroupId = null;
+        this.anonymousDeveloperId = null;
     }
 
     load(devInfo) {
         this.allDevelopers = devInfo.allDevelopers;
         this.allDeveloperGroups = devInfo.allDeveloperGroups;
         this.activeDeveloperGroupId = devInfo.activeDeveloperGroupId;
-        this.systemDeveloperGroup = devInfo.systemDeveloperGroup;
-        this.anonymousDeveloperGroup = devInfo.anonymousDeveloperGroup;
+        this.systemDeveloperGroupId = devInfo.systemDeveloperGroupId;
+        this.anonymousDeveloperGroupId = devInfo.anonymousDeveloperGroupId;
+        this.systemDeveloperId = devInfo.systemDeveloperId;
+        this.anonymousDeveloperId = devInfo.anonymousDeveloperId;
     }
 
     init() {
         //create the system developer and an anonymous developer
-        this.systemDeveloper = new Developer('Storyteller System', 'no-email', '');
-        this.anonymousDeveloper = new Developer('Anonymous System', 'no-email', '');
+        const systemDeveloper = new Developer('Storyteller System', 'no-email', '');
+        const anonymousDeveloper = new Developer('Anonymous System', 'no-email', '');
         //add the new devs to the collections
-        this.allDevelopers[this.systemDeveloper.id] = this.systemDeveloper;
-        this.allDevelopers[this.anonymousDeveloper.id] = this.anonymousDeveloper;
+        this.allDevelopers[systemDeveloper.id] = systemDeveloper;
+        this.allDevelopers[anonymousDeveloper.id] = anonymousDeveloper;
 
         //create a system dev group (default active) and an anon dev group
-        this.systemDeveloperGroup = new DeveloperGroup([this.systemDeveloper.id]);
-        this.anonymousDeveloperGroup = new DeveloperGroup([this.anonymousDeveloper.id]);
+        const systemDeveloperGroup = new DeveloperGroup([systemDeveloper.id]);
+        const anonymousDeveloperGroup = new DeveloperGroup([anonymousDeveloper.id]);
         //add the dev groups to the collection
-        this.allDeveloperGroups[this.systemDeveloperGroup.id] = this.systemDeveloperGroup;
-        this.allDeveloperGroups[this.anonymousDeveloperGroup.id] = this.anonymousDeveloperGroup;
+        this.allDeveloperGroups[systemDeveloperGroup.id] = systemDeveloperGroup;
+        this.allDeveloperGroups[anonymousDeveloperGroup.id] = anonymousDeveloperGroup;
 
         //set the active dev group to be the system dev
-        this.activeDeveloperGroupId = this.systemDeveloperGroup.id;
+        this.activeDeveloperGroupId = systemDeveloperGroup.id;
+        this.systemDeveloperGroupId = systemDeveloperGroup.id;
+        this.systemDeveloperId = systemDeveloper.id;
+        this.anonymousDeveloperGroupId = anonymousDeveloperGroup.id;
+        this.anonymousDeveloperId = anonymousDeveloper.id;
     }
 
+    getAnonymousDeveloper() {
+        return this.allDevelopers[this.anonymousDeveloperId];
+    }
+
+    getSystemDeveloper() {
+        return this.allDevelopers[this.systemDeveloperId];
+    }
+
+    getAnonymousDeveloperGroup() {
+        return this.allDeveloperGroups[this.anonymousDeveloperGroupId];
+    }
+
+    getSystemDeveloperGroup() {
+        return this.allDeveloperGroups[this.systemDeveloperGroupId];
+    }
+    
     /*
      * Creates a new developer (and one-person developer group) for new 
      * developers.
