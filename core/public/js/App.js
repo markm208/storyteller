@@ -111,6 +111,11 @@ class App extends HTMLElement {
       this.handleSearch(eventText);
     });
 
+    this.shadowRoot.addEventListener('search-selected-text', event => {
+      const selectedTextEventIds = event.detail.selectedTextEventIds;
+      this.handleSearchHighlightedCode(selectedTextEventIds);
+    });
+
     this.shadowRoot.addEventListener('enable-search', event => {
       const titleBar = this.shadowRoot.querySelector('st-title-bar');
       titleBar.updateToEnableSearch();
@@ -164,6 +169,24 @@ class App extends HTMLElement {
     //display search results in the title bar
     const titleBar = this.shadowRoot.querySelector('st-title-bar');
     titleBar.updateToDisplaySearchResults(searchText, searchResults);
+  }
+
+  handleSearchHighlightedCode(selectedTextEventIds) {
+    //get the search results and then display them
+    const searchResults = this.playbackEngine.performSearchHighlightedCode(selectedTextEventIds);
+
+    //display results in code/blog mode
+    if (this.activeMode === 'code') {
+      const codeView = this.shadowRoot.querySelector('st-code-view');
+      codeView.updateToDisplaySearchResults(searchResults);
+    } else {
+      const blogView = this.shadowRoot.querySelector('st-blog-view');
+      blogView.updateToDisplaySearchResults(searchResults);
+    }
+
+    //display search results in the title bar
+    const titleBar = this.shadowRoot.querySelector('st-title-bar');
+    titleBar.updateToDisplaySearchResults('selected text:', searchResults);
   }
 }
 

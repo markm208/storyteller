@@ -119,6 +119,16 @@ class AceEditor extends HTMLElement {
 
     //update the editor with the initial file contents
     this.updateForPlaybackMovement();
+
+    //listen for search selected code shift + control + S
+    document.addEventListener('keydown', (e) => {
+      const keyPressed = event.key;
+      const shiftPressed = event.shiftKey;
+      const ctrlPressed = event.ctrlKey;
+      if (ctrlPressed && shiftPressed && keyPressed === 'S') {
+        this.notifySearchSelectedText();
+      }
+    });
   }
 
   disconnectedCallback() {
@@ -434,7 +444,7 @@ class AceEditor extends HTMLElement {
     
     //get the selected text from the editor (there might be multiple highlighted ranges)
     const selection = this.aceEditor.getSelection();
-    const ranges = selection.getAllRanges().filter(currentRange => currentRange.isEmpty() === false);
+    const ranges = selection.getAllRanges();
 
     //if there are any non-empty selections in the editor
     if(ranges.length > 0) {
@@ -472,6 +482,7 @@ class AceEditor extends HTMLElement {
           const selectedCodeBlock = {
             fileId: this.playbackEngine.activeFileId,
             selectedText: selectedText,
+            selectedTextEventIds: this.playbackEngine.editorState.getEventIds(this.playbackEngine.activeFileId, range.start.row, range.start.column, range.end.row, range.end.column),
             startRow: range.start.row,
             startColumn: range.start.column,
             endRow: range.end.row,
@@ -483,6 +494,24 @@ class AceEditor extends HTMLElement {
       });
     }
     return selectedCode;
+  }
+
+  getSelectedTextEventIds() {
+    const selectedTextEventIds = new Set();
+
+    //get the selected text from the editor (there might be multiple highlighted ranges)
+    const selection = this.aceEditor.getSelection();
+    const ranges = selection.getAllRanges();
+
+    //now get the info about the currently selected text
+    ranges.forEach(range => {
+      if(range.isEmpty() === false) {
+        //get the highlighted event ids
+        const rangeEventIds = this.playbackEngine.editorState.getEventIds(this.playbackEngine.activeFileId, range.start.row, range.start.column, range.end.row, range.end.column);
+        rangeEventIds.forEach(eventId => selectedTextEventIds.add(eventId));
+      }
+    });
+    return selectedTextEventIds;
   }
 
   highlightSearch() {
@@ -509,6 +538,18 @@ class AceEditor extends HTMLElement {
       this.updateForPlaybackMovement();
       this.updateForCommentSelected();
     }
+  }
+
+  notifySearchSelectedText() {
+    //send an event that the search functionality should be enabled
+    const event = new CustomEvent('search-selected-text', { 
+      detail: {
+        selectedTextEventIds: this.getSelectedTextEventIds(),
+      },
+      bubbles: true, 
+      composed: true 
+    });
+    this.dispatchEvent(event);
   }
 }
 

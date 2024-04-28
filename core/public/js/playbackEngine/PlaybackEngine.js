@@ -709,6 +709,47 @@ class PlaybackEngine {
     return searchResults;
   }
 
+  performSearchHighlightedCode(selectedTextEventIds) {
+    //go through all of the comments and find ones that are in the selected code
+    const searchResults = {
+      searchText: '',
+      numberOfResults: 0,
+      details: {}
+    };
+
+    //go through all of the playback comments
+    for(let eventId in this.playbackData.comments) {
+      //go through all of the comments at this comment point
+      const allCommentsAtEvent = this.playbackData.comments[eventId];
+      
+      //go through each comment
+      allCommentsAtEvent.forEach(comment => {
+        if(comment.selectedCodeBlocks.length > 0) {
+          //go through each block of selected code
+          for(let j = 0;j < comment.selectedCodeBlocks.length;j++) {
+            const block = comment.selectedCodeBlocks[j];
+            for(let k = 0;k < block.selectedTextEventIds.length;k++) {
+              const selectedCodeEventId = block.selectedTextEventIds[k];
+              if(selectedTextEventIds.has(selectedCodeEventId)) {
+                searchResults.details[comment.id] = {
+                  commentId: comment.id,
+                  inSelectedText: true,
+                  inCommentText: false,
+                  inTags: false,
+                  inQuestion: false,
+                  searchText: ''
+                };
+                searchResults.numberOfResults++;
+                break;
+              }
+            }
+          }
+        }
+      });
+    }
+    return searchResults;
+  }
+
   replaceAllHTMLWithACharacter(htmlText, character=' ') {
     //reg ex to remove tags
     const removeHTMLTagsRegEx = /(<([^>]+)>)/ig;

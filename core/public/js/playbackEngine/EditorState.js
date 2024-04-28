@@ -37,6 +37,25 @@ class EditorState {
     return textInFile;
   }
 
+  getEventIds(fileId, startRow, startColumn, endRow, endColumn) {
+    const allSelectedEvents = [];
+    const currentFileEvents = this.filesEvents[fileId];
+
+    for (let row = startRow; row <= endRow; row++) {
+      for (let col = (row === startRow ? startColumn : 0); col < currentFileEvents[row].length; col++) {
+        //if its the last row and col is past the end column
+        if (row === endRow && col > endColumn) {
+          //stop looping at the end of the last row's range
+          break;
+        }
+
+        //add the event id to the set
+        allSelectedEvents.push(currentFileEvents[row][col]);
+      }
+    }
+    return allSelectedEvents;
+  }
+
   getNumLinesInFile(fileId) {
     let retVal = 0;
 
