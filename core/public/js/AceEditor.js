@@ -496,22 +496,19 @@ class AceEditor extends HTMLElement {
     return selectedCode;
   }
 
-  getSelectedTextEventIds() {
-    const selectedTextEventIds = new Set();
-
-    //get the selected text from the editor (there might be multiple highlighted ranges)
+  getSelectedLineNumbersAndColumns() {
+    let searchText = 'selected-text:';
     const selection = this.aceEditor.getSelection();
     const ranges = selection.getAllRanges();
 
-    //now get the info about the currently selected text
+    const rangeData = [];
     ranges.forEach(range => {
       if(range.isEmpty() === false) {
-        //get the highlighted event ids
-        const rangeEventIds = this.playbackEngine.editorState.getEventIds(this.playbackEngine.activeFileId, range.start.row, range.start.column, range.end.row, range.end.column);
-        rangeEventIds.forEach(eventId => selectedTextEventIds.add(eventId));
+        rangeData.push(`line${range.start.row + 1}.${range.start.column + 1}-line${range.end.row + 1}.${range.end.column}`);
       }
     });
-    return selectedTextEventIds;
+    searchText += rangeData.join(',');
+    return searchText;
   }
 
   highlightSearch() {
@@ -542,9 +539,9 @@ class AceEditor extends HTMLElement {
 
   notifySearchSelectedText() {
     //send an event that the search functionality should be enabled
-    const event = new CustomEvent('search-selected-text', { 
+    const event = new CustomEvent('search', { 
       detail: {
-        selectedTextEventIds: this.getSelectedTextEventIds(),
+        searchText: this.getSelectedLineNumbersAndColumns(),
       },
       bubbles: true, 
       composed: true 

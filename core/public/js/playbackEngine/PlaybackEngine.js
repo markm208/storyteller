@@ -602,6 +602,8 @@ class PlaybackEngine {
     //check for a specialized search: 'comment:searchText', 'code:searchText', 'tag:searchText', 'question:searchText'
     let searchType = 'all';
     const separatorPosition = searchText.indexOf(':');
+    let selectedTextEventIds = null;
+
     if(separatorPosition !== -1) {
       const firstPart = searchText.substring(0, separatorPosition);
       const secondPart = searchText.substring(separatorPosition + 1);
@@ -614,6 +616,26 @@ class PlaybackEngine {
       } else if(firstPart === 'tag') {
         searchType = firstPart;
         searchText = secondPart;
+      } else if(firstPart === 'selected-text') {
+        searchType = firstPart;
+        searchText = secondPart;
+        selectedTextEventIds = new Set();
+
+        const ranges = secondPart.split(',');
+        ranges.forEach(range => {
+          const rangeSplit = range.split('-');
+          const fromSplit = rangeSplit[0];
+          const fromParts = fromSplit.split('.');
+          const startRow = Number(fromParts[0].substring('line'.length)) - 1;
+          const startColumn = Number(fromParts[1]) - 1;
+
+          const toSplit = rangeSplit[1];
+          const toParts = toSplit.split('.');
+          const endRow = Number(toParts[0].substring('line'.length)) - 1;
+          const endColumn = Number(toParts[1]) - 1;
+
+          this.editorState.getEventIds(this.activeFileId, startRow, startColumn, endRow, endColumn).forEach(eventId => selectedTextEventIds.add(eventId));
+        });
       } else if(firstPart === 'question') {
         searchType = firstPart;
         searchText = secondPart;
@@ -646,52 +668,67 @@ class PlaybackEngine {
           searchText: searchText
         };
 
-        //if it is a general search of a specific specialized search
-        if(searchType === 'all' || searchType === 'code') {
-          comment.selectedCodeBlocks.some(block => {
-            if(block.selectedText.toLowerCase().includes(searchText.toLowerCase())) {
-              isRelevantComment = true;
-              searchResult.inSelectedText = true;
-            }
-          });
-        }
-
-        if(searchType === 'all' || searchType === 'comment') {
-          //strip all html and make lowercase
-          const cleansedCommentText = comment.commentText.replace(removeHTMLTagsRegEx, '').toLowerCase();
-          const cleansedCommentTitle = comment.commentTitle.replace(removeHTMLTagsRegEx, '').toLowerCase();
-          //check the comment text and the comment title
-          if(cleansedCommentText.includes(searchText.toLowerCase()) || cleansedCommentTitle.includes(searchText.toLowerCase())) {
-            isRelevantComment = true;
-            searchResult.inCommentText = true;
+        if(searchType === 'selected-text') {
+          if(comment.selectedCodeBlocks.length > 0) {
+            //go through each block of selected code
+            comment.selectedCodeBlocks.forEach(block => {
+              block.selectedTextEventIds.forEach(selectedCodeEventId => {
+                if(selectedTextEventIds.has(selectedCodeEventId)) {
+                  isRelevantComment = true;
+                  searchResult.inSelectedText = true;
+                  //break;
+                }
+              });
+            });
           }
-        }
-
-        if(searchType === 'all' || searchType === 'tag') {
-          if(comment.commentTags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()))) {
-            isRelevantComment = true;
-            searchResult.inTags = true;
+        } else {
+          //if it is a general search of a specific specialized search
+          if(searchType === 'all' || searchType === 'code') {
+            comment.selectedCodeBlocks.some(block => {
+              if(block.selectedText.toLowerCase().includes(searchText.toLowerCase())) {
+                isRelevantComment = true;
+                searchResult.inSelectedText = true;
+              }
+            });
           }
-        }
 
-        if(searchType === 'all' || searchType === 'question') {
-          if(comment.questionCommentData) {
+          if(searchType === 'all' || searchType === 'comment') {
             //strip all html and make lowercase
-            const cleansedQuestion = comment.questionCommentData.question.replace(removeHTMLTagsRegEx, '').toLowerCase();
-            if(cleansedQuestion.includes(searchText.toLowerCase())) {
+            const cleansedCommentText = comment.commentText.replace(removeHTMLTagsRegEx, '').toLowerCase();
+            const cleansedCommentTitle = comment.commentTitle.replace(removeHTMLTagsRegEx, '').toLowerCase();
+            //check the comment text and the comment title
+            if(cleansedCommentText.includes(searchText.toLowerCase()) || cleansedCommentTitle.includes(searchText.toLowerCase())) {
               isRelevantComment = true;
-              searchResult.inQuestion = true;
+              searchResult.inCommentText = true;
             }
+          }
 
-            if(comment.questionCommentData.allAnswers.some(answer => answer.toLowerCase().includes(searchText.toLowerCase()))) {
+          if(searchType === 'all' || searchType === 'tag') {
+            if(comment.commentTags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()))) {
               isRelevantComment = true;
-              searchResult.inQuestion = true;
+              searchResult.inTags = true;
             }
-            //strip all html and make lowercase
-            const cleansedExplanation = comment.questionCommentData.explanation.replace(removeHTMLTagsRegEx, '').toLowerCase();
-            if(comment.questionCommentData.explanation && cleansedExplanation.includes(searchText.toLowerCase())) {
-              isRelevantComment = true;
-              searchResult.inQuestion = true;
+          }
+
+          if(searchType === 'all' || searchType === 'question') {
+            if(comment.questionCommentData) {
+              //strip all html and make lowercase
+              const cleansedQuestion = comment.questionCommentData.question.replace(removeHTMLTagsRegEx, '').toLowerCase();
+              if(cleansedQuestion.includes(searchText.toLowerCase())) {
+                isRelevantComment = true;
+                searchResult.inQuestion = true;
+              }
+
+              if(comment.questionCommentData.allAnswers.some(answer => answer.toLowerCase().includes(searchText.toLowerCase()))) {
+                isRelevantComment = true;
+                searchResult.inQuestion = true;
+              }
+              //strip all html and make lowercase
+              const cleansedExplanation = comment.questionCommentData.explanation.replace(removeHTMLTagsRegEx, '').toLowerCase();
+              if(comment.questionCommentData.explanation && cleansedExplanation.includes(searchText.toLowerCase())) {
+                isRelevantComment = true;
+                searchResult.inQuestion = true;
+              }
             }
           }
         }
