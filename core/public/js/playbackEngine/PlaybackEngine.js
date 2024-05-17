@@ -30,6 +30,8 @@ class PlaybackEngine {
       numberOfCommentGroupsChanged: false,
       fileEditLineNumber: -1,
       fileEditColumn: -1,
+      previousCommentState: {}, //most recent states of code at comment points
+      currentCommentState: {},
     };
 
     //aggregate info about the playback's comments
@@ -78,7 +80,9 @@ class PlaybackEngine {
       hasNewActiveDevGroup: false,
       numberOfCommentGroupsChanged: false,
       fileEditLineNumber: -1,
-      fileEditColumn: -1
+      fileEditColumn: -1,
+      previousCommentState: this.mostRecentChanges.currentCommentState, //use the most recent state as the previous state
+      currentCommentState: this.mostRecentChanges.currentCommentState, //use the most recent state until it gets updated later
     };
   }
   
@@ -389,6 +393,9 @@ class PlaybackEngine {
     if (this.playbackData.comments[currentEvent.id]) {
       //landed on an event with at least one comment
       this.mostRecentChanges.endedOnAComment = true;
+
+      //update the current state of the files at the comment (previous state already updated in clearMostRecentChanges())
+      this.mostRecentChanges.currentCommentState = this.editorState.getFiles();
 
       //get all of the comments at this event
       const allCommentsAtCurrentEvent = this.playbackData.comments[currentEvent.id];

@@ -108,6 +108,7 @@ class AddEditComment extends HTMLElement {
       <div id="addEditContainer">
         <input type="text" id="commentTitle" placeholder="Comment Title (Optional)"></input>
         <div id="commentTextContainer"></div>
+        <div id="aiCommentSuggestionInput"></div>
         <div id="surroundingText"></div>
         <hr/>
         <st-show-hide-component name="Media" show="true">
@@ -155,6 +156,21 @@ class AddEditComment extends HTMLElement {
       event.stopPropagation();
     });
 
+    this.shadowRoot.addEventListener('ai-prompt-submit', async (event) => {
+      //get formatted propmt with code
+      const promptWithCode = event.detail.promptWithCode;
+
+      //send to server
+      const serverProxy = new ServerProxy();
+      const response = await serverProxy.sendAIPromptToServer(promptWithCode);
+
+      //add the AI response to the comment text
+      const commentText = this.shadowRoot.querySelector('#commentText');
+      commentText.updateFormattedText(response);
+    
+      event.stopPropagation();
+    });
+
     //delete comment button
     const deleteCommentButton = this.shadowRoot.querySelector('#deleteCommentButton');
     deleteCommentButton.addEventListener('click', this.sendEventDeleteComment);
@@ -174,6 +190,11 @@ class AddEditComment extends HTMLElement {
     commentText.setFocus();
     commentTextContainer.appendChild(commentText);
 
+    //create an AI input to get suggestions
+    const aiCommentSuggestionInput = this.shadowRoot.querySelector('#aiCommentSuggestionInput');
+    const aiPromptInput = new AIPromptInput(this.playbackEngine, 'Get an AI Comment Suggestion');
+    aiCommentSuggestionInput.appendChild(aiPromptInput);
+    
     //if there is a comment associated with this component then fill the inputs with data from it
     if (this.editedComment) {
       this.updateEditCommentMode();

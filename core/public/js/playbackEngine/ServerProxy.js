@@ -298,4 +298,29 @@ class ServerProxy {
       console.log(error);
     }
   }
+
+  //add a method to send an ai prompt to the server
+  async sendAIPromptToServer(prompt) {
+    try {
+      const fetchConfigData = {
+        method: 'POST',
+        body: JSON.stringify({prompt}),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+
+      const response = await fetch('/aiPrompt', fetchConfigData);
+      if (!response.ok) {
+        console.log('Error with the response data');
+      }
+
+      //send response from AI service
+      const resultObject = await response.json();
+      return resultObject.response;
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }

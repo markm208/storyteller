@@ -337,6 +337,22 @@ class HttpServer {
             this.deleteMediaFiles(req, res);
         });
 
+        //for ai prompt
+        app.post('/aiPrompt', (req, res) => {
+            const promptObject = req.body;
+            
+            //TODO send the prompt to the an AI service
+            console.log(`Server receives: ${promptObject.prompt}`);
+            
+            //mock response
+            const aiResponse = {
+                response: 'AI response'
+            };
+
+            //return the response
+            res.json(aiResponse);
+        });
+
         //for invalid routes
         app.use((req, res) => {
             res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`);
