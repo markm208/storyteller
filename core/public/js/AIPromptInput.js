@@ -36,6 +36,21 @@ class AIPromptInput extends HTMLElement {
           opacity: 1.0;
         }
 
+        #submitButton {
+          background-color: lightgrey;
+          color: black;
+          border: 1px solid lightgrey;
+          border-radius: .25rem;
+          padding: 5px;
+          margin: 5px;
+          width: 70%;
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+
+          transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        }
+
         .inputText {
           width: 100%;
           height: 100px;
@@ -49,7 +64,7 @@ class AIPromptInput extends HTMLElement {
         }
       </style>
       <div class="inputContainer">
-        <button id="promptButton">${this.promptButtonText}</button>
+        <button id="promptButton">${this.promptButtonText} ▶</button>
         <div id="promptContainer" style="display: none;">
           <input type="checkbox" id="sinceLastCommentOnly" name="sinceLastCommentOnly" checked>
           <label for="sinceLastCommentOnly">Since the last comment only</label>
@@ -91,10 +106,13 @@ class AIPromptInput extends HTMLElement {
   }
 
   expandInput = () => {
+    const promptButton = this.shadowRoot.querySelector('#promptButton');
     const promptContainer = this.shadowRoot.querySelector('#promptContainer');
     if(promptContainer.style.display === 'block') {
+      promptButton.textContent = `${this.promptButtonText} ▶`;
       promptContainer.style.display = 'none';
     } else {
+      promptButton.textContent = `${this.promptButtonText} ▼`;
       promptContainer.style.display = 'block';
     }
   }

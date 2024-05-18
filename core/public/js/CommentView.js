@@ -132,8 +132,8 @@ class CommentView extends HTMLElement {
         <div class="media"></div>
         <div class="questionAndAnswerContainer"></div>
         <div class="tagContainer"></div>
-        <div id="aiInput"></div>
         <div id="aiResponse"></div>
+        <div id="aiInput"></div>
         <button id="editCommentButton" class="inactive" title="Edit this comment"></button>
       </div>`;
 
@@ -143,22 +143,6 @@ class CommentView extends HTMLElement {
   connectedCallback() {
     const commentView = this.shadowRoot.host;
     commentView.addEventListener('click', this.commentClicked);
-
-    this.shadowRoot.addEventListener('ai-prompt-submit', async (event) => {
-      //get the original prompt and the formatted prompt with code
-      const prompt = event.detail.originalPrompt;
-      const promptWithCode = event.detail.promptWithCode;
-
-      //send the formatted one to the server
-      const serverProxy = new ServerProxy();
-      const response = await serverProxy.sendAIPromptToServer(promptWithCode);
-
-      //display the response
-      const aiResponse = this.shadowRoot.querySelector('#aiResponse');
-      aiResponse.innerHTML += `<p class="aiPrompt">${prompt}</p><p class="aiResponse">${response}</p><hr>`;
-
-      event.stopPropagation();
-    });
 
     //if this is an editable playback
     if(this.playbackEngine.playbackData.isEditable) {
@@ -222,10 +206,28 @@ class CommentView extends HTMLElement {
       questionAndAnswerContainer.appendChild(qaView);
     }
 
-    //create an AI input to get suggestions
-    const aiInput = this.shadowRoot.querySelector('#aiInput');
-    const aiPromptInput = new AIPromptInput(this.playbackEngine, 'Ask AI');
-    aiInput.appendChild(aiPromptInput);
+    if(!this.isDescriptionComment) {
+      //create an AI input to get suggestions
+      const aiInput = this.shadowRoot.querySelector('#aiInput');
+      const aiPromptInput = new AIPromptInput(this.playbackEngine, 'Ask AI');
+      aiInput.appendChild(aiPromptInput);
+
+      this.shadowRoot.addEventListener('ai-prompt-submit', async (event) => {
+        //get the original prompt and the formatted prompt with code
+        const prompt = event.detail.originalPrompt;
+        const promptWithCode = event.detail.promptWithCode;
+  
+        //send the formatted one to the server
+        const serverProxy = new ServerProxy();
+        const response = await serverProxy.sendAIPromptToServer(promptWithCode);
+  
+        //display the response
+        const aiResponse = this.shadowRoot.querySelector('#aiResponse');
+        aiResponse.innerHTML += `<p class="aiPrompt">${prompt}</p><p class="aiResponse">${response}</p><hr>`;
+  
+        event.stopPropagation();
+      });
+    }
   }
 
   disconnectedCallback() {

@@ -165,8 +165,16 @@ class AddEditComment extends HTMLElement {
       const response = await serverProxy.sendAIPromptToServer(promptWithCode);
 
       //add the AI response to the comment text
-      const commentText = this.shadowRoot.querySelector('#commentText');
-      commentText.updateFormattedText(response);
+      const commentText = this.shadowRoot.querySelector('#commentText');       
+      commentText.updateFormattedText(`${commentText.getFormattedText()}<br>${response}`);
+      commentText.focus();
+      // Create a new range
+      let range = document.createRange();
+      range.selectNodeContents(commentText);
+      range.collapse(false);
+      let sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
     
       event.stopPropagation();
     });
