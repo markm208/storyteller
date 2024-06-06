@@ -58,6 +58,12 @@ class BlogComponent extends HTMLElement {
         .searchHighlight {
           background-color: #517EB0;
         }
+
+        #aiInput {
+          margin-top: 5px;
+          padding-top: 5px;
+          border-top: 1px solid rgb(83, 84, 86);
+        }
       </style>
 
       <div class="commentTitle"></div>
@@ -67,7 +73,8 @@ class BlogComponent extends HTMLElement {
       <div class="codeEditor"></div>
       <div class="commentImages"></div>
       <div class="tagContainer"></div>
-      <div class="questionAndAnswerContainer"></div>`;
+      <div class="questionAndAnswerContainer"></div>
+      <div id="aiInput"></div>`;
 
     return template.content.cloneNode(true);
   }
@@ -146,14 +153,46 @@ class BlogComponent extends HTMLElement {
       questionAndAnswerContainer.appendChild(qaView);
     }
 
+    //ai input
+    if(!this.isDescriptionComment) {
+      //create an AI input to get suggestions
+      const aiInput = this.shadowRoot.querySelector('#aiInput');
+      const promptCollapsable = new Collapsable('Ask About This Code');
+      const aiPromptInput = new AIPromptInput(this.playbackEngine, false);
+      const aiGeneratedQ = new AIGeneratedQuestion(this.playbackEngine);
+      const aiElements = document.createElement('div');
+      aiElements.classList.add('aiElements');
+      aiElements.appendChild(aiPromptInput);
+      aiElements.appendChild(document.createElement('hr'));
+      aiElements.appendChild(aiGeneratedQ);
+      promptCollapsable.addContent(aiElements);
+      aiInput.appendChild(promptCollapsable);
+    }
+    
     //add an event handler so users can click comments
     this.addEventListener('click', event => {
-      //store this as the active comment
-      this.playbackEngine.activeComment = this.comment;
+      //move to the comment that is clicked
+      this.playbackEngine.stepToCommentById(this.comment.id);
     });
+
+    //for knowing when the user is viewing a comment in blog mode
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          //when visible simulate clicking on the comment
+          this.click();
+        }
+      });
+    });
+  
+    // Start observing the element
+    this.observer.observe(this);
   }
 
   disconnectedCallback() {
+    if (this.observer) {
+      this.observer.unobserve(this);
+    }
   }
 
   updateToDisplaySearchResults(searchResult) {

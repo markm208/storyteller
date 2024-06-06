@@ -90,7 +90,17 @@
                 "title": "Playback Complete History of Selected Text",
                 "category": "Storyteller"
             }
-        ]
+        ],
+        "configuration": {
+          "title": "Storyteller",
+          "properties": {
+            "storyteller.openaiApiKey": {
+              "type": "string",
+              "default": "",
+              "description": "The API key for OpenAI. This is required for the Storyteller extension to generate text using the OpenAI API. You can obtain an API key by signing up on the OpenAI website."
+            }
+          }
+        }
     },
     "scripts": {
         "lint": "eslint .",

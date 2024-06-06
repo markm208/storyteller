@@ -168,8 +168,12 @@ async function resumeExistingProject() {
         //indicate that storyteller is active
         isStorytellerCurrentlyActive = true;
 
+        //get the openai api key from the settings (not all users will have one)
+        let config = vscode.workspace.getConfiguration('storyteller');
+        let openaiApiKey = config.get('openaiApiKey');
+
         //create and store the global project manager in the opened directory
-        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR, extensionContext.extension.packageJSON.version);
+        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR, extensionContext.extension.packageJSON.version, openaiApiKey);
         await projectManager.startStoryteller(false);
 
         //create a new reconciler once the project has been created
@@ -212,8 +216,11 @@ async function startTrackingInFolder() {
         //indicate that storyteller is active
         isStorytellerCurrentlyActive = true;
 
+        let config = vscode.workspace.getConfiguration('yourExtension');
+        let openaiApiKey = config.get('openaiApiKey');
+
         //create and store the global project manager in the opened directory
-        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR, extensionContext.extension.packageJSON.version);
+        projectManager = new ProjectManager(vscode.workspace.workspaceFolders[0].uri.fsPath, STORYTELLER_DIR, extensionContext.extension.packageJSON.version, openaiApiKey);
         await projectManager.startStoryteller(true);
 
         //create a new reconciler to look for exisiting files and dirs after the project has been created

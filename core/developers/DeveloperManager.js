@@ -33,8 +33,8 @@ class DeveloperManager {
 
     init() {
         //create the system developer and an anonymous developer
-        const systemDeveloper = new Developer('Storyteller System', 'no-email', '');
-        const anonymousDeveloper = new Developer('Anonymous System', 'no-email', '');
+        const systemDeveloper = new Developer('Storyteller System', 'no-email', 'https://www.gravatar.com/avatar/');
+        const anonymousDeveloper = new Developer('Anonymous System', 'no-email', 'https://www.gravatar.com/avatar/');
         //add the new devs to the collections
         this.allDevelopers[systemDeveloper.id] = systemDeveloper;
         this.allDevelopers[anonymousDeveloper.id] = anonymousDeveloper;

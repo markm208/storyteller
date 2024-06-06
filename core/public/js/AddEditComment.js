@@ -156,14 +156,11 @@ class AddEditComment extends HTMLElement {
       event.stopPropagation();
     });
 
-    this.shadowRoot.addEventListener('ai-prompt-submit', async (event) => {
+    this.shadowRoot.addEventListener('ai-prompt-response', async (event) => {
       //get formatted propmt with code
-      const promptWithCode = event.detail.promptWithCode;
-
-      //send to server
-      const serverProxy = new ServerProxy();
-      const response = await serverProxy.sendAIPromptToServer(promptWithCode);
-
+      const prompt = event.detail.prompt;
+      const response = event.detail.response;
+      
       //add the AI response to the comment text
       const commentText = this.shadowRoot.querySelector('#commentText');       
       commentText.updateFormattedText(`${commentText.getFormattedText()}<br>${response}`);
@@ -200,8 +197,10 @@ class AddEditComment extends HTMLElement {
 
     //create an AI input to get suggestions
     const aiCommentSuggestionInput = this.shadowRoot.querySelector('#aiCommentSuggestionInput');
-    const aiPromptInput = new AIPromptInput(this.playbackEngine, 'Get an AI Comment Suggestion');
-    aiCommentSuggestionInput.appendChild(aiPromptInput);
+    const collapsable = new Collapsable('Get an AI Comment Suggestion');
+    const aiPromptInput = new AIPromptInput(this.playbackEngine, true);
+    collapsable.addContent(aiPromptInput);
+    aiCommentSuggestionInput.appendChild(collapsable);
     
     //if there is a comment associated with this component then fill the inputs with data from it
     if (this.editedComment) {
@@ -272,7 +271,7 @@ class AddEditComment extends HTMLElement {
 
     //add an empty Q&A component
     const questionAnswerContainer = this.shadowRoot.querySelector('#questionAnswerContainer');
-    const qAndA = new CreateMultipleChoiceQuestion(null);
+    const qAndA = new CreateMultipleChoiceQuestion(this.playbackEngine, null);
     questionAnswerContainer.appendChild(qAndA);
 
     //empty tags
@@ -316,7 +315,7 @@ class AddEditComment extends HTMLElement {
 
     //add a Q&A component for an existing question
     const questionAnswerContainer = this.shadowRoot.querySelector('#questionAnswerContainer');
-    const qAndA = new CreateMultipleChoiceQuestion(this.editedComment.questionCommentData);
+    const qAndA = new CreateMultipleChoiceQuestion(this.playbackEngine, this.editedComment.questionCommentData);
 
     if (this.editedComment.questionCommentData && this.editedComment.questionCommentData.question.length > 0){
       const showHideComponent = this.shadowRoot.querySelector('[name="Multiple Choice Question"]');

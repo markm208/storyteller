@@ -113,6 +113,78 @@ class PlaybackEngine {
     }
   }
 
+  getMostRecentFileEdits(fromLastComment) {
+    let codeChangesSummary = "";
+    let currentCodeSource;
+    let authorCommentText;
+
+    //if the summary is only for the code since the last comment
+    if(fromLastComment) {
+      //holds the two previous states of the code
+      let originalCodeSource;
+      //if the last event was on a comment
+      if(this.mostRecentChanges.endedOnAComment) {
+        //use the state at the last two comments
+        originalCodeSource = this.mostRecentChanges.previousCommentState;
+        currentCodeSource = this.mostRecentChanges.currentCommentState;
+        if(this.activeComment) {
+          authorCommentText = this.activeComment.commentText;
+        }
+      } else {
+        //use the most recent comment state and the current state of the files
+        originalCodeSource = this.mostRecentChanges.currentCommentState;
+        currentCodeSource = this.editorState.getFiles();
+      }
+      
+      //get only the changed code
+      for(const fileId in currentCodeSource) {
+        const filePath = this.editorState.getFilePath(fileId);
+        const codeFromCurrentState = currentCodeSource[fileId];
+        const codeFromPreviousState = originalCodeSource[fileId];
+        
+        //if there is some code and it is different than the previous state
+        if(codeFromCurrentState !== "" && codeFromPreviousState !== "" && codeFromCurrentState !== codeFromPreviousState) {
+          if(codeFromPreviousState) {
+            codeChangesSummary += `This is the original code:\n`;
+            codeChangesSummary += `File: ${filePath}\n\n`;
+            codeChangesSummary += codeFromPreviousState;
+            codeChangesSummary += "\n\n";
+          }
+
+          if(codeFromCurrentState) {
+            codeChangesSummary += `This is the new code:\n`;
+            codeChangesSummary += `File: ${filePath}\n\n`;
+            codeChangesSummary += codeFromCurrentState;
+            codeChangesSummary += "\n\n";
+          }
+        }
+      } 
+    } else { //describe all of the code
+      //get the code as it is in the editor now
+      currentCodeSource = this.editorState.getFiles();
+
+      codeChangesSummary = "This is the code:\n";
+      for(const fileId in currentCodeSource) {
+        const filePath = this.editorState.getFilePath(fileId);
+        const codeFromCurrentState = currentCodeSource[fileId];
+
+        if(codeFromCurrentState) {
+          codeChangesSummary += `File: ${filePath}\n\n`;
+          codeChangesSummary += codeFromCurrentState;
+          codeChangesSummary += "\n\n";
+        }
+      }
+    }
+
+    if(authorCommentText) {
+      codeChangesSummary += "The author of this code had to say this about it:\n";
+      codeChangesSummary += authorCommentText;
+      codeChangesSummary += "\n\n";
+    }
+
+    return codeChangesSummary;
+  }
+
   stepForward(numberOfSteps, trackNewCodeChanges=true) {
     //reset the recent changes
     this.clearMostRecentChanges();

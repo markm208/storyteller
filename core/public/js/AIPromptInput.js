@@ -1,9 +1,9 @@
 class AIPromptInput extends HTMLElement {
-  constructor(playbackEngine, promptButtonText = 'Prompt AI', sinceLastCommentPrompt = 'Describe the how the code has changed.', allTimePrompt = 'Describe this code.') {
+  constructor(playbackEngine, sendResponseAsEvent=false, sinceLastCommentPrompt = 'Describe the how the code has changed.', allTimePrompt = 'Describe this code.') {
     super();
 
     this.playbackEngine = playbackEngine;
-    this.promptButtonText = promptButtonText;
+    this.sendResponseAsEvent = sendResponseAsEvent;
     this.sinceLastCommentPrompt = sinceLastCommentPrompt;
     this.allTimePrompt = allTimePrompt;
 
@@ -11,32 +11,14 @@ class AIPromptInput extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>
         :host {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
         }
 
-        .inputContainer {
-          width: 100%;
+        hr {
+          border: none;
+          border-top: 1px solid darkgray;
         }
 
-        .inputContainer button {
-          margin: 5px;
-          padding: 5px;
-          width: 100%;
-          background-color: transparent;
-          color: lightgrey;
-          border: 1px solid lightgrey;
-          border-radius: .25rem;
-          transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-          opacity: 0.8;
-        }
-        
-        .inputContainer button:hover {
-          opacity: 1.0;
-        }
-
-        #submitButton {
+        #submitChatButton {
           background-color: lightgrey;
           color: black;
           border: 1px solid lightgrey;
@@ -51,9 +33,9 @@ class AIPromptInput extends HTMLElement {
           transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
         }
 
-        .inputText {
-          width: 100%;
-          height: 100px;
+        #inputText {
+          min-height: 100px;
+          padding: 5px;
           color: lightgrey;
           outline: none;
           border: 1px solid grey;
@@ -62,140 +44,129 @@ class AIPromptInput extends HTMLElement {
           scrollbar-width: thin;
           resize: vertical;
         }
+
+        .questionText {
+          font-style: italic;
+        }
+
+        .responseText {
+          margin: 10px;
+        }
       </style>
-      <div class="inputContainer">
-        <button id="promptButton">${this.promptButtonText} ▶</button>
-        <div id="promptContainer" style="display: none;">
-          <input type="checkbox" id="sinceLastCommentOnly" name="sinceLastCommentOnly" checked>
-          <label for="sinceLastCommentOnly">Since the last comment only</label>
-          <div class="inputText" contenteditable="true">${this.sinceLastCommentPrompt}</div>
-          <button id="submitButton">Submit</button>
-        </div>
+      <div>
+        <input type="checkbox" id="sinceLastCommentOnly" name="sinceLastCommentOnly" checked>
+        <label for="sinceLastCommentOnly">Since the last comment only</label>
+        <div id="inputText" contenteditable="true">${this.sinceLastCommentPrompt}</div>
+        <button id="submitChatButton">Submit Your Question</button>
+        <div class="aiResponse"></div> 
       </div>
     `;
-
-    const checkbox = this.shadowRoot.querySelector('#sinceLastCommentOnly');
-    const inputText = this.shadowRoot.querySelector('.inputText');
-
-    // Add an event listener to the checkbox
-    checkbox.addEventListener('change', () => {
-      if (checkbox.checked) {
-        inputText.textContent = this.sinceLastCommentPrompt
-      } else {
-        inputText.textContent = this.allTimePrompt;
-      }
-    });
-
-    inputText.addEventListener('keydown', event => {
-      event.stopImmediatePropagation();
-    });
   }
 
   connectedCallback() {
-    const promptButton = this.shadowRoot.querySelector('#promptButton');
-    promptButton.addEventListener('click', this.expandInput);
-    const submitButton = this.shadowRoot.querySelector('#submitButton');
-    submitButton.addEventListener('click', this.submitText);
+    const submitChatButton = this.shadowRoot.querySelector('#submitChatButton');
+    submitChatButton.addEventListener('click', this.submitText);
+
+    const checkbox = this.shadowRoot.querySelector('#sinceLastCommentOnly');
+    checkbox.addEventListener('change', this.toggleLastComment);
+
+    const inputText = this.shadowRoot.querySelector('#inputText');
+    inputText.addEventListener('keydown', this.ignoreKeyboardControls);
   }
 
   disconnectedCallback() {
-    const promptButton = this.shadowRoot.querySelector('#promptButton');
-    promptButton.removeEventListener('click', this.expandInput);
-    const submitButton = this.shadowRoot.querySelector('#submitButton');
-    submitButton.removeEventListener('click', this.submitText);
+    const submitChatButton = this.shadowRoot.querySelector('#submitChatButton');
+    submitChatButton.removeEventListener('click', this.submitText);
+
+    const checkbox = this.shadowRoot.querySelector('#sinceLastCommentOnly');
+    checkbox.removeEventListener('change', this.toggleLastComment);
+
+    const inputText = this.shadowRoot.querySelector('#inputText');
+    inputText.removeEventListener('keydown', this.ignoreKeyboardControls);  
   }
 
-  expandInput = () => {
-    const promptButton = this.shadowRoot.querySelector('#promptButton');
-    const promptContainer = this.shadowRoot.querySelector('#promptContainer');
-    if(promptContainer.style.display === 'block') {
-      promptButton.textContent = `${this.promptButtonText} ▶`;
-      promptContainer.style.display = 'none';
+  toggleLastComment = (event) => {
+    const checkbox = this.shadowRoot.querySelector('#sinceLastCommentOnly');
+    const inputText = this.shadowRoot.querySelector('#inputText');
+    if (checkbox.checked) {
+      inputText.textContent = this.sinceLastCommentPrompt
     } else {
-      promptButton.textContent = `${this.promptButtonText} ▼`;
-      promptContainer.style.display = 'block';
+      inputText.textContent = this.allTimePrompt;
     }
   }
 
-  submitText = () => {
-    const inputText = this.shadowRoot.querySelector('.inputText');
-    const sinceLastCommentCheckbox = this.shadowRoot.querySelector('#sinceLastCommentOnly');
-
-    let codeFromPlayback = "";
-
-    //describe code from last comment
-    if(sinceLastCommentCheckbox.checked) {
-      let originalCodeSource;
-      let currentCodeSource;
-      
-      if(this.playbackEngine.mostRecentChanges.endedOnAComment) {
-        //use the state at the last two comments
-        originalCodeSource = this.playbackEngine.mostRecentChanges.previousCommentState;
-        currentCodeSource = this.playbackEngine.mostRecentChanges.currentCommentState;
-      } else {
-        //use the most recent comment state and the current state of the files
-        originalCodeSource = this.playbackEngine.mostRecentChanges.currentCommentState;
-        currentCodeSource = this.playbackEngine.editorState.getFiles();
-      }
-      
-      //get only the changed code
-      if(this.playbackEngine.newCodeMarkerGenerator) {
-        codeFromPlayback = "This is the original code:\n\n";
-        
-        const changedFiles = this.playbackEngine.newCodeMarkerGenerator.getAllChangedFileIds();
-        for(const fileId of changedFiles) {
-          //old code
-          const filePath = this.playbackEngine.editorState.getFilePath(fileId);
-          const codeFromPreviousState = originalCodeSource[fileId];
-          if(codeFromPreviousState) {
-            codeFromPlayback += `File: ${filePath}\n`;
-            codeFromPlayback += codeFromPreviousState;
-          }
-
-          //new code
-          codeFromPlayback += "\n\nThis is the new code:\n\n";
-
-          for(const fileId of changedFiles) {
-            const filePath = this.playbackEngine.editorState.getFilePath(fileId);
-            const codeFromCurrentState = currentCodeSource[fileId];
-            if(codeFromCurrentState) {
-              codeFromPlayback += `File: ${filePath}\n`;
-              codeFromPlayback += codeFromCurrentState;
-            }
-          }
-        }
-        //add prompt from user
-        codeFromPlayback += "\n\n";
-        codeFromPlayback += inputText.innerText;
-      } 
-    } else { //describe all of the code
-      //get the code as it is in the editor now
-      let currentCodeSource = this.playbackEngine.editorState.getFiles();
-      codeFromPlayback = "This is the code:\n\n";
-      for(const fileId in currentCodeSource) {
-        const filePath = this.playbackEngine.editorState.getFilePath(fileId);
-        const codeFromCurrentState = currentCodeSource[fileId];
-        codeFromPlayback += `File: ${filePath}\n`;
-        codeFromPlayback += codeFromCurrentState;
-      }
-
-      //add prompt from user
-      codeFromPlayback += "\n\n";
-      codeFromPlayback += inputText.innerText;
-    }     
-
-    inputText.focus();
-
-    const event = new CustomEvent('ai-prompt-submit', {
-      detail: {
-        originalPrompt: inputText.innerText,
-        promptWithCode: codeFromPlayback
-      },
-      bubbles: true,
-      composed: true
-    });
-    this.dispatchEvent(event);
+  ignoreKeyboardControls = (event) => {
+    //consume keyboad events while typing the question
+    event.stopImmediatePropagation();
   }
+
+  submitText = async () => {
+    const inputText = this.shadowRoot.querySelector('#inputText');
+    const sinceLastCommentCheckbox = this.shadowRoot.querySelector('#sinceLastCommentOnly');
+    const submitChatButton = this.shadowRoot.querySelector('#submitChatButton');
+
+    let codeFromPlayback = this.playbackEngine.getMostRecentFileEdits(sinceLastCommentCheckbox.checked);
+
+    //add prompt from user
+    const promptWithCode = `${codeFromPlayback}\n\nBriefly respond to this prompt.\n\n${inputText.innerText}`;
+    
+    let promptObject = {
+      requestType: "Ask",
+      prompt: promptWithCode,
+      playbackViewId: document.body.dataset.playbackViewId ? document.body.dataset.playbackViewId : null
+    };
+
+    submitChatButton.textContent = 'Generating response...';
+    //make the submitChatButton disabled
+    submitChatButton.setAttribute('disabled', 'true');
+    inputText.setAttribute('contenteditable', 'false');
+    sinceLastCommentCheckbox.setAttribute('disabled', 'true');
+
+    //send the formatted one to the server
+    const serverProxy = new ServerProxy();
+    const responseObject = await serverProxy.sendAIPromptToServer(promptObject);
+
+    submitChatButton.textContent = 'Submit Another Question';
+    submitChatButton.removeAttribute('disabled');
+    inputText.setAttribute('contenteditable', 'true');
+    inputText.focus();
+    sinceLastCommentCheckbox.removeAttribute('disabled');
+
+    if(responseObject.error) {
+      const aiResponse = this.shadowRoot.querySelector('.aiResponse');
+      aiResponse.textContent = responseObject.response;
+    } else {
+      const md = markdownit();  
+
+      if(this.sendResponseAsEvent) {
+        const event = new CustomEvent('ai-prompt-response', {
+          detail: {
+            prompt: inputText.innerText,
+            response: md.render(responseObject.response)
+          },
+          bubbles: true,
+          composed: true
+        });
+        this.dispatchEvent(event);
+      } else {
+        const answeredQuestion = document.createElement('div');
+        answeredQuestion.appendChild(document.createElement('hr'));
+
+        const questionElement = document.createElement('div');
+        questionElement.classList.add('questionText');
+        questionElement.textContent = inputText.innerText;
+        answeredQuestion.appendChild(questionElement);
+
+        const responseElement = document.createElement('div');
+        responseElement.classList.add('responseText');
+        responseElement.innerHTML = md.render(responseObject.response);
+        answeredQuestion.appendChild(responseElement);
+
+        const aiResponse = this.shadowRoot.querySelector('.aiResponse');
+        aiResponse.prepend(answeredQuestion);
+      } 
+    }
+  } 
 }
 
 window.customElements.define('st-ai-prompt-input', AIPromptInput);

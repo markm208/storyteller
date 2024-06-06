@@ -3,6 +3,7 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
+const https = require('https');
 
 const utilities = require('../utilities.js');
 
@@ -18,9 +19,10 @@ const acceptableVideoMimeTypes = ['video/mpeg', 'video/mp4', 'video/webm'];
  * can be used with editors too.
  */
 class HttpServer {
-    constructor (projectManager) {
+    constructor (projectManager, openaiApiKey) {
         //store a reference to the project manager
         this.projectManager = projectManager;
+        this.openaiApiKey = openaiApiKey;
 
         //get the path to the public dir inside this repo /core
         const pathToPublicDirInThisProject = path.join(__dirname, '..', 'public');
@@ -65,7 +67,7 @@ class HttpServer {
 
             //send the function back to the browser
             res.type('application/javascript');
-            res.status('200').send(`${playbackData}`);
+            res.status(200).send(`${playbackData}`);
         });
 
         app.get('/project', (req, res) => {
@@ -338,19 +340,66 @@ class HttpServer {
         });
 
         //for ai prompt
-        app.post('/aiPrompt', (req, res) => {
-            const promptObject = req.body;
-            
-            //TODO send the prompt to the an AI service
-            console.log(`Server receives: ${promptObject.prompt}`);
-            
-            //mock response
-            const aiResponse = {
-                response: 'AI response'
-            };
+        app.post('/aiPrompt', async (req, res) => {
+            //if the user has supplied a valid OpenAI API key
+            if(this.openaiApiKey) {
+                const promptObject = req.body;
+                //console.log(`Server sends: ${JSON.stringify(promptObject.prompt)}`);
+    
+                const data = JSON.stringify({
+                    messages: [{ role: "user", content: promptObject.prompt }],
+                    model: "gpt-4o",
+                });
+                
+                const options = {
+                    hostname: 'api.openai.com',
+                    port: 443,
+                    path: '/v1/chat/completions',
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.openaiApiKey}`,
+                        'Content-Length': data.length
+                    }
+                };
+                try {
+                    const aiResponse = await new Promise((resolve, reject) => {
+                        const req = https.request(options, res => {
+                            let body = '';
+                            res.on('data', chunk => body += chunk);
+                            res.on('end', () => {
+                                if (res.statusCode >= 200 && res.statusCode <= 299) {
+                                    const jsonResponse = JSON.parse(body);
+                                    if (jsonResponse.choices && jsonResponse.choices[0] && jsonResponse.choices[0].message) {
+                                        resolve({ error: false, response: jsonResponse.choices[0].message.content });
+                                    } else {
+                                        reject("Unexpected API response: " + body);
+                                    }
+                                } else {
+                                    reject(`HTTP request failed with status ${res.statusCode}: ${res.statusMessage}`);
+                                }
+                            });
+                        });
+                    
+                        req.on('error', error => {
+                            console.error(`Request error: ${error}`);
+                            reject(error);
+                        });
+                        req.write(data);
+                        req.end();
+                    });
 
-            //return the response
-            res.json(aiResponse);
+                    //console.log(`\n\n*****\nServer receives: ${aiResponse.response}`);
+
+                    //return the response
+                    res.json(aiResponse);
+                } catch (error) {
+                    res.status(500).json({ error: true, response: 'An error occurred while processing your request.' });
+                }
+            } else { //no OpenAI API key
+                //give them an error message with instructions on how to fix it
+                res.status(500).json({ error: true, response: "The OpenAI API key is missing. Please go to the extension's settings and enter a valid OpenAI API key and then restart VS Code." });
+            }
         });
 
         //for invalid routes

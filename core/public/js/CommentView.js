@@ -61,14 +61,6 @@ class CommentView extends HTMLElement {
           opacity: 80%;
         }
 
-        .aiPrompt {
-          font-style: italic;
-        }
-
-        .aiResponse {
-          margin-left: 10px;
-        }
-
         .commentTopBar {
           border-bottom: 1px solid rgb(83, 84, 86);
           margin-bottom: 8px;
@@ -124,6 +116,12 @@ class CommentView extends HTMLElement {
         .searchHighlight {
           background-color: #517EB0;
         }
+
+        #aiInput {
+          margin-top: 5px;
+          padding-top: 5px;
+          border-top: 1px solid rgb(83, 84, 86);
+        }
       </style>
       <div>
         <div class="commentTopBar"></div>
@@ -132,7 +130,6 @@ class CommentView extends HTMLElement {
         <div class="media"></div>
         <div class="questionAndAnswerContainer"></div>
         <div class="tagContainer"></div>
-        <div id="aiResponse"></div>
         <div id="aiInput"></div>
         <button id="editCommentButton" class="inactive" title="Edit this comment"></button>
       </div>`;
@@ -200,33 +197,25 @@ class CommentView extends HTMLElement {
 
     //if there is a q&a
     if(this.comment.questionCommentData && this.comment.questionCommentData.question) {
-      //create a tag view to display the tags
       const questionAndAnswerContainer = this.shadowRoot.querySelector('.questionAndAnswerContainer');
       const qaView = new QuestionAnswerView(this.comment);
       questionAndAnswerContainer.appendChild(qaView);
     }
 
+    //ai input
     if(!this.isDescriptionComment) {
       //create an AI input to get suggestions
       const aiInput = this.shadowRoot.querySelector('#aiInput');
-      const aiPromptInput = new AIPromptInput(this.playbackEngine, 'Ask AI');
-      aiInput.appendChild(aiPromptInput);
-
-      this.shadowRoot.addEventListener('ai-prompt-submit', async (event) => {
-        //get the original prompt and the formatted prompt with code
-        const prompt = event.detail.originalPrompt;
-        const promptWithCode = event.detail.promptWithCode;
-  
-        //send the formatted one to the server
-        const serverProxy = new ServerProxy();
-        const response = await serverProxy.sendAIPromptToServer(promptWithCode);
-  
-        //display the response
-        const aiResponse = this.shadowRoot.querySelector('#aiResponse');
-        aiResponse.innerHTML += `<p class="aiPrompt">${prompt}</p><p class="aiResponse">${response}</p><hr>`;
-  
-        event.stopPropagation();
-      });
+      const promptCollapsable = new Collapsable('Ask About This Code');
+      const aiPromptInput = new AIPromptInput(this.playbackEngine, false);
+      const aiGeneratedQ = new AIGeneratedQuestion(this.playbackEngine);
+      const aiElements = document.createElement('div');
+      aiElements.classList.add('aiElements');
+      aiElements.appendChild(aiPromptInput);
+      aiElements.appendChild(document.createElement('hr'));
+      aiElements.appendChild(aiGeneratedQ);
+      promptCollapsable.addContent(aiElements);
+      aiInput.appendChild(promptCollapsable);
     }
   }
 

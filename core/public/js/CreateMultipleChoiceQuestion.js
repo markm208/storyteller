@@ -1,7 +1,7 @@
 class CreateMultipleChoiceQuestion extends HTMLElement {
-  constructor(questionCommentData) {
+  constructor(playbackEngine, questionCommentData) {
     super();
-
+    this.playbackEngine = playbackEngine;
     this.questionCommentData = questionCommentData;
 
     this.attachShadow({ mode: 'open' });
@@ -122,6 +122,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
             Clear All
           </button>
         </div>
+        <div id="generateAIQuestionInput"></div>
       </div>
       `;
     return template.content.cloneNode(true);
@@ -165,12 +166,25 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
       explanationText.updateFormattedText('');
     });
 
+    const generateAIQuestionInput = this.shadowRoot.querySelector('#generateAIQuestionInput');
+    const generateAIQuestion = new AIGeneratedQuestion(this.playbackEngine, true);
+    generateAIQuestionInput.appendChild(generateAIQuestion);
+
     //if the comment question is being edited
     if (this.questionCommentData && this.questionCommentData.question) {
       this.createExistingQuestion();
     } else { //brand new question
       this.createNewQuestion();
     }
+
+    //add an event listener for ai-generate-question-response
+    this.addEventListener('ai-generate-question-response', event => {
+      this.questionCommentData = event.detail.response;
+      //remove the initial answer boxes
+      const allAnswersContainer = this.shadowRoot.querySelector('#allAnswersContainer');
+      allAnswersContainer.innerHTML = '';      
+      this.createExistingQuestion();
+    });
   }
 
   disconnectedCallback() {

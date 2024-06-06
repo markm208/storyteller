@@ -301,26 +301,31 @@ class ServerProxy {
 
   //add a method to send an ai prompt to the server
   async sendAIPromptToServer(prompt) {
+    let resultObject = {response: null, error: true};
+
     try {
       const fetchConfigData = {
         method: 'POST',
-        body: JSON.stringify({prompt}),
+        body: JSON.stringify(prompt),
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         }
       };
 
-      const response = await fetch('/aiPrompt', fetchConfigData);
-      if (!response.ok) {
-        console.log('Error with the response data');
+      let metaTag = document.querySelector('meta[name="csrf-token"]');
+      if (metaTag) {
+        fetchConfigData.headers['X-CSRF-Token'] = metaTag.content;
       }
-
-      //send response from AI service
-      const resultObject = await response.json();
-      return resultObject.response;
-
+      
+      const httpResponse = await fetch('/aiPrompt', fetchConfigData);
+      const bodyJSON = await httpResponse.json();
+      resultObject.response = bodyJSON.response;
+      if (httpResponse.ok) {
+        resultObject.error = false;
+      }
     } catch (error) {
       console.log(error);
     }
+    return resultObject;
   }
 }

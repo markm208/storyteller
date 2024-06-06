@@ -22,12 +22,13 @@ const DBAbstraction = require('./DBAbstraction.js');
  * data to disk.
  */
 class ProjectManager {
-    constructor(projDirPath, stDirPath, version) {
+    constructor(projDirPath, stDirPath, version, openaiApiKey) {
         this.projectDirPath = projDirPath;
         this.storytellerDirPath = path.join(projDirPath, stDirPath);
         this.db = null;
         this.project = {};
         this.version = version;
+        this.openaiApiKey = openaiApiKey;
         this.eventTimer = null;
         //whether playback data should be altered for the next playback
         this.playbackConstraints = null;
@@ -53,7 +54,7 @@ class ProjectManager {
                 this.ignorePath = new IgnorePath(this.projectDirPath);
 
                 //create an http server to listen for editors and playbacks
-                this.httpServer = new HttpServer(this);
+                this.httpServer = new HttpServer(this, this.openaiApiKey);
                 
                 if(isNewProject) {
                     //create the initial data
