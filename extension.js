@@ -1367,8 +1367,12 @@ function zipPublicHelper(dirPath, zip) {
         //if this is a file
         if(stats.isFile()) {
             //read the contents of the file
-            const fileContents = fs.readFileSync(fullPathToFileOrDir);
-            
+            let fileContents = fs.readFileSync(fullPathToFileOrDir);
+            if(fullPathToFileOrDir.endsWith("index.html")) {
+                const index_html = fileContents.toString();
+                //when serving a playback from the file system the script src's have have no leading /
+                fileContents = index_html.replace(/<script src="\/js\//g, '<script src="js/');
+            }
             //add the file to the zip
             zip.file(relativePathToFileOrDir, fileContents);
         } else if(stats.isDirectory()) {
