@@ -1,5 +1,5 @@
 class AIPromptInput extends HTMLElement {
-  constructor(playbackEngine, sendResponseAsEvent=false, sinceLastCommentPrompt = 'Describe the how the code has changed.', allTimePrompt = 'Describe this code.') {
+  constructor(playbackEngine, sendResponseAsEvent=false, sinceLastCommentPrompt = 'Describe how the code has changed.', allTimePrompt = 'Describe this code.') {
     super();
 
     this.playbackEngine = playbackEngine;
