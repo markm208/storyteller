@@ -121,6 +121,7 @@ class CommentView extends HTMLElement {
           margin-top: 5px;
           padding-top: 5px;
           border-top: 1px solid rgb(83, 84, 86);
+          display: none;
         }
       </style>
       <div>
@@ -228,6 +229,10 @@ class CommentView extends HTMLElement {
     //make this comment view have the active class
     this.shadowRoot.host.classList.add('activeComment');
 
+    //make the aiInput visible
+    const aiInput = this.shadowRoot.querySelector('#aiInput');
+    aiInput.style.display = 'block';
+
     //get the rectangle around the active comment that is displayed
     const commentRectangle = this.shadowRoot.host.getBoundingClientRect();
 
@@ -239,6 +244,11 @@ class CommentView extends HTMLElement {
   }
   makeCommentViewInactive() {
     this.shadowRoot.host.classList.remove('activeComment');
+
+    //make the aiInput invisible
+    const aiInput = this.shadowRoot.querySelector('#aiInput');
+    aiInput.style.display = 'none';
+    
   }
 
   makePartOfActiveGroup() {
