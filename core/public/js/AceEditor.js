@@ -245,10 +245,10 @@ class AceEditor extends HTMLElement {
   handleSelectionLinesAboveBelow = () => {
     //get the selected text (there might be multiple highlighted ranges)
     const selection = this.aceEditor.getSelection();
-    const ranges = selection.getAllRanges();
-
+    //Ace sometimes adds empty ranges so remove them
+    const ranges = selection.getAllRanges().filter(range => !range.isEmpty());
     //if there is anything selected in the editor
-    if(ranges.length > 0 && ranges.some(currentRange => currentRange.isEmpty() === false)) {
+    if(ranges.length > 0) {
       //get the min and max line numbers where there is selected text
       let lowestLineNumber = Number.MAX_SAFE_INTEGER;
       let highestLineNumber = 0;
@@ -444,7 +444,8 @@ class AceEditor extends HTMLElement {
     
     //get the selected text from the editor (there might be multiple highlighted ranges)
     const selection = this.aceEditor.getSelection();
-    const ranges = selection.getAllRanges();
+    //Ace sometimes adds empty ranges so remove them
+    const ranges = selection.getAllRanges().filter(range => !range.isEmpty());
 
     //if there are any non-empty selections in the editor
     if(ranges.length > 0) {
@@ -499,13 +500,12 @@ class AceEditor extends HTMLElement {
   getSelectedLineNumbersAndColumns() {
     let searchText = 'selected-text:';
     const selection = this.aceEditor.getSelection();
-    const ranges = selection.getAllRanges();
+    //Ace sometimes adds empty ranges so remove them
+    const ranges = selection.getAllRanges().filter(range => !range.isEmpty());
 
     const rangeData = [];
     ranges.forEach(range => {
-      if(range.isEmpty() === false) {
-        rangeData.push(`line${range.start.row + 1}.${range.start.column + 1}-line${range.end.row + 1}.${range.end.column}`);
-      }
+      rangeData.push(`line${range.start.row + 1}.${range.start.column + 1}-line${range.end.row + 1}.${range.end.column}`);
     });
     searchText += rangeData.join(',');
     return searchText;

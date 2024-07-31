@@ -89,9 +89,17 @@ class AIPromptInput extends HTMLElement {
     const checkbox = this.shadowRoot.querySelector('#sinceLastCommentOnly');
     const inputText = this.shadowRoot.querySelector('#inputText');
     if (checkbox.checked) {
-      inputText.textContent = this.sinceLastCommentPrompt
+      //if other default is set or the box is empty
+      if(inputText.textContent.trim() === this.allTimePrompt || inputText.textContent.trim() === "") {
+        //set the default prompt
+        inputText.textContent = this.sinceLastCommentPrompt;
+      } //else- user has something typed in, keep it
     } else {
-      inputText.textContent = this.allTimePrompt;
+      //if other default is set or the box is empty
+      if(inputText.textContent.trim() === this.sinceLastCommentPrompt || inputText.textContent.trim() === "") {
+        //set the default prompt
+        inputText.textContent = this.allTimePrompt;
+      } //else- user has something typed in, keep it
     }
   }
 
