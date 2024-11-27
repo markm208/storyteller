@@ -81,6 +81,32 @@ class AceEditor extends HTMLElement {
           text-decoration-style: solid;
           background-color: rgb(52, 52, 52);
         }
+
+        .st-context-menu {
+          position: absolute;
+          background-color: #2c2c2c; 
+          border: 1px solid gray; 
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); 
+          z-index: 1000;
+          border-radius: 4px; 
+          padding: 8px 0; 
+          color: #f0f0f0; 
+          font-family: Arial, sans-serif; 
+          font-size: 14px; 
+        }
+        .st-context-menu ul {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+        .st-context-menu li {
+          padding: 8px 12px;
+          cursor: pointer;
+          color: #f0f0f0;
+        }
+        .st-context-menu li:hover {
+          background-color: #444; 
+        }
       </style>
 
       <div class="fileTabs"></div>
@@ -113,7 +139,76 @@ class AceEditor extends HTMLElement {
     //attach the ace editor to the shadow dom
     aceEditor.renderer.attachToShadowRoot();
     aceEditor.renderer.$cursorLayer.element.style.display = "none";
+    // Disable the default context menu
+    aceEditor.container.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
     
+      //count how many comments are in the selected text
+      let numCommentsInSelection = this.getSelectedTextForSelectedTextSearch();
+
+      //build a custom context menu
+      const x = event.clientX;
+      const y = event.clientY;
+      
+      const existingMenu = document.querySelector(".st-context-menu");
+      if (existingMenu) {
+          existingMenu.remove();
+      }
+
+      // Create a custom context menu
+      const menu = document.createElement("div");
+      menu.className = "st-context-menu";
+      menu.style.left = `${x}px`;
+      menu.style.top = `${y}px`;
+      menu.innerHTML = `
+        <ul>
+          <li id="copyMenuItem">Copy</li>
+          <li id="searchMenuItem">Filter ${numCommentsInSelection} Comments in Selection</li>
+        </ul>
+      `;
+
+      // Add hover effect for menu items
+      const style = document.createElement('style');
+      style.textContent = `
+        .st-context-menu li:hover {
+          background-color: #444; 
+        }
+      `;
+      this.shadowRoot.appendChild(menu);
+
+      menu.querySelector('#copyMenuItem').onclick = () => {
+        const selectedText = aceEditor.getSelectedText();
+        if (selectedText) {
+          navigator.clipboard.writeText(selectedText).then(() => {
+            //console.log("Text copied to clipboard: " + selectedText);
+          }).catch((err) => {
+            console.error('Error copying text: ', err);
+          });
+        } else {
+          console.log("No text selected");
+        }
+        menu.remove();  // Remove menu after the action
+      };
+
+      menu.querySelector('#searchMenuItem').onclick = () => {
+        const selectedText = aceEditor.getSelectedText();
+        if (selectedText) {
+          this.notifySearchSelectedText();    
+        } else {
+          console.log("No text selected");
+        }
+        menu.remove();  // Remove menu after the action
+      };
+
+      // Add logic to close the menu when clicking outside
+      const closeMenu = () => {
+        menu.remove();
+        document.removeEventListener("click", closeMenu);
+      };
+
+      document.addEventListener("click", closeMenu);
+    });
+
     //store for later
     this.aceEditor = aceEditor;
 
@@ -483,7 +578,7 @@ class AceEditor extends HTMLElement {
           const selectedCodeBlock = {
             fileId: this.playbackEngine.activeFileId,
             selectedText: selectedText,
-            selectedTextEventIds: this.playbackEngine.editorState.getEventIds(this.playbackEngine.activeFileId, range.start.row, range.start.column, range.end.row, range.end.column),
+            selectedTextEventIds: this.playbackEngine.editorState.getEventIds(this.playbackEngine.activeFileId, range.start.row, range.start.column, range.end.row, range.end.column - 1), //ace range includes one beyond the end, exclude the end row/end col event 
             startRow: range.start.row,
             startColumn: range.start.column,
             endRow: range.end.row,
@@ -497,18 +592,30 @@ class AceEditor extends HTMLElement {
     return selectedCode;
   }
 
-  getSelectedLineNumbersAndColumns() {
-    let searchText = 'selected-text:';
+  getSelectedTextRangeStrings() {
     const selection = this.aceEditor.getSelection();
     //Ace sometimes adds empty ranges so remove them
     const ranges = selection.getAllRanges().filter(range => !range.isEmpty());
 
     const rangeData = [];
-    ranges.forEach(range => {
+    for(let i = 0;i < ranges.length;i++) {
+      const range = ranges[i];
+      //add one except for the end column to 
       rangeData.push(`line${range.start.row + 1}.${range.start.column + 1}-line${range.end.row + 1}.${range.end.column}`);
-    });
+    }
+    return rangeData;
+  }
+
+  getSelectedLineNumbersAndColumns() {
+    let searchText = 'selected-text:';
+    const rangeData = this.getSelectedTextRangeStrings();
     searchText += rangeData.join(',');
     return searchText;
+  }
+
+  getSelectedTextForSelectedTextSearch() {
+    const rangeData = this.getSelectedTextRangeStrings();
+    return this.playbackEngine.countCommentsInSelection(rangeData);
   }
 
   highlightSearch() {

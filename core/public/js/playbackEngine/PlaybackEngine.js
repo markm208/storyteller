@@ -34,15 +34,6 @@ class PlaybackEngine {
       currentCommentState: {},
     };
 
-    //aggregate info about the playback's comments
-    this.commentInfo = {
-      totalNumberOfComments: 0,
-      allTags: [],
-      allCommentsInGroups: [],
-      commentGroupPositions: [],
-      flattenedComments: []  
-    };
-
     //create aggregate info about comments
     this.updateCommentInfo();
 
@@ -408,7 +399,8 @@ class PlaybackEngine {
       allTags: [],
       allCommentsInGroups: [],
       commentGroupPositions: [],
-      flattenedComments: []  
+      flattenedComments: [],
+      selectedEventIdsFromComments: {} //maps selected comment event ids to comment ids
     };
 
     //holds the groups for sorting
@@ -416,10 +408,29 @@ class PlaybackEngine {
     
     //go through all of the comments
     for(let eventId in this.playbackData.comments) {
+      //get the group of comments at an event
+      const commentsAtEvent = this.playbackData.comments[eventId];
+      
+      //go through the comments at a single pause point
+      for(let i = 0;i < commentsAtEvent.length;i++) {
+        //get one comment at a time
+        const comment = commentsAtEvent[i];
+
+        //go through each block of selected code
+        for (let i = 0; i < comment.selectedCodeBlocks.length; i++) {
+          const block = comment.selectedCodeBlocks[i];
+          for (let j = 0; j < block.selectedTextEventIds.length; j++) {
+            const selectedCodeEventId = block.selectedTextEventIds[j];
+            //associate the selected event id with the comment it is in
+            this.commentInfo.selectedEventIdsFromComments[selectedCodeEventId] = comment.id;
+          }
+        }
+      }
+
       //create groups of comments and where they land in the sequence of events
       orderedCommentGroups.push({
-        comments: this.playbackData.comments[eventId], 
-        eventSequenceNumber: this.playbackData.comments[eventId][0].displayCommentEventSequenceNumber
+        comments: commentsAtEvent, 
+        eventSequenceNumber: commentsAtEvent[0].displayCommentEventSequenceNumber
       });
     }
     
@@ -699,22 +710,16 @@ class PlaybackEngine {
         searchType = firstPart;
         searchText = secondPart;
         selectedTextEventIds = new Set();
-
         const ranges = secondPart.split(',');
-        ranges.forEach(range => {
-          const rangeSplit = range.split('-');
-          const fromSplit = rangeSplit[0];
-          const fromParts = fromSplit.split('.');
-          const startRow = Number(fromParts[0].substring('line'.length)) - 1;
-          const startColumn = Number(fromParts[1]) - 1;
-
-          const toSplit = rangeSplit[1];
-          const toParts = toSplit.split('.');
-          const endRow = Number(toParts[0].substring('line'.length)) - 1;
-          const endColumn = Number(toParts[1]) - 1;
-
-          this.editorState.getEventIds(this.activeFileId, startRow, startColumn, endRow, endColumn).forEach(eventId => selectedTextEventIds.add(eventId));
-        });
+        for(let i = 0;i < ranges.length;i++) {
+          const rangeString = ranges[i];
+          const rangeData = this.splitSelectedTextIntoRanges(rangeString);
+          const eventIds = this.editorState.getEventIds(this.activeFileId, rangeData.startRow, rangeData.startColumn, rangeData.endRow, rangeData.endColumn);
+          for(let j = 0;j < eventIds.length;j++) {
+            const eventId = eventIds[j];
+            selectedTextEventIds.add(eventId);
+          }
+        }
       } else if(firstPart === 'question') {
         searchType = firstPart;
         searchText = secondPart;
@@ -825,45 +830,49 @@ class PlaybackEngine {
     return searchResults;
   }
 
-  performSearchHighlightedCode(selectedTextEventIds) {
-    //go through all of the comments and find ones that are in the selected code
-    const searchResults = {
-      searchText: '',
-      numberOfResults: 0,
-      details: {}
-    };
+  splitSelectedTextIntoRanges(rangeString) {
+    //split into two parts "line3.1-line4.7"
+    const rangeSplit = rangeString.split('-');
 
-    //go through all of the playback comments
-    for(let eventId in this.playbackData.comments) {
-      //go through all of the comments at this comment point
-      const allCommentsAtEvent = this.playbackData.comments[eventId];
+    const fromSplit = rangeSplit[0]; //"line3.1"
+    const toSplit = rangeSplit[1]; //"line4.7"
+
+    const fromParts = fromSplit.split('.'); //["line3", "1"]
+    //filter out the word 'line' and subtract 1 to make it 0 based
+    const startRow = Number(fromParts[0].substring('line'.length)) - 1;
+    //subtract 1 to make it 0 based
+    const startColumn = Number(fromParts[1]) - 1;
+
+    //see above
+    const toParts = toSplit.split('.');
+    const endRow = Number(toParts[0].substring('line'.length)) - 1;
+    const endColumn = Number(toParts[1]) - 1;
+    
+    return {startRow, startColumn, endRow, endColumn};
+  }
+
+  countCommentsInSelection(rangeStrings) {
+    //create a set to hold comment ids where some selected text is in the comment
+    let commentIds = new Set();
+
+    //go through the array of range strings (ex. ["line3.1-line4.5"])
+    for(let i = 0;i < rangeStrings.length;i++)
+    {
+      const rangeData = this.splitSelectedTextIntoRanges(rangeStrings[i]);
+      //get the event ids in the selected range
+      const selectedEventIds = this.editorState.getEventIds(this.activeFileId, rangeData.startRow, rangeData.startColumn, rangeData.endRow, rangeData.endColumn);
       
-      //go through each comment
-      allCommentsAtEvent.forEach(comment => {
-        if(comment.selectedCodeBlocks.length > 0) {
-          //go through each block of selected code
-          for(let j = 0;j < comment.selectedCodeBlocks.length;j++) {
-            const block = comment.selectedCodeBlocks[j];
-            for(let k = 0;k < block.selectedTextEventIds.length;k++) {
-              const selectedCodeEventId = block.selectedTextEventIds[k];
-              if(selectedTextEventIds.has(selectedCodeEventId)) {
-                searchResults.details[comment.id] = {
-                  commentId: comment.id,
-                  inSelectedText: true,
-                  inCommentText: false,
-                  inTags: false,
-                  inQuestion: false,
-                  searchText: ''
-                };
-                searchResults.numberOfResults++;
-                break;
-              }
-            }
-          }
+      //collect the comment ids if they belong to a comment
+      for(let j = 0;j < selectedEventIds.length;j++) {
+        //check to see if the selected event is part of the text in a comment
+        if(this.commentInfo.selectedEventIdsFromComments[selectedEventIds[j]]) {
+          //store the comment ids only once (dups ignored)
+          commentIds.add(this.commentInfo.selectedEventIdsFromComments[selectedEventIds[j]]);
         }
-      });
+      }
     }
-    return searchResults;
+    //return how many distinct comments there are in the selected text
+    return commentIds.size;
   }
 
   replaceAllHTMLWithACharacter(htmlText, character=' ') {
