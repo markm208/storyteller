@@ -25,10 +25,11 @@ class ShowHideComponent extends HTMLElement {
         }
         #title {
           font-size: 1.1em;
+          font-style: italic;
         }
         #title.open {
           color: aliceblue;
-          font-style: italic;
+          font-style: normal;
         }
 
         #showHideToggleButton {

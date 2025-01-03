@@ -77,6 +77,11 @@ class EditorState {
     return filePath;
   }
 
+  getFileId(filePath) {
+    //search for the file path and return the associated file id
+    return Object.keys(this.allFiles).find(fileIdKey => this.allFiles[fileIdKey].filePath === filePath);
+  }
+
   isFileDeleted(fileId) {
     let isDeleted = false;
     if(this.allFiles[fileId]) {

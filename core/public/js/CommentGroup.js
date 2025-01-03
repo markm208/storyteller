@@ -266,6 +266,15 @@ class CommentGroup extends HTMLElement {
     }
   }
 
+  updateTTSSpeed(speed) {
+    //get all of the comment views in this group
+    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+    allCommentViews.forEach(commentView => {
+      //update the tts speed
+      commentView.updateTTSSpeed(speed);
+    });
+  }
+  
   sortCommentViews(dropYPosition) {
     //get the comment view that was being dragged
     const draggedCommentView = this.shadowRoot.querySelector('.dragging');

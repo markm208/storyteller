@@ -1,8 +1,7 @@
 class EditorView extends HTMLElement {
-  constructor(playbackEngine, editorProperties) {
+  constructor(playbackEngine) {
     super();
 
-    this.editorProperties = editorProperties;
     this.playbackEngine = playbackEngine;
     
     this.attachShadow({ mode: 'open' });
@@ -32,7 +31,7 @@ class EditorView extends HTMLElement {
 
   connectedCallback() {
     const editor = this.shadowRoot.querySelector('.editor');
-    const aceEditor = new AceEditor(this.playbackEngine, this.editorProperties);
+    const aceEditor = new AceEditor(this.playbackEngine);
     editor.appendChild(aceEditor);
 
     const controls = this.shadowRoot.querySelector('.controls');

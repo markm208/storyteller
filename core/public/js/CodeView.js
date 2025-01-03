@@ -1,8 +1,7 @@
 class CodeView extends HTMLElement {
-  constructor(playbackEngine, editorProperties) {
+  constructor(playbackEngine) {
     super();
 
-    this.editorProperties = editorProperties;
     this.width = window.innerWidth * .27;
     this.playbackEngine = playbackEngine;
 
@@ -68,7 +67,7 @@ class CodeView extends HTMLElement {
 
     //add the editor view
     const editorViewSlot = this.shadowRoot.querySelector('.editorViewSlot');
-    const editorView = new EditorView(this.playbackEngine, this.editorProperties);
+    const editorView = new EditorView(this.playbackEngine);
     editorViewSlot.appendChild(editorView);
 
     //add the event listeners
@@ -455,6 +454,11 @@ class CodeView extends HTMLElement {
     playbackNavigator.updateForTitleChange(newTitle);
   }
 
+  updateTTSSpeed(speed) {
+    const playbackNavigator = this.shadowRoot.querySelector('st-playback-navigator');
+    playbackNavigator.updateTTSSpeed(speed);
+  }
+
   addSelectedTextToComment(comment) {
     //ask the ace editor for the selected text
     const editorView = this.shadowRoot.querySelector('st-editor-view');
@@ -672,15 +676,15 @@ class CodeView extends HTMLElement {
   }
   increaseEditorFontSize() {
     //make the font bigger
-    this.editorProperties.fontSize = this.editorProperties.fontSize + 4;
+    this.playbackEngine.editorProperties.fontSize = this.playbackEngine.editorProperties.fontSize + 4;
     //update the editor
-    this.updateEditorFontSize(this.editorProperties.fontSize);
+    this.updateEditorFontSize(this.playbackEngine.editorProperties.fontSize);
   }
   decreaseEditorFontSize() {
     //make the font smaller
-    this.editorProperties.fontSize = this.editorProperties.fontSize - 2;
+    this.playbackEngine.editorProperties.fontSize = this.playbackEngine.editorProperties.fontSize - 2;
     //update the editor
-    this.updateEditorFontSize(this.editorProperties.fontSize);
+    this.updateEditorFontSize(this.playbackEngine.editorProperties.fontSize);
   }
 
   //adjusts playback speed

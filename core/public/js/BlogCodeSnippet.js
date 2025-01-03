@@ -1,9 +1,9 @@
 class BlogCodeSnippet extends HTMLElement {
-  constructor(comment, editorProperties) {
+  constructor(comment, playbackEngine) {
     super();
 
     this.comment = comment;
-    this.editorProperties = editorProperties;
+    this.playbackEngine = playbackEngine;
     this.aceEditor = null;
 
     this.attachShadow({ mode: 'open' });
@@ -72,12 +72,12 @@ class BlogCodeSnippet extends HTMLElement {
     //create the editor with the code snippet
     const codeSnippet = this.shadowRoot.querySelector('.codeSnippet');
     this.aceEditor = ace.edit(codeSnippet, {
-      theme: this.editorProperties.aceTheme,
+      theme: this.playbackEngine.editorProperties.aceTheme,
       mode: this.getEditorModeForFilePath(this.comment.currentFilePath),
       value: this.comment.viewableBlogText,
       showPrintMargin: false,
       readOnly: true,
-      fontSize: this.editorProperties.fontSize,
+      fontSize: this.playbackEngine.editorProperties.fontSize,
       firstLineNumber: snippetStartLineNumber + 1,
       maxLines: numLines,
       highlightActiveLine: false,
@@ -107,12 +107,12 @@ class BlogCodeSnippet extends HTMLElement {
     //if there is a file path
     if(filePath && filePath.trim()) {
       //if there is NOT an existing file mode for this type of file
-      if(!this.editorProperties.fileModes[filePath]) {
+      if(!this.playbackEngine.editorProperties.fileModes[filePath]) {
         //get the file mode for this file type
-        this.editorProperties.fileModes[filePath] = this.editorProperties.modelist.getModeForPath(filePath);
+        this.playbackEngine.editorProperties.fileModes[filePath] = this.playbackEngine.editorProperties.modelist.getModeForPath(filePath);
       }
       //set the file mode type
-      const fileMode = this.editorProperties.fileModes[filePath];
+      const fileMode = this.playbackEngine.editorProperties.fileModes[filePath];
       retVal = fileMode.mode;
     }
     return retVal;

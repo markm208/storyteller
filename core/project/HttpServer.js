@@ -402,6 +402,62 @@ class HttpServer {
             }
         });
 
+        app.post('/tts', async (req, res) => { //v2
+            if (this.openaiApiKey) {
+                const textObject = req.body;
+        
+                const data = JSON.stringify({
+                    input: textObject.text,
+                    voice: "echo",
+                    model: "tts-1-hd",
+                    speed: 1.2
+                });
+        
+                const options = {
+                    hostname: 'api.openai.com',
+                    port: 443,
+                    path: '/v1/audio/speech',
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.openaiApiKey}`,
+                        'Content-Length': data.length
+                    }
+                };
+        
+                try {
+                    const ttsResponse = await new Promise((resolve, reject) => {
+                        const req = https.request(options, res => {
+                            let body = [];
+                            res.on('data', chunk => body.push(chunk));
+                            res.on('end', () => {
+                                if (res.statusCode >= 200 && res.statusCode <= 299) {
+                                    const audioBuffer = Buffer.concat(body);
+                                    resolve(audioBuffer);
+                                } else {
+                                    reject(`HTTP request failed with status ${res.statusCode}: ${res.statusMessage}`);
+                                }
+                            });
+                        });
+        
+                        req.on('error', error => {
+                            console.error(`Request error: ${error}`);
+                            reject(error);
+                        });
+                        req.write(data);
+                        req.end();
+                    });
+        
+                    res.set('Content-Type', 'audio/mpeg');
+                    res.send(ttsResponse);
+                } catch (error) {
+                    res.status(500).json({ error: true, response: 'An error occurred while processing your request.' });
+                }
+            } else {
+                res.status(500).json({ error: true, response: "The OpenAI API key is missing. Please go to the extension's settings and enter a valid OpenAI API key and then restart VS Code." });
+            }
+        });
+        
         //for invalid routes
         app.use((req, res) => {
             res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`);

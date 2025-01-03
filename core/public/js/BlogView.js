@@ -1,8 +1,7 @@
 class BlogView extends HTMLElement {
-  constructor(playbackEngine, editorProperties) {
+  constructor(playbackEngine) {
     super();
 
-    this.editorProperties = editorProperties;
     this.playbackEngine = playbackEngine;
 
     this.attachShadow({ mode: 'open' });
@@ -96,7 +95,7 @@ class BlogView extends HTMLElement {
       const comment = flattenedComments[i];
       
       //create the content and add it to the page
-      const blogComponent = new BlogComponent(this.playbackEngine, comment, this.editorProperties);
+      const blogComponent = new BlogComponent(this.playbackEngine, comment);
       //make each blog component identifiable by id
       blogComponent.setAttribute('id', `id-${comment.id}`);
 

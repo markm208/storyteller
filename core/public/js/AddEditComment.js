@@ -7,6 +7,8 @@ class AddEditComment extends HTMLElement {
     this.editedComment = editedComment;
     //hold the number of lines in the file getting a new/edited comment
     this.numLinesInFile = 0;
+    //hold the file path of a new tts audio file
+    this.ttsFilePath = null;
 
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
@@ -104,17 +106,38 @@ class AddEditComment extends HTMLElement {
           opacity: 100%;
         }
 
+        .ttsButton {
+          font-size: 1rem;
+          padding: 2px 8px;
+          margin: 0px;
+          background-color: inherit;
+          color: lightgray;
+          border: 1px solid grey;
+          flex-shrink: 1;
+          cursor: pointer;
+          opacity: 80%;
+        }
+        .ttsButton:hover {
+          opacity: 100%;
+        }
       </style>
       <div id="addEditContainer">
         <input type="text" id="commentTitle" placeholder="Comment Title (Optional)"></input>
         <div id="commentTextContainer"></div>
         <div id="aiCommentSuggestionInput"></div>
-        <div id="surroundingText"></div>
-        <hr/>
+        <st-show-hide-component name="Add Secondary Highlights" show="true">
+          <div id="surroundingText" slot="child"></div>
+        </st-show-hide-component>
         <st-show-hide-component name="Media" show="true">
           <div id="imagesVMC" class="mediaContainer" slot="child"></div>
           <div id="videosVMC" class="mediaContainer" slot="child"></div>
           <div id="audiosVMC" class="mediaContainer" slot="child"></div>
+        </st-show-hide-component>
+        <st-show-hide-component name="Audio Transcription">            
+          <button id="genTTS" class="ttsButton" title="Generate AI Text-To-Speech Transcription" slot="child">Generate with AI</button>
+          <button id="uploadTts" class="ttsButton" title="Upload Audio File Transcription (mp3)" slot="child">Upload</button>
+          <button id="clearTts" class="ttsButton" title="Clear the Text-To-Speech Transcription" slot="child">Clear</button>
+          <div id="audioTranscriptionPreview" slot="child"></div>
         </st-show-hide-component>
         <st-show-hide-component name="Multiple Choice Question">            
           <div id="questionAnswerContainer" slot="child"></div>
@@ -202,6 +225,14 @@ class AddEditComment extends HTMLElement {
     collapsable.addContent(aiPromptInput);
     aiCommentSuggestionInput.appendChild(collapsable);
     
+    //tts controls
+    const genTTSButton = this.shadowRoot.getElementById('genTTS');
+    const uploadTTSButton = this.shadowRoot.getElementById('uploadTts');
+    const clearTts = this.shadowRoot.getElementById('clearTts');
+    genTTSButton.addEventListener('click', this.handleGenTTSClick);
+    uploadTTSButton.addEventListener('click', this.handleUploadTtsClick);
+    clearTts.addEventListener('click', this.clearTtsClick);
+
     //if there is a comment associated with this component then fill the inputs with data from it
     if (this.editedComment) {
       this.updateEditCommentMode();
@@ -222,6 +253,102 @@ class AddEditComment extends HTMLElement {
 
   disconnectedCallback() {
     this.shadowRoot.removeEventListener('keydown', this.stopProp);
+    
+    const genTTSButton = this.shadowRoot.getElementById('genTTS');
+    const uploadTTSButton = this.shadowRoot.getElementById('uploadTts');
+    const clearTts = this.shadowRoot.getElementById('clearTts');
+
+    genTTSButton.removeEventListener('click', this.handleGenTTSClick);
+    uploadTTSButton.removeEventListener('click', this.handleUploadTtsClick);
+    clearTts.removeEventListener('click', this.clearTtsClick);
+
+    this.deleteTempTts();
+  }
+
+  handleGenTTSClick = async () => {
+    const audioTranscriptionPreview = this.shadowRoot.querySelector('#audioTranscriptionPreview');
+
+    //get the text from the comment
+    const commentText = this.shadowRoot.querySelector('#commentText');
+    const text = commentText.getPlainText();
+
+    if(text.length > 0) {
+      audioTranscriptionPreview.innerHTML = 'Generating an AI Preview...';
+      
+      //convert the text to speech
+      const serverProxy = new ServerProxy();
+      const data = await serverProxy.sendTextToSpeechRequest(text);
+      
+      //verify the conversion happened
+      if(data.error) {
+        audioTranscriptionPreview.innerHTML = 'There was an error converting the text to speech: ' + data.error;
+      } else { //text was converted to speech
+        //upload the tts audio file to the server
+        this.ttsFilePath = await this.addTTSAudioFile(data.response);
+        //create the audio control
+        const ttsControl = new TextToSpeechControl(this.ttsFilePath, null, this.playbackEngine.editorProperties.ttsSpeed);
+        audioTranscriptionPreview.innerHTML = 'AI Preview:';
+        audioTranscriptionPreview.appendChild(ttsControl);
+      }
+    } else { //no text to convert
+      audioTranscriptionPreview.innerHTML = "Please enter some comment text to generate an AI transcription.";
+    }
+  }
+
+  handleUploadTtsClick = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'audio/mp3';
+
+    input.onchange = async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        this.ttsFilePath = await this.addTTSAudioFile(file);
+
+        //display a preview of the uploaded file
+        const audioTranscriptionPreview = this.shadowRoot.querySelector('#audioTranscriptionPreview');  
+        const ttsControl = new TextToSpeechControl(this.ttsFilePath, null, this.playbackEngine.editorProperties.ttsSpeed);
+        audioTranscriptionPreview.innerHTML = 'File Upload Preview:';
+        audioTranscriptionPreview.appendChild(ttsControl);
+      }
+    };
+
+    input.click();
+  }
+
+  clearTtsClick = async () => {
+    //clear out any tts audio preview
+    const audioTranscriptionPreview = this.shadowRoot.querySelector('#audioTranscriptionPreview');
+    audioTranscriptionPreview.innerHTML = '';
+
+    const serverProxy = new ServerProxy();
+    if(this.ttsFilePath) {
+      await serverProxy.deleteAudioOnServer(this.ttsFilePath);
+      this.ttsFilePath = null;
+    } else if(this.editedComment && this.editedComment.ttsFilePath) {
+      await serverProxy.deleteAudioOnServer(this.editedComment.ttsFilePath);
+      this.editedComment.ttsFilePath = null;
+    }
+  }
+  
+  addTTSAudioFile = async (binFileData) => {
+    await this.deleteTempTts();
+
+    //upload the tts audio file to the server
+    const newFile = new File([binFileData], 'tts-comment.mp3', { type: "audio/mpeg" });
+    const serverProxy = new ServerProxy();
+    const response = await serverProxy.addAudioOnServer([newFile]);
+    
+    //get the new file path from the server and set it as the audio source
+    return response[0];
+  }
+
+  deleteTempTts = async () => {
+    if(this.ttsFilePath) {
+      const serverProxy = new ServerProxy();
+      await serverProxy.deleteAudioOnServer(this.ttsFilePath);
+      this.ttsFilePath = null;
+    }
   }
 
   stopProp(event) {
@@ -301,6 +428,14 @@ class AddEditComment extends HTMLElement {
     const commentTitle = this.shadowRoot.querySelector('#commentTitle');
     commentTitle.setAttribute('value', this.editedComment.commentTitle ? this.editedComment.commentTitle : '');
 
+    //add the tts audio file if there is one
+    if (this.editedComment.ttsFilePath) {
+      const audioTranscriptionPreview = this.shadowRoot.querySelector('#audioTranscriptionPreview');
+      const ttsControl = new TextToSpeechControl(this.editedComment.ttsFilePath, null, this.playbackEngine.editorProperties.ttsSpeed);
+      audioTranscriptionPreview.innerHTML = 'Text to Speech Preview:';
+      audioTranscriptionPreview.appendChild(ttsControl);
+    }
+
     const imagesVMC = this.shadowRoot.querySelector('#imagesVMC');
     const images = new VerticalMediaContainer(this.editedComment.imageURLs, 'image');
     imagesVMC.appendChild(images);
@@ -365,6 +500,9 @@ class AddEditComment extends HTMLElement {
     //clear out a previously edited comment (if there is one)
     this.editedComment = null;
 
+    //clear out any tts audio file
+    this.deleteTempTts(); 
+
     //hide the delete comment button
     const deleteCommentButtonDiv = this.shadowRoot.querySelector('#deleteCommentButtonDiv');
     deleteCommentButtonDiv.classList.add('inactive');
@@ -377,9 +515,9 @@ class AddEditComment extends HTMLElement {
     this.dispatchEvent(customEvent);
   }
 
-  sendEventAddEditComment = (event) => {
+  sendEventAddEditComment = async (event) => {
     //attempt to get comment data
-    const commentData = this.buildCommentObjectFromUI();
+    const commentData = await this.buildCommentObjectFromUI();
 
     //if it is not a valid comment
     if (commentData.status !== 'ok') {
@@ -424,7 +562,7 @@ class AddEditComment extends HTMLElement {
     this.dispatchEvent(event);
   }
 
-  buildCommentObjectFromUI() {
+  async buildCommentObjectFromUI() {
     //status of the validation
     const retVal = {
       status: 'bad comment',
@@ -438,6 +576,18 @@ class AddEditComment extends HTMLElement {
     //comment title
     const commentTitle = this.shadowRoot.querySelector('#commentTitle');
     
+    //tts audio file
+    let ttsFilePath = null;
+    //if there is a new tts file
+    if(this.ttsFilePath) {
+      //store the path
+      ttsFilePath = this.ttsFilePath;
+      //clear out the temp tts file
+      this.ttsFilePath = null;
+    } else if(this.editedComment && this.editedComment.ttsFilePath) { //existing tts file
+      ttsFilePath = this.editedComment.ttsFilePath;
+    } //else- no tts file, default to null
+
     //comment question
     const createMultipleChoiceQuestion = this.shadowRoot.querySelector('st-create-multiple-choice-question');
     const qAndA = createMultipleChoiceQuestion.getMultipleChoiceQuestionData();
@@ -477,7 +627,7 @@ class AddEditComment extends HTMLElement {
     }
 
     //if there is a comment title or some comment text 
-    if (commentTitle.value.trim() !== '' || commentText.getFormattedText() !== '') {
+    if (commentTitle.value.trim() !== '' || commentText.getPlainText() !== '') {
       //if the question is ok, then this is a good comment
       if (qAndA.questionState === 'valid question' || qAndA.questionState === 'no question') {
         retVal.status = 'ok';
@@ -497,21 +647,18 @@ class AddEditComment extends HTMLElement {
     if (retVal.status === 'ok') {
       const mostRecentEvent = this.playbackEngine.getMostRecentEvent();
       const activeFilePath = this.playbackEngine.getActiveFilePath();
-      // let numCommentsAtMostRecentEvent = 0;
-      // if(this.playbackEngine.playbackData.comments[mostRecentEvent.id]) {
-      //   numCommentsAtMostRecentEvent = this.playbackEngine.playbackData.comments[mostRecentEvent.id].length;
-      // }
 
       const comment = {
         id: this.editedComment ? this.editedComment.id : null,
         displayCommentEventId: this.editedComment ? this.editedComment.displayCommentEventId : mostRecentEvent.id,
         displayCommentEventSequenceNumber: this.editedComment ? this.editedComment.displayCommentEventSequenceNumber : mostRecentEvent.eventSequenceNumber,
-        position: this.editedComment ? this.editedComment.position : 0,//numCommentsAtMostRecentEvent,
+        position: this.editedComment ? this.editedComment.position : 0,
 
         developerGroupId: this.editedComment ? this.editedComment.developerGroupId : null,
         timestamp: this.editedComment ? this.editedComment.timestamp : new Date().getTime(),
         commentText: commentText.getFormattedText(),
         commentTitle: commentTitle.value,
+        ttsFilePath: ttsFilePath,
         selectedCodeBlocks: [], //this will be set in CodeView
         viewableBlogText: '', //this will be set in CodeView
         imageURLs: imageURLs,
@@ -527,7 +674,7 @@ class AddEditComment extends HTMLElement {
       retVal.comment = comment;
     } else { //there's something wrong with this comment
       //add an error message
-      if (commentTitle.value.trim() === '' || commentText.getFormattedText() === '') {
+      if (commentTitle.value.trim() === '' || commentText.getPlainText() === '') {
         retVal.errorMessage = 'A comment must have some text describing it or some media associated with it. ';
       }
       //error with question

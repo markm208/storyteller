@@ -9,8 +9,7 @@ class OptionsMenu extends HTMLElement {
     const template = document.createElement('template');
     template.innerHTML = `
       <style>
-        #modal-Opener
-        {
+        #modal-Opener {
           background: transparent;
           border: none;
           color: gray;
@@ -22,8 +21,7 @@ class OptionsMenu extends HTMLElement {
           opacity: .2;
         }
 
-        .btn
-        {
+        .btn {
           border: 1px solid lightgray;
           color: lightgray;
           background-color: inherit;
@@ -34,20 +32,16 @@ class OptionsMenu extends HTMLElement {
           opacity: .8;
           border-radius: 5px;
         }
-        .btn:hover
-        {
+        .btn:hover {
           opacity: 1;
         }
-        .buttonCommand
-        {
+        .buttonCommand {
           margin-left: 100px;
         }
-        .buttonGroup
-        {
+        .buttonGroup {
           display: flex;
         }
-        .close
-        {
+        .close {
           background: transparent;
           border: none;
           color: #aaa;
@@ -57,22 +51,20 @@ class OptionsMenu extends HTMLElement {
           font-weight: bold;
           padding-top: 5px;
         }
-        .command
-        {
-          margin-left: 100px;
+        .command {
+          width: 40%;
         }
-        .commandAction
-        {
+        .commandAction {
           font-weight: bold;
           width: 40%;
         }
-        .commandList
-        {
+        .commandList {
           display: flex;
           padding: 10px;
+          justify-content: space-between;
+          width: 100%;
         }
-        .modal
-        {
+        .modal {
           display: none;
           left: 50%;
           position: fixed;
@@ -84,13 +76,11 @@ class OptionsMenu extends HTMLElement {
           display: inline-block;
         }
 
-        .modal-body
-        {
+        .modal-body {
           background-color: rgb(31,31,31);
           padding: 16px 16px 16px 16px;
         }
-        .modal-content
-        {
+        .modal-content {
           animation-duration: 0.4s;
           animation-name: animatetop;
           background-color: #fefefe;
@@ -102,35 +92,29 @@ class OptionsMenu extends HTMLElement {
           width: 80%;
           z-index: 100;
         }
-        .modal-header
-        {
+        .modal-header {
           background-color: rgb(51,51,51);
           border-bottom: 1px solid #dee2e6;
           color: lightgrey;
           font-size: 1.25rem;
           padding: 1rem 1rem;
         }
-        .modal-title
-        {
+        .modal-title {
           font-size: 1.1em;
           margin: 0;
           padding: 1px 0px;
         }
-        .optionsGroup
-        {
+        .optionsGroup {
           display: grid;
           padding: 5px;
         }
-        .optionsMenu
-        {
+        .optionsMenu {
           display: none;
         }
-        .optionsMenu.active
-        {
+        .optionsMenu.active {
           display: block;
         }
-        .tab
-        {
+        .tab {
           border-bottom: 1px solid gray;
           display: flex;
           ms-overflow-style: none;
@@ -138,12 +122,10 @@ class OptionsMenu extends HTMLElement {
           overflow-y: hidden;
           scrollbar-width: none;
         }
-        .tab::-webkit-scrollbar
-        {
+        .tab::-webkit-scrollbar {
           display: none;
         }
-        .tabLink
-        {
+        .tabLink {
           background-color: inherit;
           border: none;
           border-top-left-radius: .25rem;
@@ -153,14 +135,12 @@ class OptionsMenu extends HTMLElement {
           font-size: inherit;
           padding: 8px 10px;
         }
-        .tabLink.activeTab
-        {
+        .tabLink.activeTab {
           background-color: rgb(31,31,31);
           border: 1px solid gray;
           border-bottom: none;
         }
-        .tabLink:hover:not(.activeTab)
-        {
+        .tabLink:hover:not(.activeTab) {
           opacity: .7;
         }
       </style>
@@ -196,6 +176,13 @@ class OptionsMenu extends HTMLElement {
                   <button id='playbackSpeedUp' class='btn'>Faster</button>
                 </div>
               </div>
+              <div class='optionsGroup'>Text-To-Speech Reading Speed
+                <select id='ttsSpeedControl' class='btn'>
+                  <option value='1' selected>1x</option>
+                  <option value='1.25'>1.25x</option>
+                  <option value='1.5'>1.5x</option>
+                </select>
+              </div>
             </div>
           </div>
           <div class='optionsMenu' id='Shortcuts'>
@@ -208,21 +195,25 @@ class OptionsMenu extends HTMLElement {
               <div class='command'>shift + left/right arrow </div>
             </div>
             <div class='commandList'>
-              <div class='commandAction'>Move to the beginning/end of a playback</div>  
+              <div class='commandAction'>Move to the beginning or end of a playback</div>  
               <div class='command'>ctrl + shift + left/right arrow </div>
             </div>
             <div class='commandList'>
-              <div class='commandAction'>Toggle play/pause of the playback</div>  
+              <div class='commandAction'>Toggle play or pause of the playback</div>  
               <div class='command'>spacebar</div>
             </div>
             <div class='commandList'>
-              <div class='commandAction'>Increase/decrease text editor font size</div>  
+              <div class='commandAction'>Increase or decrease text editor font size</div>  
               <div class='command'>ctrl + shift + up/down arrow</div>
+            </div>
+            <div class='commandList'>
+              <div class='commandAction'>Play or Pause an audio reading of a comment (if available)</div>  
+              <div class='command'>Hit the letter 'p'</div>
             </div>
           </div>
         </div>
       </div>
-        `;
+    `;
     return template.content.cloneNode(true);
   }
 
@@ -249,9 +240,12 @@ class OptionsMenu extends HTMLElement {
 
     const textBiggerButton = this.shadowRoot.querySelector('#textBiggerButton');
     textBiggerButton.addEventListener('click', this.increaseFontSize);
+
+    const ttsSpeedControl = this.shadowRoot.querySelector('#ttsSpeedControl');
+    ttsSpeedControl.addEventListener('change', this.changeTTSSpeed);
   }
 
-  disonnectedCallback() {
+  disconnectedCallback() {
     const modal = this.shadowRoot.querySelector('#modal-Opener');
     modal.removeEventListener('click', this.showModal);
 
@@ -274,6 +268,9 @@ class OptionsMenu extends HTMLElement {
 
     const textBiggerButton = this.shadowRoot.querySelector('#textBiggerButton');
     textBiggerButton.removeEventListener('click', this.increaseFontSize);
+
+    const ttsSpeedControl = this.shadowRoot.querySelector('#ttsSpeedControl');
+    ttsSpeedControl.removeEventListener('change', this.changeTTSSpeed);
   }
 
   toggleModal = () => {
@@ -284,6 +281,7 @@ class OptionsMenu extends HTMLElement {
       this.showModal();
     }
   }
+
   showModal = () => {
     const modal = this.shadowRoot.querySelector('.modal');
     modal.classList.add('visible');
@@ -332,6 +330,17 @@ class OptionsMenu extends HTMLElement {
       composed: true
     });
     this.dispatchEvent(event);
+  }
+
+  changeTTSSpeed = (event) => {
+    //change text to speech speed
+    const speed = parseFloat(event.target.value);
+    const ttsSpeedEvent = new CustomEvent('change-tts-speed', {
+      detail: { speed },
+      bubbles: true,
+      composed: true
+    });
+    this.dispatchEvent(ttsSpeedEvent);
   }
 
   tabClick = (event) => {

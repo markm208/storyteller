@@ -1,8 +1,7 @@
 class AceEditor extends HTMLElement {
-  constructor(playbackEngine, editorProperties) {
+  constructor(playbackEngine) {
     super();
 
-    this.editorProperties = editorProperties;
     this.playbackEngine = playbackEngine;
     this.aceEditor = null;
     this.searchText = '';
@@ -124,11 +123,11 @@ class AceEditor extends HTMLElement {
     //create the ace editor
     const editor = this.shadowRoot.querySelector('.editor');
     const aceEditor = ace.edit(editor, {
-      theme: this.editorProperties.aceTheme, 
+      theme: this.playbackEngine.editorProperties.aceTheme, 
       value: '',
       showPrintMargin: false,
       readOnly: true,
-      fontSize: this.editorProperties.fontSize,
+      fontSize: this.playbackEngine.editorProperties.fontSize,
       highlightActiveLine: false,
       highlightGutterLine: false,
       scrollPastEnd: true,
@@ -257,12 +256,12 @@ class AceEditor extends HTMLElement {
         //if there is a file path
         if(filePath && filePath.trim()) { 
           //if there is NOT an existing file mode for this type of file
-          if(!this.editorProperties.fileModes[filePath]) {
+          if(!this.playbackEngine.editorProperties.fileModes[filePath]) {
             //get the file mode for this file type
-            this.editorProperties.fileModes[filePath] = this.editorProperties.modelist.getModeForPath(filePath);
+            this.playbackEngine.editorProperties.fileModes[filePath] = this.playbackEngine.editorProperties.modelist.getModeForPath(filePath);
           }
           //set the file mode type
-          const fileMode = this.editorProperties.fileModes[filePath];
+          const fileMode = this.playbackEngine.editorProperties.fileModes[filePath];
           this.aceEditor.getSession().setMode(fileMode.mode);
         }
 

@@ -205,6 +205,11 @@ class MultiLineTextInput extends HTMLElement {
     return inputText.innerHTML.trim();
   }
 
+  getPlainText() {
+    const inputText = this.shadowRoot.querySelector('.inputText');
+    return inputText.textContent.trim();
+  }
+  
   setFocus() {
     const inputText = this.shadowRoot.querySelector('.inputText');
     setTimeout(() => {

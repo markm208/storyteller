@@ -161,6 +161,13 @@ class CommentNavigator extends HTMLElement {
       commentGroup.updateToDisplaySearchResults(searchResults);
     });
   }
+
+  updateTTSSpeed(speed) {
+    const commentGroups = this.shadowRoot.querySelectorAll('st-comment-group');
+    commentGroups.forEach(commentGroup => {
+      commentGroup.updateTTSSpeed(speed);
+    });
+  }
 }
 
 window.customElements.define('st-comment-navigator', CommentNavigator);

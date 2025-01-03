@@ -164,6 +164,10 @@ class PlaybackNavigator extends HTMLElement {
       commentNavigator.updateForTitleChange(newTitle);
     }
   }
+  updateTTSSpeed(speed) {
+    const commentNavigator = this.shadowRoot.querySelector('st-comment-navigator');
+    commentNavigator.updateTTSSpeed(speed);
+  }
 }
 
 window.customElements.define('st-playback-navigator', PlaybackNavigator);

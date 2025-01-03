@@ -8,15 +8,6 @@ class App extends HTMLElement {
     this.activeMode = '';
     this.initialMode = initialMode;
 
-    //editor info
-    this.editorProperties = {
-      fontSize: 20,
-      //potential ace editor themes: monokai, gruvbox, idle_fingers, pastel_on_dark, tomorrow_night, tomorrow_night_eighties, twilight
-      aceTheme: 'ace/theme/tomorrow_night_eighties',
-      modelist: ace.require("ace/ext/modelist"),
-      fileModes: {}
-    };
-
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
   }
@@ -80,9 +71,9 @@ class App extends HTMLElement {
     //create the requested view
     let newView;
     if(requestedMode === 'code') {
-      newView = new CodeView(this.playbackEngine, this.editorProperties);
+      newView = new CodeView(this.playbackEngine);
     } else { //blog view
-      newView = new BlogView(this.playbackEngine, this.editorProperties);
+      newView = new BlogView(this.playbackEngine);
     }
 
     //add the new view
@@ -145,6 +136,10 @@ class App extends HTMLElement {
       const titleBar = this.shadowRoot.querySelector('st-title-bar');
       titleBar.updateForAddEditDeleteComment();
     });
+
+    this.shadowRoot.addEventListener('change-tts-speed', event => {
+      this.changeTTSSpeed(event.detail.speed);
+    });
   }
 
   //handles the search from the search bar
@@ -164,6 +159,17 @@ class App extends HTMLElement {
     //display search results in the title bar
     const titleBar = this.shadowRoot.querySelector('st-title-bar');
     titleBar.updateToDisplaySearchResults(searchText, searchResults);
+  }
+
+  changeTTSSpeed(speed) {
+    this.playbackEngine.editorProperties.ttsSpeed = speed;
+    if(this.activeMode === 'code') {
+      const codeView = this.shadowRoot.querySelector('st-code-view');
+      codeView.updateTTSSpeed(speed);
+    } else {
+      const blogView = this.shadowRoot.querySelector('st-blog-view');
+      blogView.updateTTSSpeed(speed);
+    }
   }
 }
 

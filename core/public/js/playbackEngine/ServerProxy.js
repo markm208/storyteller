@@ -328,4 +328,36 @@ class ServerProxy {
     }
     return resultObject;
   }
+
+  async sendTextToSpeechRequest(text) {
+    let resultObject = { response: null, error: true };
+    try {
+      const fetchConfigData = {
+        method: 'POST',
+        body: JSON.stringify({ text }),
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      };
+
+      let metaTag = document.querySelector('meta[name="csrf-token"]');
+      if (metaTag) {
+        fetchConfigData.headers['X-CSRF-Token'] = metaTag.content;
+      }
+
+      const httpResponse = await fetch('/tts', fetchConfigData);
+      if (httpResponse.ok) {
+        resultObject.response = await httpResponse.blob();
+        resultObject.error = false;
+      } else {
+        const errorResponse = await httpResponse.json();
+        resultObject.response = errorResponse.response;
+        resultObject.error = true;
+      }
+    } catch (error) {
+      resultObject.response = "Error converting text to speech.";
+      resultObject.error = true;
+    }
+    return resultObject;
+  }
 }

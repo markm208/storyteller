@@ -129,6 +129,7 @@ class ProjectManager {
         this.addComment({
             commentText: 'Enter a playback description.',
             commentTitle: '',
+            ttsFilePath: null,
             timestamp: new Date().getTime(),
             displayCommentEventId: lastEvent.id,
             displayCommentEventSequenceNumber: lastEvent.eventSequenceNumber,
@@ -688,6 +689,10 @@ class ProjectManager {
         for(let i = 0;i < comment.audioURLs.length;i++) {
             const audioURL = comment.audioURLs[i];
             this.deleteMediaFile(audioURL);
+        }
+
+        if(comment.ttsFilePath) {
+            this.deleteMediaFile(comment.ttsFilePath);
         }
 
         //write the comment info to the db

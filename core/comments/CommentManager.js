@@ -30,7 +30,7 @@ class CommentManager {
         commentData['position'] = this.comments[commentData.displayCommentEventId].length;
         
         //create a comment object
-        const newComment = new Comment(commentData.displayCommentEventId, commentData.displayCommentEventSequenceNumber, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.commentTitle, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.linesAbove, commentData.linesBelow, commentData.currentFilePath, commentData.viewableBlogText, commentData.commentTags, commentData.questionCommentData, commentData.position);
+        const newComment = new Comment(commentData.displayCommentEventId, commentData.displayCommentEventSequenceNumber, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.commentTitle, commentData.ttsFilePath, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.linesAbove, commentData.linesBelow, commentData.currentFilePath, commentData.viewableBlogText, commentData.commentTags, commentData.questionCommentData, commentData.position);
 
         //store the comment in the array
         this.comments[commentData.displayCommentEventId].push(newComment);        
@@ -53,7 +53,7 @@ class CommentManager {
             //if the position is valid
             if(position >= 0 && position < arrayOfCommentsAtThisEvent.length) {
                 //create an updated comment 
-                const updatedComment = new Comment(commentData.displayCommentEventId, commentData.displayCommentEventSequenceNumber, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.commentTitle, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.linesAbove, commentData.linesBelow, commentData.currentFilePath, commentData.viewableBlogText, commentData.commentTags, commentData.questionCommentData, commentData.position, commentData.id);
+                const updatedComment = new Comment(commentData.displayCommentEventId, commentData.displayCommentEventSequenceNumber, commentData.developerGroupId, commentData.timestamp, commentData.commentText, commentData.commentTitle, commentData.ttsFilePath, commentData.selectedCodeBlocks, commentData.imageURLs, commentData.videoURLs, commentData.audioURLs, commentData.linesAbove, commentData.linesBelow, commentData.currentFilePath, commentData.viewableBlogText, commentData.commentTags, commentData.questionCommentData, commentData.position, commentData.id);
                 //reuse the old comment's id 
                 updatedComment.id = arrayOfCommentsAtThisEvent[position].id;
                 

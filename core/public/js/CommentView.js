@@ -69,6 +69,7 @@ class CommentView extends HTMLElement {
 
         .commentCount {
           font-size: .95em;
+          padding-bottom: 3px;
           display: inline;
           color: rgb(127, 138, 148);
         }
@@ -97,31 +98,35 @@ class CommentView extends HTMLElement {
         .commentBar {
           display: flex;
           justify-content: space-between;
+          align-items: center;
         }
 
-        .commentVideo, .commentAudio {
-          width: 100%;
-          padding-bottom: 5px;
+        .commentDevelopersDiv {
+          display: flex;
+          align-items: center;
         }
 
-        hr {
-          border: none;
-          border-top: 1px solid darkgray;
+        .commentCountContainer {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          margin-bottom: 5px;
         }
 
-        .inactive {
-          display: none;
+        .descriptionCommentTopBar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          justify-content: space-between;
         }
 
-        .searchHighlight {
-          background-color: #517EB0;
+        .descriptionCommentTopBar .titleBar {
+          flex: 1;
+          text-align: center;
         }
 
-        #aiInput {
-          margin-top: 5px;
-          padding-top: 5px;
-          border-top: 1px solid rgb(83, 84, 86);
-          display: none;
+        .descriptionCommentTopBar .commentCountContainer {
+          margin-left: auto;
         }
       </style>
       <div>
@@ -141,6 +146,7 @@ class CommentView extends HTMLElement {
   connectedCallback() {
     const commentView = this.shadowRoot.host;
     commentView.addEventListener('click', this.commentClicked);
+    document.addEventListener('keydown', this.ttsKeyboardPress);
 
     //if this is an editable playback
     if(this.playbackEngine.playbackData.isEditable) {
@@ -223,6 +229,7 @@ class CommentView extends HTMLElement {
   disconnectedCallback() {
     const commentView = this.shadowRoot.host;
     commentView.removeEventListener('click', this.commentClicked);
+    document.removeEventListener('keydown', this.ttsKeyboardPress);
   }
 
   makeCommentViewActive() {
@@ -282,13 +289,49 @@ class CommentView extends HTMLElement {
     this.sendActiveCommentEvent();
   }
 
+  ttsKeyboardPress = event => {
+    //if p was pressed and this is the active comment
+    if (event.key === 'p' && this.comment.id === this.playbackEngine.activeComment.id) {
+      //simulate a button click
+      const ttsControl = this.shadowRoot.querySelector('st-text-to-speech-control');
+      ttsControl.handleButtonClick();
+    }
+  }
+
   buildCommentViewTop() {
     const commentTopBar = this.shadowRoot.querySelector('.commentTopBar');
+
+    const commentCountContainer = document.createElement('div');
+    commentCountContainer.classList.add('commentCountContainer');
+
+    const commentCount = document.createElement('div');
+    commentCount.classList.add('commentCount');
+    commentCount.innerHTML = `${this.commentNumber + 1}/${this.totalNumberOfComments}`; 
+    
+    let ttsControl;
+    //if this comment has a tts file path
+    if(this.comment.ttsFilePath) {
+      //create a tts control with the file path
+      ttsControl = new TextToSpeechControl(this.comment.ttsFilePath, null, this.playbackEngine.editorProperties.ttsSpeed, true);
+    } else { //no tts file path in this comment
+      //create a tts that will convert the text to speech
+      ttsControl = new TextToSpeechControl(null, this.comment.commentTitle + " " + this.comment.commentText, this.playbackEngine.editorProperties.ttsSpeed, true);
+    }
+
+    commentCountContainer.appendChild(commentCount);
+    commentCountContainer.appendChild(ttsControl);
+
     if (this.isDescriptionComment) {
       const titleBarDiv = document.createElement('div');
       titleBarDiv.classList.add('titleBar');
       titleBarDiv.innerHTML = this.playbackEngine.playbackData.playbackTitle;
-      commentTopBar.appendChild(titleBarDiv);
+
+      const descriptionCommentTopBar = document.createElement('div');
+      descriptionCommentTopBar.classList.add('descriptionCommentTopBar');
+      descriptionCommentTopBar.appendChild(titleBarDiv);
+      descriptionCommentTopBar.appendChild(commentCountContainer);
+
+      commentTopBar.appendChild(descriptionCommentTopBar);
     } else {
       const commentBar = document.createElement('div');
       commentBar.classList.add('commentBar');
@@ -301,12 +344,8 @@ class CommentView extends HTMLElement {
         developerGroups: this.playbackEngine.playbackData.developerGroups
       }));
 
-      const commentCount = document.createElement('div');
-      commentCount.classList.add('commentCount');
-      commentCount.innerHTML = `${this.commentNumber}/${this.totalNumberOfComments - 1}`; //subtract one for description comment
-
       commentBar.appendChild(devGroup);
-      commentBar.appendChild(commentCount);
+      commentBar.appendChild(commentCountContainer);
       commentTopBar.appendChild(commentBar);
     }
   }
@@ -339,6 +378,11 @@ class CommentView extends HTMLElement {
         questionAnswerView.classList.add('questionSearchHighlight');
       }
     }
+  }
+
+  updateTTSSpeed(speed) {
+    const ttsControl = this.shadowRoot.querySelector('st-text-to-speech-control');
+    ttsControl.updateTTSSpeed(speed);
   }
 
   revealCommentsBeforeSearch() {

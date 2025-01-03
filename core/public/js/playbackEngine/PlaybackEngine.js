@@ -5,7 +5,17 @@ class PlaybackEngine {
     
     //the state of all the files in the playback as it progresses
     this.editorState = new EditorState();
-    
+
+    //editor info
+    this.editorProperties = {
+      fontSize: 20,
+      //potential ace editor themes: monokai, gruvbox, idle_fingers, pastel_on_dark, tomorrow_night, tomorrow_night_eighties, twilight
+      aceTheme: 'ace/theme/tomorrow_night_eighties',
+      modelist: ace.require("ace/ext/modelist"),
+      fileModes: {},
+      ttsSpeed: 1.0 //text to speech speed
+    };
+
     //used to mark changes in the files
     this.newCodeMarkerGenerator = null;
     
@@ -303,6 +313,12 @@ class PlaybackEngine {
       if(comment.selectedCodeBlocks.length > 0) {
         //mark the active file where the first highlighted code is
         this.changeActiveFileId(comment.selectedCodeBlocks[0].fileId);
+      } else { //there is no selected code
+        //mark the file where the most recent event took place as the active file
+        const commentCurrentFileId = this.editorState.getFileId(comment.currentFilePath);
+        if(commentCurrentFileId) {
+          this.changeActiveFileId(commentCurrentFileId);
+        }
       }
 
       //record the active comment
