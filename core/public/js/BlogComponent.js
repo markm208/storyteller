@@ -187,25 +187,9 @@ class BlogComponent extends HTMLElement {
       //move to the comment that is clicked
       this.playbackEngine.stepToCommentById(this.comment.id);
     });
-
-    //for knowing when the user is viewing a comment in blog mode
-    this.observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          //when visible simulate clicking on the comment
-          this.click();
-        }
-      });
-    });
-  
-    // Start observing the element
-    this.observer.observe(this);
   }
 
   disconnectedCallback() {
-    if (this.observer) {
-      this.observer.unobserve(this);
-    }
   }
 
   updateToDisplaySearchResults(searchResult) {

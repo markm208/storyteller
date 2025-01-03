@@ -80,13 +80,16 @@
         //look to see if there is a mode in the querystring
         const urlSearchParams = new URLSearchParams(window.location.search);
         const mode = urlSearchParams.get('mode');
+        //for positional queries in the playback (make the numbers zero-based as that is what normal humans expect)
+        const startingEventIndex = urlSearchParams.get('event') ? Number(urlSearchParams.get('event')) - 1 : null;
+        const startingCommentIndex = urlSearchParams.get('comment') ? Number(urlSearchParams.get('comment')) - 1 : null;
 
         //check if this is a small screen or an explicit request for blog mode
         let initialMode = 'code';
         if(window.innerWidth < 800 || (mode && mode === 'blog')) {
           initialMode = 'blog';
         } 
-        const app = new App(playbackData, initialMode);
+        const app = new App(playbackData, initialMode, startingCommentIndex, startingEventIndex);
         document.body.appendChild(app);
       });
     </script>

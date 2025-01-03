@@ -1,5 +1,5 @@
 class PlaybackEngine {
-  constructor(playbackData) {
+  constructor(playbackData, startingCommentIndex, startingEventIndex) {
     //playback data
     this.playbackData = playbackData;
     
@@ -50,6 +50,13 @@ class PlaybackEngine {
     //count the events at the beginning that shouldn't be played back because
     //they were part of a project's initial state
     this.skipIrrelevantEvents();
+
+    //if there was a request to start at a specific comment or event, start there
+    if(startingCommentIndex) {
+      this.stepToCommentByIndex(startingCommentIndex);
+    } else if(startingEventIndex) {
+      this.stepToEventNumber(startingEventIndex);
+    }
   }
 
   skipIrrelevantEvents() {
@@ -297,6 +304,14 @@ class PlaybackEngine {
     } else if (eventNumberDiff < 0) {
       this.stepBackward(-eventNumberDiff);
     } //else- it is 0 and no change is needed
+  }
+
+  stepToCommentByIndex(commentIndex) {
+    //if the comment index is within the bounds of the comments
+    if(commentIndex >= 0 && commentIndex < this.commentInfo.totalNumberOfComments) {
+      //find the id of the requested comment and step to it
+      this.stepToCommentById(this.commentInfo.flattenedComments[commentIndex].id);
+    }
   }
 
   //move by clicking on an event
@@ -990,6 +1005,18 @@ class PlaybackEngine {
 
   getReadTimeEstimate() {
     return this.playbackData.estimatedReadTime;
+  }
+
+  getCommentIndex(commentId) {
+    //get the position of the comment in the array of all comments
+    let commentIndex = -1;
+    for(let i = 0;i < this.commentInfo.flattenedComments.length;i++) {
+      if(this.commentInfo.flattenedComments[i].id === commentId) {
+        commentIndex = i;
+        break;
+      }
+    }
+    return commentIndex;
   }
 
   addComment(newComment) {

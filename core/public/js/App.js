@@ -1,8 +1,8 @@
 class App extends HTMLElement {
-  constructor(playbackData, initialMode) {
+  constructor(playbackData, initialMode, startingCommentIndex, startingEventIndex) {
     super();
     //create the main playback 'engine' which drives the ui
-    this.playbackEngine = new PlaybackEngine(playbackData);
+    this.playbackEngine = new PlaybackEngine(playbackData, startingCommentIndex, startingEventIndex);
     
     //code or blog mode
     this.activeMode = '';
