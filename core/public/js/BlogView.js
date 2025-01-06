@@ -79,8 +79,8 @@ class BlogView extends HTMLElement {
       //system and anon dev ids are 1 and 2
       if(dev.id !== this.playbackEngine.playbackData.anonymousDeveloperId && 
          dev.id !== this.playbackEngine.playbackData.systemDeveloperId &&
-         dev.userName !== "Anonymous System" 
-         && dev.userName !== "Storyteller System") {
+         dev.userName !== "Anonymous Developer" &&
+         dev.userName !== "Storyteller System") {
         blogDevelopersDiv.appendChild(new DevAvatar(dev.avatarURL, dev.userName, dev.email, true));
       }
     });
