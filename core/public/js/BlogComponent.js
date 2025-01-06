@@ -88,7 +88,12 @@ class BlogComponent extends HTMLElement {
 
     //add the comment text
     const blogCommentText = this.shadowRoot.querySelector('.blogCommentText');
-    blogCommentText.innerHTML = this.comment.commentText;
+    let commentText = this.comment.commentText;
+    if(this.comment.textFormat && this.comment.textFormat === "markdown") {
+      const md = markdownit();
+      commentText = md.render(this.comment.commentText);
+    }
+    blogCommentText.innerHTML = commentText;
     
     //text to speech control
     const ttsContainer = this.shadowRoot.querySelector('.tts-container');

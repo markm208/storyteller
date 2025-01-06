@@ -240,7 +240,7 @@ class MultiLineTextInput extends HTMLElement {
     // Button to toggle the URL input and create a link
     const addLink = document.createElement("button");
     addLink.setAttribute("id", "addLink");
-    addLink.setAttribute("title", "Add a Link");
+    addLink.setAttribute("title", "Enter the URL in the following textbox first (click this button to expose it), then select the text to linkify, finally click this button");
     addLink.classList.add("editorControl");
     addLink.innerHTML = "Link";
     addLink.addEventListener("click", () => {
