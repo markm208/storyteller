@@ -106,6 +106,11 @@ class AddEditComment extends HTMLElement {
           opacity: 100%;
         }
 
+        #aiCommentSuggestionInput {
+          margin: 5px;
+          width: calc(100% - 32px);
+        }
+
         .ttsButton {
           font-size: 1rem;
           padding: 2px 8px;
@@ -180,15 +185,16 @@ class AddEditComment extends HTMLElement {
     });
 
     this.shadowRoot.addEventListener('ai-prompt-response', async (event) => {
-      //get formatted propmt with code
+      //get formatted prompt with code
       const prompt = event.detail.prompt;
       const response = event.detail.response;
       
       //add the AI response to the comment text
-      const commentText = this.shadowRoot.querySelector('#commentText');       
-      commentText.updateFormattedText(`${commentText.getFormattedText()}<br>${response}`);
+      const commentText = this.shadowRoot.querySelector('#commentText');
+      commentText.changeTextFormat("html");
+      commentText.updateText(response);
+      //set the focus and move the cursor to the end of the text
       commentText.focus();
-      // Create a new range
       let range = document.createRange();
       range.selectNodeContents(commentText);
       range.collapse(false);
@@ -213,7 +219,7 @@ class AddEditComment extends HTMLElement {
 
     //update the placeholder text on focus and blur
     const commentTextContainer = this.shadowRoot.querySelector('#commentTextContainer');
-    const commentText = new MultiLineTextInput('Describe the code at this point', '', 200);
+    const commentText = new MultiLineTextInput('Describe the code at this point', '', 200, this.editedComment ? this.editedComment.textFormat : "markdown");
     commentText.setAttribute('id', 'commentText');
     commentText.setFocus();
     commentTextContainer.appendChild(commentText);
@@ -270,7 +276,7 @@ class AddEditComment extends HTMLElement {
 
     //get the text from the comment
     const commentText = this.shadowRoot.querySelector('#commentText');
-    const text = commentText.getPlainText();
+    const text = commentText.getText();
 
     if(text.length > 0) {
       audioTranscriptionPreview.innerHTML = 'Generating an AI Preview...';
@@ -423,7 +429,7 @@ class AddEditComment extends HTMLElement {
   updateEditCommentMode() {
     //set the main comment text
     const commentText = this.shadowRoot.querySelector('#commentText');
-    commentText.updateFormattedText(this.editedComment.commentText);
+    commentText.updateText(this.editedComment.commentText);
     //set the comment title
     const commentTitle = this.shadowRoot.querySelector('#commentTitle');
     commentTitle.setAttribute('value', this.editedComment.commentTitle ? this.editedComment.commentTitle : '');
@@ -572,6 +578,8 @@ class AddEditComment extends HTMLElement {
 
     //comment text
     const commentText = this.shadowRoot.querySelector('#commentText');
+    const commentTextString = commentText.getText();
+    let textFormat = commentText.getTextFormat();
     
     //comment title
     const commentTitle = this.shadowRoot.querySelector('#commentTitle');
@@ -627,7 +635,7 @@ class AddEditComment extends HTMLElement {
     }
 
     //if there is a comment title or some comment text 
-    if (commentTitle.value.trim() !== '' || commentText.getPlainText() !== '') {
+    if (commentTitle.value.trim() !== '' || commentTextString !== '') {
       //if the question is ok, then this is a good comment
       if (qAndA.questionState === 'valid question' || qAndA.questionState === 'no question') {
         retVal.status = 'ok';
@@ -656,7 +664,8 @@ class AddEditComment extends HTMLElement {
 
         developerGroupId: this.editedComment ? this.editedComment.developerGroupId : null,
         timestamp: this.editedComment ? this.editedComment.timestamp : new Date().getTime(),
-        commentText: commentText.getFormattedText(),
+        commentText: commentTextString,
+        textFormat: textFormat,
         commentTitle: commentTitle.value,
         ttsFilePath: ttsFilePath,
         selectedCodeBlocks: [], //this will be set in CodeView
@@ -674,7 +683,7 @@ class AddEditComment extends HTMLElement {
       retVal.comment = comment;
     } else { //there's something wrong with this comment
       //add an error message
-      if (commentTitle.value.trim() === '' || commentText.getPlainText() === '') {
+      if (commentTitle.value.trim() === '' || commentTextString === '') {
         retVal.errorMessage = 'A comment must have some text describing it or some media associated with it. ';
       }
       //error with question

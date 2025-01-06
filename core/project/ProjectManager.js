@@ -128,6 +128,7 @@ class ProjectManager {
         //add the description comment
         this.addComment({
             commentText: 'Enter a playback description.',
+            textFormat: "markdown",
             commentTitle: '',
             ttsFilePath: null,
             timestamp: new Date().getTime(),

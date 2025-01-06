@@ -153,7 +153,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     const clearQuestionButton = this.shadowRoot.querySelector('#clearQuestionButton');
     clearQuestionButton.addEventListener('click', event => {
       //clear the question
-      commentQuestion.updateFormattedText('');
+      commentQuestion.updateText('');
       
       //clear out all of the answers
       const allAnswersContainer = this.shadowRoot.querySelector('#allAnswersContainer');
@@ -163,7 +163,7 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
       this.addNewAnswerBox('', false, 2);
       
       //clear the explanation
-      explanationText.updateFormattedText('');
+      explanationText.updateText('');
     });
 
     const generateAIQuestionInput = this.shadowRoot.querySelector('#generateAIQuestionInput');
@@ -199,7 +199,12 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
   createExistingQuestion() {
     //fill the question prompt
     const commentQuestion = this.shadowRoot.querySelector('#commentQuestion');
-    commentQuestion.updateFormattedText(this.questionCommentData.question);
+    if(this.questionCommentData.questionTextFormat && this.questionCommentData.questionTextFormat === 'markdown') {
+      commentQuestion.changeTextFormat("markdown");
+    } else {
+      commentQuestion.changeTextFormat("html");
+    }
+    commentQuestion.updateText(this.questionCommentData.question);
 
     //now add the answers
     this.questionCommentData.allAnswers.forEach((answer, index) => {
@@ -216,7 +221,12 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
     const explanationText = this.shadowRoot.querySelector('#explanationText');
     //legacy data format-- if there is an explanation in the question
     if(this.questionCommentData.explanation) {
-      explanationText.updateFormattedText(this.questionCommentData.explanation);
+      if(this.questionCommentData.explanationTextFormat && this.questionCommentData.explanationTextFormat === 'markdown') {
+        explanationText.changeTextFormat("markdown");
+      } else {
+        explanationText.changeTextFormat("html");
+      }
+      explanationText.updateText(this.questionCommentData.explanation);
     }
   }
 
@@ -310,7 +320,9 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
         allAnswers: [],
         correctAnswer: '',
         question: '',
-        explanation: ''
+        questionTextFormat: '',
+        explanation: '',
+        explanationTextFormat: ''
       },
       questionState: '',
       errorMessage: ''
@@ -318,7 +330,8 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
 
     //question text
     const commentQuestion = this.shadowRoot.querySelector('#commentQuestion');
-    const questionText = commentQuestion.getFormattedText();
+    const questionText = commentQuestion.getText();
+    const questionTextFormat = commentQuestion.getTextFormat();
 
     //count the number of empty and non-empty answers
     let numEmptyAnswers = 0;
@@ -362,15 +375,18 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
           
           //store the question
           retVal.questionData.question = questionText;
-          
+          retVal.questionData.questionTextFormat = questionTextFormat;
+
           //store the right answer
           const rightAnswer = rightAnswerInput.closest('.questionOuterDiv').querySelector('.questionCommentInput').value;
           retVal.questionData.correctAnswer = rightAnswer;
 
           //add any explanation test (if there is some)
           const explanationText = this.shadowRoot.querySelector('#explanationText');
-          if(explanationText.getFormattedText()) {
-            retVal.questionData.explanation = explanationText.getFormattedText();
+          const explanationTextFormat = explanationText.getTextFormat();
+          if(explanationText.getText()) {
+            retVal.questionData.explanation = explanationText.getText();
+            retVal.questionData.explanationTextFormat = explanationTextFormat;
           }
         } else { //question with answers but one is not selected as correct
           retVal.questionState = 'invalid input';

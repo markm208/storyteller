@@ -166,7 +166,13 @@ class CommentView extends HTMLElement {
     }
     //comment text
     const commentText = this.shadowRoot.querySelector('.commentText');
-    commentText.innerHTML = this.comment.commentText;
+    let formattedCommentText = this.comment.commentText;
+    //if the text format is markdown, convert it to html
+    if(this.comment.textFormat && this.comment.textFormat === 'markdown') {
+      const md = markdownit();
+      formattedCommentText = md.render(this.comment.commentText);
+    }
+    commentText.innerHTML = formattedCommentText;
     //media
     const media = this.shadowRoot.querySelector('.media');
     //videos

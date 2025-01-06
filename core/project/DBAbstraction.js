@@ -141,7 +141,7 @@ class DBAbstraction {
         for(const eventId in commentObjects.comments) {
             comments[eventId] = [];
             for(const commentObject of commentObjects.comments[eventId]) {
-                const comment = new Comment(commentObject.displayCommentEventId, commentObject.displayCommentEventSequenceNumber, commentObject.developerGroupId, commentObject.timestamp, commentObject.commentText, commentObject.commentTitle, commentObject.ttsFilePath, commentObject.selectedCodeBlocks, commentObject.imageURLs, commentObject.videoURLs, commentObject.audioURLs, commentObject.linesAbove, commentObject.linesBelow, commentObject.currentFilePath, commentObject.viewableBlogText, commentObject.commentTags, commentObject.questionCommentData, commentObject.position, commentObject.id);
+                const comment = new Comment(commentObject.displayCommentEventId, commentObject.displayCommentEventSequenceNumber, commentObject.developerGroupId, commentObject.timestamp, commentObject.commentText, commentObject.textFormat, commentObject.commentTitle, commentObject.ttsFilePath, commentObject.selectedCodeBlocks, commentObject.imageURLs, commentObject.videoURLs, commentObject.audioURLs, commentObject.linesAbove, commentObject.linesBelow, commentObject.currentFilePath, commentObject.viewableBlogText, commentObject.commentTags, commentObject.questionCommentData, commentObject.position, commentObject.id);
                 comments[eventId].push(comment);
             }
         }

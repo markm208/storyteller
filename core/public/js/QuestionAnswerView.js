@@ -105,7 +105,12 @@ class QuestionAnswerView extends HTMLElement {
   connectedCallback() { 
     //add the question text
     const questionText = this.shadowRoot.querySelector('#questionText');
-    questionText.innerHTML = this.comment.questionCommentData.question;
+    let questionTextString = this.comment.questionCommentData.question;
+    if(this.comment.questionCommentData.questionTextFormat && this.comment.questionCommentData.questionTextFormat === "markdown") {
+      const md = markdownit();
+      questionTextString = md.render(questionTextString);
+    }
+    questionText.innerHTML = questionTextString;
     
     //add the answers
     const allAnswers = this.shadowRoot.querySelector('#allAnswers');
@@ -116,7 +121,12 @@ class QuestionAnswerView extends HTMLElement {
 
     //add the explanation
     const explanationText = this.shadowRoot.querySelector('#explanationText');
-    explanationText.innerHTML = this.comment.questionCommentData.explanation ? this.comment.questionCommentData.explanation : '';
+    let explanationTextString = this.comment.questionCommentData.explanation;
+    if(this.comment.questionCommentData.explanationTextFormat && this.comment.questionCommentData.explanationTextFormat === "markdown") {
+      const md = markdownit();
+      explanationTextString = md.render(this.comment.questionCommentData.explanation);
+    }
+    explanationText.innerHTML = explanationTextString ? explanationTextString : '';
 
     //handle answering the question
     const answerButton = this.shadowRoot.querySelector('#answerButton');

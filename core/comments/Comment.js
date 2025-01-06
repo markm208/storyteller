@@ -3,7 +3,7 @@ const crypto = require('crypto');
  * This represents a comment in a playback.
  */
 class Comment {
-    constructor(displayCommentEventId, displayCommentEventSequenceNumber, developerGroupId, timestamp, commentText, commentTitle, ttsFilePath, selectedCodeBlocks, imageURLs, videoURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData, position, id) {
+    constructor(displayCommentEventId, displayCommentEventSequenceNumber, developerGroupId, timestamp, commentText, textFormat, commentTitle, ttsFilePath, selectedCodeBlocks, imageURLs, videoURLs, audioURLs, linesAbove, linesBelow, currentFilePath, viewableBlogText, commentTags, questionCommentData, position, id) {
         //store the comment data
         this.id = (id || crypto.randomUUID());
         this.displayCommentEventId = displayCommentEventId;
@@ -11,9 +11,9 @@ class Comment {
         this.developerGroupId = developerGroupId;
         this.timestamp = timestamp;
         this.commentText = commentText;
+        this.textFormat = textFormat;
         this.commentTitle = commentTitle;
         this.ttsFilePath = ttsFilePath;
-        this.position = position;
         this.selectedCodeBlocks = selectedCodeBlocks;
         this.imageURLs = imageURLs;
         this.videoURLs = videoURLs;
@@ -24,6 +24,7 @@ class Comment {
         this.viewableBlogText = viewableBlogText;
         this.commentTags = commentTags;
         this.questionCommentData = questionCommentData;
+        this.position = position;
     }
 }
 
