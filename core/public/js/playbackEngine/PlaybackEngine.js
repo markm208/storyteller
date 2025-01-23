@@ -450,7 +450,7 @@ class PlaybackEngine {
         //go through each block of selected code
         for (let i = 0; i < comment.selectedCodeBlocks.length; i++) {
           const block = comment.selectedCodeBlocks[i];
-          for (let j = 0; j < block.selectedTextEventIds.length; j++) {
+          for (let j = 0; block.selectedTextEventIds && j < block.selectedTextEventIds.length; j++) {
             const selectedCodeEventId = block.selectedTextEventIds[j];
             //associate the selected event id with the comment it is in
             this.commentInfo.selectedEventIdsFromComments[selectedCodeEventId] = comment.id;
@@ -787,13 +787,15 @@ class PlaybackEngine {
           if(comment.selectedCodeBlocks.length > 0) {
             //go through each block of selected code
             comment.selectedCodeBlocks.forEach(block => {
-              block.selectedTextEventIds.forEach(selectedCodeEventId => {
-                if(selectedTextEventIds.has(selectedCodeEventId)) {
-                  isRelevantComment = true;
-                  searchResult.inSelectedText = true;
-                  //break;
-                }
-              });
+              if(block.selectedTextEventIds) { //older playbacks may not have this
+                block.selectedTextEventIds.forEach(selectedCodeEventId => {
+                  if(selectedTextEventIds.has(selectedCodeEventId)) {
+                    isRelevantComment = true;
+                    searchResult.inSelectedText = true;
+                    //break;
+                  }
+                });
+              }
             });
           }
         } else {
@@ -809,7 +811,15 @@ class PlaybackEngine {
 
           if(searchType === 'all' || searchType === 'comment') {
             //strip all html and make lowercase
-            const cleansedCommentText = comment.commentText.replace(removeHTMLTagsRegEx, '').toLowerCase();
+            let cleansedCommentText;
+            //if in markdown convert it to html
+            if(comment.textFormat && comment.textFormat === 'markdown') {
+              const md = markdownit();
+              cleansedCommentText = md.render(comment.commentText);
+            } else { //not markdown, already in html
+              cleansedCommentText = comment.commentText
+            }
+            cleansedCommentText = cleansedCommentText.replace(removeHTMLTagsRegEx, '').toLowerCase();
             const cleansedCommentTitle = comment.commentTitle.replace(removeHTMLTagsRegEx, '').toLowerCase();
             //check the comment text and the comment title
             if(cleansedCommentText.includes(searchText.toLowerCase()) || cleansedCommentTitle.includes(searchText.toLowerCase())) {
@@ -926,15 +936,15 @@ class PlaybackEngine {
     const ignoreCharacter = '\0';
 
     //replace all the html tags with the ignore character
-    const cleansedHTML = this.replaceAllHTMLWithACharacter(htmlString.toLowerCase(), ignoreCharacter);
+    const strippedAndReplacedHTML = this.replaceAllHTMLWithACharacter(htmlString, ignoreCharacter).toLowerCase();
     const cleansedSearchText = searchText.toLowerCase();
     
     //positions where a match of the search text happened
     const matchPositions = [];
     //go through the entire string of html and look for an exact match
-    for(let i = 0;i < cleansedHTML.length;i++) {
-      //ignore the replaced html tags
-      const matchData = this.findMatch(i, cleansedHTML, cleansedSearchText, ignoreCharacter);
+    for(let i = 0;i < strippedAndReplacedHTML.length;i++) {
+      //search while ignoring the replaced html tags
+      const matchData = this.findMatch(i, strippedAndReplacedHTML, cleansedSearchText, ignoreCharacter);
       if(matchData.match) {
         matchPositions.push(matchData);
         //skip all of the found text to the next possible match
@@ -956,10 +966,10 @@ class PlaybackEngine {
     return htmlString;
   }
 
-  findMatch(startPos, htmlText, searchText, ignoreCharacter) {
+  findMatch(startPos, strippedAndReplacedHTML, searchText, ignoreCharacter) {
     const retVal = {
       match: false, //assume there was no match
-      startPos: startPos,
+      startPos: -1,
       endPos: Number.MAX_SAFE_INTEGER
     };
 
@@ -967,25 +977,28 @@ class PlaybackEngine {
     let searchTextPos = 0;
 
     //go through all of the characters in the html
-    for(let i = startPos;i < htmlText.length;i++) {
+    for(let i = startPos;i < strippedAndReplacedHTML.length;i++) {
       //if it is a character that should be evaluated
-      if(htmlText.charAt(i) !== ignoreCharacter) {
+      if(strippedAndReplacedHTML.charAt(i) !== ignoreCharacter) {
         //if it does not match the search 
-        if(htmlText.charAt(i) !== searchText[searchTextPos]) {
+        if(strippedAndReplacedHTML.charAt(i) === searchText[searchTextPos]) {
+          //set the starting position of the match if this is the first character found
+          retVal.startPos = (retVal.startPos === -1) ? i : retVal.startPos;
+          //update the end of the match
+          retVal.endPos = i;
+          //move to the next character of the search text
+          searchTextPos++;
+        } else { //at least one character does not match
           break;
-        } //else- there is a match in the search text and the html
-        //update the end of the match
-        retVal.endPos = i;
-        //move to the next character of the search text
-        searchTextPos++;
-
+        }
+        
         //if all of the characters have been found
         if(searchTextPos === searchText.length) {
           //indicate success and stop looking
           retVal.match = true;
           break;
         }
-      }
+      } //else- ignore the character and move i forward
     }
 
     return retVal;

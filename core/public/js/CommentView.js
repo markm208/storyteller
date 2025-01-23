@@ -128,6 +128,10 @@ class CommentView extends HTMLElement {
         .descriptionCommentTopBar .commentCountContainer {
           margin-left: auto;
         }
+
+        .searchHighlight {
+          background-color: #517EB0;
+        }
       </style>
       <div>
         <div class="commentTopBar"></div>
@@ -399,9 +403,15 @@ class CommentView extends HTMLElement {
     }
 
     //set the text back to the original
+    let formattedCommentText = this.comment.commentText;
+    //if the text format is markdown, convert it to html
+    if(this.comment.textFormat && this.comment.textFormat === 'markdown') {
+      const md = markdownit();
+      formattedCommentText = md.render(this.comment.commentText);
+    }
     const commentText = this.shadowRoot.querySelector('.commentText');
-    commentText.innerHTML = this.comment.commentText;
-
+    commentText.innerHTML = formattedCommentText;
+    
     const commentTitle = this.shadowRoot.querySelector('.commentTitle');
     commentTitle.innerHTML = this.comment.commentTitle;
 
