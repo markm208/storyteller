@@ -343,7 +343,7 @@ class HttpServer {
         app.post('/aiPrompt', async (req, res) => {
             //if the user has supplied a valid OpenAI API key
             if(this.openaiApiKey) {
-                const promptObject = req.body;
+                const promptObject = req.body.prompt;
                 //console.log(`Server sends: ${JSON.stringify(promptObject.prompt)}`);
     
                 const data = JSON.stringify({

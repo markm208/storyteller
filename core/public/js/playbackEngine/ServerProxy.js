@@ -306,7 +306,7 @@ class ServerProxy {
     try {
       const fetchConfigData = {
         method: 'POST',
-        body: JSON.stringify(prompt),
+        body: JSON.stringify({ prompt }),
         headers: {
           'Content-Type': 'application/json',
         }
