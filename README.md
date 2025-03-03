@@ -44,7 +44,7 @@ You can find all of my 'books' of playbacks here: [markm208.github.io](https://m
 Some notes about playback. You can use the pause/play button (`space bar`) to stop/restart a playback. To speed things up use `shift + up arrow` (`shift + down arrow` slows things down too). You can skip the animation of code altogether and just focus on the code and comments by selecting the forward button `>>` (`shift + right arrow` will accomplish this as well). 
 
 ## Storyteller: Docs
-There is some documentation about viewing playbacks, creating playbacks, the Visual Studio Code editor, and using Storyteller as a version control system on the [Storyteller: Docs](https://markm208.github.io/storyteller/index.html) website.
+There is some documentation about viewing playbacks, creating playbacks, the Visual Studio Code editor, and using Storyteller as a version control system on the [Storyteller: Docs](https://github.com/markm208/storyteller/wiki) website.
 
 ## Contact
 I am looking for people to contribute. Reach out to me if you are interested in helping build Storyteller!
