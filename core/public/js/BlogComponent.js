@@ -102,11 +102,12 @@ class BlogComponent extends HTMLElement {
     if(this.comment.ttsFilePath) {
       //create a tts control with the file path
       ttsControl = new TextToSpeechControl(this.comment.ttsFilePath, null, this.playbackEngine.editorProperties.ttsSpeed);
-    } else { //no tts file path in this comment
+      ttsContainer.appendChild(ttsControl);
+    } else if(this.playbackEngine.playbackData.aiEnabled) { //no tts file path in this comment
       //create a tts control with the comment text
       ttsControl = new TextToSpeechControl(null, this.comment.commentTitle + " " + this.comment.commentText, this.playbackEngine.editorProperties.ttsSpeed);
-    }
-    ttsContainer.appendChild(ttsControl);
+      ttsContainer.appendChild(ttsControl);
+    } //else- no tts control
     
     //add the media
     //videos
@@ -172,7 +173,7 @@ class BlogComponent extends HTMLElement {
     }
 
     //ai input
-    if(!this.isDescriptionComment) {
+    if(!this.isDescriptionComment && this.playbackEngine.playbackData.aiEnabled) {
       //create an AI input to get suggestions
       const aiInput = this.shadowRoot.querySelector('#aiInput');
       const promptCollapsable = new Collapsable('Ask About This Code');

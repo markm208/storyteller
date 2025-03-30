@@ -139,7 +139,7 @@ class AddEditComment extends HTMLElement {
           <div id="audiosVMC" class="mediaContainer" slot="child"></div>
         </st-show-hide-component>
         <st-show-hide-component name="Audio Transcription">            
-          <button id="genTTS" class="ttsButton" title="Generate AI Text-To-Speech Transcription" slot="child">Generate with AI</button>
+          <button id="genTTS" class="ttsButton inactive" title="Generate AI Text-To-Speech Transcription" slot="child">Generate with AI</button>
           <button id="uploadTts" class="ttsButton" title="Upload Audio File Transcription (mp3)" slot="child">Upload</button>
           <button id="clearTts" class="ttsButton" title="Clear the Text-To-Speech Transcription" slot="child">Clear</button>
           <div id="audioTranscriptionPreview" slot="child"></div>
@@ -225,14 +225,19 @@ class AddEditComment extends HTMLElement {
     commentTextContainer.appendChild(commentText);
 
     //create an AI input to get suggestions
-    const aiCommentSuggestionInput = this.shadowRoot.querySelector('#aiCommentSuggestionInput');
-    const collapsable = new Collapsable('Get an AI Comment Suggestion');
-    const aiPromptInput = new AIPromptInput(this.playbackEngine, true);
-    collapsable.addContent(aiPromptInput);
-    aiCommentSuggestionInput.appendChild(collapsable);
+    if(this.playbackEngine.playbackData.aiEnabled) {
+      const aiCommentSuggestionInput = this.shadowRoot.querySelector('#aiCommentSuggestionInput');
+      const collapsable = new Collapsable('Get an AI Comment Suggestion');
+      const aiPromptInput = new AIPromptInput(this.playbackEngine, true);
+      collapsable.addContent(aiPromptInput);
+      aiCommentSuggestionInput.appendChild(collapsable);
+    }
     
     //tts controls
     const genTTSButton = this.shadowRoot.getElementById('genTTS');
+    if(this.playbackEngine.playbackData.aiEnabled) {
+      genTTSButton.classList.remove('inactive');
+    }
     const uploadTTSButton = this.shadowRoot.getElementById('uploadTts');
     const clearTts = this.shadowRoot.getElementById('clearTts');
     genTTSButton.addEventListener('click', this.handleGenTTSClick);

@@ -220,7 +220,7 @@ class CommentView extends HTMLElement {
     }
 
     //ai input
-    if(!this.isDescriptionComment) {
+    if(!this.isDescriptionComment && this.playbackEngine.playbackData.aiEnabled) {
       //create an AI input to get suggestions
       const aiInput = this.shadowRoot.querySelector('#aiInput');
       const promptCollapsable = new Collapsable('Ask About This Code');
@@ -317,19 +317,19 @@ class CommentView extends HTMLElement {
     const commentCount = document.createElement('div');
     commentCount.classList.add('commentCount');
     commentCount.innerHTML = `${this.commentNumber + 1}/${this.totalNumberOfComments}`; 
+    commentCountContainer.appendChild(commentCount);
     
     let ttsControl;
     //if this comment has a tts file path
     if(this.comment.ttsFilePath) {
       //create a tts control with the file path
       ttsControl = new TextToSpeechControl(this.comment.ttsFilePath, null, this.playbackEngine.editorProperties.ttsSpeed, true);
-    } else { //no tts file path in this comment
+      commentCountContainer.appendChild(ttsControl);
+    } else if(this.playbackEngine.playbackData.aiEnabled) { //no tts file path in this comment
       //create a tts that will convert the text to speech
       ttsControl = new TextToSpeechControl(null, this.comment.commentTitle + " " + this.comment.commentText, this.playbackEngine.editorProperties.ttsSpeed, true);
-    }
-
-    commentCountContainer.appendChild(commentCount);
-    commentCountContainer.appendChild(ttsControl);
+      commentCountContainer.appendChild(ttsControl);
+    } //else- no tts control
 
     if (this.isDescriptionComment) {
       const titleBarDiv = document.createElement('div');

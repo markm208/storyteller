@@ -779,6 +779,7 @@ function loadPlaybackData(playbackData) {
     playbackData.playbackTitle = '${this.project.title.replace(/'/g, "&#39;")}';
     playbackData.branchId = '${this.project.branchId}';
     playbackData.estimatedReadTime = ${this.getReadTimeEstimate()};
+    playbackData.aiEnabled = ${this.openaiApiKey ? 'true' : 'false'};
 }`;
         return func;
     }

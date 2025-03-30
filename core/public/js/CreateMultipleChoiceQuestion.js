@@ -166,9 +166,12 @@ class CreateMultipleChoiceQuestion extends HTMLElement {
       explanationText.updateText('');
     });
 
-    const generateAIQuestionInput = this.shadowRoot.querySelector('#generateAIQuestionInput');
-    const generateAIQuestion = new AIGeneratedQuestion(this.playbackEngine, true);
-    generateAIQuestionInput.appendChild(generateAIQuestion);
+    //add the AI question generator
+    if (this.playbackEngine.playbackData.aiEnabled) {
+      const generateAIQuestionInput = this.shadowRoot.querySelector('#generateAIQuestionInput');
+      const generateAIQuestion = new AIGeneratedQuestion(this.playbackEngine, true);
+      generateAIQuestionInput.appendChild(generateAIQuestion);
+    } //else- no AI question generator
 
     //if the comment question is being edited
     if (this.questionCommentData && this.questionCommentData.question) {
