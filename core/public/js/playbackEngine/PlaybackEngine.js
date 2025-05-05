@@ -56,6 +56,8 @@ class PlaybackEngine {
       this.stepToCommentByIndex(startingCommentIndex);
     } else if(startingEventIndex) {
       this.stepToEventNumber(startingEventIndex);
+    } else { //no location was specified, start at first comment
+      this.stepToCommentByIndex(0);
     }
   }
 

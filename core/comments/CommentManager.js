@@ -81,6 +81,12 @@ class CommentManager {
             if(position >= 0 && position < arrayOfCommentsAtThisEvent.length) {
                 //remove the comment
                 arrayOfCommentsAtThisEvent.splice(position, 1);
+
+                //update the positions of the comments
+                for(let i = 0;i < arrayOfCommentsAtThisEvent.length;i++) {
+                    arrayOfCommentsAtThisEvent[i].position = i;
+                }
+                
                 //if there are no more comments at this event
                 if(arrayOfCommentsAtThisEvent.length === 0) {
                     //remove the array of comments for this event
