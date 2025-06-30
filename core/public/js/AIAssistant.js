@@ -466,8 +466,8 @@ class AIAssistant extends HTMLElement {
     const skillLevel = this.skillLevel;
     
     const codeFromPlayback = this.playbackEngine.getMostRecentFileEdits(sinceLastComment);
-    const prompt = `Skill level: ${skillLevel}\n\n${question.prompt}\n\n${codeFromPlayback}`;
-    console.log(`prompt: ${prompt}`);
+    const prompt = `${codeFromPlayback}\n\nNow, for the user's question, briefly respond to this prompt:\n\n${question.prompt}\n\nThe user is a ${skillLevel} programmer, tailor your answer appropriately.`;
+
     await this.sendPromptToServer('Ask', prompt, question.text, 'askAQuestion');
   }
 
@@ -485,7 +485,6 @@ class AIAssistant extends HTMLElement {
 
     await this.sendPromptToServer('Ask', prompt, questionText, 'askAQuestion');
     
-    // Clear the input after submission
     textInput.value = '';
   }
 
@@ -583,7 +582,7 @@ class AIAssistant extends HTMLElement {
       Format the response as clear, numbered suggestions. Add this text to the end of the response: "You can download the code from this playback by going to the 'File System' tab and clicking on the 'Download code at this point' button. This will download the code at this point in the playback as a zip file. You can then unzip it and open it in your favorite code editor.
     `;
 
-    await this.sendPromptToServer('Get Projects', prompt, null, 'projects');
+    await this.sendPromptToServer('Ask', prompt, 'Project Ideas', 'projects');
   }
 
   async sendPromptToServer(requestType, prompt, questionText, tab) {
