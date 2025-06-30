@@ -238,16 +238,6 @@ class CommentView extends HTMLElement {
       const aiAssistant = new AIAssistant(this.playbackEngine);
       aiInput.appendChild(aiAssistant);
       aiInput.classList.add('aiInput');
-      // const promptCollapsable = new Collapsable('Ask About This Code');
-      // const aiPromptInput = new AIPromptInput(this.playbackEngine, false);
-      // const aiGeneratedQ = new AIGeneratedQuestion(this.playbackEngine);
-      // const aiElements = document.createElement('div');
-      // aiElements.classList.add('aiElements');
-      // aiElements.appendChild(aiPromptInput);
-      // aiElements.appendChild(document.createElement('hr'));
-      // aiElements.appendChild(aiGeneratedQ);
-      // promptCollapsable.addContent(aiElements);
-      //aiInput.appendChild(promptCollapsable);
     }
   }
 
