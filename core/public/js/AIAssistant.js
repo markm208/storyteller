@@ -7,6 +7,7 @@ class AIAssistant extends HTMLElement {
     this.isExpanded = false;
     this.activeTab = 'askAQuestion';
     this.skillLevel = 'beginner';
+    this.numQuestionsToGenerate = 3; // Configurable number of questions
 
     const AI_SUGGESTION_TEXT = 'Let the AI assistant suggest a question';
 
@@ -327,7 +328,7 @@ class AIAssistant extends HTMLElement {
           <!-- Test Your Knowledge Tab -->
           <div class="tab-content" data-tab-content="practice">
             <h3>Generate multiple choice questions to test your understanding of this code (your answers are not stored or shared with anyone).</h3>
-            <button class="generate-question-button">Generate A Practice Question</button>
+            <button class="generate-question-button">Generate Some Practice Questions</button>
             <div class="results-area"></div>
           </div>
           
@@ -492,27 +493,26 @@ class AIAssistant extends HTMLElement {
 
   async generatePracticeQuestion() {
     const generateButton = this.shadowRoot.querySelector('.generate-question-button');
-    generateButton.textContent = 'Generating a question...';
+    generateButton.textContent = 'Generating questions...';
     generateButton.setAttribute('disabled', 'true');
 
     const skillLevel = this.skillLevel;
-    let codeFromPlayback = this.playbackEngine.getMostRecentFileEdits(false);   
+    let codeFromPlayback = this.playbackEngine.getMostRecentFileEdits(false);
 
     let promptWithCode = `
-      Look at the following code and come up with a multiple choice question that can be asked about it:\n\n${codeFromPlayback}\n\n
-      The question should be tailored to a ${skillLevel} level learner. If you can, avoid, 'what is the output of this code?' type questions and ask something deeper. Look at the supplied code and the author's description when choosing a question.\n\n
-      The format of the response must be raw JSON. Specifically, do not surround the response with \`\`\`json designators. The question must be stored in a member called 'question'. There must be another member called 'allAnswers' that is an array of all the answers. The correct answer should be duplicated in a member called 'correctAnswer'. There must be a very brief explanation of why the correct answer is correct in a member called 'explanation'. Put the correct answer at position 0 of the 'allAnswers' array.\n\n
-      Here is an example of what the response must look like (make sure the response is a valid JSON object):\n\n
-      {\n
-        "question": "What is the capital of France?",\n
-        "allAnswers": [\n
-          "Paris",\n
-          "London",\n
-          "Berlin",\n
-          "Madrid"\n
-        ],\n
-        "correctAnswer": "Paris",\n
-        "explanation": "Paris is the capital of France."\n
+      Look at the following code and come up with ${this.numQuestionsToGenerate} multiple choice questions that can be asked about it:\n\n${codeFromPlayback}\n\n
+      Each question should be tailored to a ${skillLevel} level learner. Avoid "what is the output of this code?" type questions and ask something deeper. Look at the supplied code and the author's description when choosing questions.\n\n
+      The format of the response must be raw JSON. Specifically, do not surround the response with \`\`\`json designators. Each question must be stored in an array called 'questions'. Each question object must have the following members:\n\n
+      {
+        "question": "The question text",
+        "allAnswers": [
+          "Correct answer",
+          "Incorrect answer 1",
+          "Incorrect answer 2",
+          "Incorrect answer 3"
+        ],
+        "correctAnswer": "Correct answer",
+        "explanation": "A brief explanation of why the correct answer is correct"
       }\n\n`;
 
     const promptObject = {
@@ -523,27 +523,49 @@ class AIAssistant extends HTMLElement {
 
     const serverProxy = new ServerProxy();
     serverProxy.sendAIPromptToServer(promptObject).then(responseObject => {
-        generateButton.textContent = 'Generate Another Practice Question';
+        generateButton.textContent = 'Generate More Practice Questions';
         generateButton.removeAttribute('disabled');
 
         const resultsArea = this.shadowRoot.querySelector('[data-tab-content="practice"] .results-area');
 
         if (responseObject.error) {
-            resultsArea.textContent = responseObject.response;
+            const errorDiv = document.createElement('div');
+            errorDiv.textContent = responseObject.response;
+            errorDiv.style.color = '#ef4444';
+            resultsArea.prepend(errorDiv);
         } else {
-            const questionData = JSON.parse(responseObject.response);
+            try {
+                const questionsData = JSON.parse(responseObject.response);
 
-            const randomIndex = Math.floor(Math.random() * questionData.allAnswers.length);
-            const temp = questionData.allAnswers[0];
-            questionData.allAnswers[0] = questionData.allAnswers[randomIndex];
-            questionData.allAnswers[randomIndex] = temp;
+                questionsData.questions.forEach(questionData => {
+                    // Randomize answer positions
+                    const randomIndex = Math.floor(Math.random() * questionData.allAnswers.length);
+                    const temp = questionData.allAnswers[0];
+                    questionData.allAnswers[0] = questionData.allAnswers[randomIndex];
+                    questionData.allAnswers[randomIndex] = temp;
 
-            const md = markdownit();
-            questionData.question = md.render(questionData.question);
-            questionData.explanation = md.render(questionData.explanation);
+                    const md = markdownit();
+                    questionData.question = md.render(questionData.question);
+                    questionData.explanation = md.render(questionData.explanation);
 
-            const qAndAView = new QuestionAnswerView({ questionCommentData: questionData });
-            resultsArea.prepend(qAndAView);
+                    const qAndAView = new QuestionAnswerView({ questionCommentData: questionData });
+                    resultsArea.prepend(qAndAView);
+                });
+
+                if (this.sendResponseAsEvent) {
+                    const event = new CustomEvent('ai-generate-questions-response', {
+                        detail: { response: questionsData.questions },
+                        bubbles: true,
+                        composed: true
+                    });
+                    this.dispatchEvent(event);
+                }
+            } catch (e) {
+                const errorDiv = document.createElement('div');
+                errorDiv.textContent = 'Failed to parse questions';
+                errorDiv.style.color = '#ef4444';
+                resultsArea.prepend(errorDiv);
+            }
         }
     });
   }
