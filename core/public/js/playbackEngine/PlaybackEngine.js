@@ -125,8 +125,23 @@ class PlaybackEngine {
 
   getMostRecentFileEdits(fromLastComment) {
     let codeChangesSummary = "";
-    let currentCodeSource;
-    let authorCommentText;
+    let currentCodeSource = {};
+    let highlightedCode = '';
+
+    if(this.activeComment) {
+      //selected code in the comment
+      highlightedCode = this.activeComment.selectedCodeBlocks.map(block => {
+        return block.selectedText;
+      }).join("\n\n");
+
+      codeChangesSummary += "This is the code that the author highlighted:\n\n```\n";
+      codeChangesSummary += highlightedCode;
+      codeChangesSummary += "\n```\n\n";
+      
+      codeChangesSummary += "The author of the code had this to say about it:\n\n";
+      codeChangesSummary += this.activeComment.commentText;
+      codeChangesSummary += "\n\n";
+    }
 
     //if the summary is only for the code since the last comment
     if(fromLastComment) {
@@ -137,15 +152,12 @@ class PlaybackEngine {
         //use the state at the last two comments
         originalCodeSource = this.mostRecentChanges.previousCommentState;
         currentCodeSource = this.mostRecentChanges.currentCommentState;
-        if(this.activeComment) {
-          authorCommentText = this.activeComment.commentText;
-        }
       } else {
         //use the most recent comment state and the current state of the files
         originalCodeSource = this.mostRecentChanges.currentCommentState;
         currentCodeSource = this.editorState.getFiles();
       }
-      
+      codeChangesSummary += `For your reference, here is the code that has changed since the last comment:\n\n`;
       //get only the changed code
       for(const fileId in currentCodeSource) {
         const filePath = this.editorState.getFilePath(fileId);
@@ -173,7 +185,7 @@ class PlaybackEngine {
       //get the code as it is in the editor now
       currentCodeSource = this.editorState.getFiles();
 
-      codeChangesSummary = "This is the code:\n";
+      codeChangesSummary += "This is the full code for your reference:\n\n";
       for(const fileId in currentCodeSource) {
         const filePath = this.editorState.getFilePath(fileId);
         const codeFromCurrentState = currentCodeSource[fileId];
@@ -184,12 +196,6 @@ class PlaybackEngine {
           codeChangesSummary += "\n\n";
         }
       }
-    }
-
-    if(authorCommentText) {
-      codeChangesSummary += "The author of this code had to say this about it:\n";
-      codeChangesSummary += authorCommentText;
-      codeChangesSummary += "\n\n";
     }
 
     return codeChangesSummary;

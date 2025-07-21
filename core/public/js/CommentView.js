@@ -61,6 +61,18 @@ class CommentView extends HTMLElement {
           opacity: 80%;
         }
 
+        .aiInput {
+          margin: 0px 0px 10px 0px;
+          padding-top: 10px;
+        }
+
+        #aiInput.hidden {
+          display: none;
+        }
+        #aiInput.visible {
+          display: block;
+        }
+
         .commentTopBar {
           border-bottom: 1px solid rgb(83, 84, 86);
           margin-bottom: 8px;
@@ -140,7 +152,7 @@ class CommentView extends HTMLElement {
         <div class="media"></div>
         <div class="questionAndAnswerContainer"></div>
         <div class="tagContainer"></div>
-        <div id="aiInput"></div>
+        <div id="aiInput" class="hidden"></div>
         <button id="editCommentButton" class="inactive" title="Edit this comment"></button>
       </div>`;
 
@@ -223,16 +235,9 @@ class CommentView extends HTMLElement {
     if(!this.isDescriptionComment && this.playbackEngine.playbackData.aiEnabled) {
       //create an AI input to get suggestions
       const aiInput = this.shadowRoot.querySelector('#aiInput');
-      const promptCollapsable = new Collapsable('Ask About This Code');
-      const aiPromptInput = new AIPromptInput(this.playbackEngine, false);
-      const aiGeneratedQ = new AIGeneratedQuestion(this.playbackEngine);
-      const aiElements = document.createElement('div');
-      aiElements.classList.add('aiElements');
-      aiElements.appendChild(aiPromptInput);
-      aiElements.appendChild(document.createElement('hr'));
-      aiElements.appendChild(aiGeneratedQ);
-      promptCollapsable.addContent(aiElements);
-      aiInput.appendChild(promptCollapsable);
+      const aiAssistant = new AIAssistant(this.playbackEngine);
+      aiInput.appendChild(aiAssistant);
+      aiInput.classList.add('aiInput');
     }
   }
 
@@ -248,7 +253,8 @@ class CommentView extends HTMLElement {
 
     //make the aiInput visible
     const aiInput = this.shadowRoot.querySelector('#aiInput');
-    aiInput.style.display = 'block';
+    aiInput.classList.remove('hidden');
+    aiInput.classList.add('visible');
 
     //get the rectangle around the active comment that is displayed
     const commentRectangle = this.shadowRoot.host.getBoundingClientRect();
@@ -264,8 +270,8 @@ class CommentView extends HTMLElement {
 
     //make the aiInput invisible
     const aiInput = this.shadowRoot.querySelector('#aiInput');
-    aiInput.style.display = 'none';
-    
+    aiInput.classList.remove('visible');
+    aiInput.classList.add('hidden');
   }
 
   makePartOfActiveGroup() {
