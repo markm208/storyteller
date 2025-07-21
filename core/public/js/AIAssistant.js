@@ -306,7 +306,7 @@ class AIAssistant extends HTMLElement {
           <div class="tabs">
             <button class="tab active" data-tab="askAQuestion">Ask A Question</button>
             <button class="tab" data-tab="practice">Test Your Knowledge</button>
-            <button class="tab" data-tab="projects">Build Your Own Project</button>
+            <button class="tab" data-tab="projects">Write Your Own Code</button>
           </div>
           
           <!-- Ask A Question Tab -->
@@ -334,8 +334,8 @@ class AIAssistant extends HTMLElement {
           
           <!-- Project Ideas Tab -->
           <div class="tab-content" data-tab-content="projects">
-            <h3>Get suggestions for coding projects that build on the concepts in this code. </h3>
-            <button class="project-button">Get Project Suggestions</button>
+            <h3>Get suggestions to build on the concepts in this code. </h3>
+            <button class="project-button">Get Suggestions</button>
             <div class="results-area"></div>
           </div>
 
@@ -570,7 +570,7 @@ class AIAssistant extends HTMLElement {
   async getProjectSuggestions() {
     const codeFromPlayback = this.playbackEngine.getMostRecentFileEdits(false);
     const skillLevel = this.skillLevel;
-    
+
     const prompt = `
       Imagine that I, as a ${skillLevel} learner, want to alter this code slightly to reinforce the concepts that are being shown in this program. \n
       Pick an interesting section of code that clearly exemplifies a concept and suggest some features, additions, or changes that I can make to this code to learn more about what is happening. \n
