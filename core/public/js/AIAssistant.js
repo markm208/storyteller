@@ -572,14 +572,19 @@ class AIAssistant extends HTMLElement {
     const skillLevel = this.skillLevel;
     
     const prompt = `
-      Look at the following code and suggest three coding project ideas that are appropriate for a ${skillLevel} level learner:\n\n${codeFromPlayback}\n\n
+      Imagine that I, as a ${skillLevel} learner, want to alter this code slightly to reinforce the concepts that are being shown in this program. \n
+      Pick an interesting section of code that clearly exemplifies a concept and suggest some features, additions, or changes that I can make to this code to learn more about what is happening. \n
+      The changes required should be fairly small in size and require a effort required. \n
+      Include a brief suggestion of the change and he key concepts that will be reinforced. \n
+      Don't suggest adding comments to the code as it is not significant enough. \n\n
 
-      Each project should build on the code itself. Alternatively, it could build on concepts in this code but make it clear how they relate. Include:
-      1. A brief project description
-      2. Key concepts that will be practiced
-      3. Suggested extensions or variations
-
-      Format the response as clear, numbered suggestions. Add this text to the end of the response: "You can download the code from this playback by going to the 'File System' tab and clicking on the 'Download code at this point' button. This will download the code at this point in the playback as a zip file. You can then unzip it and open it in your favorite code editor.
+      For a fourth suggestion, suggest a completely different program that transfers some of the ideas from this one into a brand new program with a short but clear specification of what is required in this new program. \n\n
+      
+      Format the response as clear, numbered suggestions. Add this text to the end of the response: 
+        "You can download the code from this playback by going to the 'File System' tab and clicking on the 'Download code at this point' button. 
+        This will download the code at this point in the playback as a zip file. You can then unzip it and open it in your favorite code editor."\n\n
+      
+        Here is the code:\n\n${codeFromPlayback}\n\n
     `;
 
     await this.sendPromptToServer('Ask', prompt, 'Project Ideas', 'projects');
