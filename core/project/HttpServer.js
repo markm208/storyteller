@@ -409,7 +409,7 @@ class HttpServer {
                 const data = JSON.stringify({
                     input: textObject.text,
                     voice: "echo",
-                    model: "tts-1-hd",
+                    model: "gpt-4o-mini-tts",
                     speed: 1.2
                 });
         
