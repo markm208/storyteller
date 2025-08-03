@@ -298,7 +298,20 @@ class AIAssistant extends HTMLElement {
       </style>
       <div class="container">
         <button class="toggle-button">
-          <span>Deepen Your Understanding...</span>
+          <span>
+            <!-- duck svg -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="bi bi-duck" style="transform: translateY(2px);" viewBox="0 0 16 16">
+              <path d="M8 2.5c1.5 0 2.5 1 2.5 2.5s-1 2.5-2.5 2.5-2.5-1-2.5-2.5 1-2.5 2.5-2.5z"/>
+              <path d="M7 7c0 .3.2.5.5.5h1c.3 0 .5-.2.5-.5"/>
+              <path d="M5.5 7.5c-1 .7-2 2-2 3.5 0 2 1.5 3.5 3.5 3.5h2c2 0 3.5-1.5 3.5-3.5 0-1.5-1-2.8-2-3.5"/>
+              <path d="M5 10c0-1 .3-1.5.7-2"/>
+              <path d="M9.5 10c.5.2.8.7.8 1.5"/>
+              <circle cx="7" cy="4.5" r="0.5" fill="currentColor"/>
+              <path d="M5.5 4.5h-1"/>
+              <path d="M2 13.5h12"/>
+            </svg>
+            Ask a question about this code
+          </span>
           <span class="arrow">▼</span>
         </button>
         
