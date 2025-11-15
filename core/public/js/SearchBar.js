@@ -111,6 +111,13 @@ class SearchBar extends HTMLElement {
     //add a key down listener to stop arrow keys from affecting the playback
     searchBar.addEventListener('keydown', event => {
       event.stopImmediatePropagation();
+
+      if (event.key === 'Enter' && searchBar.value.trim() === '') {
+        this.dispatchEvent(new CustomEvent('open-media-picker', {
+          bubbles: true,
+          composed: true
+        }));
+      }
     });
     
     searchBar.addEventListener('focus', () => {

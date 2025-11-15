@@ -3,7 +3,7 @@ class App extends HTMLElement {
     super();
     //create the main playback 'engine' which drives the ui
     this.playbackEngine = new PlaybackEngine(playbackData, startingCommentIndex, startingEventIndex);
-    
+
     //code or blog mode
     this.activeMode = '';
     this.initialMode = initialMode;
@@ -42,10 +42,10 @@ class App extends HTMLElement {
     //title bar
     const titleBar = this.shadowRoot.querySelector('.titleBar');
     titleBar.appendChild(new TitleBar(this.initialMode, this.playbackEngine));
-    
+
     //set the initial mode ('code' or 'blog')
     this.changeMode(this.initialMode);
-    
+
     //setup the custom event listeners
     this.addEventListeners();
   }
@@ -87,6 +87,81 @@ class App extends HTMLElement {
     //resize the main view when the window resizes
     window.addEventListener('resize', () => {
       this.updateForDisplay(this.activeMode);
+    });
+
+    //global listener for all keyboard shortcuts
+    document.addEventListener('keydown', (event) => {
+      //check if the user is typing inside an input, textarea, or contenteditable element.
+      //if so, ignore all of our custom shortcuts.
+      const target = event.target;
+      const isTyping = target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable;
+
+      //exit early if the user is in a typing context.
+      if(isTyping) {
+        return;
+      }
+
+      //handle shortcuts related to the physical '/' key 
+      if(event.code === 'Slash') {
+        // Case 1: Just '/' (without Shift) is pressed for focusing the search bar.
+        if(!event.shiftKey) {
+          event.preventDefault();
+          const searchBar = this.shadowRoot.querySelector('st-title-bar')
+            .shadowRoot.querySelector('st-search-bar')
+            .shadowRoot.querySelector('#searchBar');
+          if(searchBar) {
+            searchBar.focus();
+          }
+        }
+        // Case 2: 'Shift + /' is pressed for opening the media picker.
+        else if(event.shiftKey) {
+          event.preventDefault();
+          this.dispatchEvent(new CustomEvent('open-media-picker', {
+            bubbles: true,
+            composed: true
+          }));
+        }
+      }
+    });
+
+    //media picker
+    this.addEventListener('open-media-picker', () => {
+      let mediaPicker = this.shadowRoot.querySelector('st-media-picker');
+      
+      //if the modal has been created before, remove it
+      if(mediaPicker) {
+        mediaPicker.remove();
+      }
+
+      //create a fresh picker with the latest media
+      mediaPicker = new MediaPicker(this.playbackEngine);
+      this.shadowRoot.appendChild(mediaPicker);
+      mediaPicker.show();
+    });
+
+    this.shadowRoot.addEventListener('media-selected', event => {
+      //move to the selected comment
+      this.playbackEngine.stepToCommentById(event.detail.commentId);
+
+      //update the view to show the selected comment
+      if(this.activeMode === 'code') {
+        const codeView = this.shadowRoot.querySelector('st-code-view');
+        codeView.updateForPlaybackMovement();
+        codeView.updateForCommentSelected();
+      } else { // 'blog' mode
+        const blogView = this.shadowRoot.querySelector('st-blog-view');
+        // Find the blog component and scroll to it
+        const element = blogView.shadowRoot.querySelector(`#id-${event.detail.commentId}`);
+        if(element) {
+          const activeElements = blogView.shadowRoot.querySelectorAll('.activeComment');
+          activeElements.forEach(el => el.classList.remove('activeComment'));
+          element.classList.add('activeComment');
+          // Scroll to the element
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
     });
 
     //code mode to blog mode or vice versa
@@ -148,7 +223,7 @@ class App extends HTMLElement {
     const searchResults = this.playbackEngine.performSearch(searchText);
 
     //display results in code/blog mode
-    if (this.activeMode === 'code') {
+    if(this.activeMode === 'code') {
       const codeView = this.shadowRoot.querySelector('st-code-view');
       codeView.updateToDisplaySearchResults(searchResults);
     } else {
