@@ -15,7 +15,7 @@
         "Other"
     ],
     "activationEvents": [
-        "*"
+        "onStartupFinished"
     ],
     "main": "./extension.js",
     "contributes": {
@@ -88,6 +88,11 @@
             {
                 "command": "storyteller.playbackSelectedText",
                 "title": "Playback Complete History of Selected Text",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.createIgnoreFile",
+                "title": "Create Ignore File (st-ignore.json)",
                 "category": "Storyteller"
             }
         ],

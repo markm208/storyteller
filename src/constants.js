@@ -17,12 +17,18 @@ const PLAYBACK_COMMENT_URL = `${PLAYBACK_URL}/playback.html?comment=true`;
 const MOVE_DETECTION_WINDOW_MS = 50;
 const STATUS_BAR_MESSAGE_TIMEOUT_MS = 5000;
 const STARTUP_DELAY_MS = 1;
+const IGNORE_FILE_DEBOUNCE_MS = 3000;
 
 /**
  * File Names
  */
 const PROJECT_ZIP_NAME = 'stProject.zip';
 const PLAYBACK_ZIP_NAME = 'playbackOnly.zip';
+
+/**
+ * Documentation URLs
+ */
+const IGNORE_FILE_DOCS_URL = 'https://github.com/markm208/storyteller/wiki/Ignoring-files';
 
 /**
  * Extension Configuration Keys
@@ -47,7 +53,8 @@ const COMMANDS = {
     ZIP_PLAYBACK: 'storyteller.zipViewablePlayback',
     PREVIEW_PERFECT: 'storyteller.previewPerfectProgrammer',
     REPLACE_PERFECT: 'storyteller.replaceWithPerfectProgrammer',
-    PLAYBACK_SELECTED: 'storyteller.playbackSelectedText'
+    PLAYBACK_SELECTED: 'storyteller.playbackSelectedText',
+    CREATE_IGNORE_FILE: 'storyteller.createIgnoreFile'
 };
 
 /**
@@ -149,6 +156,7 @@ module.exports = {
     MOVE_DETECTION_WINDOW_MS,
     STATUS_BAR_MESSAGE_TIMEOUT_MS,
     STARTUP_DELAY_MS,
+    IGNORE_FILE_DEBOUNCE_MS,
     PROJECT_ZIP_NAME,
     PLAYBACK_ZIP_NAME,
     CONFIG_NAMESPACE,
@@ -157,5 +165,6 @@ module.exports = {
     STATUS_BAR,
     MESSAGES,
     BROWSER_COMMANDS,
-    ZIP_OPTIONS
+    ZIP_OPTIONS,
+    IGNORE_FILE_DOCS_URL
 };

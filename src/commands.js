@@ -1,7 +1,9 @@
 const vscode = require('vscode');
 const { spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
-const { COMMANDS, STATUS_BAR, MESSAGES, BROWSER_COMMANDS, PLAYBACK_INDEX_URL, PLAYBACK_COMMENT_URL, STATUS_BAR_MESSAGE_TIMEOUT_MS } = require('./constants');
+const { COMMANDS, STATUS_BAR, MESSAGES, BROWSER_COMMANDS, PLAYBACK_INDEX_URL, PLAYBACK_COMMENT_URL, STATUS_BAR_MESSAGE_TIMEOUT_MS, IGNORE_FILE_DOCS_URL } = require('./constants');
 const { updateStatusBar } = require('./status-bar');
 const { zipProject, zipViewablePlayback } = require('./zip');
 
@@ -25,7 +27,8 @@ function registerCommands(context, state) {
         [COMMANDS.ZIP_PLAYBACK, () => zipViewablePlayback(state)],
         [COMMANDS.PREVIEW_PERFECT, () => previewPerfectProgrammer(state)],
         [COMMANDS.REPLACE_PERFECT, () => replaceWithPerfectProgrammer(state)],
-        [COMMANDS.PLAYBACK_SELECTED, () => playbackSelectedText(state)]
+        [COMMANDS.PLAYBACK_SELECTED, () => playbackSelectedText(state)],
+        [COMMANDS.CREATE_IGNORE_FILE, () => createIgnoreFile()]
     ];
     
     for (const [commandId, handler] of commands) {
@@ -378,6 +381,60 @@ async function removeDevelopersFromActiveGroup(state) {
         }
     } catch (err) {
         console.error('Error removing developer from active group:', err);
+    }
+}
+
+/*****************************************************************************
+ * Ignore File Command
+ *****************************************************************************/
+
+/**
+ * Creates a template st-ignore.json file in the workspace root
+ */
+async function createIgnoreFile() {
+    if (!vscode.workspace.workspaceFolders) {
+        vscode.window.showErrorMessage(MESSAGES.OPEN_FOLDER_REQUIRED);
+        return;
+    }
+
+    const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    const ignoreFilePath = path.join(workspacePath, 'st-ignore.json');
+
+    //check if file already exists
+    if (fs.existsSync(ignoreFilePath)) {
+        const overwrite = await vscode.window.showQuickPick(
+            MESSAGES.YES_NO_OPTIONS,
+            { placeHolder: 'st-ignore.json already exists. Overwrite it?' }
+        );
+
+        if (overwrite !== MESSAGES.YES_NO_OPTIONS[0]) {
+            return;
+        }
+    }
+
+    const template = {
+        ignoredFileExtensions: [".an-extension-here"],
+        ignoredFiles: ["a-file-name-here.txt", "another-file-name-here.txt"],
+        ignoredDirectories: ["/a-directory-name-here"]
+    };
+
+    try {
+        fs.writeFileSync(ignoreFilePath, JSON.stringify(template, null, 4), 'utf8');
+
+        //open the file in the editor
+        const document = await vscode.workspace.openTextDocument(ignoreFilePath);
+        await vscode.window.showTextDocument(document);
+
+        const selection = await vscode.window.showInformationMessage(
+            'Created st-ignore.json. Add patterns to ignore files and directories. Click the button below for documentation.',
+            'View Ignore File Documentation'
+        );
+
+        if (selection === 'View Ignore File Documentation') {
+            vscode.env.openExternal(vscode.Uri.parse(IGNORE_FILE_DOCS_URL));
+        }
+    } catch (err) {
+        vscode.window.showErrorMessage(`Failed to create st-ignore.json: ${err.message}`);
     }
 }
 

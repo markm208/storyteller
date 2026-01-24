@@ -2,7 +2,7 @@ const vscode = require('vscode');
 const path = require('path');
 const fs = require('fs');
 
-const { STORYTELLER_DIR, STATUS_BAR, STARTUP_DELAY_MS, CONFIG_NAMESPACE, CONFIG_OPENAI_API_KEY } = require('./src/constants');
+const { STORYTELLER_DIR, STATUS_BAR, STARTUP_DELAY_MS, CONFIG_NAMESPACE, CONFIG_OPENAI_API_KEY, IGNORE_FILE_DEBOUNCE_MS } = require('./src/constants');
 const { registerCommands } = require('./src/commands');
 const { initializeFileWatcher } = require('./src/file-watcher');
 const { initializeClipboard, disposeClipboard } = require('./src/clipboard');
@@ -18,7 +18,10 @@ const state = {
     extensionContext: null,
     projectManager: null,
     reconciler: null,
-    isActive: false
+    isActive: false,
+    ignoreFileWatcher: null,
+    ignoreFileChangeNotified: false,
+    ignoreFileDebounceTimer: null
 };
 
 /**
@@ -52,6 +55,53 @@ function activate(context) {
         updateStatusBar(STATUS_BAR.READY_TO_START);
         promptAboutStoryteller(true);
     }
+}
+
+/**
+ * Watch for changes to st-ignore.json and notify user once per session (debounced)
+ */
+function initializeIgnoreFileWatcher() {
+    const ignoreFilePattern = new vscode.RelativePattern(
+        vscode.workspace.workspaceFolders[0],
+        'st-ignore.json'
+    );
+
+    const watcher = vscode.workspace.createFileSystemWatcher(
+        ignoreFilePattern,
+        false, // don't ignore creates
+        false, // don't ignore changes
+        false  // don't ignore deletes
+    );
+
+    const notifyDebounced = () => {
+        //clear any existing timer
+        if (state.ignoreFileDebounceTimer) {
+            clearTimeout(state.ignoreFileDebounceTimer);
+        }
+
+        //start a new timer
+        state.ignoreFileDebounceTimer = setTimeout(async () => {
+            if (!state.ignoreFileChangeNotified) {
+                state.ignoreFileChangeNotified = true;
+
+                const selection = await vscode.window.showInformationMessage(
+                    'st-ignore.json changed. Restart Storyteller to apply new ignore rules.',
+                    'Remind Me Again If This File Changes',
+                );
+
+                if (selection === 'Remind Me Again If This File Changes') {
+                    state.ignoreFileChangeNotified = false;
+                }
+            }
+        }, IGNORE_FILE_DEBOUNCE_MS);
+    };
+
+    state.extensionContext.subscriptions.push(watcher.onDidCreate(notifyDebounced));
+    state.extensionContext.subscriptions.push(watcher.onDidChange(notifyDebounced));
+    state.extensionContext.subscriptions.push(watcher.onDidDelete(notifyDebounced));
+    state.extensionContext.subscriptions.push(watcher);
+
+    state.ignoreFileWatcher = watcher;
 }
 
 /**
@@ -99,6 +149,7 @@ async function resumeExistingProject() {
         //start watching for changes and clipboard
         initializeFileWatcher(state.extensionContext, state);
         initializeClipboard(state.extensionContext, state);
+        initializeIgnoreFileWatcher();
 
         //update UI
         updateStatusBar(STATUS_BAR.ACTIVE);
@@ -143,6 +194,7 @@ async function startNewProject() {
         //start watching for changes and clipboard
         initializeFileWatcher(state.extensionContext, state);
         initializeClipboard(state.extensionContext, state);
+        initializeIgnoreFileWatcher();
 
         //prompt for developer info
         const { createFirstDeveloper } = require('./src/commands');
@@ -169,11 +221,22 @@ function stopTracking() {
 
     //clean up clipboard overrides
     disposeClipboard();
-    
+
+    //clean up ignore file watcher
+    if (state.ignoreFileWatcher) {
+        state.ignoreFileWatcher.dispose();
+        state.ignoreFileWatcher = null;
+    }
+    if (state.ignoreFileDebounceTimer) {
+        clearTimeout(state.ignoreFileDebounceTimer);
+        state.ignoreFileDebounceTimer = null;
+    }
+    state.ignoreFileChangeNotified = false;
+
     state.isActive = false;
     state.projectManager = null;
     state.reconciler = null;
-    
+
     updateStatusBar(STATUS_BAR.READY_TO_START);
     promptAboutStoryteller(false);
 }
