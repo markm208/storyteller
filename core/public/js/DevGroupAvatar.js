@@ -35,7 +35,7 @@ class DevGroupAvatar extends HTMLElement {
     
     developerGroup.memberIds.forEach(devId => {
       const dev = this.developers[devId];
-      commentDevelopersDiv.appendChild(new DevAvatar(dev.avatarURL, dev.userName, dev.email, false));
+      commentDevelopersDiv.appendChild(new DevAvatar(dev.avatarURL, dev.userName, dev.email, dev.platform, dev.platformUsername, false));
     });
   }
 

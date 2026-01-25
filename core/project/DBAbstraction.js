@@ -88,7 +88,7 @@ class DBAbstraction {
         //convert plain objects into Developers and DeveloperGroups
         for(const devId in devObjects.allDevelopers) {
             const devObject = devObjects.allDevelopers[devId];
-            devs.allDevelopers[devObject.id] = new Developer(devObject.userName, devObject.email, devObject.avatarURL, devObject.id);
+            devs.allDevelopers[devObject.id] = new Developer(devObject.userName, devObject.email, devObject.platform, devObject.platformUsername, devObject.avatarURL, devObject.id);
         }
 
         for(const devGroupId in devObjects.allDeveloperGroups) {

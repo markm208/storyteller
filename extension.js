@@ -249,12 +249,16 @@ function showCurrentState() {
         promptAboutStoryteller(true);
         return;
     }
-    
+
     try {
         const activeDevs = state.projectManager.getActiveDevelopers();
-        const devStrings = activeDevs.map(dev => `${dev.userName} <${dev.email}>`);
+        const devStrings = activeDevs.map(dev => {
+            if (dev.platformUsername) return `${dev.userName} (@${dev.platformUsername})`;
+            if (dev.email) return `${dev.userName} <${dev.email}>`;
+            return dev.userName;
+        });
         const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        
+
         vscode.window.showInformationMessage(
             `Storyteller is active in ${workspacePath}. Active developers: ${devStrings.join(', ')}`
         );

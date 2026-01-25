@@ -1,10 +1,12 @@
 class DevAvatar extends HTMLElement {
-  constructor(avatarURL, userName, email, showAllDevInfo, imgSize=40) {
+  constructor(avatarURL, userName, email, platform, platformUsername, showAllDevInfo, imgSize=40) {
     super();
 
     this.avatarURL = avatarURL;
     this.userName = userName;
-    this.email = email
+    this.email = email;
+    this.platform = platform;
+    this.platformUsername = platformUsername;
     this.showAllDevInfo = showAllDevInfo;
     this.imgSize = imgSize;
 
@@ -13,8 +15,35 @@ class DevAvatar extends HTMLElement {
   }
 
   getTemplate() {
-    const fullAvatarURL = `${this.avatarURL}?s=${this.imgSize}&d=mp`;
-    
+    // Use avatarURL if provided, otherwise fall back to UI Avatars
+    let fullAvatarURL;
+    if (this.avatarURL) {
+      // Add size param if URL supports it (Gravatar, GitHub, etc.)
+      fullAvatarURL = this.avatarURL.includes('?')
+        ? `${this.avatarURL}&s=${this.imgSize}`
+        : `${this.avatarURL}?s=${this.imgSize}&d=mp`;
+    } else {
+      // Fallback for old data without avatarURL
+      const encodedName = encodeURIComponent(this.userName || 'User');
+      fullAvatarURL = `https://ui-avatars.com/api/?name=${encodedName}&background=random&color=fff&size=${this.imgSize}`;
+    }
+
+    // Build alt text from available info
+    const altText = this.platformUsername
+      ? `${this.userName} @${this.platformUsername}`
+      : this.email
+        ? `${this.userName} ${this.email}`
+        : this.userName;
+
+    // Build contact info section
+    let contactInfoHTML = '';
+    if (this.platformUsername) {
+      const platformURL = this.getPlatformURL(this.platform, this.platformUsername);
+      contactInfoHTML = `<a href="${platformURL}" target="_blank">@${this.platformUsername}</a>`;
+    } else if (this.email) {
+      contactInfoHTML = `<a href="mailto:${this.email}">${this.email}</a>`;
+    }
+
     const template = document.createElement('template');
     template.innerHTML = `
       <style>
@@ -54,14 +83,12 @@ class DevAvatar extends HTMLElement {
           class="devImage"
           src="${fullAvatarURL}"
           title=""
-          alt="${this.userName} ${this.email}"
+          alt="${altText}"
           height=${this.imgSize}
           width=${this.imgSize} />
         <span id="additionalDevInfo" class="hideAdditionalDevInfo">
           <div>${this.userName}</div>
-          <div>
-            <a href="mailto:${this.email}">${this.email}</a>
-          </div>
+          ${contactInfoHTML ? `<div>${contactInfoHTML}</div>` : ''}
         </span>
       </div>`;
 
@@ -107,9 +134,25 @@ class DevAvatar extends HTMLElement {
     const additionalDevInfo = this.shadowRoot.querySelector('#additionalDevInfo');
     additionalDevInfo.classList.remove('displayAdditionalDevInfo');
     additionalDevInfo.classList.add('hideAdditionalDevInfo');
-    
-    const imageTitle = `${this.userName} ${this.email} (double click to reveal)`;
+
+    // Build title from available info
+    let titleInfo = this.userName;
+    if (this.platformUsername) {
+      titleInfo += ` @${this.platformUsername}`;
+    } else if (this.email) {
+      titleInfo += ` ${this.email}`;
+    }
+    const imageTitle = `${titleInfo} (double click to reveal)`;
     this.shadowRoot.querySelector('img').setAttribute('title', imageTitle);
+  }
+
+  getPlatformURL(platform, username) {
+    const platformURLs = {
+      'github': `https://github.com/${username}`,
+      'gitlab': `https://gitlab.com/${username}`,
+      'bitbucket': `https://bitbucket.org/${username}`
+    };
+    return platformURLs[platform] || `https://github.com/${username}`;
   }
 }
 

@@ -261,16 +261,16 @@ async function createNewDeveloper(state) {
         promptAboutStoryteller(true);
         return;
     }
-    
+
     try {
         const devInfo = await promptForDeveloperInfo();
-        
+
         if (devInfo) {
-            state.projectManager.createDeveloperAndAddToActiveGroup(devInfo.userName, devInfo.email);
-            
+            await state.projectManager.createDeveloperAndAddToActiveGroup(devInfo.userName, devInfo.email, devInfo.platform, devInfo.platformUsername);
+
             const activeDevs = state.projectManager.getActiveDevelopers();
             const devStrings = formatDeveloperList(activeDevs);
-            
+
             vscode.window.showInformationMessage(`Active developers: ${devStrings}`);
         } else {
             currentActiveDevelopers(state);
@@ -286,9 +286,9 @@ async function createNewDeveloper(state) {
 async function createFirstDeveloper(projectManager) {
     try {
         const devInfo = await promptForDeveloperInfo();
-        
+
         if (devInfo) {
-            projectManager.replaceAnonymousDeveloperWithNewDeveloper(devInfo.userName, devInfo.email);
+            await projectManager.replaceAnonymousDeveloperWithNewDeveloper(devInfo.userName, devInfo.email, devInfo.platform, devInfo.platformUsername);
         }
     } catch (err) {
         vscode.window.showErrorMessage(`Error adding developer: ${err.message || err}`);
@@ -303,35 +303,35 @@ async function addDevelopersToActiveGroup(state) {
         promptAboutStoryteller(true);
         return;
     }
-    
+
     try {
         const inactiveDevs = state.projectManager.getInactiveDevelopers();
-        
+
         if (inactiveDevs.length === 0) {
             vscode.window.showErrorMessage(MESSAGES.ERROR_NO_INACTIVE_DEVELOPERS);
             return;
         }
-        
+
         const activeDevs = state.projectManager.getActiveDevelopers();
         const activeDevStrings = formatDeveloperList(activeDevs);
-        const inactiveDevStrings = inactiveDevs.map(dev => `${dev.userName} <${dev.email}>`);
-        
+        const inactiveDevStrings = inactiveDevs.map(dev => formatSingleDeveloper(dev));
+
         const selected = await vscode.window.showQuickPick(inactiveDevStrings, {
             placeHolder: `Choose a developer to add. Currently active: ${activeDevStrings}`
         });
-        
+
         if (!selected) {
             vscode.window.showErrorMessage(MESSAGES.ERROR_NO_DEVELOPER_CHOSEN);
             return;
         }
-        
+
         const userName = extractUserNameFromSelection(selected);
         if (userName) {
             state.projectManager.addDevelopersToActiveGroupByUserName([userName]);
-            
+
             const updatedDevs = state.projectManager.getActiveDevelopers();
             const updatedStrings = formatDeveloperList(updatedDevs);
-            
+
             vscode.window.showInformationMessage(
                 `${selected} added to active group. Active developers: ${updatedStrings}`
             );
@@ -349,33 +349,33 @@ async function removeDevelopersFromActiveGroup(state) {
         promptAboutStoryteller(true);
         return;
     }
-    
+
     try {
         const activeDevs = state.projectManager.getActiveDevelopers();
-        
+
         if (activeDevs.length <= 1) {
             vscode.window.showErrorMessage(MESSAGES.ERROR_CANNOT_REMOVE_LAST_DEVELOPER);
             return;
         }
-        
-        const activeDevStrings = activeDevs.map(dev => `${dev.userName} <${dev.email}>`);
-        
+
+        const activeDevStrings = activeDevs.map(dev => formatSingleDeveloper(dev));
+
         const selected = await vscode.window.showQuickPick(activeDevStrings, {
             placeHolder: 'Choose a developer to remove from the active group'
         });
-        
+
         if (!selected) {
             vscode.window.showErrorMessage(MESSAGES.ERROR_NO_DEVELOPER_CHOSEN);
             return;
         }
-        
+
         const userName = extractUserNameFromSelection(selected);
         if (userName) {
             state.projectManager.removeDevelopersFromActiveGroupByUserName([userName]);
-            
+
             const updatedDevs = state.projectManager.getActiveDevelopers();
             const updatedStrings = formatDeveloperList(updatedDevs);
-            
+
             vscode.window.showInformationMessage(
                 `${selected} removed. Active developers: ${updatedStrings}`
             );
@@ -522,45 +522,90 @@ async function promptForDeveloperInfo() {
 
 /**
  * Parses developer info string into object
- * @param {string} devInfoString - String like "Grace Hopper grace@mail.com"
- * @returns {Object} Object with userName and email
- * @throws {Error} If email is missing or invalid
+ * Supports: 'Name', 'Name @username', 'Name @platform:username', 'Name email@example.com'
+ * @param {string} devInfoString - Developer info string
+ * @returns {Object} Object with userName, email, platform, and platformUsername
+ * @throws {Error} If name is missing
  */
 function parseDeveloperInfo(devInfoString) {
     const trimmed = devInfoString.trim();
     const parts = trimmed.split(/\s+/);
-    
-    if (parts.length === 0) {
-        throw new Error(MESSAGES.ERROR_EMAIL_REQUIRED);
+
+    if (parts.length === 0 || trimmed === '') {
+        throw new Error(MESSAGES.ERROR_USERNAME_REQUIRED);
     }
-    
-    const possibleEmail = parts[parts.length - 1];
-    
-    if (!possibleEmail.includes('@') || !possibleEmail.includes('.')) {
-        throw new Error(MESSAGES.ERROR_EMAIL_REQUIRED);
+
+    const lastPart = parts[parts.length - 1];
+    let userName, email = null, platform = null, platformUsername = null;
+
+    // Check if last part is platform username (@username or @platform:username, without dot)
+    if (lastPart.startsWith('@') && !lastPart.includes('.')) {
+        const platformPart = lastPart.substring(1); // Remove @
+
+        // Check for platform:username format (e.g., @gitlab:username)
+        if (platformPart.includes(':')) {
+            const [platformName, username] = platformPart.split(':');
+            platform = platformName;
+            platformUsername = username;
+        } else {
+            // Default to github
+            platform = 'github';
+            platformUsername = platformPart;
+        }
+
+        parts.pop();
+        userName = parts.join(' ');
     }
-    
-    parts.pop();
-    
-    return {
-        userName: parts.join(' '),
-        email: possibleEmail
-    };
+    // Check if last part is email (contains @ and .)
+    else if (lastPart.includes('@') && lastPart.includes('.')) {
+        email = lastPart;
+        parts.pop();
+        userName = parts.join(' ');
+    }
+    // Otherwise entire input is username
+    else {
+        userName = trimmed;
+    }
+
+    if (!userName) {
+        throw new Error(MESSAGES.ERROR_USERNAME_REQUIRED);
+    }
+
+    return { userName, email, platform, platformUsername };
 }
 
 /**
  * Extracts username from formatted developer string
- * @param {string} selection - String like "Grace Hopper <grace@mail.com>"
+ * Handles: "Name <email>", "Name (@github)", "Name"
+ * @param {string} selection - Formatted developer string
  * @returns {string|null} Username or null if not found
  */
 function extractUserNameFromSelection(selection) {
+    // Check for email format: "Name <email>"
     const startOfEmail = selection.indexOf('<');
-    
     if (startOfEmail > 0) {
         return selection.substring(0, startOfEmail - 1);
     }
-    
-    return null;
+
+    // Check for GitHub format: "Name (@github)"
+    const startOfGitHub = selection.indexOf('(@');
+    if (startOfGitHub > 0) {
+        return selection.substring(0, startOfGitHub - 1);
+    }
+
+    // Just a name
+    return selection;
+}
+
+/**
+ * Formats a single developer for display in QuickPick
+ * @param {Object} dev - Developer object
+ * @returns {string} Formatted string
+ */
+function formatSingleDeveloper(dev) {
+    if (dev.platformUsername) return `${dev.userName} (@${dev.platformUsername})`;
+    if (dev.email) return `${dev.userName} <${dev.email}>`;
+    return dev.userName;
 }
 
 /**
@@ -569,7 +614,11 @@ function extractUserNameFromSelection(selection) {
  * @returns {string} Formatted string
  */
 function formatDeveloperList(developers) {
-    return developers.map(dev => `${dev.userName} <${dev.email}>`).join(', ');
+    return developers.map(dev => {
+        if (dev.platformUsername) return `${dev.userName} (@${dev.platformUsername})`;
+        if (dev.email) return `${dev.userName} <${dev.email}>`;
+        return dev.userName;
+    }).join(', ');
 }
 
 /**

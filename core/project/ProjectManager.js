@@ -614,7 +614,7 @@ class ProjectManager {
         return funcText;
     }
 
-    //-- developer related 
+    //-- developer related
     getActiveDevelopers() {
         return this.developerManager.getActiveDevelopers();
     }
@@ -623,8 +623,8 @@ class ProjectManager {
         return this.developerManager.getInactiveDevelopers();
     }
 
-    createDeveloperAndAddToActiveGroup(userName, email) {
-        const newDevAndGroup = this.developerManager.createNewDeveloper(userName, email);
+    async createDeveloperAndAddToActiveGroup(userName, email, platform, platformUsername) {
+        const newDevAndGroup = await this.developerManager.createNewDeveloper(userName, email, platform, platformUsername);
         this.developerManager.addDevelopersToActiveGroup([newDevAndGroup.newDeveloper.id]);
         this.db.writeDeveloperInfo(this.developerManager);
     }
@@ -639,8 +639,8 @@ class ProjectManager {
         this.db.writeDeveloperInfo(this.developerManager);
     }
 
-    replaceAnonymousDeveloperWithNewDeveloper(userName, email) {
-        this.developerManager.replaceAnonymousDeveloperWithNewDeveloper(userName, email);
+    async replaceAnonymousDeveloperWithNewDeveloper(userName, email, platform, platformUsername) {
+        await this.developerManager.replaceAnonymousDeveloperWithNewDeveloper(userName, email, platform, platformUsername);
         this.db.writeDeveloperInfo(this.developerManager);
     }
 

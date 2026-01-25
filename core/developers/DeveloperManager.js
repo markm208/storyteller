@@ -33,8 +33,8 @@ class DeveloperManager {
 
     init() {
         //create the system developer and an anonymous developer
-        const systemDeveloper = new Developer('Storyteller System', 'no-email', 'https://www.gravatar.com/avatar/');
-        const anonymousDeveloper = new Developer('Anonymous System', 'no-email', 'https://www.gravatar.com/avatar/');
+        const systemDeveloper = new Developer('Storyteller System', null, null, null, this.getUIAvatarURL('Storyteller System'));
+        const anonymousDeveloper = new Developer('Anonymous Developer', null, null, null, this.getUIAvatarURL('Anonymous Developer'));
         //add the new devs to the collections
         this.allDevelopers[systemDeveloper.id] = systemDeveloper;
         this.allDevelopers[anonymousDeveloper.id] = anonymousDeveloper;
@@ -71,26 +71,39 @@ class DeveloperManager {
     }
     
     /*
-     * Creates a new developer (and one-person developer group) for new 
+     * Creates a new developer (and one-person developer group) for new
      * developers.
      */
-    createNewDeveloper(userName, email) {
+    async createNewDeveloper(userName, email, platform, platformUsername) {
         let retVal = null;
 
         //trim the strings
         userName = userName.trim();
-        email = email.toLowerCase().trim();
-        //create a link to a user pic
-        const avatarURL = `https://www.gravatar.com/avatar/${md5(email)}`;
+        email = email ? email.toLowerCase().trim() : null;
+        platform = platform ? platform.toLowerCase().trim() : null;
+        platformUsername = platformUsername ? platformUsername.toLowerCase().trim() : null;
+
+        //create a link to a user pic based on what's provided
+        let avatarURL = null;
+        if (platform && platformUsername) {
+            avatarURL = await this.fetchPlatformAvatarURL(platform, platformUsername);
+        }
+        if (!avatarURL && email) {
+            avatarURL = `https://www.gravatar.com/avatar/${md5(email)}?d=mp`;
+        }
+        if (!avatarURL) {
+            // Fall back to UI Avatars with user's initials
+            avatarURL = this.getUIAvatarURL(userName);
+        }
 
         //if the user name doesn't already exist
         if(this.getDeveloperByUserName(userName) === null) {
-            //create a new developer 
-            const newDeveloper = new Developer(userName, email, avatarURL);
-            
+            //create a new developer
+            const newDeveloper = new Developer(userName, email, platform, platformUsername, avatarURL);
+
             //create a one-person dev group and link the new dev to it
             const newDeveloperGroup = new DeveloperGroup([newDeveloper.id]);
-            
+
             //add the new dev and one-person dev group
             this.allDevelopers[newDeveloper.id] = newDeveloper;
             this.allDeveloperGroups[newDeveloperGroup.id] = newDeveloperGroup;
@@ -99,6 +112,43 @@ class DeveloperManager {
             retVal = {newDeveloper, newDeveloperGroup};
         }
         return retVal;
+    }
+
+    /*
+     * Fetches the avatar URL from a platform API for a given username.
+     * Currently supports: github, gitlab
+     */
+    async fetchPlatformAvatarURL(platform, username) {
+        try {
+            if (platform === 'github') {
+                const response = await fetch(`https://api.github.com/users/${username}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.avatar_url;
+                }
+            } else if (platform === 'gitlab') {
+                const response = await fetch(`https://gitlab.com/api/v4/users?username=${username}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.length > 0) {
+                        return data[0].avatar_url;
+                    }
+                }
+            }
+            // Add more platforms here as needed
+        } catch (e) {
+            // Silently fail, return null
+        }
+        return null;
+    }
+
+    /*
+     * Generates a UI Avatars URL for a given name.
+     * Shows initials with a random background color.
+     */
+    getUIAvatarURL(name) {
+        const encodedName = encodeURIComponent(name);
+        return `https://ui-avatars.com/api/?name=${encodedName}&background=random&color=fff`;
     }
 
     /*
@@ -315,13 +365,13 @@ class DeveloperManager {
         }
     }
 
-    replaceAnonymousDeveloperWithNewDeveloper(userName, email) {
+    async replaceAnonymousDeveloperWithNewDeveloper(userName, email, platform, platformUsername) {
         //create a new developer group (and developer group)
-        const newDev = this.createNewDeveloper(userName, email);
+        const newDev = await this.createNewDeveloper(userName, email, platform, platformUsername);
 
         //set the new dev's group as the current dev group
         this.setCurrentDevGroupWithDevIds([newDev.newDeveloper.id]);
-        
+
     }
 
     /*

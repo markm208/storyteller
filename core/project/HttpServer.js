@@ -538,17 +538,17 @@ class HttpServer {
         });
         
         //developer related 
-        app.post('/update-first-developer', (req, res) => {
-            const dev = req.body.devInfo; 
+        app.post('/update-first-developer', async (req, res) => {
+            const dev = req.body.devInfo;
             //replace the default dev with a new one
-            this.projectManager.developerManager.replaceAnonymousDeveloperWithNewDeveloper(dev.userName, dev.email);
+            await this.projectManager.developerManager.replaceAnonymousDeveloperWithNewDeveloper(dev.userName, dev.email, dev.platform, dev.platformUsername);
             res.status(200).end();
         });
-        
-        app.post('/add-new-developer', (req, res) => {
+
+        app.post('/add-new-developer', async (req, res) => {
             const devInfo = req.body.devInfo;
             //create a new dev and add them to the current dev group
-            this.projectManager.developerManager.createDeveloper(devInfo.userName, devInfo.email);
+            await this.projectManager.developerManager.createNewDeveloper(devInfo.userName, devInfo.email, devInfo.platform, devInfo.platformUsername);
             this.projectManager.developerManager.addDevelopersToActiveGroupByUserName([devInfo.userName]);
             //get all the active devs
             res.json({allActiveDevs: this.projectManager.developerManager.getActiveDevelopers()});

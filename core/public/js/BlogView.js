@@ -77,11 +77,11 @@ class BlogView extends HTMLElement {
     const blogDevelopersDiv = this.shadowRoot.querySelector('.blogDevelopersDiv');
     Object.values(this.playbackEngine.playbackData.developers).forEach(dev => {
       //system and anon dev ids are 1 and 2
-      if(dev.id !== this.playbackEngine.playbackData.anonymousDeveloperId && 
+      if(dev.id !== this.playbackEngine.playbackData.anonymousDeveloperId &&
          dev.id !== this.playbackEngine.playbackData.systemDeveloperId &&
          dev.userName !== "Anonymous Developer" &&
          dev.userName !== "Storyteller System") {
-        blogDevelopersDiv.appendChild(new DevAvatar(dev.avatarURL, dev.userName, dev.email, true));
+        blogDevelopersDiv.appendChild(new DevAvatar(dev.avatarURL, dev.userName, dev.email, dev.platform, dev.platformUsername, true));
       }
     });
     

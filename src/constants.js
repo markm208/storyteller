@@ -99,10 +99,10 @@ const MESSAGES = {
     RECONCILE_COMPLETE: 'Reconcile complete. Do you want to continue using Storyteller?',
     
     // Prompts
-    DEVELOPER_PROMPT: "Enter in a single developer's info like this: Grace Hopper grace@mail.com",
-    
+    DEVELOPER_PROMPT: "Enter developer info: 'Name' or 'Name @github-username' or 'Name email@example.com'",
+
     // Error messages
-    ERROR_EMAIL_REQUIRED: 'All developers must supply an identifying email address',
+    ERROR_USERNAME_REQUIRED: 'A developer display name is required',
     ERROR_NO_DEVELOPER_CHOSEN: 'No developer was chosen',
     ERROR_NO_INACTIVE_DEVELOPERS: 'There are no inactive developers to add',
     ERROR_CANNOT_REMOVE_LAST_DEVELOPER: 'Cannot remove from a dev group with one developer',
