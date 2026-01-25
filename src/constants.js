@@ -54,7 +54,8 @@ const COMMANDS = {
     PREVIEW_PERFECT: 'storyteller.previewPerfectProgrammer',
     REPLACE_PERFECT: 'storyteller.replaceWithPerfectProgrammer',
     PLAYBACK_SELECTED: 'storyteller.playbackSelectedText',
-    CREATE_IGNORE_FILE: 'storyteller.createIgnoreFile'
+    CREATE_IGNORE_FILE: 'storyteller.createIgnoreFile',
+    DELETE_FILE_HISTORY: 'storyteller.deleteFileHistory'
 };
 
 /**

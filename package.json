@@ -94,6 +94,11 @@
                 "command": "storyteller.createIgnoreFile",
                 "title": "Create Ignore File (st-ignore.json)",
                 "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.deleteFileHistory",
+                "title": "Delete the History of a File",
+                "category": "Storyteller"
             }
         ],
         "configuration": {

@@ -705,6 +705,79 @@ class ProjectManager {
         return this.commentManager.getReadTimeEstimate();
     }
 
+    //--delete file history
+    deleteFileHistory(fileId) {
+        //get all events from disk
+        const allEvents = this.getAllEvents();
+
+        //identify events to remove (where event.fileId === fileId)
+        const eventsToRemove = allEvents.filter(e => e.fileId === fileId);
+        const eventIdsToRemove = new Set(eventsToRemove.map(e => e.id));
+
+        //find and delete comments attached to those events
+        for (const eventId of eventIdsToRemove) {
+            if (this.commentManager.comments[eventId]) {
+                const comments = [...this.commentManager.comments[eventId]];
+                for (const comment of comments) {
+                    this.deleteComment(comment);
+                }
+            }
+        }
+
+        //filter out the file's events
+        const remainingEvents = allEvents.filter(e => e.fileId !== fileId);
+
+        //rewrite events file
+        this.eventManager.unwrittenEvents = [];
+        this.db.emptyEventInfo();
+        this.eventManager.numberOfEvents = remainingEvents.length;
+        this.db.writeEventInfo(remainingEvents);
+
+        //mark file as deleted in FileSystemManager
+        const file = this.fileSystemManager.allFiles[fileId];
+        if (file) {
+            delete this.fileSystemManager.pathToFileIdMap[file.currentPath];
+            file.isDeleted = true;
+            this.db.writeFSInfo(this.fileSystemManager);
+
+            //add to st-ignore.json and reload
+            this.addToIgnoreFileAndReload(file.currentPath);
+        }
+    }
+
+    addToIgnoreFileAndReload(filePath) {
+        const ignoreFilePath = path.join(this.projectDirPath, 'st-ignore.json');
+
+        //read existing or create new
+        let ignoreData = {
+            ignoredFileExtensions: [],
+            ignoredFiles: [],
+            ignoredDirectories: []
+        };
+
+        if (fs.existsSync(ignoreFilePath)) {
+            ignoreData = JSON.parse(fs.readFileSync(ignoreFilePath, 'utf8'));
+        }
+
+        //ensure arrays exist
+        if (!ignoreData.ignoredFiles) ignoreData.ignoredFiles = [];
+
+        //add the full relative path if not already present
+        if (!ignoreData.ignoredFiles.includes(filePath)) {
+            ignoreData.ignoredFiles.push(filePath);
+        }
+
+        //write back
+        fs.writeFileSync(ignoreFilePath, JSON.stringify(ignoreData, null, 4), 'utf8');
+
+        //reload IgnorePath
+        this.reloadIgnorePath();
+    }
+
+    reloadIgnorePath() {
+        this.ignorePath = new IgnorePath(this.projectDirPath);
+    }
+
     //--events
     getAllEvents() {
         //write any changes to the fs

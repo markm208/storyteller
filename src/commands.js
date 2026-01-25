@@ -28,7 +28,8 @@ function registerCommands(context, state) {
         [COMMANDS.PREVIEW_PERFECT, () => previewPerfectProgrammer(state)],
         [COMMANDS.REPLACE_PERFECT, () => replaceWithPerfectProgrammer(state)],
         [COMMANDS.PLAYBACK_SELECTED, () => playbackSelectedText(state)],
-        [COMMANDS.CREATE_IGNORE_FILE, () => createIgnoreFile()]
+        [COMMANDS.CREATE_IGNORE_FILE, () => createIgnoreFile()],
+        [COMMANDS.DELETE_FILE_HISTORY, () => deleteFileHistory(state)]
     ];
     
     for (const [commandId, handler] of commands) {
@@ -435,6 +436,67 @@ async function createIgnoreFile() {
         }
     } catch (err) {
         vscode.window.showErrorMessage(`Failed to create st-ignore.json: ${err.message}`);
+    }
+}
+
+/*****************************************************************************
+ * Delete File History Command
+ *****************************************************************************/
+
+/**
+ * Deletes all history (events and comments) for a selected file
+ * and adds it to st-ignore.json
+ */
+async function deleteFileHistory(state) {
+    if (!state.isActive) {
+        promptAboutStoryteller(true);
+        return;
+    }
+
+    //get all tracked files that are not deleted
+    const allFiles = state.projectManager.fileSystemManager.allFiles;
+    const fileItems = [];
+
+    for (const fileId in allFiles) {
+        const file = allFiles[fileId];
+        if (!file.isDeleted) {
+            fileItems.push({
+                label: file.currentPath,
+                fileId: fileId
+            });
+        }
+    }
+
+    if (fileItems.length === 0) {
+        vscode.window.showInformationMessage('No tracked files found.');
+        return;
+    }
+
+    //sort files alphabetically
+    fileItems.sort((a, b) => a.label.localeCompare(b.label));
+
+    //show file picker
+    const selected = await vscode.window.showQuickPick(fileItems, {
+        placeHolder: 'Select a file to delete its entire history'
+    });
+
+    if (!selected) return;
+
+    //show confirmation
+    const confirm = await vscode.window.showQuickPick(
+        MESSAGES.YES_NO_OPTIONS,
+        { placeHolder: `Delete all history for "${selected.label}"? This cannot be undone.` }
+    );
+
+    if (confirm !== MESSAGES.YES_NO_OPTIONS[0]) return;
+
+    try {
+        state.projectManager.deleteFileHistory(selected.fileId);
+        vscode.window.showInformationMessage(
+            `Deleted history for ${selected.label} and added to st-ignore.json`
+        );
+    } catch (err) {
+        vscode.window.showErrorMessage(`Error: ${err.message}`);
     }
 }
 

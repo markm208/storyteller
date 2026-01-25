@@ -76,8 +76,9 @@ class IgnorePath {
             //check to see if the file extension is on the blacklist
             if(this.stIgnoreData.ignoredFileExtensions.includes(fileInfo.ext)) {
                 retVal = true;
-            //check to see if the file name is on the the blacklist
-            } else if(this.stIgnoreData.ignoredFiles.includes(fileInfo.base)) {
+            //check to see if the file name OR full path is on the blacklist
+            } else if(this.stIgnoreData.ignoredFiles.includes(fileInfo.base) ||
+                      this.stIgnoreData.ignoredFiles.includes(pathToFileOrDir)) {
                 retVal = true;
             //check the directory blacklist
             } else { 
