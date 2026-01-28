@@ -49,14 +49,16 @@ class PerfectProgrammerHelper {
             if(commentsAtEndOfRangeEvent) {
                 //get the last event added to the updated events
                 const latestEvent = updatedEvents[updatedEvents.length - 1];
+                //the array index of the latest event
+                const latestEventIndex = updatedEvents.length - 1;
                 //create an array in the updated comments object to hold comments at this event
                 updatedComments[latestEvent.id] = [];
 
-                //go through each comment and update its event sequence number
+                //go through each comment and update its array index
                 for(const comment of commentsAtEndOfRangeEvent) {
                     const copyOfComment = JSON.parse(JSON.stringify(comment));
-                    //update the sequence number
-                    copyOfComment.displayCommentEventSequenceNumber = latestEvent.eventSequenceNumber;
+                    //update to use the array index
+                    copyOfComment.displayCommentEventSequenceNumber = latestEventIndex;
                     updatedComments[latestEvent.id].push(copyOfComment);
                 }
             }
@@ -430,14 +432,11 @@ class PerfectProgrammerHelper {
         }
     }
     /*
-     * Used for adding an original event to the array of updated events and updating 
-     * the comments with the correct event sequence number.
+     * Used for adding an original event to the array of updated events.
+     * The event's position in the array serves as its index for navigation.
      */
     addToUpdatedEvents(event, updatedEvents) {
-        //update the event sequence number
-        event.eventSequenceNumber = updatedEvents.length;
-        
-        //add the event to the updated events
+        //add the event to the updated events (array index is implicit)
         updatedEvents.push(event);
     }
 

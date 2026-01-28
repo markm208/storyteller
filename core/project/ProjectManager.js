@@ -124,7 +124,7 @@ class ProjectManager {
         }
     }
     
-    addDescriptionComment(lastEvent) {        
+    addDescriptionComment(lastEvent) {
         //add the description comment
         this.addComment({
             commentText: 'Enter a playback description.',
@@ -133,8 +133,8 @@ class ProjectManager {
             ttsFilePath: null,
             timestamp: new Date().getTime(),
             displayCommentEventId: lastEvent.id,
-            displayCommentEventSequenceNumber: lastEvent.eventSequenceNumber,
-            developerGroupId: this.developerManager.getActiveDeveloperGroupId(), 
+            displayCommentEventSequenceNumber: this.eventManager.numberOfEvents - 1,
+            developerGroupId: this.developerManager.getActiveDeveloperGroupId(),
             selectedCodeBlocks: [],
             imageURLs: [],
             videoURLs: [],
@@ -727,6 +727,9 @@ class ProjectManager {
         //filter out the file's events
         const remainingEvents = allEvents.filter(e => e.fileId !== fileId);
 
+        //update comments to reference the new array indices
+        this.updateCommentIndicesAfterEventFilter(remainingEvents);
+
         //rewrite events file
         this.eventManager.unwrittenEvents = [];
         this.db.emptyEventInfo();
@@ -743,6 +746,33 @@ class ProjectManager {
             //add to st-ignore.json and reload
             this.addToIgnoreFileAndReload(file.currentPath);
         }
+    }
+
+    /*
+     * Updates comment displayCommentEventSequenceNumber values after events are filtered.
+     * This ensures comments point to the correct array index in the filtered event array.
+     */
+    updateCommentIndicesAfterEventFilter(filteredEvents) {
+        //build a map from event ID to array index
+        const eventIdToIndex = {};
+        for (let i = 0; i < filteredEvents.length; i++) {
+            eventIdToIndex[filteredEvents[i].id] = i;
+        }
+
+        //update each comment's displayCommentEventSequenceNumber to the new array index
+        for (const eventId in this.commentManager.comments) {
+            const newIndex = eventIdToIndex[eventId];
+            //only update if the event still exists (wasn't filtered out)
+            if (newIndex !== undefined) {
+                const commentsAtEvent = this.commentManager.comments[eventId];
+                for (const comment of commentsAtEvent) {
+                    comment.displayCommentEventSequenceNumber = newIndex;
+                }
+            }
+        }
+
+        //write updated comments to disk
+        this.db.writeCommentInfo(this.commentManager);
     }
 
     addToIgnoreFileAndReload(filePath) {
@@ -822,7 +852,8 @@ class ProjectManager {
         //get rid of old event data
         this.eventManager.unwrittenEvents = [];
         this.db.emptyEventInfo();
-        //store the new number of events in the event manager
+
+        //update numberOfEvents to match the filtered array length
         this.eventManager.numberOfEvents = updatedEventsAndComments.updatedEvents.length;
 
         //replace all of the original events with the updated 'perfect programmer' events
@@ -840,8 +871,8 @@ class ProjectManager {
 `
 function loadPlaybackData(playbackData) {
     playbackData.events = ${JSON.stringify(events)};
-    playbackData.comments = ${JSON.stringify(comments)};
     playbackData.numEvents = ${events.length};
+    playbackData.comments = ${JSON.stringify(comments)};
     playbackData.isEditable = ${makeEditable ? 'true' : 'false'};
     playbackData.developers = ${JSON.stringify(this.developerManager.allDevelopers)};
     playbackData.developerGroups = ${JSON.stringify(this.developerManager.allDeveloperGroups)};

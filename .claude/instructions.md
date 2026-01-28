@@ -18,3 +18,4 @@ This extension records every keystroke and change in the editor to create "Code 
 - **Event Integrity:** When suggesting modifications to recording logic, ensure the chronological order and "undo/redo" parity of the event stream is preserved.
 - **Web Server:** Keep it simple and efficient.
 - **Constraints:** Avoid introducing external dependencies (npm packages) unless absolutely necessary. Lean on the built-in Node.js and VS Code modules.
+- **Update the docs:** Ensure all changes to recording logic or data structures are reflected in the documentation files (`PLAYBACK_RECORDING_SPEC.md`, `PLAYBACK_RECORDING_SPEC.md`, and `PLAYBACK_VIEWER_SPEC.md`).

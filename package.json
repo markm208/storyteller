@@ -92,7 +92,7 @@
             },
             {
                 "command": "storyteller.createIgnoreFile",
-                "title": "Create Ignore File (st-ignore.json)",
+                "title": "Create an Ignore File (st-ignore.json)",
                 "category": "Storyteller"
             },
             {

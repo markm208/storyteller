@@ -28,11 +28,10 @@ class EventManager {
             id: crypto.randomUUID(),
             timestamp,
             createdByDevGroupId,
-            eventSequenceNumber: this.numberOfEvents,
-            branchId 
+            branchId
         };
 
-        //increase the total number of events
+        //increase the total number of events (used for tracking comment positions)
         this.numberOfEvents++;
 
         //if this event is not relevant to a playback
@@ -200,16 +199,9 @@ class EventManager {
                 //create core event
                 const insertTextEvent = this.fillCoreEvent(timestamp, createdByDevGroupId, branchId, isRelevant);
 
-                //holds the id of the pasted event (if this is a paste)
-                let pastedEventId = null;
-                //if this character is pasted then store the event id of the original insert event
-                if(pastedInsertEventIds.length === insertedText.length) {
-                    pastedEventId = pastedInsertEventIds[i];
-                }
-                
                 //get the previous neighbor
                 const previousNeighborId = file.getPreviousNeighborId(row, col);
-                
+
                 //add specific properties
                 insertTextEvent['type'] = 'INSERT';
                 insertTextEvent['fileId'] = file.id;
@@ -217,7 +209,11 @@ class EventManager {
                 insertTextEvent['previousNeighborId'] = previousNeighborId === 'none' ? null : previousNeighborId;
                 insertTextEvent['lineNumber'] = row + 1;
                 insertTextEvent['column'] = col + 1;
-                insertTextEvent['pastedEventId'] = pastedEventId;
+
+                //if this character is pasted then store the event id of the original insert event
+                if(pastedInsertEventIds.length === insertedText.length && pastedInsertEventIds[i]) {
+                    insertTextEvent['pastedEventId'] = pastedInsertEventIds[i];
+                }
 
                 this.unwrittenEvents.push(insertTextEvent);
 

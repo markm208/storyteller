@@ -577,8 +577,8 @@ class PlaybackEngine {
       const event = this.playbackData.events[i];
       //if there is a comment at this event
       if(this.playbackData.comments[event.id]) {
-        //store the position in the array of events
-        retVal = event.eventSequenceNumber;
+        //store the array index as the position
+        retVal = i;
         break;
       }
     }
@@ -589,14 +589,14 @@ class PlaybackEngine {
   findPreviousCommentPosition(startingEventPos) {
     //the position of the previous comment
     let retVal = -1;
-    
+
     //starting just before the passed in position look through the event until the beginning
     for(let i = startingEventPos - 1;i >= 1;i--) {
       const event = this.playbackData.events[i];
       //if there is a comment at this event
       if(this.playbackData.comments[event.id]) {
-        //store the position in the array of events
-        retVal = event.eventSequenceNumber;
+        //store the array index as the position
+        retVal = i;
         break;
       }
     }

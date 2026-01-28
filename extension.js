@@ -260,7 +260,7 @@ function showCurrentState() {
         const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
         vscode.window.showInformationMessage(
-            `Storyteller is active in ${workspacePath}. Active developers: ${devStrings.join(', ')}`
+            `Storyteller is active. Active developers: ${devStrings.join(', ')}`
         );
     } catch (err) {
         console.error('Error in showCurrentState:', err);

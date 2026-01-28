@@ -1,0 +1,662 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/markm208/storyteller/playback-data.schema.json",
+  "title": "Storyteller Playback Data",
+  "description": "Schema for Storyteller code playback data format",
+  "type": "object",
+  "required": [
+    "specVersion",
+    "events",
+    "comments",
+    "developers",
+    "developerGroups",
+    "playbackTitle",
+    "branchId"
+  ],
+  "properties": {
+    "specVersion": {
+      "type": "string",
+      "description": "Specification version for compatibility checking",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["1.0.0"]
+    },
+    "playbackTitle": {
+      "type": "string",
+      "description": "Human-readable title for the playback"
+    },
+    "branchId": {
+      "type": "string",
+      "description": "Identifier for the branch this playback represents"
+    },
+    "numEvents": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total count of events. If provided, must equal events array length. Useful for integrity checks or streaming scenarios."
+    },
+    "estimatedReadTime": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Estimated time to read/watch the playback in seconds"
+    },
+    "isEditable": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the playback UI should allow editing"
+    },
+    "aiEnabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether AI features are available"
+    },
+    "anonymousDeveloperId": {
+      "type": "string",
+      "description": "ID of the anonymous developer for unattributed changes"
+    },
+    "anonymousDeveloperGroupId": {
+      "type": "string",
+      "description": "ID of the anonymous developer group"
+    },
+    "systemDeveloperId": {
+      "type": "string",
+      "description": "ID of the system developer for auto-generated changes"
+    },
+    "systemDeveloperGroupId": {
+      "type": "string",
+      "description": "ID of the system developer group"
+    },
+    "events": {
+      "type": "array",
+      "description": "Ordered array of all events in chronological/sequence order",
+      "items": {
+        "$ref": "#/$defs/Event"
+      }
+    },
+    "comments": {
+      "type": "array",
+      "description": "Array of narrative comments attached to playback points",
+      "items": {
+        "$ref": "#/$defs/Comment"
+      }
+    },
+    "developers": {
+      "type": "array",
+      "description": "Array of all developers who contributed",
+      "items": {
+        "$ref": "#/$defs/Developer"
+      }
+    },
+    "developerGroups": {
+      "type": "array",
+      "description": "Array of developer groups for event attribution",
+      "items": {
+        "$ref": "#/$defs/DeveloperGroup"
+      }
+    }
+  },
+  "$defs": {
+    "Event": {
+      "type": "object",
+      "description": "Base event object - all events share core fields",
+      "required": ["id", "type", "timestamp", "createdByDevGroupId", "branchId"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (UUID) for this event"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "INSERT",
+            "DELETE",
+            "CREATE FILE",
+            "DELETE FILE",
+            "MOVE FILE",
+            "RENAME FILE",
+            "CREATE DIRECTORY",
+            "DELETE DIRECTORY",
+            "MOVE DIRECTORY",
+            "RENAME DIRECTORY"
+          ],
+          "description": "Event type"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp (milliseconds) when the event occurred"
+        },
+        "createdByDevGroupId": {
+          "type": "string",
+          "description": "ID of the developer group that created this event"
+        },
+        "branchId": {
+          "type": "string",
+          "description": "ID of the branch where this event occurred"
+        },
+        "permanentRelevance": {
+          "type": "string",
+          "enum": ["never relevant"],
+          "description": "If set, this event should be excluded from standard playback"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "INSERT" } }
+          },
+          "then": {
+            "required": ["fileId", "character", "lineNumber", "column"],
+            "properties": {
+              "fileId": {
+                "type": "string",
+                "description": "ID of the file being modified"
+              },
+              "character": {
+                "type": "string",
+                "description": "The character inserted (NEWLINE, CR-LF, TAB, or literal)"
+              },
+              "previousNeighborId": {
+                "type": ["string", "null"],
+                "description": "ID of the INSERT event immediately before this character, or null if first"
+              },
+              "lineNumber": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "1-based line number where the insert occurred"
+              },
+              "column": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "1-based column number where the insert occurred"
+              },
+              "pastedEventId": {
+                "type": "string",
+                "description": "If pasted, the ID of the original INSERT event it was copied from. Omit if not pasted."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "DELETE" } }
+          },
+          "then": {
+            "required": ["fileId", "character", "previousNeighborId", "lineNumber", "column"],
+            "properties": {
+              "fileId": {
+                "type": "string",
+                "description": "ID of the file being modified"
+              },
+              "character": {
+                "type": "string",
+                "description": "The character deleted"
+              },
+              "previousNeighborId": {
+                "type": "string",
+                "description": "ID of the INSERT event being deleted"
+              },
+              "lineNumber": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "1-based line number where the delete occurred"
+              },
+              "column": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "1-based column number where the delete occurred"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "CREATE FILE" } }
+          },
+          "then": {
+            "required": ["fileId", "filePath", "parentDirectoryId"],
+            "properties": {
+              "fileId": {
+                "type": "string",
+                "description": "Unique ID assigned to the new file"
+              },
+              "filePath": {
+                "type": "string",
+                "description": "Path of the file relative to project root"
+              },
+              "parentDirectoryId": {
+                "type": "string",
+                "description": "ID of the parent directory"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "DELETE FILE" } }
+          },
+          "then": {
+            "required": ["fileId", "filePath", "parentDirectoryId"],
+            "properties": {
+              "fileId": {
+                "type": "string",
+                "description": "ID of the file being deleted"
+              },
+              "filePath": {
+                "type": "string",
+                "description": "Path of the file at time of deletion"
+              },
+              "parentDirectoryId": {
+                "type": "string",
+                "description": "ID of the parent directory"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "MOVE FILE" } }
+          },
+          "then": {
+            "required": ["fileId", "oldFilePath", "newFilePath", "oldParentDirectoryId", "newParentDirectoryId"],
+            "properties": {
+              "fileId": {
+                "type": "string",
+                "description": "ID of the file being moved"
+              },
+              "oldFilePath": {
+                "type": "string",
+                "description": "Original file path"
+              },
+              "newFilePath": {
+                "type": "string",
+                "description": "New file path after move"
+              },
+              "oldParentDirectoryId": {
+                "type": "string",
+                "description": "ID of the original parent directory"
+              },
+              "newParentDirectoryId": {
+                "type": "string",
+                "description": "ID of the new parent directory"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "RENAME FILE" } }
+          },
+          "then": {
+            "required": ["fileId", "oldFilePath", "newFilePath", "parentDirectoryId"],
+            "properties": {
+              "fileId": {
+                "type": "string",
+                "description": "ID of the file being renamed"
+              },
+              "oldFilePath": {
+                "type": "string",
+                "description": "Original file path"
+              },
+              "newFilePath": {
+                "type": "string",
+                "description": "New file path after rename"
+              },
+              "parentDirectoryId": {
+                "type": "string",
+                "description": "ID of the parent directory"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "CREATE DIRECTORY" } }
+          },
+          "then": {
+            "required": ["directoryId", "directoryPath", "parentDirectoryId"],
+            "properties": {
+              "directoryId": {
+                "type": "string",
+                "description": "Unique ID assigned to the new directory"
+              },
+              "directoryPath": {
+                "type": "string",
+                "description": "Path of the directory relative to project root"
+              },
+              "parentDirectoryId": {
+                "type": "string",
+                "description": "ID of the parent directory"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "DELETE DIRECTORY" } }
+          },
+          "then": {
+            "required": ["directoryId", "directoryPath", "parentDirectoryId"],
+            "properties": {
+              "directoryId": {
+                "type": "string",
+                "description": "ID of the directory being deleted"
+              },
+              "directoryPath": {
+                "type": "string",
+                "description": "Path of the directory at time of deletion"
+              },
+              "parentDirectoryId": {
+                "type": "string",
+                "description": "ID of the parent directory"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "MOVE DIRECTORY" } }
+          },
+          "then": {
+            "required": ["directoryId", "oldDirectoryPath", "newDirectoryPath", "oldParentDirectoryId", "newParentDirectoryId"],
+            "properties": {
+              "directoryId": {
+                "type": "string",
+                "description": "ID of the directory being moved"
+              },
+              "oldDirectoryPath": {
+                "type": "string",
+                "description": "Original directory path"
+              },
+              "newDirectoryPath": {
+                "type": "string",
+                "description": "New directory path after move"
+              },
+              "oldParentDirectoryId": {
+                "type": "string",
+                "description": "ID of the original parent directory"
+              },
+              "newParentDirectoryId": {
+                "type": "string",
+                "description": "ID of the new parent directory"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "RENAME DIRECTORY" } }
+          },
+          "then": {
+            "required": ["directoryId", "oldDirectoryPath", "newDirectoryPath", "parentDirectoryId"],
+            "properties": {
+              "directoryId": {
+                "type": "string",
+                "description": "ID of the directory being renamed"
+              },
+              "oldDirectoryPath": {
+                "type": "string",
+                "description": "Original directory path"
+              },
+              "newDirectoryPath": {
+                "type": "string",
+                "description": "New directory path after rename"
+              },
+              "parentDirectoryId": {
+                "type": "string",
+                "description": "ID of the parent directory"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Comment": {
+      "type": "object",
+      "description": "Narrative annotation attached to a playback point",
+      "required": [
+        "id",
+        "displayCommentEventId",
+        "displayCommentEventSequenceNumber",
+        "developerGroupId",
+        "timestamp",
+        "commentText",
+        "textFormat",
+        "position"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (UUID) for this comment"
+        },
+        "displayCommentEventId": {
+          "type": "string",
+          "description": "ID of the event where this comment should be displayed"
+        },
+        "displayCommentEventSequenceNumber": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Sequence number (0-based index) of the event for quick lookup"
+        },
+        "developerGroupId": {
+          "type": "string",
+          "description": "ID of the developer group that authored this comment"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp (milliseconds) when the comment was created"
+        },
+        "commentText": {
+          "type": "string",
+          "description": "The comment content"
+        },
+        "textFormat": {
+          "type": "string",
+          "enum": ["markdown", "html"],
+          "description": "Format of commentText"
+        },
+        "commentTitle": {
+          "type": "string",
+          "description": "Optional title/heading for the comment"
+        },
+        "position": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Display order when multiple comments exist at the same event"
+        },
+        "currentFilePath": {
+          "type": "string",
+          "description": "Path of the file that should be displayed with this comment"
+        },
+        "linesAbove": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of lines to show above the current position"
+        },
+        "linesBelow": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of lines to show below the current position"
+        },
+        "selectedCodeBlocks": {
+          "type": "array",
+          "description": "Array of code regions to highlight",
+          "items": {
+            "$ref": "#/$defs/SelectedCodeBlock"
+          }
+        },
+        "imageURLs": {
+          "type": "array",
+          "description": "Array of image URLs to display with the comment",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "videoURLs": {
+          "type": "array",
+          "description": "Array of video URLs to display with the comment",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "audioURLs": {
+          "type": "array",
+          "description": "Array of audio URLs to play with the comment",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "ttsFilePath": {
+          "type": "string",
+          "description": "Path to text-to-speech audio file for this comment"
+        },
+        "viewableBlogText": {
+          "type": "string",
+          "description": "Snapshot of the surrounding code (including linesAbove and linesBelow) captured when the comment was created. Used to display code snippets in blog view without replaying events."
+        },
+        "commentTags": {
+          "type": "array",
+          "description": "Array of tags for categorization/filtering",
+          "items": {
+            "type": "string"
+          }
+        },
+        "questionCommentData": {
+          "$ref": "#/$defs/QuestionCommentData"
+        }
+      }
+    },
+    "SelectedCodeBlock": {
+      "type": "object",
+      "description": "Defines a region of code to highlight",
+      "required": ["fileId", "selectedText", "startRow", "endRow", "startColumn", "endColumn"],
+      "properties": {
+        "fileId": {
+          "type": "string",
+          "description": "ID of the file containing the code block"
+        },
+        "selectedText": {
+          "type": "string",
+          "description": "The text selected in this code block"
+        },
+        "selectedTextEventIds": {
+          "type": "array",
+          "description": "Array of event IDs corresponding to the selected text",
+          "items": {
+            "type": "string"
+          }
+        },
+        "startRow": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "0-based starting line number"
+        },
+        "endRow": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "0-based ending line number"
+        },
+        "startColumn": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "0-based starting column"
+        },
+        "endColumn": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "0-based ending column"
+        }
+      }
+    },
+    "QuestionCommentData": {
+      "type": "object",
+      "description": "Data for interactive question comments",
+      "required": ["question", "allAnswers", "correctAnswer"],
+      "properties": {
+        "question": {
+          "type": "string",
+          "description": "The question text"
+        },
+        "questionTextFormat": {
+          "type": "string",
+          "enum": ["markdown", "html"],
+          "description": "Format of the question text"
+        },
+        "allAnswers": {
+          "type": "array",
+          "description": "Array of all answer options",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2
+        },
+        "correctAnswer": {
+          "type": "string",
+          "description": "The text of the correct answer (must match one entry in allAnswers)"
+        },
+        "explanation": {
+          "type": "string",
+          "description": "Optional explanation of the correct answer, shown after grading"
+        },
+        "explanationTextFormat": {
+          "type": "string",
+          "enum": ["markdown", "html"],
+          "description": "Format of the explanation text"
+        }
+      }
+    },
+    "Developer": {
+      "type": "object",
+      "description": "An individual who contributed to the code",
+      "required": ["id", "userName"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (UUID) for this developer"
+        },
+        "userName": {
+          "type": "string",
+          "description": "Display name of the developer"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Email address"
+        },
+        "platform": {
+          "type": "string",
+          "enum": ["github", "gitlab", "bitbucket"],
+          "description": "Source platform"
+        },
+        "platformUsername": {
+          "type": "string",
+          "description": "Username on the source platform"
+        },
+        "avatarURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the developer's avatar image"
+        }
+      }
+    },
+    "DeveloperGroup": {
+      "type": "object",
+      "description": "Group of developers for event attribution (supports pair programming)",
+      "required": ["id", "memberIds"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (UUID) for this group"
+        },
+        "memberIds": {
+          "type": "array",
+          "description": "Array of Developer IDs who are members of this group",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      }
+    }
+  }
+}
