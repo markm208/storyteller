@@ -347,8 +347,14 @@ class HttpServer {
                 //console.log(`Server sends: ${JSON.stringify(promptObject.prompt)}`);
     
                 const data = JSON.stringify({
-                    messages: [{ role: "user", content: promptObject.prompt }],
-                    model: "gpt-4o",
+                    messages: [
+                        { role: "system", content: "You are a helpful tutor explaining code in an educational code playback. Keep answers concise and focused on the code being shown." },
+                        { role: "user", content: promptObject.prompt }
+                    ],
+                    //model: "gpt-4o",
+                    model: "gpt-4o-mini",
+                    max_tokens: 1000,
+                    //max_tokens: 4000,
                 });
                 
                 const options = {
@@ -368,15 +374,16 @@ class HttpServer {
                             let body = '';
                             res.on('data', chunk => body += chunk);
                             res.on('end', () => {
+                                const jsonResponse = JSON.parse(body);
                                 if (res.statusCode >= 200 && res.statusCode <= 299) {
-                                    const jsonResponse = JSON.parse(body);
                                     if (jsonResponse.choices && jsonResponse.choices[0] && jsonResponse.choices[0].message) {
                                         resolve({ error: false, response: jsonResponse.choices[0].message.content });
                                     } else {
                                         reject("Unexpected API response: " + body);
                                     }
                                 } else {
-                                    reject(`HTTP request failed with status ${res.statusCode}: ${res.statusMessage}`);
+                                    const errorMsg = jsonResponse.error?.message || `HTTP ${res.statusCode}: ${res.statusMessage}`;
+                                    reject(errorMsg);
                                 }
                             });
                         });
