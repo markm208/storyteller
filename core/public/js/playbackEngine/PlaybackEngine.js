@@ -108,9 +108,36 @@ class PlaybackEngine {
   changeActiveComment(comment) {
     //if there is a comment passed in
     if(comment) {
+      //send an engagement message if configured (only for new comments)
+      if (comment.id !== this.activeComment?.id) {
+        this.sendCommentDisplayed(comment);
+      }
+
       this.activeComment = comment;
     } else { //there is no comment passed in (indicating that there is not a comment at this point in the playback)
       this.activeComment = null;
+    }
+  }
+
+  sendCommentDisplayed(comment) {
+    const engagementUrl = this.playbackData.engagementUrl;
+    const viewId = this.playbackData.viewId;
+
+    if (engagementUrl && viewId) {
+      //get 1-based position (comment 1, 2, 3, etc.)
+      const commentIndex = this.getCommentIndex(comment.id) + 1;
+      const totalComments = this.commentInfo.totalNumberOfComments;
+
+      const data = JSON.stringify({
+        viewId,
+        commentIndex,
+        totalComments
+      });
+
+      //sendBeacon is fire-and-forget, ideal for engagement messages
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(engagementUrl, data);
+      }
     }
   }
 
