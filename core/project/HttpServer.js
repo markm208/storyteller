@@ -343,13 +343,12 @@ class HttpServer {
         app.post('/aiPrompt', async (req, res) => {
             //if the user has supplied a valid OpenAI API key
             if(this.openaiApiKey) {
-                const promptObject = req.body.prompt;
-                //console.log(`Server sends: ${JSON.stringify(promptObject.prompt)}`);
-    
+                const { prompt } = req.body;
+                
                 const data = JSON.stringify({
                     messages: [
                         { role: "system", content: "You are a helpful tutor explaining code in an educational code playback. Keep answers concise and focused on the code being shown." },
-                        { role: "user", content: promptObject.prompt }
+                        { role: "user", content: prompt }
                     ],
                     //model: "gpt-4o",
                     model: "gpt-4o-mini",

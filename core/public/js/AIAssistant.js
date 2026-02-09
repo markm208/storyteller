@@ -528,7 +528,7 @@ class AIAssistant extends HTMLElement {
     const promptObject = {
         requestType: 'Generate Question',
         prompt: promptWithCode,
-        playbackViewId: document.body.dataset.playbackViewId || null
+        playbackViewId: this.playbackEngine.playbackData.viewId || null
     };
 
     const serverProxy = new ServerProxy();
@@ -624,7 +624,7 @@ class AIAssistant extends HTMLElement {
     const promptObject = {
       requestType: requestType,
       prompt: prompt,
-      playbackViewId: document.body.dataset.playbackViewId || null
+      playbackViewId: this.playbackEngine.playbackData.viewId || null
     };
     
     try {

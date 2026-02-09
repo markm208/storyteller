@@ -121,7 +121,7 @@ class AIPromptInput extends HTMLElement {
     let promptObject = {
       requestType: "Ask",
       prompt: promptWithCode,
-      playbackViewId: document.body.dataset.playbackViewId ? document.body.dataset.playbackViewId : null
+      playbackViewId: this.playbackEngine.playbackData.viewId || null
     };
 
     submitChatButton.textContent = 'Generating response...';

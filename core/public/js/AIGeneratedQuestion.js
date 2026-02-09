@@ -71,7 +71,7 @@ class AIGeneratedQuestion extends HTMLElement {
     let promptObject = {
       requestType: "Generate Question",
       prompt: promptWithCode,
-      playbackViewId: document.body.dataset.playbackViewId ? document.body.dataset.playbackViewId : null
+      playbackViewId: this.playbackEngine.playbackData.viewId || null
     };
 
     submitButton.textContent = `Generating a question...`;

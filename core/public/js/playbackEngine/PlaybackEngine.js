@@ -110,7 +110,7 @@ class PlaybackEngine {
     if(comment) {
       //send an engagement message if configured (only for new comments)
       if (comment.id !== this.activeComment?.id) {
-        this.sendCommentDisplayed(comment);
+        this.sendCommentDisplayed();
       }
 
       this.activeComment = comment;
@@ -119,24 +119,23 @@ class PlaybackEngine {
     }
   }
 
-  sendCommentDisplayed(comment) {
+  sendCommentDisplayed() {
     const engagementUrl = this.playbackData.engagementUrl;
     const viewId = this.playbackData.viewId;
 
     if (engagementUrl && viewId) {
-      //get 1-based position (comment 1, 2, 3, etc.)
-      const commentIndex = this.getCommentIndex(comment.id) + 1;
       const totalComments = this.commentInfo.totalNumberOfComments;
 
       const data = JSON.stringify({
         viewId,
-        commentIndex,
         totalComments
       });
 
       //sendBeacon is fire-and-forget, ideal for engagement messages
+      //use Blob with application/json so Express body parser handles it
       if (navigator.sendBeacon) {
-        navigator.sendBeacon(engagementUrl, data);
+        const blob = new Blob([data], { type: 'application/json' });
+        navigator.sendBeacon(engagementUrl, blob);
       }
     }
   }
