@@ -124,12 +124,7 @@ class PlaybackEngine {
     const viewId = this.playbackData.viewId;
 
     if (engagementUrl && viewId) {
-      const totalComments = this.commentInfo.totalNumberOfComments;
-
-      const data = JSON.stringify({
-        viewId,
-        totalComments
-      });
+      const data = JSON.stringify({ viewId });
 
       //sendBeacon is fire-and-forget, ideal for engagement messages
       //use Blob with application/json so Express body parser handles it
