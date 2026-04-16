@@ -55,7 +55,10 @@ const COMMANDS = {
     REPLACE_PERFECT: 'storyteller.replaceWithPerfectProgrammer',
     PLAYBACK_SELECTED: 'storyteller.playbackSelectedText',
     CREATE_IGNORE_FILE: 'storyteller.createIgnoreFile',
-    DELETE_FILE_HISTORY: 'storyteller.deleteFileHistory'
+    DELETE_FILE_HISTORY: 'storyteller.deleteFileHistory',
+    GENERATE_NARRATIVE: 'storyteller.generateNarrative',
+    // TODO: Remove this temporary debug command when narrative generation testing is complete
+    DEBUG_WIPE_COMMENTS: 'storyteller.debugWipeComments'
 };
 
 /**
@@ -97,7 +100,7 @@ const MESSAGES = {
     PLAYBACK_SERVER_STARTED: `Storyteller Playback Server at localhost:${PLAYBACK_SERVER_PORT}/playback`,
     RECONCILE_NEEDED: "There were some changes to the project when Storyteller wasn't active. In a moment you will be prompted to resolve the discrepancies.",
     RECONCILE_COMPLETE: 'Reconcile complete. Do you want to continue using Storyteller?',
-    
+
     // Prompts
     DEVELOPER_PROMPT: "Enter developer info: 'Name' or 'Name @github-username' or 'Name email@example.com'",
 
@@ -107,7 +110,7 @@ const MESSAGES = {
     ERROR_NO_INACTIVE_DEVELOPERS: 'There are no inactive developers to add',
     ERROR_CANNOT_REMOVE_LAST_DEVELOPER: 'Cannot remove from a dev group with one developer',
     ERROR_UNSUPPORTED_PLATFORM: 'Unsupported platform',
-    
+
     // Reconciliation options
     MODIFIED_FILES_OPTIONS: [
         'Add the changes in the files to the history of this project',
@@ -125,7 +128,15 @@ const MESSAGES = {
         'Continue using Storyteller',
         'Stop using Storyteller'
     ],
-    YES_NO_OPTIONS: ['Yes', 'No']
+    YES_NO_OPTIONS: ['Yes', 'No'],
+
+    // Narrative generation messages
+    NARRATIVE_NO_API_KEY: 'OpenAI API key not configured. Set it in Settings → Storyteller → OpenAI API Key',
+    NARRATIVE_NO_EVENTS: 'No events found in this playback to generate narratives for.',
+    NARRATIVE_GENERATION_TITLE: 'Generating Code Narrative',
+    NARRATIVE_SUCCESS: 'Successfully added {count} AI-generated comments.',
+    NARRATIVE_AUDIENCE_PROMPT: 'Select the target audience level',
+    NARRATIVE_GUIDANCE_PROMPT: 'Describe what the code does and any key milestones (optional, press Enter to skip)'
 };
 
 /**

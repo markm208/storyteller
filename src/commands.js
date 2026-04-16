@@ -3,7 +3,8 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const { COMMANDS, STATUS_BAR, MESSAGES, BROWSER_COMMANDS, PLAYBACK_INDEX_URL, PLAYBACK_COMMENT_URL, STATUS_BAR_MESSAGE_TIMEOUT_MS, IGNORE_FILE_DOCS_URL } = require('./constants');
+const { COMMANDS, STATUS_BAR, MESSAGES, BROWSER_COMMANDS, PLAYBACK_INDEX_URL, PLAYBACK_COMMENT_URL, STATUS_BAR_MESSAGE_TIMEOUT_MS, IGNORE_FILE_DOCS_URL, CONFIG_NAMESPACE, CONFIG_OPENAI_API_KEY, STORYTELLER_DIR } = require('./constants');
+const { NarrativeGenerator, NARRATIVE_CONFIG } = require('./narrative-generator/NarrativeGenerator');
 const { updateStatusBar } = require('./status-bar');
 const { zipProject, zipViewablePlayback } = require('./zip');
 
@@ -29,7 +30,10 @@ function registerCommands(context, state) {
         [COMMANDS.REPLACE_PERFECT, () => replaceWithPerfectProgrammer(state)],
         [COMMANDS.PLAYBACK_SELECTED, () => playbackSelectedText(state)],
         [COMMANDS.CREATE_IGNORE_FILE, () => createIgnoreFile()],
-        [COMMANDS.DELETE_FILE_HISTORY, () => deleteFileHistory(state)]
+        [COMMANDS.DELETE_FILE_HISTORY, () => deleteFileHistory(state)],
+        [COMMANDS.GENERATE_NARRATIVE, () => generateNarrative(state)],
+        // TODO: Remove this temporary debug command when narrative generation testing is complete
+        [COMMANDS.DEBUG_WIPE_COMMENTS, () => debugWipeComments(state)]
     ];
     
     for (const [commandId, handler] of commands) {
@@ -497,6 +501,203 @@ async function deleteFileHistory(state) {
         );
     } catch (err) {
         vscode.window.showErrorMessage(`Error: ${err.message}`);
+    }
+}
+
+/*****************************************************************************
+ * Narrative Generation Command
+ *****************************************************************************/
+
+/**
+ * Generates AI narrative for the current playback
+ * PHASE 1: Builds timeline and outputs debug file for inspection
+ */
+async function generateNarrative(state) {
+    //only available when Storyteller is active
+    if (!state.isActive) {
+        promptAboutStoryteller(true);
+        return;
+    }
+
+    //get API key from config (will be used in Phase 2)
+    const config = vscode.workspace.getConfiguration(CONFIG_NAMESPACE);
+    const openaiApiKey = config.get(CONFIG_OPENAI_API_KEY);
+
+    //get the storyteller directory path
+    const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    const storytellerDirPath = path.join(workspacePath, STORYTELLER_DIR);
+
+    //create a generator to coordinate the narrative generation process
+    const generator = new NarrativeGenerator(state.projectManager, openaiApiKey, storytellerDirPath);
+
+    //make sure there is an API key and at least some events to generate a narrative
+    const availability = generator.checkAvailability();
+    if (!availability.available) {
+        vscode.window.showWarningMessage(availability.reason);
+        return;
+    }
+
+    // Ask for audience level
+    const audienceChoice = await vscode.window.showQuickPick([
+        {
+            label: 'Beginner',
+            value: NARRATIVE_CONFIG.AUDIENCE_LEVELS.BEGINNER,
+            description: 'New to programming, explain fundamentals'
+        },
+        {
+            label: 'Intermediate',
+            value: NARRATIVE_CONFIG.AUDIENCE_LEVELS.INTERMEDIATE,
+            description: 'Knows basics, learning patterns and best practices'
+        },
+        {
+            label: 'Advanced',
+            value: NARRATIVE_CONFIG.AUDIENCE_LEVELS.ADVANCED,
+            description: 'Experienced, focus on sophisticated techniques'
+        }
+    ], {
+        placeHolder: MESSAGES.NARRATIVE_AUDIENCE_PROMPT
+    });
+
+    if (!audienceChoice) return; // Cancelled
+
+    // Ask for verbosity level
+    const verbosityChoice = await vscode.window.showQuickPick([
+        {
+            label: 'Verbose',
+            value: NARRATIVE_CONFIG.VERBOSITY_LEVELS.VERBOSE.value,
+            description: 'More comments, explain smaller steps'
+        },
+        {
+            label: 'High-level',
+            value: NARRATIVE_CONFIG.VERBOSITY_LEVELS.HIGH_LEVEL.value,
+            description: 'Fewer comments, focus on major concepts'
+        }
+    ], {
+        placeHolder: 'How detailed should the comments be?'
+    });
+
+    if (!verbosityChoice) return; // Cancelled
+
+    // Ask for optional author guidance
+    const authorGuidance = await vscode.window.showInputBox({
+        prompt: MESSAGES.NARRATIVE_GUIDANCE_PROMPT,
+        placeHolder: 'e.g., "This code shows how to call a function with reference parameters." (optional)',
+        ignoreFocusOut: true
+    });
+
+    // Note: authorGuidance can be undefined (cancelled) or empty string (skipped)
+    // We treat both cancelled and empty as "no guidance provided"
+    if (authorGuidance === undefined) return; // Cancelled
+
+    // Run generation with progress
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: MESSAGES.NARRATIVE_CONFIG_TITLE,
+        cancellable: true
+    }, async (progress, token) => {
+        const result = await generator.generate({
+            audienceLevel: audienceChoice.value,
+            verbosity: verbosityChoice.value,
+            authorGuidance: authorGuidance || null  // Convert empty string to null
+        }, progress, token);
+
+        if (result.success) {
+            const message = MESSAGES.NARRATIVE_SUCCESS.replace('{count}', result.injectedCount);
+
+            // Offer to view the playback
+            const viewChoice = await vscode.window.showInformationMessage(
+                message,
+                'View in Playback',
+                'OK'
+            );
+
+            if (viewChoice === 'View in Playback') {
+                startPlayback(state, false);
+            }
+        } else if (result.error !== 'Cancelled') {
+            vscode.window.showErrorMessage(`Narrative generation failed: ${result.error}`);
+        }
+    });
+}
+
+/*****************************************************************************
+ * TODO: Remove this entire section when narrative generation testing is complete
+ * DEBUG: Temporary Commands
+ *****************************************************************************/
+
+/**
+ * DEBUG: Wipes all comments from the current project (except the first/intro comment)
+ * TODO: Remove this temporary command when narrative generation testing is complete
+ */
+async function debugWipeComments(state) {
+    if (!state.isActive) {
+        promptAboutStoryteller(true);
+        return;
+    }
+
+    // Confirm with user
+    const confirm = await vscode.window.showQuickPick(
+        MESSAGES.YES_NO_OPTIONS,
+        { placeHolder: 'DEBUG: Delete all comments (except intro)? This cannot be undone.' }
+    );
+
+    if (confirm !== MESSAGES.YES_NO_OPTIONS[0]) {
+        return;
+    }
+
+    // Ask if they want to keep the intro comment text
+    const keepIntroText = await vscode.window.showQuickPick(
+        MESSAGES.YES_NO_OPTIONS,
+        { placeHolder: 'Keep the existing intro comment text?' }
+    );
+
+    if (keepIntroText === undefined) {
+        return; // Cancelled
+    }
+
+    try {
+        const commentManager = state.projectManager.commentManager;
+        const allEvents = state.projectManager.getAllEvents();
+
+        if (allEvents.length === 0) {
+            vscode.window.showWarningMessage('DEBUG: No events in project.');
+            return;
+        }
+
+        // Get the first event's ID
+        const firstEventId = allEvents[0].id;
+
+        // Collect all comments to delete (except first comment at first event)
+        const commentsToDelete = [];
+        for (const eventId in commentManager.comments) {
+            const commentsAtEvent = commentManager.comments[eventId];
+            for (let i = 0; i < commentsAtEvent.length; i++) {
+                const comment = commentsAtEvent[i];
+                // Keep only the first comment (position 0) at the first event
+                const isFirstComment = eventId === firstEventId && i === 0;
+                if (!isFirstComment) {
+                    commentsToDelete.push(comment);
+                }
+            }
+        }
+
+        // Delete comments using projectManager.deleteComment to clean up media
+        for (const comment of commentsToDelete) {
+            state.projectManager.deleteComment(comment);
+        }
+
+        // Reset intro comment text if user chose not to keep it
+        const firstComments = commentManager.comments[firstEventId];
+        if (firstComments && firstComments.length > 0 && keepIntroText !== MESSAGES.YES_NO_OPTIONS[0]) {
+            const firstComment = firstComments[0];
+            firstComment.commentText = 'Enter a playback description.';
+            firstComment.commentTitle = '';
+            state.projectManager.db.writeCommentInfo(commentManager);
+        }
+
+        vscode.window.showInformationMessage(`DEBUG: Wiped ${commentsToDelete.length} comments (kept intro comment).`);
+    } catch (err) {
+        vscode.window.showErrorMessage(`DEBUG: Failed to wipe comments: ${err.message}`);
     }
 }
 

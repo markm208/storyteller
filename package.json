@@ -99,6 +99,17 @@
                 "command": "storyteller.deleteFileHistory",
                 "title": "Delete the History of a File",
                 "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.generateNarrative",
+                "title": "Generate AI Narrative for Playback",
+                "category": "Storyteller",
+                "enablement": "storyteller.hasOpenAIKey"
+            },
+            {
+                "command": "storyteller.debugWipeComments",
+                "title": "DEBUG: Wipe All Comments (TODO: Remove)",
+                "category": "Storyteller"
             }
         ],
         "configuration": {

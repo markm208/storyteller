@@ -29,9 +29,19 @@ const state = {
  */
 function activate(context) {
     state.extensionContext = context;
-    
+
     //register all commands
     registerCommands(context, state);
+
+    //set up context for command enablement based on API key
+    updateOpenAIKeyContext();
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(e => {
+            if (e.affectsConfiguration(`${CONFIG_NAMESPACE}.${CONFIG_OPENAI_API_KEY}`)) {
+                updateOpenAIKeyContext();
+            }
+        })
+    );
 
     //check if workspace has an existing Storyteller project
     if (vscode.workspace.workspaceFolders) {
@@ -279,6 +289,17 @@ function promptAboutStoryteller(requiresOpenFolder) {
     }
     
     vscode.window.showInformationMessage(message);
+}
+
+/**
+ * Updates the context for OpenAI API key availability
+ * Used to enable/disable the narrative generation command
+ */
+function updateOpenAIKeyContext() {
+    const config = vscode.workspace.getConfiguration(CONFIG_NAMESPACE);
+    const apiKey = config.get(CONFIG_OPENAI_API_KEY);
+    const hasKey = Boolean(apiKey && apiKey.trim());
+    vscode.commands.executeCommand('setContext', 'storyteller.hasOpenAIKey', hasKey);
 }
 
 /**
