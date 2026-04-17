@@ -108,30 +108,9 @@ class PlaybackEngine {
   changeActiveComment(comment) {
     //if there is a comment passed in
     if(comment) {
-      //send an engagement message if configured (only for new comments)
-      if (comment.id !== this.activeComment?.id) {
-        this.sendCommentDisplayed();
-      }
-
       this.activeComment = comment;
     } else { //there is no comment passed in (indicating that there is not a comment at this point in the playback)
       this.activeComment = null;
-    }
-  }
-
-  sendCommentDisplayed() {
-    const engagementUrl = this.playbackData.engagementUrl;
-    const viewId = this.playbackData.viewId;
-
-    if (engagementUrl && viewId) {
-      const data = JSON.stringify({ viewId });
-
-      //sendBeacon is fire-and-forget, ideal for engagement messages
-      //use Blob with application/json so Express body parser handles it
-      if (navigator.sendBeacon) {
-        const blob = new Blob([data], { type: 'application/json' });
-        navigator.sendBeacon(engagementUrl, blob);
-      }
     }
   }
 
