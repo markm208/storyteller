@@ -623,10 +623,34 @@ class ProjectManager {
         return this.developerManager.getInactiveDevelopers();
     }
 
-    async createDeveloperAndAddToActiveGroup(userName, email, platform, platformUsername) {
-        const newDevAndGroup = await this.developerManager.createNewDeveloper(userName, email, platform, platformUsername);
-        this.developerManager.addDevelopersToActiveGroup([newDevAndGroup.newDeveloper.id]);
+    async createDeveloperAndAddToActiveGroup(userName, email, platform, platformUsername, websiteUrl) {
+        const newDevAndGroup = await this.developerManager.createNewDeveloper(userName, email, platform, platformUsername, websiteUrl);
+
+        if (newDevAndGroup) {
+            // New developer was created
+            this.developerManager.addDevelopersToActiveGroup([newDevAndGroup.newDeveloper.id]);
+        } else {
+            // Developer already exists, add them to active group by username
+            this.developerManager.addDevelopersToActiveGroupByUserName([userName]);
+        }
+
         this.db.writeDeveloperInfo(this.developerManager);
+    }
+
+    /*
+     * Creates a new developer without adding them to the active group.
+     * Returns true if the developer was created, false if they already exist.
+     */
+    async registerDeveloper(userName, email, platform, platformUsername, websiteUrl) {
+        const newDevAndGroup = await this.developerManager.createNewDeveloper(userName, email, platform, platformUsername, websiteUrl);
+
+        if (newDevAndGroup) {
+            // New developer was created
+            this.db.writeDeveloperInfo(this.developerManager);
+            return true;
+        }
+        // Developer already exists
+        return false;
     }
 
     addDevelopersToActiveGroupByUserName(userNames) {
@@ -639,8 +663,8 @@ class ProjectManager {
         this.db.writeDeveloperInfo(this.developerManager);
     }
 
-    async replaceAnonymousDeveloperWithNewDeveloper(userName, email, platform, platformUsername) {
-        await this.developerManager.replaceAnonymousDeveloperWithNewDeveloper(userName, email, platform, platformUsername);
+    async replaceAnonymousDeveloperWithNewDeveloper(userName, email, platform, platformUsername, websiteUrl) {
+        await this.developerManager.replaceAnonymousDeveloperWithNewDeveloper(userName, email, platform, platformUsername, websiteUrl);
         this.db.writeDeveloperInfo(this.developerManager);
     }
 
@@ -652,7 +676,7 @@ class ProjectManager {
         const newComment = this.commentManager.addComment(comment);
         //write the comment info to the db
         this.db.writeCommentInfo(this.commentManager);
-        
+
         return newComment;
     }
 
@@ -813,7 +837,7 @@ class ProjectManager {
         //write any changes to the fs
         this.db.writeFSInfo(this.fileSystemManager);
 
-        //returns all the events 
+        //returns all the events
         return this.db.readEvents(this.eventManager.unwrittenEvents);
     }
 

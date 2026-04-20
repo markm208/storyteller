@@ -1,5 +1,5 @@
 class DevAvatar extends HTMLElement {
-  constructor(avatarURL, userName, email, platform, platformUsername, showAllDevInfo, imgSize=40) {
+  constructor(avatarURL, userName, email, platform, platformUsername, websiteUrl, showAllDevInfo, imgSize=40) {
     super();
 
     this.avatarURL = avatarURL;
@@ -7,6 +7,7 @@ class DevAvatar extends HTMLElement {
     this.email = email;
     this.platform = platform;
     this.platformUsername = platformUsername;
+    this.websiteUrl = websiteUrl;
     this.showAllDevInfo = showAllDevInfo;
     this.imgSize = imgSize;
 
@@ -35,11 +36,13 @@ class DevAvatar extends HTMLElement {
         ? `${this.userName} ${this.email}`
         : this.userName;
 
-    // Build contact info section
+    // Build contact info section - prioritize websiteUrl, then platform, then email
     let contactInfoHTML = '';
-    if (this.platformUsername) {
+    if (this.websiteUrl) {
+      contactInfoHTML = `<a href="${this.websiteUrl}" target="_blank">${this.websiteUrl}</a>`;
+    } else if (this.platformUsername) {
       const platformURL = this.getPlatformURL(this.platform, this.platformUsername);
-      contactInfoHTML = `<a href="${platformURL}" target="_blank">@${this.platformUsername}</a>`;
+      contactInfoHTML = `<a href="${platformURL}" target="_blank">${platformURL}</a>`;
     } else if (this.email) {
       contactInfoHTML = `<a href="mailto:${this.email}">${this.email}</a>`;
     }

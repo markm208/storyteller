@@ -29,13 +29,17 @@ class DevGroupAvatar extends HTMLElement {
     const commentDevelopersDiv = this.shadowRoot.querySelector('.commentDevelopersDiv');
     let developerGroup = this.developerGroups[this.developerGroupId];
 
-    if(!developerGroup) {
-      developerGroup = this.developerGroups['devGroupId-0'];
+    // If the developer group doesn't exist, don't try to render anything
+    if(!developerGroup || !developerGroup.memberIds) {
+      console.warn('Developer group not found:', this.developerGroupId);
+      return;
     }
-    
+
     developerGroup.memberIds.forEach(devId => {
       const dev = this.developers[devId];
-      commentDevelopersDiv.appendChild(new DevAvatar(dev.avatarURL, dev.userName, dev.email, dev.platform, dev.platformUsername, false));
+      if (dev) {
+        commentDevelopersDiv.appendChild(new DevAvatar(dev.avatarURL, dev.userName, dev.email, dev.platform, dev.platformUsername, dev.websiteUrl, false));
+      }
     });
   }
 

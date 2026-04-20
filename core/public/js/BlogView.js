@@ -81,7 +81,7 @@ class BlogView extends HTMLElement {
          dev.id !== this.playbackEngine.playbackData.systemDeveloperId &&
          dev.userName !== "Anonymous Developer" &&
          dev.userName !== "Storyteller System") {
-        blogDevelopersDiv.appendChild(new DevAvatar(dev.avatarURL, dev.userName, dev.email, dev.platform, dev.platformUsername, true));
+        blogDevelopersDiv.appendChild(new DevAvatar(dev.avatarURL, dev.userName, dev.email, dev.platform, dev.platformUsername, dev.websiteUrl, true));
       }
     });
     

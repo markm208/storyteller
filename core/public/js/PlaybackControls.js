@@ -99,9 +99,11 @@ class PlaybackControls extends HTMLElement {
     pauseButton.addEventListener('click', this.pauseClicked);
 
     const devAvatars = this.shadowRoot.querySelector('.devAvatars');
+    //use first non-system dev group for initial display
+    const initialDevGroupId = this.playbackEngine.activeDevGroupId || this.playbackEngine.getFirstNonSystemDevGroupId();
     const devGroupAvatar = new DevGroupAvatar({
-      developerGroupId: this.playbackEngine.activeDevGroupId, 
-      developers: this.playbackEngine.playbackData.developers, 
+      developerGroupId: initialDevGroupId,
+      developers: this.playbackEngine.playbackData.developers,
       developerGroups: this.playbackEngine.playbackData.developerGroups
     });
     devAvatars.appendChild(devGroupAvatar);

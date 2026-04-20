@@ -33,8 +33,8 @@ class DeveloperManager {
 
     init() {
         //create the system developer and an anonymous developer
-        const systemDeveloper = new Developer('Storyteller System', null, null, null, this.getUIAvatarURL('Storyteller System'));
-        const anonymousDeveloper = new Developer('Anonymous Developer', null, null, null, this.getUIAvatarURL('Anonymous Developer'));
+        const systemDeveloper = new Developer('Storyteller System', null, null, null, null, this.getUIAvatarURL('Storyteller System'));
+        const anonymousDeveloper = new Developer('Anonymous Developer', null, null, null, null, this.getUIAvatarURL('Anonymous Developer'));
         //add the new devs to the collections
         this.allDevelopers[systemDeveloper.id] = systemDeveloper;
         this.allDevelopers[anonymousDeveloper.id] = anonymousDeveloper;
@@ -74,7 +74,7 @@ class DeveloperManager {
      * Creates a new developer (and one-person developer group) for new
      * developers.
      */
-    async createNewDeveloper(userName, email, platform, platformUsername) {
+    async createNewDeveloper(userName, email, platform, platformUsername, websiteUrl) {
         let retVal = null;
 
         //trim the strings
@@ -82,6 +82,7 @@ class DeveloperManager {
         email = email ? email.toLowerCase().trim() : null;
         platform = platform ? platform.toLowerCase().trim() : null;
         platformUsername = platformUsername ? platformUsername.toLowerCase().trim() : null;
+        websiteUrl = websiteUrl ? websiteUrl.trim() : null;
 
         //create a link to a user pic based on what's provided
         let avatarURL = null;
@@ -99,7 +100,7 @@ class DeveloperManager {
         //if the user name doesn't already exist
         if(this.getDeveloperByUserName(userName) === null) {
             //create a new developer
-            const newDeveloper = new Developer(userName, email, platform, platformUsername, avatarURL);
+            const newDeveloper = new Developer(userName, email, platform, platformUsername, websiteUrl, avatarURL);
 
             //create a one-person dev group and link the new dev to it
             const newDeveloperGroup = new DeveloperGroup([newDeveloper.id]);
@@ -365,9 +366,9 @@ class DeveloperManager {
         }
     }
 
-    async replaceAnonymousDeveloperWithNewDeveloper(userName, email, platform, platformUsername) {
+    async replaceAnonymousDeveloperWithNewDeveloper(userName, email, platform, platformUsername, websiteUrl) {
         //create a new developer group (and developer group)
-        const newDev = await this.createNewDeveloper(userName, email, platform, platformUsername);
+        const newDev = await this.createNewDeveloper(userName, email, platform, platformUsername, websiteUrl);
 
         //set the new dev's group as the current dev group
         this.setCurrentDevGroupWithDevIds([newDev.newDeveloper.id]);

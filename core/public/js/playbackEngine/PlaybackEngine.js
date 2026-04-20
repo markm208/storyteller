@@ -123,6 +123,18 @@ class PlaybackEngine {
     }
   }
 
+  getFirstNonSystemDevGroupId() {
+    //find the first event that wasn't created by the system developer group
+    const systemDevGroupId = this.playbackData.systemDeveloperGroupId;
+    for (const event of this.playbackData.events) {
+      if (event.createdByDevGroupId && event.createdByDevGroupId !== systemDevGroupId) {
+        return event.createdByDevGroupId;
+      }
+    }
+    //fallback to system dev group if no other found
+    return systemDevGroupId;
+  }
+
   getMostRecentFileEdits(fromLastComment) {
     let codeChangesSummary = "";
     let currentCodeSource = {};
