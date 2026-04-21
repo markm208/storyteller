@@ -51,17 +51,17 @@ function initializeFileWatcher(context, state) {
 
 /**
  * Handles file/directory create events
- * 
+ *
  * A create event might be:
  * - A new file/directory created
  * - The destination of a move operation (create followed by delete)
  * - The destination of a rename operation (create followed by delete)
- * 
+ *
  * We store the create and wait briefly to see if a corresponding delete arrives.
  */
 function handleCreate(createEvent) {
     if (!sharedState.isActive) return;
-    
+
     const fileDirPath = createEvent.fsPath;
     
     //ignore creates in .storyteller directory
@@ -156,7 +156,7 @@ function findMatchingCreate() {
 function processRealCreate(fileDirPath) {
     try {
         const stats = fs.statSync(fileDirPath);
-        
+
         if (stats.isFile()) {
             sharedState.projectManager.createFile(fileDirPath);
         } else if (stats.isDirectory()) {
@@ -231,16 +231,16 @@ function isInStorytellerDir(filePath) {
  */
 function handleTextEditorChange(event) {
     if (!sharedState.isActive) return;
-    
+
     const filePath = event.document.fileName;
     const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    
+
     // Only track changes in the workspace
     if (!filePath.startsWith(workspacePath)) return;
-    
+
     // Ignore changes in .storyteller directory
     if (isInStorytellerDir(filePath)) return;
-    
+
     for (const change of event.contentChanges) {
         processChange(filePath, change);
     }

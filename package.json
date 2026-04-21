@@ -47,7 +47,7 @@
             },
             {
                 "command": "storyteller.createNewDeveloper",
-                "title": "Create a New Developer",
+                "title": "Register a Developer",
                 "category": "Storyteller"
             },
             {
@@ -98,6 +98,31 @@
             {
                 "command": "storyteller.deleteFileHistory",
                 "title": "Delete the History of a File",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.createNewBook",
+                "title": "Create New Book",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.addPlaybackToBook",
+                "title": "Add Playback to Book",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.regenerateBookIndex",
+                "title": "Regenerate Book Index",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.deletePlaybackFromBook",
+                "title": "Delete Playback from Book",
+                "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.setAiApiUrl",
+                "title": "Set AI API URL for Book",
                 "category": "Storyteller"
             }
         ],

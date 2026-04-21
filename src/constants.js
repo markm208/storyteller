@@ -55,7 +55,12 @@ const COMMANDS = {
     REPLACE_PERFECT: 'storyteller.replaceWithPerfectProgrammer',
     PLAYBACK_SELECTED: 'storyteller.playbackSelectedText',
     CREATE_IGNORE_FILE: 'storyteller.createIgnoreFile',
-    DELETE_FILE_HISTORY: 'storyteller.deleteFileHistory'
+    DELETE_FILE_HISTORY: 'storyteller.deleteFileHistory',
+    CREATE_BOOK: 'storyteller.createNewBook',
+    ADD_PLAYBACK_TO_BOOK: 'storyteller.addPlaybackToBook',
+    REGENERATE_BOOK_INDEX: 'storyteller.regenerateBookIndex',
+    DELETE_PLAYBACK_FROM_BOOK: 'storyteller.deletePlaybackFromBook',
+    SET_AI_API_URL: 'storyteller.setAiApiUrl'
 };
 
 /**
@@ -97,9 +102,9 @@ const MESSAGES = {
     PLAYBACK_SERVER_STARTED: `Storyteller Playback Server at localhost:${PLAYBACK_SERVER_PORT}/playback`,
     RECONCILE_NEEDED: "There were some changes to the project when Storyteller wasn't active. In a moment you will be prompted to resolve the discrepancies.",
     RECONCILE_COMPLETE: 'Reconcile complete. Do you want to continue using Storyteller?',
-    
+
     // Prompts
-    DEVELOPER_PROMPT: "Enter developer info: 'Name' or 'Name @github-username' or 'Name email@example.com'",
+    DEVELOPER_PROMPT: "Enter developer info: 'Name @github-username' or 'Name @gitlab:username' or 'Name email@example.com' or 'Name https://...'",
 
     // Error messages
     ERROR_USERNAME_REQUIRED: 'A developer display name is required',
@@ -107,7 +112,7 @@ const MESSAGES = {
     ERROR_NO_INACTIVE_DEVELOPERS: 'There are no inactive developers to add',
     ERROR_CANNOT_REMOVE_LAST_DEVELOPER: 'Cannot remove from a dev group with one developer',
     ERROR_UNSUPPORTED_PLATFORM: 'Unsupported platform',
-    
+
     // Reconciliation options
     MODIFIED_FILES_OPTIONS: [
         'Add the changes in the files to the history of this project',
@@ -125,7 +130,25 @@ const MESSAGES = {
         'Continue using Storyteller',
         'Stop using Storyteller'
     ],
-    YES_NO_OPTIONS: ['Yes', 'No']
+    YES_NO_OPTIONS: ['Yes', 'No'],
+
+    // Book-related messages
+    BOOK_TITLE_PROMPT: 'Enter the book title',
+    BOOK_AUTHOR_PROMPT: "Enter author(s): 'Name @github-username' or 'Name @gitlab:username' or 'Name email@example.com' (comma-separated)",
+    BOOK_SLUG_PROMPT: 'Enter a directory name for the book (lowercase, no spaces)',
+    BOOK_AI_URL_PROMPT: 'Enter AI API URL for the book (optional, press Enter to skip)',
+    BOOK_CREATED: 'Book created successfully',
+    BOOK_SELECT_PROMPT: 'Select a book folder',
+    BOOK_CHAPTER_PROMPT: 'Enter chapter title (or select existing)',
+    BOOK_PLAYBACK_TITLE_PROMPT: 'Enter playback title',
+    BOOK_PLAYBACK_ADDED: 'Playback added to book successfully',
+    BOOK_INDEX_REGENERATED: 'Book index regenerated successfully',
+    BOOK_PLAYBACK_DELETED: 'Playback deleted from book',
+    BOOK_AI_URL_UPDATED: 'AI API URL updated successfully',
+    ERROR_BOOK_NOT_FOUND: 'book.json not found in selected folder',
+    ERROR_BOOK_INVALID: 'Invalid book.json structure',
+    ERROR_NO_PLAYBACKS: 'No playbacks found in this book',
+    ERROR_STORYTELLER_REQUIRED: 'An active Storyteller project is required to add playbacks'
 };
 
 /**

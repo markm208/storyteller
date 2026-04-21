@@ -205,10 +205,10 @@ class Reconciler {
     resolveNewFile(newFilePath, action, isRelevant) {
         //add the file to the project
         if(action === 'create') {
-            //attribute any reconciliation changes to the system developer
+            //attribute any reconciliation changes to the anonymous developer
             const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
-            const systemDevGroup = this.projectManager.developerManager.getSystemDeveloperGroup();
-            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
+            const anonymousDevGroup = this.projectManager.developerManager.getAnonymousDeveloperGroup();
+            this.projectManager.developerManager.setActiveDeveloperGroup(anonymousDevGroup);
 
             //record the creating of a new file
             this.projectManager.createFile(newFilePath, isRelevant);
@@ -229,10 +229,10 @@ class Reconciler {
     resolveNewDirectory(newDirectoryPath, action, isRelevant) {
         //add the dir to the project
         if(action === 'create') {
-            //attribute any reconciliation changes to the system developer
+            //attribute any reconciliation changes to the anonymous developer
             const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
-            const systemDevGroup = this.projectManager.developerManager.getSystemDeveloperGroup();
-            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
+            const anonymousDevGroup = this.projectManager.developerManager.getAnonymousDeveloperGroup();
+            this.projectManager.developerManager.setActiveDeveloperGroup(anonymousDevGroup);
 
             //record the creating of a new file
             this.projectManager.createDirectory(newDirectoryPath, isRelevant);
@@ -267,10 +267,10 @@ class Reconciler {
             }
         } else if(action === 'accept-delete') { //accept the delete
             if(this.projectManager.fileSystemManager.doesFileIdExist(deletedFileId)) {
-                //attribute any reconciliation changes to the system developer
+                //attribute any reconciliation changes to the anonymous developer
                 const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
-                const systemDevGroup = this.projectManager.developerManager.getSystemDeveloperGroup();
-                this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
+                const anonymousDevGroup = this.projectManager.developerManager.getAnonymousDeveloperGroup();
+                this.projectManager.developerManager.setActiveDeveloperGroup(anonymousDevGroup);
 
                 //record the deletion of this file
                 this.projectManager.deleteFile(deletedFilePath);
@@ -301,11 +301,11 @@ class Reconciler {
             }
         } else if(action === 'accept-delete') { //accept the delete
             //if the directory has not already been deleted from a recursive deleted dir
-            if(this.projectManager.fileSystemManager.doesDirIdExist(deletedDirectoryId)) {     
-                //attribute any reconciliation changes to the system developer
+            if(this.projectManager.fileSystemManager.doesDirIdExist(deletedDirectoryId)) {
+                //attribute any reconciliation changes to the anonymous developer
                 const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
-                const systemDevGroup = this.projectManager.developerManager.getSystemDeveloperGroup();
-                this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
+                const anonymousDevGroup = this.projectManager.developerManager.getAnonymousDeveloperGroup();
+                this.projectManager.developerManager.setActiveDeveloperGroup(anonymousDevGroup);
 
                 //record the deletion of this dir
                 this.projectManager.deleteDirectory(deletedDirPath);
@@ -355,10 +355,10 @@ class Reconciler {
         } else if(action === 'accept-changes') { //update system to holds the changes
             const newFileText = fs.readFileSync(fullPath, 'utf8');
 
-            //attribute any reconciliation changes to the system developer
+            //attribute any reconciliation changes to the anonymous developer
             const originalDevGroup = this.projectManager.developerManager.getActiveDeveloperGroup();
-            const systemDevGroup = this.projectManager.developerManager.getSystemDeveloperGroup();
-            this.projectManager.developerManager.setActiveDeveloperGroup(systemDevGroup);
+            const anonymousDevGroup = this.projectManager.developerManager.getAnonymousDeveloperGroup();
+            this.projectManager.developerManager.setActiveDeveloperGroup(anonymousDevGroup);
 
             //update storyteller to hold the new state of the file
             this.diffAndUpdateFile(fullPath, fileText, newFileText);

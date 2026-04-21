@@ -6,10 +6,11 @@ const path = require('path');
 const { COMMANDS, STATUS_BAR, MESSAGES, BROWSER_COMMANDS, PLAYBACK_INDEX_URL, PLAYBACK_COMMENT_URL, STATUS_BAR_MESSAGE_TIMEOUT_MS, IGNORE_FILE_DOCS_URL } = require('./constants');
 const { updateStatusBar } = require('./status-bar');
 const { zipProject, zipViewablePlayback } = require('./zip');
+const { createNewBook, addPlaybackToBook, regenerateBookIndex, deletePlaybackFromBook, setAiApiUrl } = require('./book');
 
 /**
  * Registers all Storyteller commands
- * @param {vscode.ExtensionContext} context 
+ * @param {vscode.ExtensionContext} context
  * @param {Object} state - Shared extension state
  */
 function registerCommands(context, state) {
@@ -29,9 +30,14 @@ function registerCommands(context, state) {
         [COMMANDS.REPLACE_PERFECT, () => replaceWithPerfectProgrammer(state)],
         [COMMANDS.PLAYBACK_SELECTED, () => playbackSelectedText(state)],
         [COMMANDS.CREATE_IGNORE_FILE, () => createIgnoreFile()],
-        [COMMANDS.DELETE_FILE_HISTORY, () => deleteFileHistory(state)]
+        [COMMANDS.DELETE_FILE_HISTORY, () => deleteFileHistory(state)],
+        [COMMANDS.CREATE_BOOK, () => createNewBook(state, context)],
+        [COMMANDS.ADD_PLAYBACK_TO_BOOK, () => addPlaybackToBook(state, context)],
+        [COMMANDS.REGENERATE_BOOK_INDEX, () => regenerateBookIndex(state, context)],
+        [COMMANDS.DELETE_PLAYBACK_FROM_BOOK, () => deletePlaybackFromBook(state, context)],
+        [COMMANDS.SET_AI_API_URL, () => setAiApiUrl(state, context)]
     ];
-    
+
     for (const [commandId, handler] of commands) {
         context.subscriptions.push(vscode.commands.registerCommand(commandId, handler));
     }
@@ -254,7 +260,7 @@ function currentActiveDevelopers(state) {
 }
 
 /**
- * Creates a new developer and adds to active group
+ * Registers a new developer in the system (without adding to active group)
  */
 async function createNewDeveloper(state) {
     if (!state.isActive) {
@@ -266,17 +272,36 @@ async function createNewDeveloper(state) {
         const devInfo = await promptForDeveloperInfo();
 
         if (devInfo) {
-            await state.projectManager.createDeveloperAndAddToActiveGroup(devInfo.userName, devInfo.email, devInfo.platform, devInfo.platformUsername);
+            const wasCreated = await state.projectManager.registerDeveloper(devInfo.userName, devInfo.email, devInfo.platform, devInfo.platformUsername, devInfo.websiteUrl);
 
-            const activeDevs = state.projectManager.getActiveDevelopers();
-            const devStrings = formatDeveloperList(activeDevs);
+            if (wasCreated) {
+                // Prompt to add to active group
+                const addToActive = await vscode.window.showQuickPick(
+                    ['Yes, add to active group', 'No, keep inactive'],
+                    { placeHolder: `Developer "${devInfo.userName}" registered. Add to active group?` }
+                );
 
-            vscode.window.showInformationMessage(`Active developers: ${devStrings}`);
+                if (addToActive === 'Yes, add to active group') {
+                    state.projectManager.addDevelopersToActiveGroupByUserName([devInfo.userName]);
+
+                    const activeDevs = state.projectManager.getActiveDevelopers();
+                    const devStrings = formatDeveloperList(activeDevs);
+                    vscode.window.showInformationMessage(`Active developers: ${devStrings}`);
+                } else {
+                    vscode.window.showInformationMessage(
+                        `Developer "${devInfo.userName}" registered (inactive).`
+                    );
+                }
+            } else {
+                vscode.window.showInformationMessage(
+                    `Developer "${devInfo.userName}" already exists.`
+                );
+            }
         } else {
             currentActiveDevelopers(state);
         }
     } catch (err) {
-        vscode.window.showErrorMessage(`Error adding developer: ${err.message || err}`);
+        vscode.window.showErrorMessage(`Error registering developer: ${err.message || err}`);
     }
 }
 
@@ -288,7 +313,7 @@ async function createFirstDeveloper(projectManager) {
         const devInfo = await promptForDeveloperInfo();
 
         if (devInfo) {
-            await projectManager.replaceAnonymousDeveloperWithNewDeveloper(devInfo.userName, devInfo.email, devInfo.platform, devInfo.platformUsername);
+            await projectManager.replaceAnonymousDeveloperWithNewDeveloper(devInfo.userName, devInfo.email, devInfo.platform, devInfo.platformUsername, devInfo.websiteUrl);
         }
     } catch (err) {
         vscode.window.showErrorMessage(`Error adding developer: ${err.message || err}`);
@@ -522,9 +547,9 @@ async function promptForDeveloperInfo() {
 
 /**
  * Parses developer info string into object
- * Supports: 'Name', 'Name @username', 'Name @platform:username', 'Name email@example.com'
+ * Supports: 'Name', 'Name @username', 'Name @platform:username', 'Name email@example.com', 'Name https://...'
  * @param {string} devInfoString - Developer info string
- * @returns {Object} Object with userName, email, platform, and platformUsername
+ * @returns {Object} Object with userName, email, platform, platformUsername, and websiteUrl
  * @throws {Error} If name is missing
  */
 function parseDeveloperInfo(devInfoString) {
@@ -536,10 +561,16 @@ function parseDeveloperInfo(devInfoString) {
     }
 
     const lastPart = parts[parts.length - 1];
-    let userName, email = null, platform = null, platformUsername = null;
+    let userName, email = null, platform = null, platformUsername = null, websiteUrl = null;
 
+    // Check if last part is a URL
+    if (lastPart.startsWith('http://') || lastPart.startsWith('https://')) {
+        websiteUrl = lastPart;
+        parts.pop();
+        userName = parts.join(' ');
+    }
     // Check if last part is platform username (@username or @platform:username, without dot)
-    if (lastPart.startsWith('@') && !lastPart.includes('.')) {
+    else if (lastPart.startsWith('@') && !lastPart.includes('.')) {
         const platformPart = lastPart.substring(1); // Remove @
 
         // Check for platform:username format (e.g., @gitlab:username)
@@ -571,7 +602,7 @@ function parseDeveloperInfo(devInfoString) {
         throw new Error(MESSAGES.ERROR_USERNAME_REQUIRED);
     }
 
-    return { userName, email, platform, platformUsername };
+    return { userName, email, platform, platformUsername, websiteUrl };
 }
 
 /**
@@ -603,6 +634,8 @@ function extractUserNameFromSelection(selection) {
  * @returns {string} Formatted string
  */
 function formatSingleDeveloper(dev) {
+    if (!dev) return 'Unknown Developer';
+    if (dev.websiteUrl) return `${dev.userName} (${dev.websiteUrl})`;
     if (dev.platformUsername) return `${dev.userName} (@${dev.platformUsername})`;
     if (dev.email) return `${dev.userName} <${dev.email}>`;
     return dev.userName;
@@ -614,7 +647,8 @@ function formatSingleDeveloper(dev) {
  * @returns {string} Formatted string
  */
 function formatDeveloperList(developers) {
-    return developers.map(dev => {
+    return developers.filter(dev => dev).map(dev => {
+        if (dev.websiteUrl) return `${dev.userName} (${dev.websiteUrl})`;
         if (dev.platformUsername) return `${dev.userName} (@${dev.platformUsername})`;
         if (dev.email) return `${dev.userName} <${dev.email}>`;
         return dev.userName;

@@ -88,7 +88,7 @@ class DBAbstraction {
         //convert plain objects into Developers and DeveloperGroups
         for(const devId in devObjects.allDevelopers) {
             const devObject = devObjects.allDevelopers[devId];
-            devs.allDevelopers[devObject.id] = new Developer(devObject.userName, devObject.email, devObject.platform, devObject.platformUsername, devObject.avatarURL, devObject.id);
+            devs.allDevelopers[devObject.id] = new Developer(devObject.userName, devObject.email, devObject.platform, devObject.platformUsername, devObject.websiteUrl, devObject.avatarURL, devObject.id);
         }
 
         for(const devGroupId in devObjects.allDeveloperGroups) {
@@ -123,7 +123,7 @@ class DBAbstraction {
 
         for(const dirId in fsObjects.allDirs) {
             const dirObject = fsObjects.allDirs[dirId];
-            fs.allDirs[dirObject.id] = new Directory(dirObject.parentDirectoryId, dirObject.currentPath, dirObject.id);
+            fs.allDirs[dirObject.id] = new Directory(dirObject.parentDirectoryId, dirObject.currentPath, dirObject.isDeleted, dirObject.id);
         }
 
         fs.pathToFileIdMap = fsObjects.pathToFileIdMap;

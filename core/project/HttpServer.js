@@ -60,12 +60,12 @@ class HttpServer {
      */
     createRoutes(app) {
         //routes
-        //builds a js file that loads the data for playback
-        app.get('/js/loadPlayback.js', (req, res) => {
-            //get the text for a function that loads the playback data
+        //builds a js file with the playback data
+        app.get('/js/playback.js', (req, res) => {
+            //get the text for the playback data
             const playbackData = this.projectManager.getPlaybackData(true);
 
-            //send the function back to the browser
+            //send the js back to the browser
             res.type('application/javascript');
             res.status(200).send(`${playbackData}`);
         });

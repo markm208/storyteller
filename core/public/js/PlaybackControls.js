@@ -3,6 +3,7 @@ class PlaybackControls extends HTMLElement {
     super();
 
     this.playbackEngine = playbackEngine;
+    this.currentlyDisplayedDevGroupId = null;
 
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
@@ -99,8 +100,21 @@ class PlaybackControls extends HTMLElement {
     pauseButton.addEventListener('click', this.pauseClicked);
 
     const devAvatars = this.shadowRoot.querySelector('.devAvatars');
-    //use first non-system dev group for initial display
-    const initialDevGroupId = this.playbackEngine.activeDevGroupId || this.playbackEngine.getFirstNonSystemDevGroupId();
+
+    //use first non-system dev group for initial display (unless activeDevGroupId is already non-system)
+    const activeDevGroupId = this.playbackEngine.activeDevGroupId;
+    const systemDevGroupId = this.playbackEngine.playbackData.systemDeveloperGroupId;
+
+    let initialDevGroupId;
+    if (activeDevGroupId && activeDevGroupId !== systemDevGroupId) {
+      initialDevGroupId = activeDevGroupId;
+    } else {
+      initialDevGroupId = this.playbackEngine.getFirstNonSystemDevGroupId();
+    }
+
+    //track what we're displaying to avoid redundant updates
+    this.currentlyDisplayedDevGroupId = initialDevGroupId;
+
     const devGroupAvatar = new DevGroupAvatar({
       developerGroupId: initialDevGroupId,
       developers: this.playbackEngine.playbackData.developers,
@@ -151,12 +165,31 @@ class PlaybackControls extends HTMLElement {
   }
 
   updateActiveDevGroup() {
+    //use first non-system dev group if activeDevGroupId is the system developer
+    const activeDevGroupId = this.playbackEngine.activeDevGroupId;
+    const systemDevGroupId = this.playbackEngine.playbackData.systemDeveloperGroupId;
+
+    let devGroupIdToDisplay;
+    if (activeDevGroupId && activeDevGroupId !== systemDevGroupId) {
+      devGroupIdToDisplay = activeDevGroupId;
+    } else {
+      devGroupIdToDisplay = this.playbackEngine.getFirstNonSystemDevGroupId();
+    }
+
+    //skip if we're already displaying this dev group
+    if (devGroupIdToDisplay === this.currentlyDisplayedDevGroupId) {
+      return;
+    }
+
+    //update tracking and render
+    this.currentlyDisplayedDevGroupId = devGroupIdToDisplay;
+
     const devAvatars = this.shadowRoot.querySelector('.devAvatars');
     devAvatars.innerHTML = '';
 
     const devGroupAvatar = new DevGroupAvatar({
-      developerGroupId: this.playbackEngine.activeDevGroupId, 
-      developers: this.playbackEngine.playbackData.developers, 
+      developerGroupId: devGroupIdToDisplay,
+      developers: this.playbackEngine.playbackData.developers,
       developerGroups: this.playbackEngine.playbackData.developerGroups
     });
     devAvatars.appendChild(devGroupAvatar);

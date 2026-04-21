@@ -608,10 +608,10 @@ class ProjectManager {
             this.playbackConstraints = null;
         }
 
-        //create the js function that loads the playback data
-        const funcText = this.getLoadPlaybackDataFunc(playbackEvents, playbackComments, makeEditable);
+        //create the js that holds the playback data
+        const jsText = this.getPlaybackDataJs(playbackEvents, playbackComments, makeEditable);
 
-        return funcText;
+        return jsText;
     }
 
     //-- developer related
@@ -889,27 +889,26 @@ class ProjectManager {
         this.db.writeCommentInfo(this.commentManager);
     }
 
-    getLoadPlaybackDataFunc(events, comments, makeEditable) {
-        //create the text for a js function that loads the playback into a global called playbackData
-        const func = 
-`
-function loadPlaybackData(playbackData) {
-    playbackData.events = ${JSON.stringify(events)};
-    playbackData.numEvents = ${events.length};
-    playbackData.comments = ${JSON.stringify(comments)};
-    playbackData.isEditable = ${makeEditable ? 'true' : 'false'};
-    playbackData.developers = ${JSON.stringify(this.developerManager.allDevelopers)};
-    playbackData.developerGroups = ${JSON.stringify(this.developerManager.allDeveloperGroups)};
-    playbackData.anonymousDeveloperId = ${JSON.stringify(this.developerManager.anonymousDeveloperId)};
-    playbackData.anonymousDeveloperGroupId = ${JSON.stringify(this.developerManager.anonymousDeveloperGroupId)};
-    playbackData.systemDeveloperId = ${JSON.stringify(this.developerManager.systemDeveloperId)};
-    playbackData.systemDeveloperGroupId = ${JSON.stringify(this.developerManager.systemDeveloperGroupId)};
-    playbackData.playbackTitle = '${this.project.title.replace(/'/g, "&#39;")}';
-    playbackData.branchId = '${this.project.branchId}';
-    playbackData.estimatedReadTime = ${this.getReadTimeEstimate()};
-    playbackData.aiEnabled = ${(makeEditable && this.openaiApiKey) ? 'true' : 'false'};
-}`;
-        return func;
+    getPlaybackDataJs(events, comments, makeEditable) {
+        //create the text for a js global that holds the playback data
+        const js =
+`const PLAYBACK_DATA = {
+    events: ${JSON.stringify(events)},
+    numEvents: ${events.length},
+    comments: ${JSON.stringify(comments)},
+    isEditable: ${makeEditable ? 'true' : 'false'},
+    developers: ${JSON.stringify(this.developerManager.allDevelopers)},
+    developerGroups: ${JSON.stringify(this.developerManager.allDeveloperGroups)},
+    anonymousDeveloperId: ${JSON.stringify(this.developerManager.anonymousDeveloperId)},
+    anonymousDeveloperGroupId: ${JSON.stringify(this.developerManager.anonymousDeveloperGroupId)},
+    systemDeveloperId: ${JSON.stringify(this.developerManager.systemDeveloperId)},
+    systemDeveloperGroupId: ${JSON.stringify(this.developerManager.systemDeveloperGroupId)},
+    playbackTitle: ${JSON.stringify(this.project.title)},
+    branchId: ${JSON.stringify(this.project.branchId)},
+    estimatedReadTime: ${this.getReadTimeEstimate()},
+    aiEnabled: ${(makeEditable && this.openaiApiKey) ? 'true' : 'false'}
+};`;
+        return js;
     }
 
     setNextPlaybackPerfectProgrammer(isPerfectProgrammer) {

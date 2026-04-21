@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{PLAYBACK_TITLE}} - {{BOOK_TITLE}}</title>
+    <!-- external resources (editor, zip)-->
+    <script src="../../assets/js/ext/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../assets/js/ext/src-min-noconflict/ext-modelist.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../assets/js/ext/markdown-it.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../assets/js/ext/jszip.min.js" type="text/javascript" charset="utf-8"></script>
+    <!-- non-ui playback -->
+    <script src="../../assets/js/playbackEngine/EditorState.js"></script>
+    <script src="../../assets/js/playbackEngine/CodeDownloader.js"></script>
+    <script src="../../assets/js/playbackEngine/NewCodeFileMarker.js"></script>
+    <script src="../../assets/js/playbackEngine/NewCodeMarkerGenerator.js"></script>
+    <script src="../../assets/js/playbackEngine/PlaybackEngine.js"></script>
+    <script src="../../assets/js/playbackEngine/ServerProxy.js"></script>
+    <!-- playback ui -->
+    <script src="../../assets/js/AceEditor.js"></script>
+    <script src="../../assets/js/AddEditComment.js"></script>
+    <script src="../../assets/js/AIAssistant.js"></script>
+    <script src="../../assets/js/AIGeneratedQuestion.js"></script>
+    <script src="../../assets/js/AIPromptInput.js"></script>
+    <script src="../../assets/js/App.js"></script>
+    <script src="../../assets/js/AudioVideoRecorder.js"></script>
+    <script src="../../assets/js/BlogCodeSnippet.js"></script>
+    <script src="../../assets/js/BlogComponent.js"></script>
+    <script src="../../assets/js/BlogView.js"></script>
+    <script src="../../assets/js/CodeView.js"></script>
+    <script src="../../assets/js/Collapsable.js"></script>
+    <script src="../../assets/js/CommentGroup.js"></script>
+    <script src="../../assets/js/CommentNavigator.js"></script>
+    <script src="../../assets/js/CommentTags.js"></script>
+    <script src="../../assets/js/CommentView.js"></script>
+    <script src="../../assets/js/CreateMultipleChoiceQuestion.js"></script>
+    <script src="../../assets/js/DevAvatar.js"></script>
+    <script src="../../assets/js/DevGroupAvatar.js"></script>
+    <script src="../../assets/js/EditorFileTabs.js"></script>
+    <script src="../../assets/js/EditorView.js"></script>
+    <script src="../../assets/js/FileSystemNavigator.js"></script>
+    <script src="../../assets/js/ImageGallery.js"></script>
+    <script src="../../assets/js/MediaPicker.js"></script>
+    <script src="../../assets/js/MultiLineTextInput.js"></script>
+    <script src="../../assets/js/OptionsMenu.js"></script>
+    <script src="../../assets/js/PlaybackControls.js"></script>
+    <script src="../../assets/js/PlaybackNavigator.js"></script>
+    <script src="../../assets/js/PlaybackSlider.js"></script>
+    <script src="../../assets/js/QuestionAnswerView.js"></script>
+    <script src="../../assets/js/SearchBar.js"></script>
+    <script src="../../assets/js/ShowHideComponent.js"></script>
+    <script src="../../assets/js/SurroundingLinesSelector.js"></script>
+    <script src="../../assets/js/TextToSpeechControl.js"></script>
+    <script src="../../assets/js/TagView.js"></script>
+    <script src="../../assets/js/TitleBar.js"></script>
+    <script src="../../assets/js/VerticalMediaContainer.js"></script>
+    <!-- playback data -->
+    <script src="./playback.js"></script>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        background-color: rgb(41, 41, 41);
+        color: lightgray;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      //create an alias for an Ace type
+      const AceRange = ace.require('ace/range').Range;
+
+      window.addEventListener("DOMContentLoaded", (event) => {
+        //look to see if there is a mode in the querystring
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        const mode = urlSearchParams.get('mode');
+        const embed = urlSearchParams.get('embed');
+        //for positional queries in the playback (make the numbers zero-based as that is what normal humans expect)
+        const startingEventIndex = urlSearchParams.get('event') ? Number(urlSearchParams.get('event')) - 1 : null;
+        const startingCommentIndex = urlSearchParams.get('comment') ? Number(urlSearchParams.get('comment')) - 1 : null;
+
+        //check if this is a small screen or an explicit request for blog mode
+        let initialMode = 'code';
+        if(window.innerWidth < 800 || (mode && mode === 'blog')) {
+          initialMode = 'blog';
+        }
+
+        //check if this is embed mode
+        if (embed === 'true') {
+          document.body.style.overflow = 'hidden';
+        }
+
+        const app = new App(PLAYBACK_DATA, initialMode, startingCommentIndex, startingEventIndex);
+        document.body.appendChild(app);
+      });
+    </script>
+  </body>
+</html>

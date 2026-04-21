@@ -56,7 +56,7 @@
     <script src="/js/TitleBar.js"></script>
     <script src="/js/VerticalMediaContainer.js"></script>
     <!-- playback data -->
-    <script src="/js/loadPlayback.js"></script>
+    <script src="/js/playback.js"></script>
     <style>
       html, body {
         margin: 0;
@@ -75,10 +75,6 @@
       const AceRange = ace.require('ace/range').Range;
 
       window.addEventListener("DOMContentLoaded", (event) => {
-        //get the playback data and pass it to the app
-        const playbackData = {};
-        loadPlaybackData(playbackData);
-
         //look to see if there is a mode in the querystring
         const urlSearchParams = new URLSearchParams(window.location.search);
         const mode = urlSearchParams.get('mode');
@@ -90,8 +86,8 @@
         let initialMode = 'code';
         if(window.innerWidth < 800 || (mode && mode === 'blog')) {
           initialMode = 'blog';
-        } 
-        const app = new App(playbackData, initialMode, startingCommentIndex, startingEventIndex);
+        }
+        const app = new App(PLAYBACK_DATA, initialMode, startingCommentIndex, startingEventIndex);
         document.body.appendChild(app);
       });
     </script>
