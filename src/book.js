@@ -146,6 +146,56 @@ function generatePlaybackViewerHtml(bookData, playbackTitle) {
 }
 
 /**
+ * Generates the HTML for a standalone playback
+ * @param {string} playbackTitle - Title of the playback
+ * @returns {string} HTML content
+ */
+function generateStandalonePlaybackHtml(playbackTitle) {
+    const templatePath = path.join(__dirname, '..', 'core', 'templates', 'standalone-playback.html');
+    let template = fs.readFileSync(templatePath, 'utf8');
+
+    template = template.replaceAll('{{PLAYBACK_TITLE}}', escapeHtml(playbackTitle));
+
+    return template;
+}
+
+/**
+ * Generates the README for a standalone playback
+ * @param {string} playbackTitle - Title of the playback
+ * @param {string} slug - Directory slug for the playback
+ * @returns {string} README content
+ */
+function generateStandaloneReadme(playbackTitle, slug) {
+    const templatePath = path.join(__dirname, '..', 'core', 'templates', 'standalone-readme.md');
+    let template = fs.readFileSync(templatePath, 'utf8');
+
+    template = template.replaceAll('{{PLAYBACK_TITLE}}', playbackTitle);
+    template = template.replaceAll('{{SLUG}}', slug);
+
+    return template;
+}
+
+/**
+ * Generates the README for a book
+ * @param {string} title - Book title
+ * @param {Array} authors - Array of author objects with name property
+ * @param {string} slug - Directory slug for the book
+ * @returns {string} README content
+ */
+function generateBookReadme(title, authors, slug) {
+    const templatePath = path.join(__dirname, '..', 'core', 'templates', 'book-readme.md');
+    let template = fs.readFileSync(templatePath, 'utf8');
+
+    const authorNames = authors.map(a => a.name).join(', ');
+
+    template = template.replaceAll('{{BOOK_TITLE}}', title);
+    template = template.replaceAll('{{AUTHORS}}', authorNames);
+    template = template.replaceAll('{{SLUG}}', slug);
+
+    return template;
+}
+
+/**
  * Extracts author information from the project's developers
  * Filters out system and anonymous developers
  * @param {Object} projectManager - The project manager instance
@@ -497,7 +547,7 @@ async function createNewBook(state, context) {
             // Create README.md
             progress.report({ message: 'Creating README.md...' });
 
-            const readme = `# ${title}\n\nBy ${authors.map(a => a.name).join(', ')}\n\nThis book was created with Storyteller.\n`;
+            const readme = generateBookReadme(title, authors, slug);
             fs.writeFileSync(path.join(bookPath, 'README.md'), readme, 'utf8');
 
             // Copy JavaScript assets
@@ -509,7 +559,7 @@ async function createNewBook(state, context) {
             // Update recent books
             await updateRecentBooks(context, bookPath);
 
-            vscode.window.showInformationMessage(`${MESSAGES.BOOK_CREATED} at ${bookPath}`);
+            vscode.window.showInformationMessage(`${MESSAGES.BOOK_CREATED} at ${bookPath} view the README.md in that folder for deployment instructions.`);
         } catch (err) {
             console.error('Error creating book:', err);
             vscode.window.showErrorMessage(`Failed to create book: ${err.message}`);
@@ -848,6 +898,132 @@ async function setAiApiUrl(state, context) {
     }
 }
 
+/**
+ * Exports the current playback as a standalone GitHub/GitLab Pages site
+ * @param {Object} state - Shared extension state
+ * @param {vscode.ExtensionContext} context - Extension context
+ */
+async function exportStandalonePlayback(state, context) {
+    // Verify Storyteller is active
+    if (!state.isActive || !state.projectManager) {
+        vscode.window.showErrorMessage(MESSAGES.ERROR_STORYTELLER_REQUIRED);
+        return;
+    }
+
+    // Get playback title from project
+    const playbackTitle = state.projectManager.project.title;
+
+    // Prompt for directory slug
+    const defaultSlug = slugify(playbackTitle);
+    const slug = await vscode.window.showInputBox({
+        prompt: MESSAGES.STANDALONE_SLUG_PROMPT,
+        value: defaultSlug,
+        validateInput: value => {
+            if (!value || !value.trim()) return 'Directory name is required';
+            if (!/^[a-z0-9-]+$/.test(value)) return 'Use only lowercase letters, numbers, and hyphens';
+            return null;
+        }
+    });
+    if (!slug) return;
+
+    // Prompt for AI API URL (optional)
+    const aiApiUrl = await vscode.window.showInputBox({
+        prompt: MESSAGES.STANDALONE_AI_URL_PROMPT
+    });
+
+    // Prompt for destination folder
+    const folders = await vscode.window.showOpenDialog({
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        openLabel: 'Select Destination',
+        title: 'Choose where to create the playback folder'
+    });
+
+    if (!folders || folders.length === 0) return;
+
+    const destinationPath = folders[0].fsPath;
+    const playbackPath = path.join(destinationPath, slug);
+
+    // Check if folder already exists
+    if (fs.existsSync(playbackPath)) {
+        const overwrite = await vscode.window.showQuickPick(
+            MESSAGES.YES_NO_OPTIONS,
+            { placeHolder: `Folder "${slug}" already exists. Overwrite?` }
+        );
+        if (overwrite !== MESSAGES.YES_NO_OPTIONS[0]) return;
+
+        // Remove existing folder
+        fs.rmSync(playbackPath, { recursive: true, force: true });
+    }
+
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'Exporting standalone playback',
+        cancellable: false
+    }, async (progress) => {
+        try {
+            // Create directory structure
+            progress.report({ message: 'Creating directories...' });
+
+            fs.mkdirSync(playbackPath, { recursive: true });
+            fs.mkdirSync(path.join(playbackPath, 'js'), { recursive: true });
+            fs.mkdirSync(path.join(playbackPath, 'media'), { recursive: true });
+
+            // Copy JavaScript assets
+            progress.report({ message: 'Copying JavaScript assets...' });
+
+            const publicJsPath = path.join(__dirname, '..', 'core', 'public', 'js');
+            copyDirectoryRecursive(publicJsPath, path.join(playbackPath, 'js'));
+
+            // Generate playback.js
+            progress.report({ message: 'Generating playback data...' });
+
+            const playbackJs = getPlaybackDataAsJs(state.projectManager, aiApiUrl || null);
+            fs.writeFileSync(path.join(playbackPath, 'playback.js'), playbackJs, 'utf8');
+
+            // Generate index.html
+            progress.report({ message: 'Generating index.html...' });
+
+            const indexHtml = generateStandalonePlaybackHtml(playbackTitle);
+            fs.writeFileSync(path.join(playbackPath, 'index.html'), indexHtml, 'utf8');
+
+            // Generate README.md
+            progress.report({ message: 'Creating README.md...' });
+
+            const readme = generateStandaloneReadme(playbackTitle, slug);
+            fs.writeFileSync(path.join(playbackPath, 'README.md'), readme, 'utf8');
+
+            // Create .gitlab-ci.yml
+            progress.report({ message: 'Creating .gitlab-ci.yml...' });
+
+            const gitlabCi = `# GitLab Pages deployment - GitHub users can ignore this file
+pages:
+  stage: deploy
+  script:
+    - mkdir .public
+    - cp -r * .public
+    - mv .public public
+  artifacts:
+    paths:
+      - public
+`;
+            fs.writeFileSync(path.join(playbackPath, '.gitlab-ci.yml'), gitlabCi, 'utf8');
+
+            // Copy media files
+            progress.report({ message: 'Copying media files...' });
+
+            const projectDirPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+            copyMediaFiles(projectDirPath, playbackPath);
+
+            vscode.window.showInformationMessage(`${MESSAGES.STANDALONE_CREATED} at ${playbackPath} view the README.md in that folder for deployment instructions.`);
+        } catch (err) {
+            console.error('Error exporting standalone playback:', err);
+            vscode.window.showErrorMessage(`Failed to export playback: ${err.message}`);
+        }
+    });
+}
+
 /*****************************************************************************
  * Helper Functions
  *****************************************************************************/
@@ -914,6 +1090,9 @@ module.exports = {
     validateBookJson,
     generateBookIndexHtml,
     generatePlaybackViewerHtml,
+    generateStandalonePlaybackHtml,
+    generateStandaloneReadme,
+    generateBookReadme,
     getPlaybackDataAsJs,
     getAuthorsFromPlayback,
     promptForBookSelection,
@@ -921,5 +1100,6 @@ module.exports = {
     addPlaybackToBook,
     regenerateBookIndex,
     deletePlaybackFromBook,
-    setAiApiUrl
+    setAiApiUrl,
+    exportStandalonePlayback
 };

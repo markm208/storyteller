@@ -6,7 +6,7 @@ const path = require('path');
 const { COMMANDS, STATUS_BAR, MESSAGES, BROWSER_COMMANDS, PLAYBACK_INDEX_URL, PLAYBACK_COMMENT_URL, STATUS_BAR_MESSAGE_TIMEOUT_MS, IGNORE_FILE_DOCS_URL } = require('./constants');
 const { updateStatusBar } = require('./status-bar');
 const { zipProject, zipViewablePlayback } = require('./zip');
-const { createNewBook, addPlaybackToBook, regenerateBookIndex, deletePlaybackFromBook, setAiApiUrl } = require('./book');
+const { createNewBook, addPlaybackToBook, regenerateBookIndex, deletePlaybackFromBook, setAiApiUrl, exportStandalonePlayback } = require('./book');
 
 /**
  * Registers all Storyteller commands
@@ -35,7 +35,8 @@ function registerCommands(context, state) {
         [COMMANDS.ADD_PLAYBACK_TO_BOOK, () => addPlaybackToBook(state, context)],
         [COMMANDS.REGENERATE_BOOK_INDEX, () => regenerateBookIndex(state, context)],
         [COMMANDS.DELETE_PLAYBACK_FROM_BOOK, () => deletePlaybackFromBook(state, context)],
-        [COMMANDS.SET_AI_API_URL, () => setAiApiUrl(state, context)]
+        [COMMANDS.SET_AI_API_URL, () => setAiApiUrl(state, context)],
+        [COMMANDS.EXPORT_STANDALONE_PLAYBACK, () => exportStandalonePlayback(state, context)]
     ];
 
     for (const [commandId, handler] of commands) {

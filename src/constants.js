@@ -60,7 +60,8 @@ const COMMANDS = {
     ADD_PLAYBACK_TO_BOOK: 'storyteller.addPlaybackToBook',
     REGENERATE_BOOK_INDEX: 'storyteller.regenerateBookIndex',
     DELETE_PLAYBACK_FROM_BOOK: 'storyteller.deletePlaybackFromBook',
-    SET_AI_API_URL: 'storyteller.setAiApiUrl'
+    SET_AI_API_URL: 'storyteller.setAiApiUrl',
+    EXPORT_STANDALONE_PLAYBACK: 'storyteller.exportStandalonePlayback'
 };
 
 /**
@@ -148,7 +149,12 @@ const MESSAGES = {
     ERROR_BOOK_NOT_FOUND: 'book.json not found in selected folder',
     ERROR_BOOK_INVALID: 'Invalid book.json structure',
     ERROR_NO_PLAYBACKS: 'No playbacks found in this book',
-    ERROR_STORYTELLER_REQUIRED: 'An active Storyteller project is required to add playbacks'
+    ERROR_STORYTELLER_REQUIRED: 'An active Storyteller project is required to add playbacks',
+
+    // Standalone playback export messages
+    STANDALONE_SLUG_PROMPT: 'Enter a directory name for the playback (lowercase, no spaces)',
+    STANDALONE_AI_URL_PROMPT: 'Enter AI API URL (optional, press Enter to skip)',
+    STANDALONE_CREATED: 'Standalone playback exported successfully'
 };
 
 /**

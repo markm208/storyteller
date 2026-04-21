@@ -124,6 +124,11 @@
                 "command": "storyteller.setAiApiUrl",
                 "title": "Set AI API URL for Book",
                 "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.exportStandalonePlayback",
+                "title": "Export as GitHub/GitLab Pages Site",
+                "category": "Storyteller"
             }
         ],
         "configuration": {
