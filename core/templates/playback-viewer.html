@@ -55,8 +55,12 @@
     <script src="../../assets/js/TagView.js"></script>
     <script src="../../assets/js/TitleBar.js"></script>
     <script src="../../assets/js/VerticalMediaContainer.js"></script>
-    <!-- playback data -->
-    <script src="./playback.js"></script>
+    <!-- playback data - loaded dynamically to handle server URL quirks -->
+    <script>
+      // Get the directory of the current page and write script tag synchronously
+      const playbackDir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+      document.write('<script src="' + playbackDir + 'playback.js"><\/script>');
+    </script>
     <style>
       html, body {
         margin: 0;

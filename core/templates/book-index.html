@@ -111,6 +111,27 @@
             border-bottom-color: #2563eb;
         }
 
+        .embed-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            margin-left: 0.5rem;
+            color: #888;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .embed-btn:hover {
+            background-color: #e5e5e5;
+            color: #333;
+        }
+
+        .embed-btn.copied {
+            color: #16a34a;
+        }
+
         footer {
             text-align: center;
             padding: 2rem;
@@ -159,5 +180,36 @@
     <footer>
         <p>Created with <a href="https://github.com/markm208/storyteller" target="_blank" rel="noopener">Storyteller</a></p>
     </footer>
+
+    <script>
+        function copyEmbed(btn, slug, title) {
+            // Get the base URL of the current page
+            const baseUrl = window.location.href.replace(/\/[^\/]*$/, '');
+            const embedUrl = `${baseUrl}/playbacks/${slug}/index.html?embed=true`;
+
+            const embedSnippet = `<iframe
+  src="${embedUrl}"
+  width="100%"
+  height="600"
+  frameborder="0"
+  allow="clipboard-write"
+  title="${title}">
+</iframe>`;
+
+            navigator.clipboard.writeText(embedSnippet).then(() => {
+                // Show feedback
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy embed code');
+            });
+        }
+    </script>
 </body>
 </html>

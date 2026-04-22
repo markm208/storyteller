@@ -108,9 +108,13 @@ function generateBookIndexHtml(bookData) {
                 authorStr = ` <span class="playback-authors">by ${authorNames}</span>`;
             }
 
+            // Escape the title for use in JavaScript (handle quotes)
+            const jsTitle = escapeHtml(playback.title).replace(/'/g, "\\'");
+
             chaptersHtml += `
                 <li>
                     <a href="playbacks/${escapeHtml(playback.slug)}/index.html">${escapeHtml(playback.title)}</a>${authorStr}
+                    <button class="embed-btn" onclick="copyEmbed(this, '${escapeHtml(playback.slug)}', '${jsTitle}')" title="Copy embed code">Embed</button>
                 </li>`;
         });
 
