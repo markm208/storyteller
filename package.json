@@ -129,6 +129,11 @@
                 "command": "storyteller.exportStandalonePlayback",
                 "title": "Export as GitHub/GitLab Pages Site",
                 "category": "Storyteller"
+            },
+            {
+                "command": "storyteller.importPlaybackFromUrl",
+                "title": "Import Playback from URL",
+                "category": "Storyteller"
             }
         ],
         "configuration": {

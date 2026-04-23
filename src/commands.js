@@ -7,6 +7,7 @@ const { COMMANDS, STATUS_BAR, MESSAGES, BROWSER_COMMANDS, PLAYBACK_INDEX_URL, PL
 const { updateStatusBar } = require('./status-bar');
 const { zipProject, zipViewablePlayback } = require('./zip');
 const { createNewBook, addPlaybackToBook, regenerateBookIndex, deletePlaybackFromBook, setAiApiUrl, exportStandalonePlayback } = require('./book');
+const { importPlaybackFromUrl } = require('./import');
 
 /**
  * Registers all Storyteller commands
@@ -36,7 +37,8 @@ function registerCommands(context, state) {
         [COMMANDS.REGENERATE_BOOK_INDEX, () => regenerateBookIndex(state, context)],
         [COMMANDS.DELETE_PLAYBACK_FROM_BOOK, () => deletePlaybackFromBook(state, context)],
         [COMMANDS.SET_AI_API_URL, () => setAiApiUrl(state, context)],
-        [COMMANDS.EXPORT_STANDALONE_PLAYBACK, () => exportStandalonePlayback(state, context)]
+        [COMMANDS.EXPORT_STANDALONE_PLAYBACK, () => exportStandalonePlayback(state, context)],
+        [COMMANDS.IMPORT_PLAYBACK_FROM_URL, () => importPlaybackFromUrl(state, context)]
     ];
 
     for (const [commandId, handler] of commands) {

@@ -61,7 +61,8 @@ const COMMANDS = {
     REGENERATE_BOOK_INDEX: 'storyteller.regenerateBookIndex',
     DELETE_PLAYBACK_FROM_BOOK: 'storyteller.deletePlaybackFromBook',
     SET_AI_API_URL: 'storyteller.setAiApiUrl',
-    EXPORT_STANDALONE_PLAYBACK: 'storyteller.exportStandalonePlayback'
+    EXPORT_STANDALONE_PLAYBACK: 'storyteller.exportStandalonePlayback',
+    IMPORT_PLAYBACK_FROM_URL: 'storyteller.importPlaybackFromUrl'
 };
 
 /**
@@ -154,7 +155,18 @@ const MESSAGES = {
     // Standalone playback export messages
     STANDALONE_SLUG_PROMPT: 'Enter a directory name for the playback (lowercase, no spaces)',
     STANDALONE_AI_URL_PROMPT: 'Enter AI API URL (optional, press Enter to skip)',
-    STANDALONE_CREATED: 'Standalone playback exported successfully'
+    STANDALONE_CREATED: 'Standalone playback exported successfully',
+
+    // Import playback messages
+    IMPORT_URL_PROMPT: 'Enter the URL of the published playback (e.g., https://user.github.io/book/playbacks/hello/)',
+    IMPORT_LOCALHOST_ERROR: 'Cannot import from localhost. Please provide a public URL.',
+    IMPORT_FETCH_ERROR: 'Failed to fetch playback data from URL',
+    IMPORT_PARSE_ERROR: 'Failed to parse playback data. The URL may not point to a valid Storyteller playback.',
+    IMPORT_SUCCESS: 'Playback imported successfully',
+    IMPORT_AUTHOR_PROMPT: "Enter your name as the importing author: 'Name @github-username' or 'Name @gitlab:username' or 'Name email@example.com'",
+    IMPORT_DESTINATION_PROMPT: 'Choose where to create the imported playback folder',
+    IMPORT_ACTIVE_PROJECT_WARNING: 'There is an active Storyteller project in this workspace. The import will create a new folder.',
+    IMPORT_FOLDER_PROMPT: 'Enter a folder name for the imported playback'
 };
 
 /**
