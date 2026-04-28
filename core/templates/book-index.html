@@ -185,16 +185,22 @@
         function copyEmbed(btn, slug, title) {
             // Get the base URL of the current page
             const baseUrl = window.location.href.replace(/\/[^\/]*$/, '');
-            const embedUrl = `${baseUrl}/playbacks/${slug}/index.html?embed=true`;
+            const playbackUrl = `${baseUrl}/playbacks/${slug}/index.html`;
+            const embedUrl = `${playbackUrl}?embed=true`;
 
-            const embedSnippet = `<iframe
-  src="${embedUrl}"
-  width="100%"
-  height="600"
-  frameborder="0"
-  allow="clipboard-write"
-  title="${title}">
-</iframe>`;
+            const embedSnippet = `<div style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; font-family: system-ui, sans-serif;">
+  <div style="background: #fafafa; padding: 8px 12px; border-bottom: 1px solid #ddd; text-align: right;">
+    <a href="${playbackUrl}" target="_blank" rel="noopener" style="font-size: 0.8em; color: #0066cc; text-decoration: none;">Open in new tab ↗</a>
+  </div>
+  <iframe
+    src="${embedUrl}"
+    width="100%"
+    height="600"
+    frameborder="0"
+    allow="clipboard-write"
+    title="${title}">
+  </iframe>
+</div>`;
 
             navigator.clipboard.writeText(embedSnippet).then(() => {
                 // Show feedback
