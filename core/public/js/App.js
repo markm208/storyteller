@@ -8,6 +8,10 @@ class App extends HTMLElement {
     this.activeMode = '';
     this.initialMode = initialMode;
 
+    //initialize local storage manager and make it globally available
+    this.localStorageManager = new LocalStorageManager(playbackData);
+    window.storytellerLocalStorage = this.localStorageManager;
+
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
   }
@@ -215,6 +219,50 @@ class App extends HTMLElement {
     this.shadowRoot.addEventListener('change-tts-speed', event => {
       this.changeTTSSpeed(event.detail.speed);
     });
+
+    //summary modal
+    this.shadowRoot.addEventListener('open-summary-modal', event => {
+      this.openSummaryModal();
+    });
+
+    //handle navigation from summary modal
+    this.shadowRoot.addEventListener('navigate-to-comment', event => {
+      this.playbackEngine.stepToCommentById(event.detail.commentId);
+      if (this.activeMode === 'code') {
+        const codeView = this.shadowRoot.querySelector('st-code-view');
+        codeView.updateForPlaybackMovement();
+        codeView.updateForCommentSelected();
+      } else {
+        const blogView = this.shadowRoot.querySelector('st-blog-view');
+        const element = blogView.shadowRoot.querySelector(`#id-${event.detail.commentId}`);
+        if (element) {
+          const activeElements = blogView.shadowRoot.querySelectorAll('.activeComment');
+          activeElements.forEach(el => el.classList.remove('activeComment'));
+          element.classList.add('activeComment');
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    });
+
+    //handle progress cleared from summary modal
+    this.shadowRoot.addEventListener('progress-cleared', event => {
+      //could refresh the view to update viewed indicators if needed
+    });
+  }
+
+  openSummaryModal() {
+    //remove any existing modal
+    let modal = this.shadowRoot.querySelector('st-summary-review-modal');
+    if (modal) {
+      modal.remove();
+    }
+
+    //create and show the modal
+    modal = new SummaryReviewModal(
+      this.playbackEngine,
+      this.localStorageManager
+    );
+    this.shadowRoot.appendChild(modal);
   }
 
   //handles the search from the search bar

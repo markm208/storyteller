@@ -1,9 +1,12 @@
 class AIAssistant extends HTMLElement {
-  constructor(playbackEngine, sendResponseAsEvent=false) {
+  constructor(playbackEngine, sendResponseAsEvent=false, localStorageManager=null, commentId=null) {
     super();
 
     this.playbackEngine = playbackEngine;
     this.sendResponseAsEvent = sendResponseAsEvent;
+    // Use passed localStorageManager or fall back to global
+    this.localStorageManager = localStorageManager || window.storytellerLocalStorage || null;
+    this.commentId = commentId;
     this.isExpanded = false;
     this.activeTab = 'askAQuestion';
     this.skillLevel = 'beginner';
@@ -295,6 +298,99 @@ class AIAssistant extends HTMLElement {
           padding: 2px 4px;
           border-radius: 2px;
         }
+
+        .ai-question-wrapper {
+          position: relative;
+          margin-bottom: 10px;
+        }
+
+        .ai-question-delete {
+          position: absolute;
+          top: 5px;
+          right: 5px;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: none;
+          background-color: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+          font-size: 18px;
+          line-height: 1;
+          cursor: pointer;
+          z-index: 10;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0.6;
+          transition: opacity 0.2s, background-color 0.2s;
+        }
+
+        .ai-question-delete:hover {
+          opacity: 1;
+          background-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .save-to-notes-button {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          background-color: rgba(59, 130, 246, 0.2);
+          border: 1px solid rgba(59, 130, 246, 0.5);
+          color: rgba(96, 165, 250, 0.9);
+          border-radius: 4px;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .save-to-notes-button:hover {
+          background-color: rgba(59, 130, 246, 0.3);
+          border-color: rgba(59, 130, 246, 0.8);
+        }
+
+        .save-to-notes-button.saved {
+          background-color: rgba(34, 197, 94, 0.2);
+          border-color: rgba(34, 197, 94, 0.5);
+          color: rgba(34, 197, 94, 0.9);
+          cursor: default;
+        }
+
+        .save-to-notes-button svg {
+          width: 14px;
+          height: 14px;
+        }
+
+        .save-to-notes-container {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 10px;
+        }
+
+        .view-notes-button {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 6px 10px;
+          background-color: rgba(59, 130, 246, 0.2);
+          border: 1px solid rgba(59, 130, 246, 0.5);
+          color: rgba(96, 165, 250, 0.9);
+          border-radius: 4px;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .view-notes-button:hover {
+          background-color: rgba(59, 130, 246, 0.3);
+          border-color: rgba(59, 130, 246, 0.8);
+        }
+
+        .view-notes-button svg {
+          width: 14px;
+          height: 14px;
+        }
       </style>
       <div class="container">
         <button class="toggle-button">
@@ -376,6 +472,120 @@ class AIAssistant extends HTMLElement {
     this.setupEventListeners();
     this.renderDefaultQuestions();
     this.updateResultsVisibility(); // Ensure visibility logic is applied on load
+    // Note: Saved AI questions are restored in the comment view (CommentView/BlogComponent), not here
+  }
+
+  /**
+   * Restore saved AI questions for this comment from localStorage
+   */
+  restoreSavedQuestions() {
+    if (!this.localStorageManager || !this.commentId) return;
+
+    const savedQuestions = this.localStorageManager.getAIQuestionsForComment(this.commentId);
+    if (savedQuestions.length === 0) return;
+
+    const resultsArea = this.shadowRoot.querySelector('[data-tab-content="practice"] .results-area');
+
+    savedQuestions.forEach(savedQuestion => {
+      const questionData = savedQuestion.questionCommentData;
+      const wrapper = this.createQuestionWrapper(questionData, savedQuestion.id);
+      resultsArea.appendChild(wrapper);
+    });
+
+    // Make results visible if there are saved questions
+    if (savedQuestions.length > 0) {
+      resultsArea.classList.add('has-results');
+    }
+  }
+
+  /**
+   * Create a wrapper for an AI question with delete button
+   */
+  createQuestionWrapper(questionData, questionId) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ai-question-wrapper';
+    wrapper.dataset.questionId = questionId;
+
+    // Create delete button
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'ai-question-delete';
+    deleteBtn.innerHTML = '&times;';
+    deleteBtn.title = 'Delete this AI-generated question';
+    deleteBtn.addEventListener('click', () => this.deleteQuestion(questionId, wrapper));
+
+    // Render markdown for the question and explanation
+    const md = markdownit();
+    const renderedData = {
+      ...questionData,
+      question: md.render(questionData.question),
+      explanation: questionData.explanation ? md.render(questionData.explanation) : ''
+    };
+
+    // Create the question view
+    const qAndAView = new QuestionAnswerView(
+      { questionCommentData: renderedData },
+      { localStorageManager: this.localStorageManager, questionSource: 'ai', commentId: this.commentId }
+    );
+
+    wrapper.appendChild(deleteBtn);
+    wrapper.appendChild(qAndAView);
+
+    return wrapper;
+  }
+
+  /**
+   * Delete an AI-generated question
+   */
+  deleteQuestion(questionId, wrapperElement) {
+    if (!this.localStorageManager) return;
+
+    this.localStorageManager.deleteAIQuestion(questionId);
+    wrapperElement.remove();
+
+    // Check if there are any questions left
+    const resultsArea = this.shadowRoot.querySelector('[data-tab-content="practice"] .results-area');
+    const remainingQuestions = resultsArea.querySelectorAll('.ai-question-wrapper');
+    if (remainingQuestions.length === 0) {
+      resultsArea.classList.remove('has-results');
+    }
+  }
+
+  /**
+   * Save an AI question to localStorage and create wrapper
+   */
+  saveAndDisplayQuestion(questionData, resultsArea, prepend = true) {
+    if (!this.localStorageManager || !this.commentId) {
+      // If no localStorage or commentId, just create without saving (but still render markdown)
+      const md = markdownit();
+      const renderedData = {
+        ...questionData,
+        question: md.render(questionData.question),
+        explanation: questionData.explanation ? md.render(questionData.explanation) : ''
+      };
+      const qAndAView = new QuestionAnswerView(
+        { questionCommentData: renderedData },
+        { localStorageManager: this.localStorageManager, questionSource: 'ai' }
+      );
+      if (prepend) {
+        resultsArea.prepend(qAndAView);
+      } else {
+        resultsArea.appendChild(qAndAView);
+      }
+      return;
+    }
+
+    // Save to localStorage (save raw data before markdown rendering)
+    const savedRecord = this.localStorageManager.saveAIQuestion(this.commentId, questionData);
+
+    if (savedRecord) {
+      // Dispatch event so comment view can display the question
+      const event = new CustomEvent('ai-question-saved', {
+        detail: { savedQuestion: savedRecord, commentId: this.commentId },
+        bubbles: true,
+        composed: true
+      });
+      this.dispatchEvent(event);
+    }
   }
 
   disconnectedCallback() {
@@ -554,12 +764,8 @@ class AIAssistant extends HTMLElement {
                     questionData.allAnswers[0] = questionData.allAnswers[randomIndex];
                     questionData.allAnswers[randomIndex] = temp;
 
-                    const md = markdownit();
-                    questionData.question = md.render(questionData.question);
-                    questionData.explanation = md.render(questionData.explanation);
-
-                    const qAndAView = new QuestionAnswerView({ questionCommentData: questionData });
-                    resultsArea.prepend(qAndAView);
+                    // Save raw data to localStorage before markdown rendering
+                    this.saveAndDisplayQuestion({ ...questionData }, resultsArea, true);
                 });
 
                 if (this.sendResponseAsEvent) {
@@ -676,6 +882,12 @@ class AIAssistant extends HTMLElement {
       answerDiv.innerHTML = md.render(response);
       responseDiv.appendChild(answerDiv);
 
+      // Add "Save to Notes" button if localStorage and commentId are available
+      if (this.localStorageManager && this.commentId) {
+        const saveButton = this.createSaveToNotesButton(questionText, response);
+        responseDiv.appendChild(saveButton);
+      }
+
       resultsArea.insertBefore(responseDiv, resultsArea.firstChild);
 
       if (this.sendResponseAsEvent) {
@@ -701,12 +913,8 @@ class AIAssistant extends HTMLElement {
           q.allAnswers[0] = q.allAnswers[randomIndex];
           q.allAnswers[randomIndex] = temp;
 
-          const md = markdownit();
-          q.question = md.render(q.question);
-          q.explanation = md.render(q.explanation);
-
-          const qAndAView = new QuestionAnswerView({ questionCommentData: q });
-          resultsArea.appendChild(qAndAView);
+          // Save raw data to localStorage before markdown rendering
+          this.saveAndDisplayQuestion({ ...q }, resultsArea, false);
         });
 
         if (this.sendResponseAsEvent) {
@@ -749,6 +957,101 @@ class AIAssistant extends HTMLElement {
             resultsArea.style.display = 'none';
         }
     });
+  }
+
+  setLocalStorageManager(localStorageManager) {
+    this.localStorageManager = localStorageManager;
+  }
+
+  /**
+   * Create a "Save to Notes" button for a Q&A response
+   */
+  createSaveToNotesButton(questionText, responseText) {
+    const container = document.createElement('div');
+    container.className = 'save-to-notes-container';
+
+    const button = document.createElement('button');
+    button.className = 'save-to-notes-button';
+    button.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+      Save to Notes
+    `;
+    button.title = 'Save this question and answer to your personal notes';
+
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.saveQAToNotes(questionText, responseText, container);
+    });
+
+    container.appendChild(button);
+    return container;
+  }
+
+  /**
+   * Save a Q&A to the notes for this comment
+   */
+  saveQAToNotes(questionText, responseText, container) {
+    if (!this.localStorageManager || !this.commentId) return;
+
+    // Format the Q&A as markdown
+    const qaPart = `**Question:** ${questionText}\n\n**Answer:** ${responseText}\n\n---\n\n`;
+
+    // Get existing note (if any) and append
+    const existingNote = this.localStorageManager.getNote(this.commentId);
+    let newNoteText;
+
+    if (existingNote && existingNote.text) {
+      // Append to existing note
+      newNoteText = existingNote.text + '\n\n' + qaPart;
+    } else {
+      // Create new note
+      newNoteText = qaPart;
+    }
+
+    // Save the note
+    this.localStorageManager.saveNote(this.commentId, newNoteText.trim());
+
+    // Update button to show saved state
+    const saveButton = container.querySelector('.save-to-notes-button');
+    saveButton.classList.add('saved');
+    saveButton.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+      Saved!
+    `;
+    saveButton.disabled = true;
+
+    // Add "View" button if not already present
+    if (!container.querySelector('.view-notes-button')) {
+      const viewButton = document.createElement('button');
+      viewButton.className = 'view-notes-button';
+      viewButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        View In Note
+      `;
+      viewButton.title = 'Open notes editor';
+      viewButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.dispatchEvent(new CustomEvent('open-note-editor', {
+          detail: { commentId: this.commentId },
+          bubbles: true,
+          composed: true
+        }));
+      });
+      container.appendChild(viewButton);
+    }
+
+    // Dispatch event so NoteEditor and note indicator can update
+    this.dispatchEvent(new CustomEvent('note-saved', {
+      detail: { commentId: this.commentId, hasNote: true },
+      bubbles: true,
+      composed: true
+    }));
   }
 }
 

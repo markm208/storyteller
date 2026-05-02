@@ -893,6 +893,7 @@ class ProjectManager {
         //create the text for a js global that holds the playback data
         const js =
 `const PLAYBACK_DATA = {
+    playbackId: ${JSON.stringify(this.project.id)},
     events: ${JSON.stringify(events)},
     numEvents: ${events.length},
     comments: ${JSON.stringify(comments)},

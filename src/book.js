@@ -249,6 +249,7 @@ function getPlaybackDataAsJs(projectManager, aiApiUrl = null) {
     // Generate JavaScript that creates a global constant (works with file:// protocol)
     const js =
 `const PLAYBACK_DATA = {
+    playbackId: ${JSON.stringify(projectManager.project.id)},
     events: ${JSON.stringify(events)},
     numEvents: ${events.length},
     comments: ${JSON.stringify(comments)},

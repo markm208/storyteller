@@ -1053,6 +1053,11 @@ class PlaybackEngine {
     return commentIndex;
   }
 
+  getCommentById(commentId) {
+    //find and return the comment with the given id
+    return this.commentInfo.flattenedComments.find(c => c.id === commentId) || null;
+  }
+
   addComment(newComment) {
     //get the event id where the playback is paused
     const eventId = this.playbackData.events[this.currentEventIndex].id;

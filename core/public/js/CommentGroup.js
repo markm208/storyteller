@@ -7,6 +7,7 @@ class CommentGroup extends HTMLElement {
     this.startingCommentNumber = commentGroupData.startingCommentNumber;
     this.totalNumberOfComments = commentGroupData.totalNumberOfComments;
     this.playbackEngine = commentGroupData.playbackEngine;
+    this.localStorageManager = commentGroupData.localStorageManager || null;
 
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
@@ -97,7 +98,8 @@ class CommentGroup extends HTMLElement {
         playbackEngine: this.playbackEngine,
         isDescriptionComment: isDescriptionComment,
         commentNumber: this.startingCommentNumber + i,
-        totalNumberOfComments: this.totalNumberOfComments
+        totalNumberOfComments: this.totalNumberOfComments,
+        localStorageManager: this.localStorageManager
       });
       //give the comment view the id of the comment
       commentView.setAttribute('id', `id-${comment.id}`);
@@ -323,14 +325,23 @@ class CommentGroup extends HTMLElement {
   }
 
   sendReorderComments = (updatedCommentPosition) => {
-    const event = new CustomEvent('reorder-comments', { 
+    const event = new CustomEvent('reorder-comments', {
       detail: {
         updatedCommentPosition: updatedCommentPosition
       },
-      bubbles: true, 
-      composed: true 
+      bubbles: true,
+      composed: true
     });
     this.dispatchEvent(event);
+  }
+
+  setLocalStorageManager(localStorageManager) {
+    this.localStorageManager = localStorageManager;
+    // Update all child comment views
+    const allCommentViews = this.shadowRoot.querySelectorAll('st-comment-view');
+    allCommentViews.forEach(commentView => {
+      commentView.setLocalStorageManager(localStorageManager);
+    });
   }
 }
 

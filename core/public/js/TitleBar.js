@@ -66,6 +66,17 @@ class TitleBar extends HTMLElement {
       .hidden {
         display: none;
       }
+      #summaryButton {
+        padding: 0px 8px;
+        background-color: transparent;
+        border: 1px solid transparent;
+        color: rgb(201, 226, 242);
+        cursor: pointer;
+        opacity: 80%;
+      }
+      #summaryButton:hover {
+        opacity: 100%;
+      }
     </style>
 
     <!-- Logo and playback title -->
@@ -90,6 +101,13 @@ class TitleBar extends HTMLElement {
     <!-- search bar, code/blog mode buttons and options button -->
     <div class="optionsButtonsGroup" role="group" aria-label="Options Button Group">
       <st-search-bar></st-search-bar>
+
+      <button id="summaryButton" type="button" title="View Summary">
+        <!-- bar chart icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5h-2v12h2V2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/>
+        </svg>
+      </button>
 
       <button id="enterCodeModeButton" type="button" class="modeButton" title="Code View">
         <!-- icon url: https://icons.getbootstrap.com/icons/file-code/ -->
@@ -160,6 +178,18 @@ class TitleBar extends HTMLElement {
       //make the edit button visible
       editButton.classList.remove('hidden');
     }
+
+    //summary button
+    const summaryButton = this.shadowRoot.querySelector('#summaryButton');
+    summaryButton.addEventListener('click', this.openSummaryModal);
+  }
+
+  openSummaryModal = () => {
+    const event = new CustomEvent('open-summary-modal', {
+      bubbles: true,
+      composed: true
+    });
+    this.dispatchEvent(event);
   }
 
   disconnectedCallback() {

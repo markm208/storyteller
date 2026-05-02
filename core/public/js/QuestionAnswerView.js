@@ -1,9 +1,14 @@
 class QuestionAnswerView extends HTMLElement {
-  constructor(comment) {
+  constructor(comment, options = {}) {
     super();
 
     this.comment = comment;
-    
+    // Use passed localStorageManager or fall back to global
+    this.localStorageManager = options.localStorageManager || window.storytellerLocalStorage || null;
+    this.questionSource = options.questionSource || 'author'; // 'author' or 'ai'
+    // Allow commentId to be passed directly in options (for AI questions where comment.id may not exist)
+    this.commentId = options.commentId || comment.id || null;
+
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
   }
@@ -233,6 +238,31 @@ class QuestionAnswerView extends HTMLElement {
     answerButton.classList.add('hidden');
     const clearAnswerButton = this.shadowRoot.querySelector('#clearAnswerButton');
     clearAnswerButton.classList.remove('hidden');
+
+    //record the answer to localStorage
+    this.recordAnswer(selectedAnswer, rightAnswer);
+  }
+
+  recordAnswer(selectedAnswer, rightAnswer) {
+    if (!this.localStorageManager) return;
+
+    const questionData = this.comment.questionCommentData;
+    const userAnswerValue = selectedAnswer ? selectedAnswer.value : null;
+    const isCorrect = selectedAnswer && selectedAnswer.value === questionData.correctAnswer;
+
+    this.localStorageManager.recordQuestionAnswer({
+      question: questionData.question,
+      allAnswers: questionData.allAnswers,
+      userAnswer: userAnswerValue,
+      correctAnswer: questionData.correctAnswer,
+      isCorrect: isCorrect,
+      source: this.questionSource,
+      commentId: this.commentId
+    });
+  }
+
+  setLocalStorageManager(localStorageManager) {
+    this.localStorageManager = localStorageManager;
   }
 
   clearAnswers() {

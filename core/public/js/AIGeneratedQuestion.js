@@ -112,7 +112,7 @@ class AIGeneratedQuestion extends HTMLElement {
         });
         this.dispatchEvent(event);
       } else {
-        const qAndAView = new QuestionAnswerView({ questionCommentData });
+        const qAndAView = new QuestionAnswerView({ questionCommentData }, { questionSource: 'ai' });
         questionContainer.prepend(qAndAView);
       }
     }
