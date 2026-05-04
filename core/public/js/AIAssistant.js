@@ -17,6 +17,7 @@ class AIAssistant extends HTMLElement {
     this.defaultQuestions = [
       { text: 'Summarize this code and explain the key concepts.', prompt: 'What is being demonstrated by the author in the highlighted code? If there is no highlighted code then provide a summary of what the entire code does.' },
       { text: 'What could go wrong here?', prompt: 'What potential bugs or issues might arise from this code? Are there any performance issues or edge cases that need to be addressed?' },
+      { text: 'Explain this using an analogy or real-world example', prompt: 'Explain the logic in this code using an analogy or real-world example that makes it easier to understand. Avoid technical jargon and tailor the explanation to a ${this.skillLevel} programmer.' },
       { text: AI_SUGGESTION_TEXT, prompt: 'Come up with an insightful question about this code that would help someone learn. Then, provide the answer in the response. Clearly identify the question and the answer.' }
     ];
 
