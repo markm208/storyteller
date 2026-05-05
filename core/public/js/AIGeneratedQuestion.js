@@ -79,7 +79,7 @@ class AIGeneratedQuestion extends HTMLElement {
     
     //send the formatted one to the server
     const serverProxy = new ServerProxy();
-    const responseObject = await serverProxy.sendAIPromptToServer(promptObject);
+    const responseObject = await serverProxy.sendAIPromptToServer(promptObject, this.playbackEngine.playbackData.aiApiUrl);
     
     submitButton.textContent = 'Generate Another Self-Grading Multiple Choice Question';
     submitButton.removeAttribute('disabled');

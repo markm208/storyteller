@@ -743,7 +743,7 @@ class AIAssistant extends HTMLElement {
     };
 
     const serverProxy = new ServerProxy();
-    serverProxy.sendAIPromptToServer(promptObject).then(responseObject => {
+    serverProxy.sendAIPromptToServer(promptObject, this.playbackEngine.playbackData.aiApiUrl).then(responseObject => {
         generateButton.textContent = 'Generate More Practice Questions';
         generateButton.removeAttribute('disabled');
 
@@ -836,8 +836,8 @@ class AIAssistant extends HTMLElement {
     
     try {
       const serverProxy = new ServerProxy();
-      const responseObject = await serverProxy.sendAIPromptToServer(promptObject);
-      
+      const responseObject = await serverProxy.sendAIPromptToServer(promptObject, this.playbackEngine.playbackData.aiApiUrl);
+
       if (responseObject.error) {
         this.displayError(responseObject.response, tab);
       } else {

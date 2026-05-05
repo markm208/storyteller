@@ -300,35 +300,80 @@ class ServerProxy {
   }
 
   //add a method to send an ai prompt to the server
-  async sendAIPromptToServer(prompt) {
+  //aiApiUrl is optional - if provided, requests go to the external AI proxy (for published playbacks)
+  //if not provided, requests go to the local server (for VS Code extension)
+  async sendAIPromptToServer(prompt, aiApiUrl = null) {
     let resultObject = {response: null, error: true};
 
     try {
-      const fetchConfigData = {
-        method: 'POST',
-        body: JSON.stringify(prompt),
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      };
+      if (aiApiUrl) {
+        // Published playback - call the Cloudflare Worker (or other AI proxy)
+        const openaiPayload = {
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: "You are a helpful tutor explaining code to a student. Be concise and clear." },
+            { role: "user", content: prompt.prompt }
+          ],
+          max_tokens: 1000
+        };
 
-      let metaTag = document.querySelector('meta[name="csrf-token"]');
-      if (metaTag) {
-        fetchConfigData.headers['X-CSRF-Token'] = metaTag.content;
-      }
-      
-      const httpResponse = await fetch('/aiPrompt', fetchConfigData);
-      const bodyJSON = await httpResponse.json();
-      resultObject.response = bodyJSON.response;
-      if (httpResponse.ok) {
-        resultObject.error = false;
+        const fetchConfigData = {
+          method: 'POST',
+          body: JSON.stringify({
+            provider: "openai",
+            payload: openaiPayload
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        };
+
+        const httpResponse = await fetch(aiApiUrl, fetchConfigData);
+        const responseJSON = await httpResponse.json();
+
+        if (httpResponse.ok && responseJSON.choices && responseJSON.choices[0]) {
+          resultObject.response = responseJSON.choices[0].message.content;
+          resultObject.error = false;
+        } else if (responseJSON.error) {
+          // Handle error response from Worker or OpenAI
+          resultObject.response = responseJSON.response || responseJSON.error.message || "Error from AI service";
+        }
+      } else {
+        // VS Code extension - call local server
+        const fetchConfigData = {
+          method: 'POST',
+          body: JSON.stringify(prompt),
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        };
+
+        // TODO: Remove CSRF token handling when Playback Press Rails server is shut down.
+        // This is only needed for the Rails implementation and not for the VS Code HttpServer.
+        let metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+          fetchConfigData.headers['X-CSRF-Token'] = metaTag.content;
+        }
+
+        const httpResponse = await fetch('/aiPrompt', fetchConfigData);
+        const bodyJSON = await httpResponse.json();
+        resultObject.response = bodyJSON.response;
+        if (httpResponse.ok) {
+          resultObject.error = false;
+        }
       }
     } catch (error) {
       console.log(error);
+      resultObject.response = "Error connecting to AI service";
     }
     return resultObject;
   }
 
+  // TODO: Add support for TTS on published playbacks (Cloudflare Worker path).
+  // This will require updating the Worker to handle TTS requests and return binary audio.
+  // Note: Only OpenAI offers TTS - Anthropic does not have a TTS API.
+  // Possible approach: only give the option for TTS in the extension, not in the published playback.
+  
   async sendTextToSpeechRequest(text) {
     let resultObject = { response: null, error: true };
     try {
@@ -340,6 +385,8 @@ class ServerProxy {
         }
       };
 
+      // TODO: Remove CSRF token handling when Playback Press Rails server is shut down.
+      // This is only needed for the Rails implementation and not for the VS Code HttpServer.
       let metaTag = document.querySelector('meta[name="csrf-token"]');
       if (metaTag) {
         fetchConfigData.headers['X-CSRF-Token'] = metaTag.content;

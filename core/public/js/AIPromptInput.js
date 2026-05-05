@@ -132,7 +132,7 @@ class AIPromptInput extends HTMLElement {
 
     //send the formatted one to the server
     const serverProxy = new ServerProxy();
-    const responseObject = await serverProxy.sendAIPromptToServer(promptObject);
+    const responseObject = await serverProxy.sendAIPromptToServer(promptObject, this.playbackEngine.playbackData.aiApiUrl);
 
     submitChatButton.textContent = 'Submit Another Question';
     submitChatButton.removeAttribute('disabled');
