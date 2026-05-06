@@ -1,4 +1,7 @@
 class CommentView extends HTMLElement {
+  // Static variable to track the last activated comment ID across all instances
+  static lastActivatedCommentId = null;
+
   constructor(commentViewData) {
     super();
 
@@ -10,6 +13,7 @@ class CommentView extends HTMLElement {
     // Use passed localStorageManager or fall back to global
     this.localStorageManager = commentViewData.localStorageManager || window.storytellerLocalStorage || null;
     this.noteEditorVisible = false;
+    this.hasBeenMarkedViewed = false; // Track if we've already counted this viewing session
 
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
@@ -598,12 +602,28 @@ class CommentView extends HTMLElement {
 
     //mark comment as viewed and update indicator
     if (this.localStorageManager) {
-      this.localStorageManager.markCommentViewed(this.comment.id);
-      const viewedIndicator = this.shadowRoot.querySelector('.viewed-indicator');
-      if (viewedIndicator) {
-        viewedIndicator.classList.add('visible');
-        const visitCount = this.localStorageManager.getCommentVisitCount(this.comment.id);
-        viewedIndicator.title = `Visited ${visitCount} time${visitCount !== 1 ? 's' : ''}`;
+      // Check if this is a re-activation of the same comment (e.g., clicking within it)
+      // vs a return visit from a different comment
+      const isReactivation = CommentView.lastActivatedCommentId === this.comment.id;
+
+      if (!isReactivation) {
+        // Coming from a different comment - reset the flag so return visits count
+        this.hasBeenMarkedViewed = false;
+      }
+
+      // Update the static tracker
+      CommentView.lastActivatedCommentId = this.comment.id;
+
+      // Only mark viewed if we haven't already in this viewing session
+      if (!this.hasBeenMarkedViewed) {
+        this.localStorageManager.markCommentViewed(this.comment.id);
+        this.hasBeenMarkedViewed = true;
+        const viewedIndicator = this.shadowRoot.querySelector('.viewed-indicator');
+        if (viewedIndicator) {
+          viewedIndicator.classList.add('visible');
+          const visitCount = this.localStorageManager.getCommentVisitCount(this.comment.id);
+          viewedIndicator.title = `Visited ${visitCount} time${visitCount !== 1 ? 's' : ''}`;
+        }
       }
     }
   }
@@ -615,6 +635,11 @@ class CommentView extends HTMLElement {
     const aiInput = this.shadowRoot.querySelector('#aiInput');
     aiInput.classList.remove('visible');
     aiInput.classList.add('hidden');
+
+    // Note: hasBeenMarkedViewed is reset in makeCommentViewActive() only when
+    // coming from a DIFFERENT comment (detected via static lastActivatedCommentId).
+    // This prevents multiple counts when clicking within the same comment
+    // while still counting return visits from other comments.
   }
 
   makePartOfActiveGroup() {

@@ -3,6 +3,7 @@ class BlogComponent extends HTMLElement {
     super();
     this.playbackEngine = playbackEngine;
     this.comment = comment;
+    this.hasBeenMarkedViewed = false; // Track if we've already counted this viewing session
 
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(this.getTemplate());
@@ -516,9 +517,10 @@ class BlogComponent extends HTMLElement {
       //move to the comment that is clicked
       this.playbackEngine.stepToCommentById(this.comment.id);
 
-      //mark comment as viewed if storage manager is available
-      if (window.storytellerLocalStorage) {
+      //mark comment as viewed if storage manager is available (only once per viewing session)
+      if (window.storytellerLocalStorage && !this.hasBeenMarkedViewed) {
         window.storytellerLocalStorage.markCommentViewed(this.comment.id);
+        this.hasBeenMarkedViewed = true;
       }
     });
   }
