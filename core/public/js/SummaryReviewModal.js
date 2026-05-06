@@ -684,6 +684,16 @@ class SummaryReviewModal extends HTMLElement {
           background-color: rgba(239, 68, 68, 0.1);
         }
 
+        .action-button.secondary {
+          background-color: transparent;
+          border: 1px solid #3b82f6;
+          color: #3b82f6;
+        }
+
+        .action-button.secondary:hover {
+          background-color: rgba(59, 130, 246, 0.1);
+        }
+
         .empty-state {
           text-align: center;
           color: #6b7280;
@@ -743,6 +753,7 @@ class SummaryReviewModal extends HTMLElement {
           <span class="privacy-notice">All data is stored locally in your browser</span>
           <div class="action-buttons">
             <button class="action-button danger" id="clearDataButton">Clear My Progress</button>
+            <button class="action-button secondary" id="generateReportButton">Generate Study Report</button>
             <button class="action-button primary" id="closeButton">Close</button>
           </div>
         </div>
@@ -773,6 +784,10 @@ class SummaryReviewModal extends HTMLElement {
     // Clear data button
     const clearDataButton = this.shadowRoot.querySelector('#clearDataButton');
     clearDataButton.addEventListener('click', () => this.clearAllData());
+
+    // Generate report button
+    const generateReportButton = this.shadowRoot.querySelector('#generateReportButton');
+    generateReportButton.addEventListener('click', () => this.generateStudyReport());
 
     // Escape key to close
     document.addEventListener('keydown', this.handleEscapeKey);
@@ -1193,6 +1208,955 @@ class SummaryReviewModal extends HTMLElement {
         composed: true
       }));
     }
+  }
+
+  generateStudyReport() {
+    const playbackTitle = this.playbackEngine.playbackData.title || 'Untitled Playback';
+    const playbackUrl = window.location.href;
+    const totalComments = this.playbackEngine.commentInfo.totalNumberOfComments;
+    const viewedCount = this.localStorageManager.getViewedCount();
+    const percentage = totalComments > 0 ? Math.round((viewedCount / totalComments) * 100) : 0;
+    const flattenedComments = this.playbackEngine.commentInfo.flattenedComments;
+
+    // Quiz data
+    const quizStats = this.localStorageManager.getActiveQuestionStats();
+    const questionHistory = this.localStorageManager.getActiveQuestionHistory();
+
+    // Notes
+    const allNotes = this.localStorageManager.getNotes();
+
+    // Helper function to get language hint from file path
+    const getLanguageFromPath = (filePath) => {
+      if (!filePath) return '';
+      const ext = filePath.split('.').pop()?.toLowerCase();
+      const langMap = {
+        'js': 'javascript',
+        'jsx': 'jsx',
+        'ts': 'typescript',
+        'tsx': 'tsx',
+        'py': 'python',
+        'rb': 'ruby',
+        'java': 'java',
+        'c': 'c',
+        'cpp': 'cpp',
+        'h': 'c',
+        'hpp': 'cpp',
+        'cs': 'csharp',
+        'go': 'go',
+        'rs': 'rust',
+        'swift': 'swift',
+        'kt': 'kotlin',
+        'php': 'php',
+        'html': 'html',
+        'css': 'css',
+        'scss': 'scss',
+        'less': 'less',
+        'json': 'json',
+        'xml': 'xml',
+        'yaml': 'yaml',
+        'yml': 'yaml',
+        'md': 'markdown',
+        'sql': 'sql',
+        'sh': 'bash',
+        'bash': 'bash',
+        'zsh': 'bash',
+        'ps1': 'powershell',
+        'vue': 'vue',
+        'svelte': 'svelte',
+      };
+      return langMap[ext] || ext || '';
+    };
+
+    // Helper function to get code blocks from a comment (with surrounding context like BlogComponent)
+    const getCodeBlocksMarkdown = (comment) => {
+      if (!comment?.selectedCodeBlocks || comment.selectedCodeBlocks.length === 0) {
+        return '';
+      }
+
+      let codeMarkdown = '';
+      const lang = getLanguageFromPath(comment.currentFilePath);
+
+      // Show file path
+      if (comment.currentFilePath) {
+        codeMarkdown += `**File:** \`${comment.currentFilePath}\`\n\n`;
+      }
+
+      // Use viewableBlogText if available (includes surrounding lines), otherwise fall back to selected text
+      if (comment.viewableBlogText) {
+        // Calculate the starting line number for context
+        const minRow = Math.min(...comment.selectedCodeBlocks.map(b => b.startRow));
+        const startLine = minRow - Number.parseInt(comment.linesAbove || 0) + 1;
+
+        codeMarkdown += `**Code** *(highlighted lines shown in context)*:\n\n`;
+        codeMarkdown += '```' + lang + '\n';
+
+        // Add line numbers and mark highlighted lines
+        const lines = comment.viewableBlogText.split('\n');
+        lines.forEach((line, idx) => {
+          const lineNum = startLine + idx;
+          // Check if this line is within any highlighted block
+          const isHighlighted = comment.selectedCodeBlocks.some(block =>
+            lineNum >= block.startRow + 1 && lineNum <= block.endRow + 1
+          );
+          const marker = isHighlighted ? '→' : ' ';
+          const paddedLineNum = String(lineNum).padStart(4, ' ');
+          codeMarkdown += `${paddedLineNum} ${marker} ${line}\n`;
+        });
+
+        codeMarkdown += '```\n\n';
+      } else {
+        // Fallback: just show the selected text
+        codeMarkdown += '**Highlighted Code:**\n\n';
+        comment.selectedCodeBlocks.forEach(block => {
+          if (block.selectedText) {
+            codeMarkdown += '```' + lang + '\n' + block.selectedText + '\n```\n\n';
+          }
+        });
+      }
+
+      return codeMarkdown;
+    };
+
+    // Helper function to get author narrative from a comment
+    const getAuthorNarrative = (comment) => {
+      if (!comment?.commentText) {
+        return '';
+      }
+      return comment.commentText + '\n\n';
+    };
+
+    // Helper function to get media from a comment
+    const getMediaMarkdown = (comment) => {
+      if (!comment) return '';
+
+      let mediaMarkdown = '';
+      const hasImages = comment.imageURLs && comment.imageURLs.length > 0;
+      const hasVideos = comment.videoURLs && comment.videoURLs.length > 0;
+      const hasAudio = comment.audioURLs && comment.audioURLs.length > 0;
+
+      if (!hasImages && !hasVideos && !hasAudio) {
+        return '';
+      }
+
+      // Images - use markdown image syntax
+      if (hasImages) {
+        comment.imageURLs.forEach((url, idx) => {
+          mediaMarkdown += `![Image ${idx + 1}](${url})\n\n`;
+        });
+      }
+
+      // Videos - use HTML video tag (will render in HTML output)
+      if (hasVideos) {
+        comment.videoURLs.forEach(url => {
+          mediaMarkdown += `<video controls src="${url}" style="max-width: 100%;"></video>\n\n`;
+        });
+      }
+
+      // Audio - use HTML audio tag
+      if (hasAudio) {
+        comment.audioURLs.forEach(url => {
+          mediaMarkdown += `<audio controls src="${url}"></audio>\n\n`;
+        });
+      }
+
+      return mediaMarkdown;
+    };
+
+    // Generate Markdown content
+    const dateStr = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    // Build a map of questions by comment ID for easy lookup
+    const questionsByCommentId = {};
+    questionHistory.forEach(q => {
+      const commentId = q.commentId || 'unknown';
+      if (!questionsByCommentId[commentId]) {
+        questionsByCommentId[commentId] = [];
+      }
+      questionsByCommentId[commentId].push(q);
+    });
+
+    // Calculate visit counts and find max for highlighting
+    const visitCountByCommentId = {};
+    let maxVisitCount = 0;
+    flattenedComments.forEach(comment => {
+      const count = this.localStorageManager.getCommentVisitCount(comment.id);
+      visitCountByCommentId[comment.id] = count;
+      if (count > maxVisitCount) maxVisitCount = count;
+    });
+
+    // Determine threshold for "frequently visited" (top 20% or visited 3+ times)
+    const frequentlyVisitedThreshold = Math.max(3, Math.ceil(maxVisitCount * 0.6));
+
+    // Helper to build comment URL
+    const getCommentUrl = (index) => {
+      const baseUrl = playbackUrl.split('?')[0];
+      return `${baseUrl}?comment=${index + 1}`;
+    };
+
+    const basePlaybackUrl = playbackUrl.split('?')[0];
+
+    // Get author information
+    const developers = this.playbackEngine.playbackData.developers || {};
+    const anonymousDeveloperId = this.playbackEngine.playbackData.anonymousDeveloperId;
+    const systemDeveloperId = this.playbackEngine.playbackData.systemDeveloperId;
+
+    const authors = Object.values(developers).filter(dev =>
+      dev.id !== anonymousDeveloperId &&
+      dev.id !== systemDeveloperId &&
+      dev.userName !== "Anonymous Developer" &&
+      dev.userName !== "Storyteller System"
+    );
+
+    // Build author string with HTML links (using HTML since we're inside a div)
+    const getAuthorHtmlLink = (dev) => {
+      // Prefer platform link, then website, then just name
+      if (dev.platform && dev.platformUsername) {
+        let platformUrl = '';
+        if (dev.platform.toLowerCase() === 'github') {
+          platformUrl = `https://github.com/${dev.platformUsername}`;
+        } else if (dev.platform.toLowerCase() === 'twitter' || dev.platform.toLowerCase() === 'x') {
+          platformUrl = `https://twitter.com/${dev.platformUsername}`;
+        } else if (dev.platform.toLowerCase() === 'linkedin') {
+          platformUrl = `https://linkedin.com/in/${dev.platformUsername}`;
+        }
+        if (platformUrl) {
+          return `<a href="${platformUrl}">${this.escapeHtml(dev.userName)}</a>`;
+        }
+      }
+      if (dev.websiteUrl) {
+        return `<a href="${dev.websiteUrl}">${this.escapeHtml(dev.userName)}</a>`;
+      }
+      return this.escapeHtml(dev.userName);
+    };
+
+    let markdown = `<div class="report-header">\n\n`;
+    markdown += `<h1>Study Report: <a href="${basePlaybackUrl}">${this.escapeHtml(playbackTitle)}</a></h1>\n\n`;
+
+    // Add author info if available
+    if (authors.length > 0) {
+      const authorLinks = authors.map(getAuthorHtmlLink);
+      const authorText = authorLinks.length === 1
+        ? `By ${authorLinks[0]}`
+        : `By ${authorLinks.slice(0, -1).join(', ')} and ${authorLinks[authorLinks.length - 1]}`;
+      markdown += `<div class="report-author">${authorText}</div>\n\n`;
+    }
+
+    markdown += `<div class="report-date">Generated on ${dateStr}</div>\n\n`;
+    markdown += `</div>\n\n`;
+
+    // Overview section - styled like quiz-summary with stat boxes
+    markdown += `<div class="overview-summary">\n\n`;
+    markdown += `## 📊 Overview\n\n`;
+
+    // Stats displayed in boxes
+    markdown += `<div class="overview-stats">\n`;
+    markdown += `<div class="overview-stat"><div class="overview-stat-value">${viewedCount}/${totalComments}</div><div class="overview-stat-label">Comments Viewed</div></div>\n`;
+    markdown += `<div class="overview-stat"><div class="overview-stat-value">${percentage}%</div><div class="overview-stat-label">Progress</div></div>\n`;
+
+    if (quizStats.total > 0) {
+      markdown += `<div class="overview-divider"></div>\n`;
+      markdown += `<div class="overview-stat"><div class="overview-stat-value">${quizStats.correct}/${quizStats.total}</div><div class="overview-stat-label">Quiz Correct</div></div>\n`;
+      markdown += `<div class="overview-stat"><div class="overview-stat-value">${quizStats.accuracy}%</div><div class="overview-stat-label">Accuracy</div></div>\n`;
+    }
+    markdown += `</div>\n\n`;
+
+    // Quick Review: Incorrect Answers (if any)
+    const incorrectQuestions = questionHistory.filter(q => !q.isCorrect);
+    if (incorrectQuestions.length > 0) {
+      markdown += `### Quick Review: Incorrect Answers\n\n`;
+      incorrectQuestions.forEach(q => {
+        const comment = this.playbackEngine.getCommentById(q.commentId);
+        const commentIndex = this.playbackEngine.getCommentIndex(q.commentId);
+        const commentTitle = comment?.commentTitle || `Comment ${commentIndex + 1}`;
+
+        markdown += `<div class="quiz-incorrect">`;
+        markdown += `<strong>${commentTitle}:</strong> ${q.question}<br>`;
+        markdown += `Your answer: <del>${q.userAnswer}</del> → Correct: <strong>${q.correctAnswer}</strong>`;
+        markdown += `</div>\n\n`;
+      });
+    }
+
+    markdown += `</div>\n\n`;
+
+    // Legend
+    markdown += `### Legend\n\n`;
+    markdown += `- 🔥 **Frequently Revisited** - You returned to this section multiple times\n`;
+    markdown += `- ⚠️ **Needs Review** - Contains questions you answered incorrectly\n`;
+    markdown += `- 📝 **Has Notes** - You added personal notes to this section\n\n`;
+    markdown += `---\n\n`;
+
+    // All Comments in Order
+    markdown += `## Comments\n\n`;
+
+    flattenedComments.forEach((comment, index) => {
+      const commentId = comment.id;
+      const visitCount = visitCountByCommentId[commentId] || 0;
+      const questions = questionsByCommentId[commentId] || [];
+      const hasIncorrect = questions.some(q => !q.isCorrect);
+      const hasNotes = !!allNotes[commentId];
+      const isFrequentlyVisited = visitCount >= frequentlyVisitedThreshold;
+      const commentUrl = getCommentUrl(index);
+
+      // Skip comments with no interaction (not viewed, no questions, no notes)
+      if (visitCount === 0 && questions.length === 0 && !hasNotes) {
+        return;
+      }
+
+      // Build status badges
+      let badges = '';
+      if (isFrequentlyVisited) badges += '🔥';
+      if (hasIncorrect) badges += '⚠️';
+      if (hasNotes) badges += '📝';
+
+      // Build title - use custom title if available, otherwise just "Comment N"
+      let displayTitle = comment.commentTitle ? comment.commentTitle : `Comment ${index + 1}`;
+
+      // Put badges in the link text
+      const linkText = badges ? `${badges} ${displayTitle}` : displayTitle;
+
+      // Start collapsible section
+      markdown += `<!-- BEGIN:comment-section -->\n`;
+      markdown += `### [${linkText}](${commentUrl})`;
+
+      // Add visit count after the link if frequently visited
+      if (isFrequentlyVisited) {
+        markdown += ` *Visited ${visitCount} times*`;
+      }
+      markdown += '\n\n';
+      markdown += `<!-- BEGIN:comment-body -->\n`;
+
+      // Check if there's author content to show
+      const hasAuthorNarrative = comment?.commentText;
+      const hasCode = comment?.selectedCodeBlocks && comment.selectedCodeBlocks.length > 0;
+      const hasMedia = (comment?.imageURLs?.length > 0) || (comment?.videoURLs?.length > 0) || (comment?.audioURLs?.length > 0);
+
+      // Author's Content section
+      if (hasAuthorNarrative || hasCode || hasMedia) {
+        markdown += `<!-- BEGIN:author-content -->\n`;
+        markdown += `#### Author's Content\n\n`;
+
+        // Include author's narrative
+        if (hasAuthorNarrative) {
+          markdown += getAuthorNarrative(comment);
+        }
+
+        // Include media (images, videos, audio)
+        if (hasMedia) {
+          markdown += getMediaMarkdown(comment);
+        }
+
+        // Include highlighted code
+        if (hasCode) {
+          markdown += getCodeBlocksMarkdown(comment);
+        }
+
+        markdown += `<!-- END:author-content -->\n\n`;
+      }
+
+      // Your Activity section
+      if (questions.length > 0 || hasNotes) {
+        markdown += `<!-- BEGIN:viewer-activity -->\n`;
+        markdown += `#### Your Activity\n\n`;
+
+        // Show quiz questions if any
+        if (questions.length > 0) {
+          markdown += '**Quiz Results:**\n\n';
+          questions.forEach(q => {
+            const statusIcon = q.isCorrect ? '✓' : '✗';
+            const statusText = q.isCorrect ? 'Correct' : 'Incorrect';
+            const quizClass = q.isCorrect ? 'quiz-correct' : 'quiz-incorrect';
+            const timestamp = q.timestamp ? new Date(q.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+
+            markdown += `<div class="${quizClass}">`;
+            markdown += `<strong>${q.question}</strong><br>`;
+            if (q.isCorrect) {
+              markdown += `${statusIcon} <strong>${statusText}</strong> — Your answer: <strong>${q.userAnswer}</strong>`;
+            } else {
+              markdown += `${statusIcon} <strong>${statusText}</strong> — Your answer: <del>${q.userAnswer}</del> → Correct: <strong>${q.correctAnswer}</strong>`;
+            }
+            if (timestamp) {
+              markdown += ` <span class="timestamp">${timestamp}</span>`;
+            }
+            markdown += `</div>\n\n`;
+          });
+        }
+
+        // Include user's notes if any
+        if (hasNotes) {
+          const noteTimestamp = allNotes[commentId].lastEdited
+            ? new Date(allNotes[commentId].lastEdited).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+            : '';
+          markdown += '**Your Notes:**';
+          if (noteTimestamp) {
+            markdown += ` <span class="timestamp">Last edited: ${noteTimestamp}</span>`;
+          }
+          markdown += '\n\n';
+          markdown += allNotes[commentId].text + '\n\n';
+        }
+
+        markdown += `<!-- END:viewer-activity -->\n\n`;
+      }
+
+      markdown += `<!-- END:comment-body -->\n`;
+      markdown += `<!-- END:comment-section -->\n\n`;
+    });
+
+    // Generate HTML content (enable HTML for video/audio tags)
+    const md = markdownit({ html: true });
+    let htmlBody = md.render(markdown);
+
+    // Post-process to wrap sections in styled divs
+    htmlBody = htmlBody
+      .replace(/<!-- BEGIN:author-content -->/g, '<div class="author-content">')
+      .replace(/<!-- END:author-content -->/g, '</div>')
+      .replace(/<!-- BEGIN:viewer-activity -->/g, '<div class="viewer-activity">')
+      .replace(/<!-- END:viewer-activity -->/g, '</div>')
+      .replace(/<!-- BEGIN:comment-section -->/g, '<div class="comment-section">')
+      .replace(/<!-- END:comment-section -->/g, '</div>')
+      .replace(/<!-- BEGIN:comment-body -->/g, '<div class="comment-body">')
+      .replace(/<!-- END:comment-body -->/g, '</div>')
+      // Make h3 inside comment-section clickable for collapse
+      .replace(/<div class="comment-section">\s*<h3>/g, '<div class="comment-section"><h3 class="comment-header" onclick="this.parentElement.classList.toggle(\'collapsed\')">');
+
+    const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base target="_blank">
+  <title>Study Report: ${this.escapeHtml(playbackTitle)}</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #ffffff;
+      color: #1f2937;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #1f2937;
+        color: #e2e8f0;
+      }
+      hr {
+        border-color: #374151;
+      }
+      code {
+        background-color: #374151;
+      }
+    }
+    h1 {
+      color: #3b82f6;
+      border-bottom: 2px solid #3b82f6;
+      padding-bottom: 10px;
+    }
+    h2 {
+      margin-top: 30px;
+      color: #374151;
+    }
+    h3 {
+      margin-top: 20px;
+    }
+    h4 {
+      font-size: 0.8em;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0 0 12px 0;
+      padding: 0;
+      border: none;
+    }
+    /* Report header card */
+    .report-header {
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .report-header h1 {
+      color: #1e40af;
+      border-bottom: none;
+      padding-bottom: 0;
+      margin: 0 0 8px 0;
+      font-size: 1.5em;
+    }
+    .report-header h1 a {
+      color: #1e40af;
+    }
+    .report-header h1 a:hover {
+      color: #3b82f6;
+    }
+    .report-author {
+      font-size: 1em;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+    .report-author a {
+      color: #2563eb;
+    }
+    .report-author a:hover {
+      color: #1e40af;
+    }
+    .report-date {
+      font-size: 0.85em;
+      color: #6b7280;
+    }
+    @media (prefers-color-scheme: dark) {
+      .report-header {
+        background-color: rgba(59, 130, 246, 0.1);
+        border-color: #1e40af;
+      }
+      .report-header h1,
+      .report-header h1 a {
+        color: #60a5fa;
+      }
+      .report-header h1 a:hover {
+        color: #93c5fd;
+      }
+      .report-author {
+        color: #d1d5db;
+      }
+      .report-author a {
+        color: #60a5fa;
+      }
+      .report-date {
+        color: #9ca3af;
+      }
+    }
+    .author-content {
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-left: 4px solid #3b82f6;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 16px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .author-content h4 {
+      color: #3b82f6;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .author-content h4::before {
+      content: '';
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%233b82f6' viewBox='0 0 16 16'%3E%3Cpath d='M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+    .viewer-activity {
+      background-color: #fefce8;
+      border-left: 4px solid #eab308;
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 16px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .viewer-activity h4 {
+      color: #ca8a04;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .viewer-activity h4::before {
+      content: '';
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23ca8a04' viewBox='0 0 16 16'%3E%3Cpath d='M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+    @media (prefers-color-scheme: dark) {
+      .author-content {
+        background-color: rgba(59, 130, 246, 0.1);
+        border-color: #1e40af;
+        border-left-color: #60a5fa;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+      }
+      .author-content h4 {
+        color: #60a5fa;
+      }
+      .author-content h4::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%2360a5fa' viewBox='0 0 16 16'%3E%3Cpath d='M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z'/%3E%3C/svg%3E");
+      }
+      .viewer-activity {
+        background-color: #422006;
+        border-left-color: #fbbf24;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+      }
+      .viewer-activity h4 {
+        color: #fbbf24;
+      }
+      .viewer-activity h4::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fbbf24' viewBox='0 0 16 16'%3E%3Cpath d='M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z'/%3E%3C/svg%3E");
+      }
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 20px 0;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    code {
+      background-color: #e5e7eb;
+      color: #1f2937;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    @media (prefers-color-scheme: dark) {
+      code {
+        background-color: #374151;
+        color: #e2e8f0;
+      }
+    }
+    pre {
+      background-color: #1f2937;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    pre code {
+      background-color: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    @media (prefers-color-scheme: dark) {
+      pre {
+        background-color: #111827;
+        border: 1px solid #374151;
+      }
+    }
+    h3 a {
+      color: inherit;
+      text-decoration: none;
+    }
+    h3 a:hover {
+      color: #3b82f6;
+      text-decoration: underline;
+    }
+    h1 a {
+      color: inherit;
+      text-decoration: none;
+    }
+    h1 a:hover {
+      text-decoration: underline;
+    }
+    del {
+      color: #ef4444;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin: 8px 0;
+    }
+    video, audio {
+      max-width: 100%;
+      margin: 8px 0;
+    }
+    .toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 12px 20px;
+      background-color: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e5e7eb;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    @media (prefers-color-scheme: dark) {
+      .toolbar {
+        background-color: rgba(31,41,55,0.95);
+        border-bottom-color: #374151;
+      }
+    }
+    .toolbar button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-markdown {
+      background-color: #10b981;
+      color: white;
+    }
+    .btn-markdown:hover {
+      background-color: #059669;
+    }
+    .btn-html {
+      background-color: #3b82f6;
+      color: white;
+    }
+    .btn-html:hover {
+      background-color: #2563eb;
+    }
+    .btn-print {
+      background-color: #6b7280;
+      color: white;
+    }
+    .btn-print:hover {
+      background-color: #4b5563;
+    }
+    body {
+      padding-top: 60px;
+    }
+    @media print {
+      .toolbar {
+        display: none;
+      }
+      body {
+        padding-top: 0;
+      }
+    }
+    /* Quiz result styling */
+    .quiz-correct {
+      background-color: #dcfce7;
+      border-left: 3px solid #22c55e;
+      padding: 8px 12px;
+      margin: 8px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    .quiz-incorrect {
+      background-color: #fef2f2;
+      border-left: 3px solid #ef4444;
+      padding: 8px 12px;
+      margin: 8px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    @media (prefers-color-scheme: dark) {
+      .quiz-correct {
+        background-color: rgba(34,197,94,0.15);
+      }
+      .quiz-incorrect {
+        background-color: rgba(239,68,68,0.15);
+      }
+    }
+    /* Collapsible sections */
+    .comment-section {
+      margin-bottom: 24px;
+    }
+    .comment-header {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .comment-header::before {
+      content: '▼';
+      font-size: 0.7em;
+      transition: transform 0.2s;
+      color: #4b5563;
+    }
+    .comment-section.collapsed .comment-header::before {
+      transform: rotate(-90deg);
+    }
+    .comment-section.collapsed .comment-body {
+      display: none;
+    }
+    .comment-body {
+      margin-top: 8px;
+    }
+    /* Timestamps */
+    .timestamp {
+      font-size: 0.75em;
+      color: #6b7280;
+      font-style: italic;
+    }
+    /* Quiz summary section */
+    .quiz-summary {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 24px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .quiz-summary h3 {
+      color: #166534;
+      margin-top: 0;
+    }
+    .quiz-summary-stats {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .quiz-stat {
+      text-align: center;
+    }
+    .quiz-stat-value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #166534;
+    }
+    .quiz-stat-label {
+      font-size: 0.85em;
+      color: #4b5563;
+    }
+    @media (prefers-color-scheme: dark) {
+      .quiz-summary {
+        background-color: rgba(34,197,94,0.1);
+        border-color: #166534;
+      }
+      .quiz-summary h3 {
+        color: #4ade80;
+      }
+      .quiz-stat-value {
+        color: #4ade80;
+      }
+    }
+    /* Overview summary section - similar to quiz-summary */
+    .overview-summary {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 24px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .overview-summary h2 {
+      color: #166534;
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+    .overview-summary h3 {
+      color: #166534;
+      margin-top: 20px;
+      margin-bottom: 12px;
+    }
+    .overview-stats {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .overview-stat {
+      text-align: center;
+    }
+    .overview-stat-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #166534;
+    }
+    .overview-stat-label {
+      font-size: 0.85em;
+      color: #4b5563;
+    }
+    .overview-divider {
+      width: 1px;
+      background-color: #86efac;
+      margin: 0 8px;
+      align-self: stretch;
+    }
+    @media (prefers-color-scheme: dark) {
+      .overview-summary {
+        background-color: rgba(34,197,94,0.1);
+        border-color: #166534;
+      }
+      .overview-summary h2,
+      .overview-summary h3 {
+        color: #4ade80;
+      }
+      .overview-stat-value {
+        color: #4ade80;
+      }
+      .overview-divider {
+        background-color: #166534;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
+    <button class="btn-markdown" onclick="saveAsMarkdown()">Save as Markdown</button>
+    <button class="btn-html" onclick="saveAsWebPage()">Save as Web Page</button>
+  </div>
+  ${htmlBody}
+  <script>
+    const markdownContent = ${JSON.stringify(markdown)};
+    const playbackTitle = ${JSON.stringify(playbackTitle)};
+
+    function saveAsMarkdown() {
+      const blob = new Blob([markdownContent], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'study-report-' + sanitizeFilename(playbackTitle) + '.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function saveAsWebPage() {
+      const htmlContent = document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'study-report-' + sanitizeFilename(playbackTitle) + '.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function sanitizeFilename(name) {
+      return name.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .substring(0, 50);
+    }
+  </script>
+</body>
+</html>`;
+
+    // Open in a new window
+    const reportWindow = window.open('', '_blank');
+    if (reportWindow) {
+      reportWindow.document.write(htmlContent);
+      reportWindow.document.close();
+    } else {
+      alert('Unable to open the study report. Please check your popup blocker settings.');
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   close() {

@@ -212,6 +212,14 @@ class CommentView extends HTMLElement {
 
         .note-editor-container {
           margin-top: 8px;
+          overflow: hidden;
+          max-height: 0;
+          transition: max-height 0.3s ease-out;
+        }
+
+        .note-editor-container.expanded {
+          max-height: 500px;
+          transition: max-height 0.4s ease-in;
         }
 
         .ai-question-wrapper {
@@ -432,14 +440,16 @@ class CommentView extends HTMLElement {
             });
             noteEditor.addEventListener('note-deleted', (e) => {
               this.updateNoteButtonState(false);
-              noteEditorContainer.innerHTML = '';
-              this.noteEditorVisible = false;
+              this.closeNoteEditorWithAnimation();
             });
             noteEditor.addEventListener('note-cancelled', (e) => {
-              noteEditorContainer.innerHTML = '';
-              this.noteEditorVisible = false;
+              this.closeNoteEditorWithAnimation();
             });
             noteEditorContainer.appendChild(noteEditor);
+            // Scroll to show the updated note
+            setTimeout(() => {
+              noteEditorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
           }
         }
       });
@@ -848,8 +858,14 @@ class CommentView extends HTMLElement {
     const noteEditorContainer = this.shadowRoot.querySelector('.note-editor-container');
 
     if (this.noteEditorVisible) {
-      // Close the note editor
-      noteEditorContainer.innerHTML = '';
+      // Close the note editor with animation
+      noteEditorContainer.classList.remove('expanded');
+      // Wait for animation to complete before clearing content
+      setTimeout(() => {
+        if (!this.noteEditorVisible) {
+          noteEditorContainer.innerHTML = '';
+        }
+      }, 300);
       this.noteEditorVisible = false;
     } else {
       // Open the note editor
@@ -863,19 +879,41 @@ class CommentView extends HTMLElement {
 
         noteEditor.addEventListener('note-deleted', (e) => {
           this.updateNoteButtonState(false);
-          noteEditorContainer.innerHTML = '';
-          this.noteEditorVisible = false;
+          this.closeNoteEditorWithAnimation();
         });
 
         noteEditor.addEventListener('note-cancelled', (e) => {
-          noteEditorContainer.innerHTML = '';
-          this.noteEditorVisible = false;
+          this.closeNoteEditorWithAnimation();
         });
 
         noteEditorContainer.appendChild(noteEditor);
         this.noteEditorVisible = true;
+
+        // Trigger animation after content is added
+        requestAnimationFrame(() => {
+          noteEditorContainer.classList.add('expanded');
+          // Scroll into view after animation starts, positioning top of editor at center of screen
+          setTimeout(() => {
+            noteEditorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+        });
       }
     }
+  }
+
+  /**
+   * Close the note editor with slide animation
+   */
+  closeNoteEditorWithAnimation() {
+    const noteEditorContainer = this.shadowRoot.querySelector('.note-editor-container');
+    noteEditorContainer.classList.remove('expanded');
+    this.noteEditorVisible = false;
+    // Wait for animation to complete before clearing content
+    setTimeout(() => {
+      if (!this.noteEditorVisible) {
+        noteEditorContainer.innerHTML = '';
+      }
+    }, 300);
   }
 
   /**
