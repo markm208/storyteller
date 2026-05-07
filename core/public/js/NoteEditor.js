@@ -115,6 +115,8 @@ class NoteEditor extends HTMLElement {
           font-size: 0.9em;
           color: #e2e8f0;
           line-height: 1.5;
+          max-height: 200px;
+          overflow-y: auto;
         }
 
         .note-content p {

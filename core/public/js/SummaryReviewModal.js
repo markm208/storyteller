@@ -1042,7 +1042,7 @@ class SummaryReviewModal extends HTMLElement {
                 <div class="quiz-question-text">${q.question}</div>
                 <div class="quiz-answer-row">
                   <span class="quiz-answer-label">Your answer:</span>
-                  <span class="quiz-answer-value incorrect">${q.userAnswer}</span>
+                  <span class="quiz-answer-value incorrect">${q.userAnswer ?? 'No answer selected'}</span>
                 </div>
                 <div class="quiz-answer-row">
                   <span class="quiz-answer-label">Correct:</span>
@@ -1211,7 +1211,7 @@ class SummaryReviewModal extends HTMLElement {
   }
 
   generateStudyReport() {
-    const playbackTitle = this.playbackEngine.playbackData.title || 'Untitled Playback';
+    const playbackTitle = this.playbackEngine.playbackData.playbackTitle || 'Untitled Playback';
     const playbackUrl = window.location.href;
     const totalComments = this.playbackEngine.commentInfo.totalNumberOfComments;
     const viewedCount = this.localStorageManager.getViewedCount();
@@ -1475,7 +1475,7 @@ class SummaryReviewModal extends HTMLElement {
 
         markdown += `<div class="quiz-incorrect">`;
         markdown += `<strong>${commentTitle}:</strong> ${q.question}<br>`;
-        markdown += `Your answer: <del>${q.userAnswer}</del> → Correct: <strong>${q.correctAnswer}</strong>`;
+        markdown += `Your answer: <del>${q.userAnswer ?? 'No answer selected'}</del> → Correct: <strong>${q.correctAnswer}</strong>`;
         markdown += `</div>\n\n`;
       });
     }
@@ -1574,9 +1574,9 @@ class SummaryReviewModal extends HTMLElement {
             markdown += `<div class="${quizClass}">`;
             markdown += `<strong>${q.question}</strong><br>`;
             if (q.isCorrect) {
-              markdown += `${statusIcon} <strong>${statusText}</strong> — Your answer: <strong>${q.userAnswer}</strong>`;
+              markdown += `${statusIcon} <strong>${statusText}</strong> — Your answer: <strong>${q.userAnswer ?? 'No answer selected'}</strong>`;
             } else {
-              markdown += `${statusIcon} <strong>${statusText}</strong> — Your answer: <del>${q.userAnswer}</del> → Correct: <strong>${q.correctAnswer}</strong>`;
+              markdown += `${statusIcon} <strong>${statusText}</strong> — Your answer: <del>${q.userAnswer ?? 'No answer selected'}</del> → Correct: <strong>${q.correctAnswer}</strong>`;
             }
             if (timestamp) {
               markdown += ` <span class="timestamp">${timestamp}</span>`;
