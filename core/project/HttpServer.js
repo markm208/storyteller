@@ -285,7 +285,8 @@ class HttpServer {
         app.get('/media/images/:filePath', (req, res) => {
             const imageData = this.projectManager.getMediaFile(utilities.replaceSpacesWithDashes(req.path.substring(1)));
             if(imageData) {
-                res.send(imageData);
+                //set the content type based on the file extension and send the image data
+                res.type(path.extname(req.path)).send(imageData);
             } else {
                 res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`);
             }
@@ -294,7 +295,8 @@ class HttpServer {
         app.get('/media/videos/:filePath', (req, res) => {
             const videoData = this.projectManager.getMediaFile(utilities.replaceSpacesWithDashes(req.path.substring(1)));
             if(videoData) {
-                res.send(videoData);
+                //set the content type based on the file extension and send the video data
+                res.type(path.extname(req.path)).send(videoData);
             } else {
                 res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`);
             }
@@ -303,7 +305,8 @@ class HttpServer {
         app.get('/media/audios/:filePath', (req, res) => {
             const audioData = this.projectManager.getMediaFile(utilities.replaceSpacesWithDashes(req.path.substring(1)));
             if(audioData) {
-                res.send(audioData);
+                //set the content type based on the file extension and send the audio data
+                res.type(path.extname(req.path)).send(audioData);
             } else {
                 res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`);
             }
